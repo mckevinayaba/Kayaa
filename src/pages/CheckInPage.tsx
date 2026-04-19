@@ -1,205 +1,405 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { CheckSquare, ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { mockVenues } from '../lib/mockData';
+import type { Venue } from '../types';
 
-type Step = 'confirm' | 'note' | 'done';
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
+  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
+};
+
+const CATEGORY_COLOR: Record<string, string> = {
+  Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
+  Café: '#F59E0B', Church: '#A78BFA', Carwash: '#34D399',
+  'Spaza Shop': '#60A5FA', Salon: '#F472B6', Tutoring: '#34D399',
+  'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getStatus(venue: Venue): { label: string; color: string } {
+  if (!venue.isOpen) return { label: 'Closed', color: '#6B7280' };
+  if (venue.checkinCount > 1000) return { label: 'Busy now', color: '#F5A623' };
+  return { label: 'Open now', color: '#39D98A' };
+}
+
+function getVisitNumber(venue: Venue): number {
+  return (venue.checkinCount % 47) + 3;
+}
+
+// ─── Toggle switch ────────────────────────────────────────────────────────────
+
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        width: '46px', height: '26px', borderRadius: '13px', flexShrink: 0,
+        background: checked ? 'var(--color-accent)' : 'var(--color-surface2)',
+        border: `1px solid ${checked ? 'var(--color-accent)' : 'var(--color-border)'}`,
+        position: 'relative', cursor: 'pointer',
+        transition: 'background 0.2s, border-color 0.2s',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: '4px',
+        left: checked ? '23px' : '4px',
+        width: '16px', height: '16px', borderRadius: '50%',
+        background: checked ? '#000' : '#6B7280',
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  );
+}
+
+// ─── 404 ─────────────────────────────────────────────────────────────────────
+
+function VenueNotFound() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', minHeight: '70vh', padding: '32px', textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px' }}>
+        Venue not found
+      </h2>
+      <Link to="/feed" style={{ color: 'var(--color-accent)', fontSize: '14px', textDecoration: 'none' }}>
+        ← Back to feed
+      </Link>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+type Step = 'form' | 'loading' | 'success';
 
 export default function CheckInPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const venue = mockVenues.find(v => v.slug === slug);
-  const [step, setStep] = useState<Step>('confirm');
-  const [note, setNote] = useState('');
 
-  if (!venue) {
+  const venue = mockVenues.find(v => v.slug === slug);
+
+  const [step, setStep] = useState<Step>('form');
+  const [name, setName] = useState('');
+  const [isRegular, setIsRegular] = useState(true);
+  const [ghostMode, setGhostMode] = useState(false);
+  const [nameError, setNameError] = useState(false);
+
+  if (!venue) return <VenueNotFound />;
+
+  const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
+  const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
+  const status = getStatus(venue);
+  const visitNumber = getVisitNumber(venue);
+
+  function handleSubmit() {
+    if (!name.trim()) {
+      setNameError(true);
+      return;
+    }
+    setNameError(false);
+    setStep('loading');
+    setTimeout(() => setStep('success'), 900);
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: 'var(--color-surface)',
+    border: `1px solid ${nameError ? '#F87171' : 'var(--color-border)'}`,
+    borderRadius: '14px',
+    padding: '16px',
+    color: 'var(--color-text)',
+    fontSize: '16px',
+    fontFamily: 'DM Sans, sans-serif',
+    outline: 'none',
+    boxSizing: 'border-box',
+    minHeight: '56px',
+  };
+
+  // ── Success screen ──────────────────────────────────────────────────────────
+
+  if (step === 'success') {
+    const displayName = name.trim().split(' ')[0];
+    const isGhost = ghostMode;
+
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '12px' }}>
-        <span style={{ fontSize: '40px' }}>🔍</span>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>Venue not found</h2>
-        <Link to="/feed" style={{ color: 'var(--color-accent)', fontSize: '14px' }}>Back to feed</Link>
-      </div>
+      <>
+        <style>{`
+          @keyframes scaleIn {
+            from { transform: scale(0.4); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+          }
+          @keyframes fadeUp {
+            from { transform: translateY(16px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
+          .checkin-success-icon  { animation: scaleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+          .checkin-success-text  { animation: fadeUp  0.4s ease 0.3s both; }
+          .checkin-success-sub   { animation: fadeUp  0.4s ease 0.45s both; }
+          .checkin-success-ctas  { animation: fadeUp  0.4s ease 0.6s both; }
+        `}</style>
+
+        <div style={{ padding: '24px 16px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+
+          {/* Animated checkmark */}
+          <div className="checkin-success-icon" style={{
+            width: '88px', height: '88px', borderRadius: '50%',
+            background: isGhost ? 'rgba(255,255,255,0.04)' : 'rgba(57,217,138,0.12)',
+            border: `2px solid ${isGhost ? 'rgba(255,255,255,0.15)' : 'var(--color-accent)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '28px',
+            fontSize: '40px',
+          }}>
+            {isGhost ? '👤' : '✓'}
+          </div>
+
+          {/* Heading */}
+          <h1 className="checkin-success-text" style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+            color: 'var(--color-text)', marginBottom: '12px', lineHeight: 1.2,
+          }}>
+            {isGhost
+              ? "You're in — quietly."
+              : `You're in, ${displayName}.`
+            }
+          </h1>
+
+          {/* Sub message */}
+          <p className="checkin-success-sub" style={{
+            fontSize: '15px', color: 'var(--color-muted)', lineHeight: 1.65,
+            marginBottom: '40px', maxWidth: '280px',
+          }}>
+            {isGhost ? (
+              <>The count went up.{' '}<span style={{ color: 'var(--color-text)' }}>The vibe is better.</span></>
+            ) : isRegular ? (
+              <>Visit {visitNumber} at{' '}
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue.name}</span>
+                . Good to have you back.
+              </>
+            ) : (
+              <>Welcome to{' '}
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue.name}</span>
+                . You're officially part of the neighbourhood.
+              </>
+            )}
+          </p>
+
+          {/* CTAs */}
+          <div className="checkin-success-ctas" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <Link
+              to={`/venue/${slug}`}
+              style={{
+                display: 'block', textDecoration: 'none',
+                background: 'var(--color-accent)', color: '#000',
+                borderRadius: '14px', padding: '16px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+                textAlign: 'center',
+              }}
+            >
+              Back to {venue.name.split("'")[0].trim()}
+            </Link>
+            <Link
+              to="/feed"
+              style={{
+                display: 'block', textDecoration: 'none',
+                color: 'var(--color-muted)', fontSize: '14px',
+                padding: '12px', textAlign: 'center',
+              }}
+            >
+              See what's near me →
+            </Link>
+          </div>
+        </div>
+      </>
     );
   }
 
+  // ── Form + loading ──────────────────────────────────────────────────────────
+
   return (
-    <div style={{ padding: '16px' }}>
-      {/* Back */}
-      <Link to={`/venue/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-muted)', textDecoration: 'none', fontSize: '14px', marginBottom: '24px' }}>
-        <ArrowLeft size={16} /> {venue.name}
-      </Link>
+    <div style={{ padding: '16px', paddingBottom: '40px' }}>
 
-      {step === 'confirm' && (
-        <div>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{
-              width: '80px', height: '80px', borderRadius: '20px',
-              background: 'var(--color-surface)',
-              border: '2px solid var(--color-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '32px', color: 'var(--color-accent)',
-            }}>
-              {venue.name[0]}
-            </div>
-            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', marginBottom: '6px' }}>
-              Check in to
-            </h1>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-accent)', marginBottom: '8px' }}>
-              {venue.name}
-            </h2>
-            <p style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-              {venue.neighborhood}, {venue.city}
-            </p>
-          </div>
-
-          <div style={{
+      {/* Sub-header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: '24px',
+      }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            width: '36px', height: '36px', borderRadius: '50%',
             background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            borderRadius: '12px', padding: '16px', marginBottom: '24px',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>Total check-ins</span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-accent)' }}>
-                {venue.checkinCount.toLocaleString()}
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>Status</span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: venue.isOpen ? '#39D98A' : '#6B7280' }}>
-                {venue.isOpen ? 'Open now' : 'Closed'}
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setStep('note')}
-            style={{
-              width: '100%', padding: '16px',
-              background: 'var(--color-accent)', color: '#000',
-              border: 'none', borderRadius: '12px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            }}
-          >
-            <CheckSquare size={20} />
-            Yes, I'm here
-          </button>
-        </div>
-      )}
-
-      {step === 'note' && (
-        <div>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', marginBottom: '8px' }}>
-            Add a note?
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '24px' }}>
-            Optional — share what you're doing or recommend something
-          </p>
-
-          <textarea
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="e.g. Fresh fade today 💈 Ask for Uncle Dee..."
-            maxLength={160}
-            style={{
-              width: '100%', minHeight: '120px',
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '12px', padding: '14px',
-              color: 'var(--color-text)', fontSize: '14px',
-              fontFamily: 'DM Sans, sans-serif',
-              resize: 'vertical', outline: 'none',
-              marginBottom: '8px',
-            }}
-          />
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)', textAlign: 'right', marginBottom: '24px' }}>
-            {note.length}/160
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => setStep('done')}
-              style={{
-                flex: 1, padding: '14px',
-                background: 'transparent', color: 'var(--color-muted)',
-                border: '1px solid var(--color-border)', borderRadius: '12px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-                cursor: 'pointer',
-              }}
-            >
-              Skip
-            </button>
-            <button
-              onClick={() => setStep('done')}
-              style={{
-                flex: 2, padding: '14px',
-                background: 'var(--color-accent)', color: '#000',
-                border: 'none', borderRadius: '12px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-                cursor: 'pointer',
-              }}
-            >
-              Check in
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 'done' && (
-        <div style={{ textAlign: 'center', paddingTop: '40px' }}>
-          <div style={{
-            width: '80px', height: '80px', borderRadius: '50%',
-            background: 'rgba(57, 217, 138, 0.12)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px',
-            border: '2px solid var(--color-accent)',
-          }}>
-            <CheckSquare size={36} color="var(--color-accent)" />
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          <ArrowLeft size={16} color="var(--color-text)" />
+        </button>
+
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <div style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '1px' }}>
+            {emoji} {venue.name}
           </div>
-
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '8px' }}>
-            You're checked in!
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '8px' }}>
-            {venue.name}
-          </p>
-          {note && (
-            <div style={{
-              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-              borderRadius: '10px', padding: '12px', margin: '16px 0', textAlign: 'left',
-            }}>
-              <p style={{ fontSize: '14px', color: 'var(--color-text)' }}>"{note}"</p>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '10px', marginTop: '32px' }}>
-            <button
-              onClick={() => navigate(`/venue/${slug}`)}
-              style={{
-                flex: 1, padding: '14px',
-                background: 'transparent', color: 'var(--color-text)',
-                border: '1px solid var(--color-border)', borderRadius: '12px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-                cursor: 'pointer',
-              }}
-            >
-              View venue
-            </button>
-            <button
-              style={{
-                flex: 1, padding: '14px',
-                background: 'var(--color-surface2)', color: 'var(--color-text)',
-                border: '1px solid var(--color-border)', borderRadius: '12px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              }}
-            >
-              <Share2 size={15} /> Share
-            </button>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
+            Check in
           </div>
         </div>
+
+        <div style={{ width: '36px' }} />
+      </div>
+
+      {/* Venue confirmation card */}
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '16px', padding: '14px',
+        display: 'flex', gap: '12px', alignItems: 'center',
+        marginBottom: '28px',
+      }}>
+        <div style={{
+          width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+          background: `${color}18`, border: `1px solid ${color}30`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '24px',
+        }}>
+          {emoji}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>
+            {venue.name}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '11px', fontWeight: 600, color,
+              background: `${color}18`, padding: '2px 8px', borderRadius: '20px',
+            }}>
+              {venue.category}
+            </span>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: status.color, flexShrink: 0 }} />
+            <span style={{ fontSize: '11px', fontWeight: 600, color: status.color }}>{status.label}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px' }}>
+            <MapPin size={11} color="var(--color-muted)" />
+            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+              {venue.neighborhood}, {venue.city}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Form ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
+
+        {/* Name input */}
+        <div>
+          <label style={{
+            display: 'block', fontSize: '13px', fontWeight: 600,
+            color: 'var(--color-muted)', marginBottom: '8px',
+          }}>
+            Your name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => { setName(e.target.value); setNameError(false); }}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            placeholder="What do people call you?"
+            autoComplete="given-name"
+            style={inputStyle}
+          />
+          {nameError && (
+            <p style={{ fontSize: '12px', color: '#F87171', marginTop: '6px' }}>
+              We need something to call you 👋
+            </p>
+          )}
+        </div>
+
+        {/* Visit type toggle */}
+        <div>
+          <label style={{
+            display: 'block', fontSize: '13px', fontWeight: 600,
+            color: 'var(--color-muted)', marginBottom: '8px',
+          }}>
+            How do you know this place?
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {([true, false] as const).map(val => (
+              <button
+                key={String(val)}
+                onClick={() => setIsRegular(val)}
+                style={{
+                  flex: 1, padding: '13px 8px',
+                  borderRadius: '12px', cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+                  border: isRegular === val ? 'none' : '1px solid var(--color-border)',
+                  background: isRegular === val ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: isRegular === val ? '#000' : 'var(--color-muted)',
+                  transition: 'all 0.15s',
+                  minHeight: '48px',
+                }}
+              >
+                {val ? "I'm a regular here" : 'First time here'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Ghost mode toggle */}
+        <div style={{
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: '14px', padding: '14px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '2px' }}>
+              Check in quietly
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
+              You show up in the count but stay anonymous
+            </div>
+          </div>
+          <ToggleSwitch checked={ghostMode} onChange={setGhostMode} />
+        </div>
+      </div>
+
+      {/* Submit button */}
+      <button
+        onClick={handleSubmit}
+        disabled={step === 'loading'}
+        style={{
+          width: '100%', minHeight: '56px',
+          background: step === 'loading' ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
+          color: '#000', border: 'none', borderRadius: '14px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px',
+          cursor: step === 'loading' ? 'default' : 'pointer',
+          transition: 'background 0.2s, opacity 0.2s',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+        }}
+      >
+        {step === 'loading' ? (
+          <>
+            <span style={{
+              width: '18px', height: '18px', borderRadius: '50%',
+              border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000',
+              display: 'inline-block',
+              animation: 'spin 0.7s linear infinite',
+            }} />
+            Checking you in…
+          </>
+        ) : (
+          'Check me in'
+        )}
+      </button>
+
+      {step === 'loading' && (
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       )}
     </div>
   );
