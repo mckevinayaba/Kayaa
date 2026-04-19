@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(cmd /c \"where npm\")",
+      "Bash(cmd /c \"where node\")",
+      "Bash(cmd /c \"npm --version\")",
+      "Bash(cmd /c \"node --version\")",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH:/c/Users/asus/AppData/Roaming/npm\")",
+      "Bash(npm --version)",
+      "Read(//c//**)",
+      "Read(//mnt/c/Users/**)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(winget --version)",
+      "Bash(cmd /c \"winget --version\")",
+      "Bash(winget install *)",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Read(//tmp/**)",
+      "Bash(cp -r /tmp/kayaa-temp/. \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App/\")",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
