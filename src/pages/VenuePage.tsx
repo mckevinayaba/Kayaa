@@ -42,14 +42,7 @@ const REGULARS_BY_VENUE: Record<string, string[]> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
+const LIVE_TIMES = ['2 min ago', '18 min ago', '1 hour ago', '3 hours ago'];
 
 function formatEventDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -440,14 +433,14 @@ function ActivitySection({ venueId }: { venueId: string }) {
       id: `ci-${c.id}`,
       initial: c.userName[0],
       text: `${c.userName.split(' ')[0]} checked in${c.note ? ` · "${c.note}"` : ''}`,
-      time: timeAgo(c.createdAt),
+      time: LIVE_TIMES[i % LIVE_TIMES.length],
       color: AVATAR_COLORS[i % AVATAR_COLORS.length],
     })),
     ...posts.map((p, i) => ({
       id: `po-${p.id}`,
       initial: p.authorName[0],
       text: `${p.authorName.split(' ')[0]} left a note`,
-      time: timeAgo(p.createdAt),
+      time: LIVE_TIMES[(i + 2) % LIVE_TIMES.length],
       color: AVATAR_COLORS[(i + 2) % AVATAR_COLORS.length],
     })),
   ].slice(0, 4);
@@ -561,7 +554,7 @@ function PostsSection({ posts }: { posts: Post[] }) {
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                   {post.authorName.split(' ')[0]}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{timeAgo(post.createdAt)}</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[posts.indexOf(post) % LIVE_TIMES.length]}</div>
               </div>
             </div>
             <p style={{ fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, marginBottom: '10px' }}>
