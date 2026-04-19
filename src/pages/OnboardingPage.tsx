@@ -1,258 +1,589 @@
-import { useState } from 'react';
-import { Check, MapPin, Clock, Tag } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Shield } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 
-const CATEGORIES = [
-  'Barbershop', 'Salon', 'Shisanyama', 'Spaza Shop', 'Church',
-  'Tavern', 'Carwash', 'Clinic', 'Tutoring', 'Sports Ground', 'Home Business', 'Other',
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const VENUE_TYPES = [
+  { emoji: '✂️', label: 'Barbershop' },
+  { emoji: '☕', label: 'Café'        },
+  { emoji: '💅', label: 'Salon'       },
+  { emoji: '🍺', label: 'Tavern'      },
+  { emoji: '🔥', label: 'Shisanyama' },
+  { emoji: '🏪', label: 'Spaza'       },
+  { emoji: '🚗', label: 'Carwash'     },
+  { emoji: '⛪', label: 'Church'      },
+  { emoji: '🏛️', label: 'Community'  },
+  { emoji: '➕', label: 'Other'       },
 ];
 
-type Step = 1 | 2 | 3 | 4;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-interface FormData {
-  name: string;
-  category: string;
-  description: string;
-  address: string;
-  neighborhood: string;
-  city: string;
-  openHours: string;
-  tags: string;
-  ownerName: string;
-  ownerPhone: string;
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 14)
+    .replace(/-+$/, '');
 }
 
-const emptyForm: FormData = {
-  name: '', category: '', description: '',
-  address: '', neighborhood: '', city: '',
-  openHours: '', tags: '',
-  ownerName: '', ownerPhone: '',
-};
+// ─── Shared components ────────────────────────────────────────────────────────
 
-const inputStyle = {
+function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
+  const labels = ['Your venue', 'About you', "You're live"];
+  return (
+    <div style={{ marginBottom: '28px' }}>
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+        {[1, 2, 3].map(n => (
+          <div key={n} style={{
+            flex: 1, height: '3px', borderRadius: '2px',
+            background: n <= current ? 'var(--color-accent)' : 'var(--color-border)',
+            transition: 'background 0.3s',
+          }} />
+        ))}
+      </div>
+      <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+        Step {current} of 3 · {labels[current - 1]}
+      </p>
+    </div>
+  );
+}
+
+function VenueTypeGrid({ selected, onSelect }: {
+  selected: string;
+  onSelect: (label: string) => void;
+}) {
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '8px',
+    }}>
+      {VENUE_TYPES.map(({ emoji, label }) => {
+        const isSelected = selected === label;
+        return (
+          <button
+            key={label}
+            onClick={() => onSelect(label)}
+            style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 8px',
+              borderRadius: '14px',
+              background: isSelected ? 'rgba(57,217,138,0.08)' : 'var(--color-surface)',
+              border: `1.5px solid ${isSelected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              minHeight: '80px',
+            }}
+          >
+            <span style={{ fontSize: '26px', lineHeight: 1 }}>{emoji}</span>
+            <span style={{
+              fontSize: '11px', fontWeight: 600,
+              color: isSelected ? 'var(--color-accent)' : 'var(--color-muted)',
+              textAlign: 'center', lineHeight: 1.2,
+              transition: 'color 0.15s',
+            }}>
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div
+      onClick={() => onChange(!checked)}
+      style={{
+        width: '46px', height: '26px', borderRadius: '13px', flexShrink: 0,
+        background: checked ? 'var(--color-accent)' : 'var(--color-surface2)',
+        border: `1px solid ${checked ? 'var(--color-accent)' : 'var(--color-border)'}`,
+        position: 'relative', cursor: 'pointer',
+        transition: 'background 0.2s, border-color 0.2s',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: '4px',
+        left: checked ? '23px' : '4px',
+        width: '16px', height: '16px', borderRadius: '50%',
+        background: checked ? '#000' : '#6B7280',
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  );
+}
+
+// ─── Input styles ─────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'var(--color-surface)',
   border: '1px solid var(--color-border)',
-  borderRadius: '10px',
-  padding: '12px 14px',
+  borderRadius: '14px',
+  padding: '15px 16px',
   color: 'var(--color-text)',
-  fontSize: '14px',
+  fontSize: '15px',
   fontFamily: 'DM Sans, sans-serif',
   outline: 'none',
+  boxSizing: 'border-box',
+  minHeight: '52px',
 };
 
-const labelStyle = {
+const labelStyle: React.CSSProperties = {
   display: 'block',
   fontSize: '13px',
   fontWeight: 600,
   color: 'var(--color-muted)',
-  marginBottom: '6px',
+  marginBottom: '8px',
 };
 
+function errorStyle(show: boolean): React.CSSProperties {
+  return {
+    fontSize: '12px', color: '#F87171',
+    marginTop: '5px', minHeight: '16px',
+    visibility: show ? 'visible' : 'hidden',
+  };
+}
+
+// ─── Form state ───────────────────────────────────────────────────────────────
+
+interface FormData {
+  venueName: string;
+  venueType: string;
+  neighbourhood: string;
+  description: string;
+  ownerName: string;
+  ownerPhone: string;
+  ownerEmail: string;
+  privacyAgreed: boolean;
+}
+
+const empty: FormData = {
+  venueName: '', venueType: '', neighbourhood: '', description: '',
+  ownerName: '', ownerPhone: '', ownerEmail: '', privacyAgreed: false,
+};
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function OnboardingPage() {
-  const [step, setStep] = useState<Step>(1);
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [done, setDone] = useState(false);
+  const navigate = useNavigate();
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [form, setForm] = useState<FormData>(empty);
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy', string>>>({});
+  const qrWrapRef = useRef<HTMLDivElement>(null);
 
-  const set = (key: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm(f => ({ ...f, [key]: e.target.value }));
+  const slug = toSlug(form.venueName);
+  const qrUrl = `https://kayaa.co.za/${slug}/checkin`;
 
-  const steps = [
-    { label: 'Venue info', icon: Tag },
-    { label: 'Location', icon: MapPin },
-    { label: 'Hours', icon: Clock },
-    { label: 'Owner', icon: Check },
-  ];
+  function set(key: keyof FormData) {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm(f => ({ ...f, [key]: e.target.value }));
+      setErrors(er => ({ ...er, [key]: undefined }));
+    };
+  }
 
-  if (done) {
+  // ── Step 1 validation ──
+
+  function goStep2() {
+    const errs: typeof errors = {};
+    if (!form.venueName.trim())    errs.venueName     = 'Give your venue a name';
+    if (!form.venueType)           errs.venueType     = 'Pick a type for your venue';
+    if (!form.neighbourhood.trim()) errs.neighbourhood = 'Tell us where you are';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setStep(2);
+    window.scrollTo(0, 0);
+  }
+
+  // ── Step 2 validation ──
+
+  function goStep3() {
+    const errs: typeof errors = {};
+    if (!form.ownerName.trim())  errs.ownerName  = "We need your name";
+    if (!form.ownerPhone.trim()) errs.ownerPhone = 'Add a WhatsApp number so we can reach you';
+    if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setStep(3);
+    window.scrollTo(0, 0);
+  }
+
+  // ── QR download ──
+
+  function downloadQR() {
+    const canvas = qrWrapRef.current?.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slug}-kayaa-qr.png`;
+    a.click();
+  }
+
+  // ─── Step 3: Live! ─────────────────────────────────────────────────────────
+
+  if (step === 3) {
     return (
-      <div style={{ padding: '32px 16px', textAlign: 'center' }}>
-        <div style={{
-          width: '80px', height: '80px', borderRadius: '50%',
-          background: 'rgba(57,217,138,0.12)',
-          border: '2px solid var(--color-accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 20px',
-        }}>
-          <Check size={36} color="var(--color-accent)" />
+      <>
+        <style>{`
+          @keyframes scaleIn {
+            from { transform: scale(0.3); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+          }
+          @keyframes fadeUp {
+            from { transform: translateY(14px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
+          .ob-icon { animation: scaleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+          .ob-h1   { animation: fadeUp  0.35s ease 0.3s  both; }
+          .ob-sub  { animation: fadeUp  0.35s ease 0.45s both; }
+          .ob-slug { animation: fadeUp  0.35s ease 0.55s both; }
+          .ob-qr   { animation: fadeUp  0.35s ease 0.65s both; }
+          .ob-cta  { animation: fadeUp  0.35s ease 0.8s  both; }
+        `}</style>
+
+        <div style={{ padding: '24px 16px 100px', textAlign: 'center' }}>
+          <StepIndicator current={3} />
+
+          {/* Checkmark */}
+          <div className="ob-icon" style={{
+            width: '80px', height: '80px', borderRadius: '50%',
+            background: 'rgba(57,217,138,0.12)',
+            border: '2px solid var(--color-accent)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px',
+            fontSize: '36px',
+          }}>
+            ✓
+          </div>
+
+          <h1 className="ob-h1" style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px',
+            color: 'var(--color-text)', marginBottom: '8px',
+          }}>
+            You're live.
+          </h1>
+
+          <p className="ob-sub" style={{
+            fontSize: '16px', color: 'var(--color-muted)', marginBottom: '4px',
+          }}>
+            <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>
+              {form.venueName}
+            </span>{' '}
+            is now on Kayaa.
+          </p>
+
+          {/* Slug */}
+          <div className="ob-slug" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            borderRadius: '10px', padding: '8px 14px', marginBottom: '28px',
+          }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/</span>
+            <span style={{
+              fontSize: '13px', fontWeight: 700, color: 'var(--color-accent)',
+              fontFamily: 'DM Sans, sans-serif',
+            }}>
+              {slug}
+            </span>
+          </div>
+
+          {/* QR code */}
+          <div className="ob-qr" style={{ marginBottom: '28px' }}>
+            <div
+              ref={qrWrapRef}
+              onClick={downloadQR}
+              style={{
+                display: 'inline-block',
+                padding: '16px', borderRadius: '16px',
+                background: '#fff',
+                cursor: 'pointer',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+              }}
+              title="Tap to download"
+            >
+              <QRCodeCanvas
+                value={qrUrl}
+                size={180}
+                level="M"
+                marginSize={0}
+              />
+            </div>
+            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '10px' }}>
+              Print this and put it on your counter, mirror, or door
+            </p>
+            <p style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>
+              Tap the QR code to download
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div className="ob-cta" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                width: '100%', minHeight: '56px',
+                background: 'var(--color-accent)', color: '#000',
+                border: 'none', borderRadius: '14px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+                cursor: 'pointer',
+              }}
+            >
+              Go to my dashboard →
+            </button>
+          </div>
         </div>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '8px' }}>
-          Venue submitted!
+      </>
+    );
+  }
+
+  // ─── Step 2: About you ─────────────────────────────────────────────────────
+
+  if (step === 2) {
+    return (
+      <div style={{ padding: '16px 16px 100px' }}>
+        <StepIndicator current={2} />
+
+        <h1 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px',
+          marginBottom: '6px',
+        }}>
+          Now about you
         </h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '32px' }}>
-          <strong style={{ color: 'var(--color-text)' }}>{form.name}</strong> is under review.
-          We'll notify you once it's live on Kayaa.
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
+          So we know who to talk to when{' '}
+          <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.venueName}</span>{' '}
+          goes live.
         </p>
-        <button
-          onClick={() => { setForm(emptyForm); setStep(1); setDone(false); }}
-          style={{
-            background: 'var(--color-accent)', color: '#000',
-            border: 'none', borderRadius: '12px',
-            padding: '14px 32px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-            cursor: 'pointer',
-          }}
-        >
-          Register another venue
-        </button>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '24px' }}>
+
+          {/* Owner name */}
+          <div>
+            <label style={labelStyle}>Your name</label>
+            <input
+              type="text"
+              value={form.ownerName}
+              onChange={set('ownerName')}
+              placeholder="What do people call you?"
+              autoComplete="given-name"
+              style={{
+                ...inputStyle,
+                border: `1px solid ${errors.ownerName ? '#F87171' : 'var(--color-border)'}`,
+              }}
+            />
+            <p style={errorStyle(!!errors.ownerName)}>{errors.ownerName}</p>
+          </div>
+
+          {/* WhatsApp */}
+          <div>
+            <label style={labelStyle}>Your WhatsApp number</label>
+            <input
+              type="tel"
+              value={form.ownerPhone}
+              onChange={set('ownerPhone')}
+              placeholder="+27 71 000 0000"
+              autoComplete="tel"
+              style={{
+                ...inputStyle,
+                border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}`,
+              }}
+            />
+            <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label style={labelStyle}>
+              Email address{' '}
+              <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span>
+            </label>
+            <input
+              type="email"
+              value={form.ownerEmail}
+              onChange={set('ownerEmail')}
+              placeholder="you@email.com"
+              autoComplete="email"
+              style={inputStyle}
+            />
+          </div>
+
+          {/* POPIA card */}
+          <div style={{
+            background: 'rgba(57,217,138,0.05)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            borderRadius: '14px', padding: '14px 16px',
+            display: 'flex', gap: '10px', alignItems: 'flex-start',
+          }}>
+            <Shield size={16} color="var(--color-accent)" style={{ marginTop: '1px', flexShrink: 0 }} />
+            <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, margin: 0 }}>
+              Your information is protected under <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>POPIA</span>{' '}
+              and never shared without your consent.
+            </p>
+          </div>
+
+          {/* Privacy toggle */}
+          <div style={{
+            background: 'var(--color-surface)', border: `1px solid ${errors.privacy ? '#F87171' : 'var(--color-border)'}`,
+            borderRadius: '14px', padding: '14px 16px',
+            display: 'flex', gap: '12px', alignItems: 'center',
+          }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '2px' }}>
+                I agree to the Kayaa terms
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                You're in control of your venue data, always.
+              </p>
+            </div>
+            <ToggleSwitch
+              checked={form.privacyAgreed}
+              onChange={v => {
+                setForm(f => ({ ...f, privacyAgreed: v }));
+                setErrors(er => ({ ...er, privacy: undefined }));
+              }}
+            />
+          </div>
+          {errors.privacy && (
+            <p style={{ fontSize: '12px', color: '#F87171', marginTop: '-10px' }}>{errors.privacy}</p>
+          )}
+        </div>
+
+        {/* Nav buttons */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => { setStep(1); window.scrollTo(0, 0); }}
+            style={{
+              width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <ArrowLeft size={18} color="var(--color-text)" />
+          </button>
+          <button
+            onClick={goStep3}
+            style={{
+              flex: 1, minHeight: '52px',
+              background: 'var(--color-accent)', color: '#000',
+              border: 'none', borderRadius: '14px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+              cursor: 'pointer',
+            }}
+          >
+            Create my Kayaa →
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ─── Step 1: Your venue ────────────────────────────────────────────────────
+
   return (
-    <div style={{ padding: '16px' }}>
-      <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', marginBottom: '4px' }}>
-        Register your venue
+    <div style={{ padding: '16px 16px 100px' }}>
+      <StepIndicator current={1} />
+
+      <h1 style={{
+        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px',
+        marginBottom: '6px',
+      }}>
+        Tell us about your place
       </h1>
-      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '24px' }}>
-        Give your place a living page on Kayaa
+      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
+        Every great neighbourhood spot deserves its own page.
       </p>
 
-      {/* Step progress */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '28px' }}>
-        {steps.map((s, i) => {
-          const n = (i + 1) as Step;
-          const isComplete = step > n;
-          const isActive = step === n;
-          return (
-            <div key={n} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{
-                height: '3px', borderRadius: '2px',
-                background: isComplete || isActive ? 'var(--color-accent)' : 'var(--color-border)',
-              }} />
-              <span style={{ fontSize: '10px', color: isActive ? 'var(--color-accent)' : 'var(--color-muted)', fontWeight: isActive ? 600 : 400 }}>
-                {s.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
 
-      {/* Step 1 — Venue info */}
-      {step === 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={labelStyle}>Venue name *</label>
-            <input value={form.name} onChange={set('name')} placeholder="e.g. Uncle Dee's Barbershop" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Category *</label>
-            <select value={form.category} onChange={set('category')} style={inputStyle}>
-              <option value="">Select a category</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Description</label>
-            <textarea
-              value={form.description}
-              onChange={set('description')}
-              placeholder="What makes this place special?"
-              maxLength={200}
-              style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Tags (comma-separated)</label>
-            <input value={form.tags} onChange={set('tags')} placeholder="e.g. fades, walk-ins, beard trim" style={inputStyle} />
-          </div>
-        </div>
-      )}
-
-      {/* Step 2 — Location */}
-      {step === 2 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={labelStyle}>Street address *</label>
-            <input value={form.address} onChange={set('address')} placeholder="e.g. 14 Vilakazi Street" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Neighbourhood *</label>
-            <input value={form.neighborhood} onChange={set('neighborhood')} placeholder="e.g. Orlando West" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>City *</label>
-            <input value={form.city} onChange={set('city')} placeholder="e.g. Soweto" style={inputStyle} />
-          </div>
-        </div>
-      )}
-
-      {/* Step 3 — Hours */}
-      {step === 3 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={labelStyle}>Opening hours</label>
-            <input
-              value={form.openHours}
-              onChange={set('openHours')}
-              placeholder="e.g. Mon–Sat 8am–7pm"
-              style={inputStyle}
-            />
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '6px' }}>
-              Write it however your customers would say it
-            </p>
-          </div>
-          <div style={{
-            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            borderRadius: '10px', padding: '14px',
-          }}>
-            <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-              You can update your hours any time from your dashboard. Customers see your live status.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4 — Owner */}
-      {step === 4 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={labelStyle}>Your name *</label>
-            <input value={form.ownerName} onChange={set('ownerName')} placeholder="e.g. Sipho Dlamini" style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Phone number *</label>
-            <input value={form.ownerPhone} onChange={set('ownerPhone')} placeholder="+27 71 000 0000" type="tel" style={inputStyle} />
-          </div>
-          <div style={{
-            background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)',
-            borderRadius: '10px', padding: '14px',
-          }}>
-            <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-              We'll contact you to verify your venue and activate your dashboard. No spam.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Navigation */}
-      <div style={{ display: 'flex', gap: '10px', marginTop: '28px' }}>
-        {step > 1 && (
-          <button
-            onClick={() => setStep(s => (s - 1) as Step)}
+        {/* Venue name */}
+        <div>
+          <label style={labelStyle}>What's your venue called?</label>
+          <input
+            type="text"
+            value={form.venueName}
+            onChange={set('venueName')}
+            placeholder="e.g. Uncle Dee's Barbershop"
+            autoComplete="organization"
             style={{
-              flex: 1, padding: '14px',
-              background: 'transparent', color: 'var(--color-muted)',
-              border: '1px solid var(--color-border)', borderRadius: '12px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-              cursor: 'pointer',
+              ...inputStyle,
+              border: `1px solid ${errors.venueName ? '#F87171' : 'var(--color-border)'}`,
             }}
-          >
-            Back
-          </button>
-        )}
-        <button
-          onClick={() => step < 4 ? setStep(s => (s + 1) as Step) : setDone(true)}
-          style={{
-            flex: 2, padding: '14px',
-            background: 'var(--color-accent)', color: '#000',
-            border: 'none', borderRadius: '12px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-            cursor: 'pointer',
-          }}
-        >
-          {step < 4 ? 'Continue' : 'Submit venue'}
-        </button>
+          />
+          <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
+        </div>
+
+        {/* Venue type grid */}
+        <div>
+          <label style={labelStyle}>What kind of place is it?</label>
+          <VenueTypeGrid
+            selected={form.venueType}
+            onSelect={v => {
+              setForm(f => ({ ...f, venueType: v }));
+              setErrors(er => ({ ...er, venueType: undefined }));
+            }}
+          />
+          <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
+        </div>
+
+        {/* Neighbourhood */}
+        <div>
+          <label style={labelStyle}>Where are you based?</label>
+          <input
+            type="text"
+            value={form.neighbourhood}
+            onChange={set('neighbourhood')}
+            placeholder="e.g. Orlando West, Soweto"
+            style={{
+              ...inputStyle,
+              border: `1px solid ${errors.neighbourhood ? '#F87171' : 'var(--color-border)'}`,
+            }}
+          />
+          <p style={errorStyle(!!errors.neighbourhood)}>{errors.neighbourhood}</p>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label style={labelStyle}>
+            Describe your place in one line{' '}
+            <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span>
+          </label>
+          <textarea
+            value={form.description}
+            onChange={set('description')}
+            placeholder="e.g. Best fades in Soweto, open 7 days a week"
+            maxLength={120}
+            style={{
+              ...inputStyle,
+              minHeight: '80px',
+              resize: 'vertical',
+              lineHeight: 1.5,
+            }}
+          />
+          <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '4px' }}>
+            {form.description.length}/120
+          </p>
+        </div>
       </div>
+
+      <button
+        onClick={goStep2}
+        style={{
+          width: '100%', minHeight: '56px',
+          background: 'var(--color-accent)', color: '#000',
+          border: 'none', borderRadius: '14px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+          cursor: 'pointer',
+        }}
+      >
+        Continue →
+      </button>
     </div>
   );
 }
