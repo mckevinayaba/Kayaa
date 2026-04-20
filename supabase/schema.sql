@@ -31,6 +31,11 @@ CREATE POLICY "Public venues are visible"
   ON venues FOR SELECT
   USING (is_active = true);
 
+-- Anyone can create a venue during pilot (no auth required)
+CREATE POLICY "Anyone can create a venue during pilot"
+  ON venues FOR INSERT
+  WITH CHECK (true);
+
 -- Only the venue owner can update their venue
 CREATE POLICY "Owner can update their venue"
   ON venues FOR UPDATE
@@ -60,8 +65,8 @@ CREATE POLICY "Owner can update own record"
   ON venue_owners FOR UPDATE
   USING (auth.uid() = user_id);
 
--- Allow insert during onboarding (before user_id is linked)
-CREATE POLICY "Anyone can register as owner"
+-- Anyone can register as venue owner during pilot (no auth required)
+CREATE POLICY "Anyone can insert venue owner during pilot"
   ON venue_owners FOR INSERT
   WITH CHECK (true);
 
