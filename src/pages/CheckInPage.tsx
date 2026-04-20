@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin } from 'lucide-react';
-import { mockVenues } from '../lib/mockData';
+import { getVenueBySlug, createCheckIn, getVisitNumber } from '../lib/api';
 import type { Venue } from '../types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -25,10 +25,6 @@ function getStatus(venue: Venue): { label: string; color: string } {
   if (!venue.isOpen) return { label: 'Closed', color: '#6B7280' };
   if (venue.checkinCount > 1000) return { label: 'Busy now', color: '#F5A623' };
   return { label: 'Open now', color: '#39D98A' };
-}
-
-function getVisitNumber(venue: Venue): number {
-  return (venue.checkinCount % 47) + 3;
 }
 
 // ─── Toggle switch ────────────────────────────────────────────────────────────
@@ -79,35 +75,76 @@ function VenueNotFound() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Step = 'form' | 'loading' | 'success';
+type Step = 'loading-venue' | 'form' | 'submitting' | 'success';
 
 export default function CheckInPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const venue = mockVenues.find(v => v.slug === slug);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [venueLoading, setVenueLoading] = useState(true);
 
-  const [step, setStep] = useState<Step>('form');
+  const [step, setStep] = useState<Step>('loading-venue');
   const [name, setName] = useState('');
   const [isRegular, setIsRegular] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
   const [nameError, setNameError] = useState(false);
+  const [visitNumber, setVisitNumber] = useState(1);
+
+  useEffect(() => {
+    if (!slug) return;
+    getVenueBySlug(slug).then(v => {
+      setVenue(v);
+      setVenueLoading(false);
+      setStep(v ? 'form' : 'form');
+    });
+  }, [slug]);
+
+  if (venueLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{
+          width: '24px', height: '24px', borderRadius: '50%',
+          border: '2px solid rgba(57,217,138,0.3)', borderTopColor: 'var(--color-accent)',
+          animation: 'spin 0.7s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   if (!venue) return <VenueNotFound />;
 
   const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
   const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
   const status = getStatus(venue);
-  const visitNumber = getVisitNumber(venue);
 
-  function handleSubmit() {
-    if (!name.trim()) {
+  async function handleSubmit() {
+    if (!name.trim() && !ghostMode) {
       setNameError(true);
       return;
     }
     setNameError(false);
-    setStep('loading');
-    setTimeout(() => setStep('success'), 900);
+    setStep('submitting');
+
+    let vn = 1;
+    if (!ghostMode && name.trim() && venue) {
+      vn = await getVisitNumber(venue.id, name.trim());
+    }
+    setVisitNumber(vn);
+
+    if (venue) {
+      const { error } = await createCheckIn({
+        venue_id: venue.id,
+        visitor_name: ghostMode ? undefined : name.trim() || undefined,
+        is_ghost: ghostMode,
+        is_first_visit: !isRegular,
+        visit_number: vn,
+      });
+      if (error) console.error('Check-in error:', error);
+    }
+
+    setStep('success');
   }
 
   const inputStyle: React.CSSProperties = {
@@ -149,30 +186,23 @@ export default function CheckInPage() {
 
         <div style={{ padding: '24px 16px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
 
-          {/* Animated checkmark */}
           <div className="checkin-success-icon" style={{
             width: '88px', height: '88px', borderRadius: '50%',
             background: isGhost ? 'rgba(255,255,255,0.04)' : 'rgba(57,217,138,0.12)',
             border: `2px solid ${isGhost ? 'rgba(255,255,255,0.15)' : 'var(--color-accent)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '28px',
-            fontSize: '40px',
+            marginBottom: '28px', fontSize: '40px',
           }}>
             {isGhost ? '👤' : '✓'}
           </div>
 
-          {/* Heading */}
           <h1 className="checkin-success-text" style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
             color: 'var(--color-text)', marginBottom: '12px', lineHeight: 1.2,
           }}>
-            {isGhost
-              ? "You're in — quietly."
-              : `You're in, ${displayName}.`
-            }
+            {isGhost ? "You're in — quietly." : `You're in, ${displayName}.`}
           </h1>
 
-          {/* Sub message */}
           <p className="checkin-success-sub" style={{
             fontSize: '15px', color: 'var(--color-muted)', lineHeight: 1.65,
             marginBottom: '40px', maxWidth: '280px',
@@ -192,7 +222,6 @@ export default function CheckInPage() {
             )}
           </p>
 
-          {/* CTAs */}
           <div className="checkin-success-ctas" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <Link
               to={`/venue/${slug}`}
@@ -200,8 +229,7 @@ export default function CheckInPage() {
                 display: 'block', textDecoration: 'none',
                 background: 'var(--color-accent)', color: '#000',
                 borderRadius: '14px', padding: '16px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-                textAlign: 'center',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', textAlign: 'center',
               }}
             >
               Back to {venue.name.split("'")[0].trim()}
@@ -222,16 +250,15 @@ export default function CheckInPage() {
     );
   }
 
-  // ── Form + loading ──────────────────────────────────────────────────────────
+  // ── Form + submitting ───────────────────────────────────────────────────────
+
+  const isSubmitting = step === 'submitting';
 
   return (
     <div style={{ padding: '16px', paddingBottom: '40px' }}>
 
       {/* Sub-header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '24px',
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <button
           onClick={() => navigate(-1)}
           style={{
@@ -248,26 +275,22 @@ export default function CheckInPage() {
           <div style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '1px' }}>
             {emoji} {venue.name}
           </div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
-            Check in
-          </div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>Check in</div>
         </div>
 
         <div style={{ width: '36px' }} />
       </div>
 
-      {/* Venue confirmation card */}
+      {/* Venue card */}
       <div style={{
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '16px', padding: '14px',
-        display: 'flex', gap: '12px', alignItems: 'center',
-        marginBottom: '28px',
+        display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '28px',
       }}>
         <div style={{
           width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
           background: `${color}18`, border: `1px solid ${color}30`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px',
         }}>
           {emoji}
         </div>
@@ -294,15 +317,12 @@ export default function CheckInPage() {
         </div>
       </div>
 
-      {/* ── Form ── */}
+      {/* Form */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
 
         {/* Name input */}
         <div>
-          <label style={{
-            display: 'block', fontSize: '13px', fontWeight: 600,
-            color: 'var(--color-muted)', marginBottom: '8px',
-          }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '8px' }}>
             Your name
           </label>
           <input
@@ -313,6 +333,7 @@ export default function CheckInPage() {
             placeholder="What do people call you?"
             autoComplete="given-name"
             style={inputStyle}
+            disabled={isSubmitting}
           />
           {nameError && (
             <p style={{ fontSize: '12px', color: '#F87171', marginTop: '6px' }}>
@@ -323,10 +344,7 @@ export default function CheckInPage() {
 
         {/* Visit type toggle */}
         <div>
-          <label style={{
-            display: 'block', fontSize: '13px', fontWeight: 600,
-            color: 'var(--color-muted)', marginBottom: '8px',
-          }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '8px' }}>
             How do you know this place?
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -334,15 +352,14 @@ export default function CheckInPage() {
               <button
                 key={String(val)}
                 onClick={() => setIsRegular(val)}
+                disabled={isSubmitting}
                 style={{
-                  flex: 1, padding: '13px 8px',
-                  borderRadius: '12px', cursor: 'pointer',
+                  flex: 1, padding: '13px 8px', borderRadius: '12px', cursor: 'pointer',
                   fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
                   border: isRegular === val ? 'none' : '1px solid var(--color-border)',
                   background: isRegular === val ? 'var(--color-accent)' : 'var(--color-surface)',
                   color: isRegular === val ? '#000' : 'var(--color-muted)',
-                  transition: 'all 0.15s',
-                  minHeight: '48px',
+                  transition: 'all 0.15s', minHeight: '48px',
                 }}
               >
                 {val ? "I'm a regular here" : 'First time here'}
@@ -372,24 +389,23 @@ export default function CheckInPage() {
       {/* Submit button */}
       <button
         onClick={handleSubmit}
-        disabled={step === 'loading'}
+        disabled={isSubmitting}
         style={{
           width: '100%', minHeight: '56px',
-          background: step === 'loading' ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
+          background: isSubmitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
           color: '#000', border: 'none', borderRadius: '14px',
           fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px',
-          cursor: step === 'loading' ? 'default' : 'pointer',
-          transition: 'background 0.2s, opacity 0.2s',
+          cursor: isSubmitting ? 'default' : 'pointer',
+          transition: 'background 0.2s',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
         }}
       >
-        {step === 'loading' ? (
+        {isSubmitting ? (
           <>
             <span style={{
               width: '18px', height: '18px', borderRadius: '50%',
               border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000',
-              display: 'inline-block',
-              animation: 'spin 0.7s linear infinite',
+              display: 'inline-block', animation: 'spin 0.7s linear infinite',
             }} />
             Checking you in…
           </>
@@ -398,7 +414,7 @@ export default function CheckInPage() {
         )}
       </button>
 
-      {step === 'loading' && (
+      {isSubmitting && (
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       )}
     </div>

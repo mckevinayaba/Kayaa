@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { createVenue, createVenueOwner } from '../lib/api';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -176,7 +177,8 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState<FormData>(empty);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy', string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'submit', string>>>({});
+  const [submitting, setSubmitting] = useState(false);
   const qrWrapRef = useRef<HTMLDivElement>(null);
 
   const slug = toSlug(form.venueName);
@@ -201,14 +203,45 @@ export default function OnboardingPage() {
     window.scrollTo(0, 0);
   }
 
-  // ── Step 2 validation ──
+  // ── Step 2: create venue + owner in Supabase, then advance ──
 
-  function goStep3() {
+  async function goStep3() {
     const errs: typeof errors = {};
     if (!form.ownerName.trim())  errs.ownerName  = "We need your name";
     if (!form.ownerPhone.trim()) errs.ownerPhone = 'Add a WhatsApp number so we can reach you';
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    setSubmitting(true);
+    setErrors({});
+
+    const { row: venueRow, error: venueErr } = await createVenue({
+      name: form.venueName.trim(),
+      type: form.venueType,
+      slug,
+      location: form.neighbourhood.trim(),
+      description: form.description.trim() || undefined,
+    });
+
+    if (venueErr || !venueRow) {
+      setErrors({ submit: 'Could not create your venue. Please try again.' });
+      setSubmitting(false);
+      return;
+    }
+
+    const { error: ownerErr } = await createVenueOwner({
+      name: form.ownerName.trim(),
+      phone: form.ownerPhone.trim(),
+      email: form.ownerEmail.trim() || undefined,
+      venue_id: venueRow.id,
+    });
+
+    if (ownerErr) {
+      // Venue was created — still advance, owner link is non-critical
+      console.error('Owner creation failed:', ownerErr);
+    }
+
+    setSubmitting(false);
     setStep(3);
     window.scrollTo(0, 0);
   }
@@ -454,30 +487,53 @@ export default function OnboardingPage() {
           )}
         </div>
 
+        {/* Submit error */}
+        {errors.submit && (
+          <p style={{ fontSize: '13px', color: '#F87171', marginBottom: '12px', textAlign: 'center' }}>
+            {errors.submit}
+          </p>
+        )}
+
         {/* Nav buttons */}
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
             onClick={() => { setStep(1); window.scrollTo(0, 0); }}
+            disabled={submitting}
             style={{
               width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
               background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
+              cursor: submitting ? 'default' : 'pointer',
             }}
           >
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
           <button
             onClick={goStep3}
+            disabled={submitting}
             style={{
               flex: 1, minHeight: '52px',
-              background: 'var(--color-accent)', color: '#000',
-              border: 'none', borderRadius: '14px',
+              background: submitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
+              color: '#000', border: 'none', borderRadius: '14px',
               fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-              cursor: 'pointer',
+              cursor: submitting ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'background 0.2s',
             }}
           >
-            Create my Kayaa →
+            {submitting ? (
+              <>
+                <span style={{
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000',
+                  display: 'inline-block', animation: 'obSpin 0.7s linear infinite',
+                }} />
+                Creating…
+                <style>{`@keyframes obSpin { to { transform: rotate(360deg); } }`}</style>
+              </>
+            ) : (
+              'Create my Kayaa →'
+            )}
           </button>
         </div>
       </div>

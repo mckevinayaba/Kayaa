@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Calendar } from 'lucide-react';
-import { mockVenues, mockPosts, mockEvents, mockCheckIns } from '../lib/mockData';
+import { mockPosts, mockCheckIns } from '../lib/mockData';
+import { getVenueBySlug, getVenueEvents, getVenuePosts } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post } from '../types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -64,8 +66,7 @@ function SkeletonBlock({ w = '100%', h = 16, radius = 8, mb = 0 }: { w?: string 
   return (
     <div style={{
       width: w, height: h, borderRadius: radius,
-      background: 'var(--color-surface2)',
-      marginBottom: mb,
+      background: 'var(--color-surface2)', marginBottom: mb,
     }} />
   );
 }
@@ -73,28 +74,21 @@ function SkeletonBlock({ w = '100%', h = 16, radius = 8, mb = 0 }: { w?: string 
 function VenueSkeleton() {
   return (
     <div>
-      {/* Hero skeleton */}
-      <div style={{ background: 'var(--color-surface2)', height: '220px', marginBottom: '0' }} />
+      <div style={{ background: 'var(--color-surface2)', height: '220px' }} />
       <div style={{ padding: '16px' }}>
         <SkeletonBlock h={28} w="60%" mb={10} />
         <SkeletonBlock h={14} w="40%" mb={6} />
         <SkeletonBlock h={14} w="50%" mb={20} />
-        {/* Stats */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
           {[1, 2, 3].map(i => <SkeletonBlock key={i} h={60} radius={12} />)}
         </div>
-        {/* CTA */}
         <SkeletonBlock h={52} radius={14} mb={24} />
-        {/* Social proof */}
         <SkeletonBlock h={18} w="50%" mb={12} />
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
           {[1, 2, 3, 4, 5].map(i => (
             <div key={i} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-surface2)' }} />
           ))}
         </div>
-        <SkeletonBlock h={18} w="70%" mb={8} />
-        <SkeletonBlock h={18} w="55%" mb={24} />
-        {/* Event cards */}
         <SkeletonBlock h={80} radius={12} mb={10} />
         <SkeletonBlock h={80} radius={12} mb={24} />
       </div>
@@ -108,8 +102,7 @@ function VenueNotFound() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', minHeight: '70vh', padding: '32px',
-      textAlign: 'center',
+      justifyContent: 'center', minHeight: '70vh', padding: '32px', textAlign: 'center',
     }}>
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏚️</div>
       <h2 style={{
@@ -124,8 +117,7 @@ function VenueNotFound() {
       <Link to="/onboarding" style={{
         display: 'block', background: 'var(--color-accent)', color: '#000',
         textDecoration: 'none', borderRadius: '12px', padding: '13px 28px',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-        marginBottom: '16px',
+        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '16px',
       }}>
         Add this place
       </Link>
@@ -144,23 +136,17 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
   const status = getStatus(venue);
 
   return (
-    <div style={{ position: 'relative', marginBottom: '0' }}>
-      {/* Coloured gradient band */}
+    <div style={{ position: 'relative' }}>
       <div style={{
         height: '200px',
         background: `linear-gradient(160deg, ${color}22 0%, #0D1117 100%)`,
-        position: 'relative',
-        overflow: 'hidden',
+        position: 'relative', overflow: 'hidden',
       }}>
-        {/* Subtle glow blob */}
         <div style={{
           position: 'absolute', top: '-40px', right: '-40px',
           width: '180px', height: '180px', borderRadius: '50%',
-          background: `${color}18`,
-          filter: 'blur(40px)',
+          background: `${color}18`, filter: 'blur(40px)',
         }} />
-
-        {/* Back button */}
         <button
           onClick={onBack}
           style={{
@@ -173,24 +159,18 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
         >
           <ArrowLeft size={16} color="#fff" />
         </button>
-
-        {/* Large emoji avatar */}
         <div style={{
           position: 'absolute', bottom: '-28px', left: '16px',
           width: '64px', height: '64px', borderRadius: '18px',
-          background: `${color}20`,
-          border: `2px solid ${color}50`,
+          background: `${color}20`, border: `2px solid ${color}50`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '30px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          fontSize: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
         }}>
           {emoji}
         </div>
       </div>
 
-      {/* Name + badges row */}
       <div style={{ padding: '40px 16px 0', background: 'var(--color-bg)' }}>
-        {/* Type badge + status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <span style={{
             fontSize: '11px', fontWeight: 600, color,
@@ -202,7 +182,6 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
           <span style={{ fontSize: '12px', fontWeight: 600, color: status.color }}>{status.label}</span>
         </div>
 
-        {/* Name */}
         <h1 style={{
           fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
           color: 'var(--color-text)', lineHeight: 1.15, marginBottom: '8px',
@@ -210,7 +189,6 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
           {venue.name}
         </h1>
 
-        {/* Location */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: venue.openHours ? '4px' : '12px' }}>
           <MapPin size={13} color="var(--color-muted)" />
           <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
@@ -225,11 +203,7 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
           </div>
         )}
 
-        {/* Description */}
-        <p style={{
-          fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.65,
-          marginBottom: '0',
-        }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.65 }}>
           {venue.description}
         </p>
       </div>
@@ -237,12 +211,12 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
   );
 }
 
-function StatsRow({ venue, eventsCount }: { venue: Venue; eventsCount: number }) {
+function StatsRow({ venue, eventsCount, regularsCount }: { venue: Venue; eventsCount: number; regularsCount: number }) {
   const todayCheckins = Math.max(1, Math.round(venue.checkinCount * 0.015));
   const stats = [
-    { label: 'Regulars', value: venue.followerCount.toLocaleString() },
+    { label: 'Regulars', value: regularsCount.toLocaleString() },
     { label: 'Today', value: `${todayCheckins} check-ins` },
-    { label: 'Events', value: eventsCount > 0 ? `${eventsCount} this week` : 'None listed' },
+    { label: 'Events', value: eventsCount > 0 ? `${eventsCount} upcoming` : 'None listed' },
   ];
 
   return (
@@ -269,16 +243,12 @@ function StatsRow({ venue, eventsCount }: { venue: Venue; eventsCount: number })
 
 function CheckInCTA({ venue }: { venue: Venue }) {
   return (
-    <Link
-      to={`/venue/${venue.slug}/checkin`}
-      style={{ textDecoration: 'none', display: 'block', marginBottom: '24px' }}
-    >
+    <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '24px' }}>
       <div style={{
         background: 'var(--color-accent)', color: '#000',
         borderRadius: '14px', padding: '16px 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-        gap: '8px',
       }}>
         Check in here
       </div>
@@ -286,9 +256,9 @@ function CheckInCTA({ venue }: { venue: Venue }) {
   );
 }
 
-function SocialProof({ venue }: { venue: Venue }) {
+function SocialProof({ venue, regularsCount }: { venue: Venue; regularsCount: number }) {
   const initials = REGULARS_BY_VENUE[venue.id] ?? ['A', 'B', 'C', 'D', 'E', 'F'];
-  const newRegulars = Math.max(2, Math.round(venue.followerCount * 0.03));
+  const newRegulars = Math.max(2, Math.round(regularsCount * 0.03));
   const busiest = BUSIEST_BY_CATEGORY[venue.category] ?? 'Popular with locals';
 
   return (
@@ -296,18 +266,14 @@ function SocialProof({ venue }: { venue: Venue }) {
       background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '14px', padding: '16px', marginBottom: '20px',
     }}>
-      <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
-        color: 'var(--color-text)', marginBottom: '12px',
-      }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
         Who comes here
       </h2>
 
       <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '12px' }}>
-        <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{venue.followerCount.toLocaleString()}</span> people call this their spot
+        <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{regularsCount.toLocaleString()}</span> people call this their spot
       </p>
 
-      {/* Avatar row */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', alignItems: 'center' }}>
         {initials.map((initial, i) => (
           <div key={i} style={{
@@ -316,22 +282,17 @@ function SocialProof({ venue }: { venue: Venue }) {
             border: `2px solid ${AVATAR_COLORS[i % AVATAR_COLORS.length]}50`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-            color: AVATAR_COLORS[i % AVATAR_COLORS.length],
-            flexShrink: 0,
+            color: AVATAR_COLORS[i % AVATAR_COLORS.length], flexShrink: 0,
           }}>
             {initial}
           </div>
         ))}
         <span style={{ fontSize: '12px', color: 'var(--color-muted)', marginLeft: '4px' }}>
-          +{(venue.followerCount - initials.length).toLocaleString()}
+          +{Math.max(0, regularsCount - initials.length).toLocaleString()}
         </span>
       </div>
 
-      {/* Busiest time */}
-      <div style={{
-        borderTop: '1px solid var(--color-border)', paddingTop: '10px',
-        display: 'flex', flexDirection: 'column', gap: '4px',
-      }}>
+      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{busiest}</span>
         <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600 }}>
           +{newRegulars} new regulars this week
@@ -345,9 +306,7 @@ function EventsSection({ events }: { events: Event[] }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
-          What's happening
-        </h2>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>What's happening</h2>
         {events.length > 0 && (
           <span style={{
             fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)',
@@ -365,7 +324,7 @@ function EventsSection({ events }: { events: Event[] }) {
         }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
-            Nothing on the calendar yet.{'\n'}Check back soon.
+            Nothing on the calendar yet. Check back soon.
           </p>
         </div>
       ) : (
@@ -376,12 +335,10 @@ function EventsSection({ events }: { events: Event[] }) {
               borderRadius: '14px', padding: '14px',
               display: 'flex', gap: '12px', alignItems: 'flex-start',
             }}>
-              {/* Date badge */}
               <div style={{
                 flexShrink: 0, width: '48px',
                 background: 'var(--color-surface2)', borderRadius: '10px',
-                padding: '6px 4px', textAlign: 'center',
-                border: '1px solid var(--color-border)',
+                padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)',
               }}>
                 <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>
                   {new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}
@@ -390,12 +347,8 @@ function EventsSection({ events }: { events: Event[] }) {
                   {new Date(event.startsAt).getDate()}
                 </div>
               </div>
-
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
-                  color: 'var(--color-text)', marginBottom: '3px',
-                }}>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
                   {event.title}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
@@ -406,10 +359,7 @@ function EventsSection({ events }: { events: Event[] }) {
                     <Calendar size={11} />
                     {formatEventDate(event.startsAt)} · {formatEventTime(event.startsAt)}
                   </span>
-                  <span style={{
-                    fontSize: '12px', fontWeight: 700,
-                    color: event.isFree ? '#39D98A' : 'var(--color-amber)',
-                  }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : 'var(--color-amber)' }}>
                     {event.isFree ? 'Free' : `R${event.price}`}
                   </span>
                 </div>
@@ -449,13 +399,8 @@ function ActivitySection({ venueId }: { venueId: string }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>
-        Latest
-      </h2>
-      <div style={{
-        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-        borderRadius: '14px', overflow: 'hidden',
-      }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>Latest</h2>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', overflow: 'hidden' }}>
         {items.map((item, i) => (
           <div key={item.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
@@ -484,27 +429,21 @@ function AboutSection({ venue }: { venue: Venue }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>
-        About this place
-      </h2>
-      <div style={{
-        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-        borderRadius: '14px', padding: '16px',
-      }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>About this place</h2>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.7, marginBottom: '16px' }}>
           {venue.description}
         </p>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Type</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.category}</span>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Neighbourhood</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.neighborhood}, {venue.city}</span>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>On Kayaa since</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{year}</span>
           </div>
@@ -532,11 +471,9 @@ function PostsSection({ posts }: { posts: Post[] }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>
-        What people say
-      </h2>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>What people say</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {posts.map(post => (
+        {posts.map((post, idx) => (
           <div key={post.id} style={{
             background: 'var(--color-surface)', border: '1px solid var(--color-border)',
             borderRadius: '14px', padding: '14px',
@@ -554,7 +491,7 @@ function PostsSection({ posts }: { posts: Post[] }) {
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                   {post.authorName.split(' ')[0]}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[posts.indexOf(post) % LIVE_TIMES.length]}</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[idx % LIVE_TIMES.length]}</div>
               </div>
             </div>
             <p style={{ fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, marginBottom: '10px' }}>
@@ -576,18 +513,13 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
     <div style={{
       position: 'fixed', bottom: '64px', left: 0, right: 0, zIndex: 45,
       padding: '10px 16px',
-      background: 'rgba(13,17,23,0.88)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(13,17,23,0.88)', backdropFilter: 'blur(12px)',
       borderTop: '1px solid var(--color-border)',
     }}>
-      <Link
-        to={`/venue/${venue.slug}/checkin`}
-        style={{ textDecoration: 'none', display: 'block' }}
-      >
+      <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block' }}>
         <div style={{
           background: 'var(--color-accent)', color: '#000',
-          borderRadius: '12px', padding: '14px 20px',
-          textAlign: 'center',
+          borderRadius: '12px', padding: '14px 20px', textAlign: 'center',
           fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
         }}>
           Check in at {venue.name.split("'")[0].trim()}
@@ -602,33 +534,58 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
 export default function VenuePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [regularsCount, setRegularsCount] = useState(0);
 
   useEffect(() => {
+    if (!slug) return;
     setLoading(true);
-    const t = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(t);
+    setNotFound(false);
+
+    getVenueBySlug(slug).then(v => {
+      if (!v) { setNotFound(true); setLoading(false); return; }
+      setVenue(v);
+      setRegularsCount(v.followerCount);
+      setLoading(false);
+
+      // Fetch events + posts in parallel
+      getVenueEvents(v.id).then(setEvents);
+      getVenuePosts(v.id).then(setPosts);
+
+      // Realtime: listen for new check-ins and bump the regulars counter
+      const channel = supabase
+        .channel(`checkins-${v.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'check_ins', filter: `venue_id=eq.${v.id}` },
+          () => setRegularsCount(n => n + 1)
+        )
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    });
   }, [slug]);
 
-  const venue = mockVenues.find(v => v.slug === slug);
-  const venuePosts = venue ? mockPosts.filter(p => p.venueId === venue.id) : [];
-  const venueEvents = venue ? mockEvents.filter(e => e.venueId === venue.id) : [];
-
   if (loading) return <VenueSkeleton />;
-  if (!venue) return <VenueNotFound />;
+  if (notFound || !venue) return <VenueNotFound />;
 
   return (
     <div>
       <HeroSection venue={venue} onBack={() => navigate(-1)} />
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
-        <StatsRow venue={venue} eventsCount={venueEvents.length} />
+        <StatsRow venue={venue} eventsCount={events.length} regularsCount={regularsCount} />
         <CheckInCTA venue={venue} />
-        <SocialProof venue={venue} />
-        <EventsSection events={venueEvents} />
+        <SocialProof venue={venue} regularsCount={regularsCount} />
+        <EventsSection events={events} />
         <ActivitySection venueId={venue.id} />
         <AboutSection venue={venue} />
-        <PostsSection posts={venuePosts} />
+        <PostsSection posts={posts} />
       </div>
 
       <StickyCheckinBar venue={venue} />
