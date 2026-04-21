@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { createVenue, createVenueOwner } from '../lib/api';
-import { signInWithPhone } from '../lib/auth';
+import { signInWithEmail } from '../lib/auth';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
   async function goStep3() {
     const errs: typeof errors = {};
     if (!form.ownerName.trim())  errs.ownerName  = "We need your name";
-    if (!form.ownerPhone.trim()) errs.ownerPhone = 'Add a WhatsApp number so we can reach you';
+    if (!form.ownerEmail.trim()) errs.ownerEmail = 'Add your email so you can sign in';
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
@@ -243,10 +243,10 @@ export default function OnboardingPage() {
 
     // Store venueId so LoginPage can claim this venue_owner record
     localStorage.setItem('kayaa_venue_id', venueRow.id);
-    localStorage.setItem('kayaa_pending_phone', form.ownerPhone.trim());
+    localStorage.setItem('kayaa_pending_email', form.ownerEmail.trim());
 
     // Fire OTP in background — user enters code on /login
-    signInWithPhone(form.ownerPhone.trim()).catch(() => {});
+    signInWithEmail(form.ownerEmail.trim()).catch(() => {});
 
     setSubmitting(false);
     setStep(3);
@@ -439,18 +439,19 @@ export default function OnboardingPage() {
 
           {/* Email */}
           <div>
-            <label style={labelStyle}>
-              Email address{' '}
-              <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span>
-            </label>
+            <label style={labelStyle}>Your email address</label>
             <input
               type="email"
               value={form.ownerEmail}
               onChange={set('ownerEmail')}
-              placeholder="you@email.com"
+              placeholder="you@example.com"
               autoComplete="email"
-              style={inputStyle}
+              style={{
+                ...inputStyle,
+                border: `1px solid ${errors.ownerEmail ? '#F87171' : 'var(--color-border)'}`,
+              }}
             />
+            <p style={errorStyle(!!errors.ownerEmail)}>{errors.ownerEmail}</p>
           </div>
 
           {/* POPIA card */}

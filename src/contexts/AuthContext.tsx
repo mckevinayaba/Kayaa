@@ -2,14 +2,14 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { signInWithPhone, verifyOTP, signOut as authSignOut } from '../lib/auth';
+import { signInWithEmail, verifyEmailOTP, signOut as authSignOut } from '../lib/auth';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (phone: string) => Promise<{ error: Error | null }>;
-  verify: (phone: string, token: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string) => Promise<{ error: Error | null }>;
+  verify: (email: string, token: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -41,13 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  async function signIn(phone: string) {
-    const { error } = await signInWithPhone(phone);
+  async function signIn(email: string) {
+    const { error } = await signInWithEmail(email);
     return { error: error as Error | null };
   }
 
-  async function verify(phone: string, token: string) {
-    const { error } = await verifyOTP(phone, token);
+  async function verify(email: string, token: string) {
+    const { error } = await verifyEmailOTP(email, token);
     return { error: error as Error | null };
   }
 

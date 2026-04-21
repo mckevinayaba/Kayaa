@@ -20,21 +20,21 @@ const inputBase: React.CSSProperties = {
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn, verify } = useAuth();
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState(() => localStorage.getItem('kayaa_pending_phone') ?? '');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [email, setEmail] = useState(() => localStorage.getItem('kayaa_pending_email') ?? '');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSendCode() {
-    const trimmed = phone.trim();
-    if (!trimmed) { setError('Enter your WhatsApp number'); return; }
+    const trimmed = email.trim();
+    if (!trimmed) { setError('Enter your email address'); return; }
     setLoading(true);
     setError('');
     const { error } = await signIn(trimmed);
     setLoading(false);
     if (error) { setError(error.message); return; }
-    localStorage.setItem('kayaa_pending_phone', trimmed);
+    localStorage.setItem('kayaa_pending_email', trimmed);
     setStep('otp');
   }
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
     if (otp.length < 6) { setError('Enter the 6-digit code'); return; }
     setLoading(true);
     setError('');
-    const { error } = await verify(phone.trim(), otp.trim());
+    const { error } = await verify(email.trim(), otp.trim());
     if (error) { setLoading(false); setError(error.message); return; }
 
     const venueId = localStorage.getItem('kayaa_venue_id');
@@ -57,7 +57,7 @@ export default function LoginPage() {
       }
       localStorage.removeItem('kayaa_venue_id');
     }
-    localStorage.removeItem('kayaa_pending_phone');
+    localStorage.removeItem('kayaa_pending_email');
 
     setLoading(false);
     navigate('/dashboard');
@@ -70,26 +70,26 @@ export default function LoginPage() {
           fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
           color: 'var(--color-text)', marginBottom: '8px',
         }}>
-          {step === 'phone' ? 'Welcome back' : 'Check your phone'}
+          {step === 'email' ? 'Welcome back' : 'Check your email'}
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-          {step === 'phone'
-            ? 'Enter your WhatsApp number to sign in'
-            : `We sent a 6-digit code to ${phone}`}
+          {step === 'email'
+            ? 'Enter your email address to sign in'
+            : `We sent a 6-digit code to ${email}`}
         </p>
       </div>
 
-      {step === 'phone' ? (
+      {step === 'email' ? (
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '8px' }}>
-            WhatsApp number
+            Your email address
           </label>
           <input
-            type="tel"
-            value={phone}
-            onChange={e => { setPhone(e.target.value); setError(''); }}
-            placeholder="+27 71 000 0000"
-            autoComplete="tel"
+            type="email"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setError(''); }}
+            placeholder="you@example.com"
+            autoComplete="email"
             style={{ ...inputBase, fontSize: '15px', border: `1px solid ${error ? '#F87171' : 'var(--color-border)'}` }}
           />
           {error && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '12px' }}>{error}</p>}
@@ -143,7 +143,7 @@ export default function LoginPage() {
             {loading ? 'Verifying…' : 'Verify'}
           </button>
           <button
-            onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
+            onClick={() => { setStep('email'); setOtp(''); setError(''); }}
             style={{
               width: '100%', minHeight: '44px',
               background: 'transparent', border: 'none',
@@ -153,7 +153,7 @@ export default function LoginPage() {
             }}
           >
             <ArrowLeft size={14} />
-            Use a different number
+            Use a different email
           </button>
         </div>
       )}

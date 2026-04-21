@@ -1,11 +1,11 @@
 import { supabase } from './supabase';
 
-export async function signInWithPhone(phone: string) {
-  return supabase.auth.signInWithOtp({ phone });
+export async function signInWithEmail(email: string) {
+  return supabase.auth.signInWithOtp({ email });
 }
 
-export async function verifyOTP(phone: string, token: string) {
-  return supabase.auth.verifyOtp({ phone, token, type: 'sms' });
+export async function verifyEmailOTP(email: string, token: string) {
+  return supabase.auth.verifyOtp({ email, token, type: 'email' });
 }
 
 export async function signOut() {
