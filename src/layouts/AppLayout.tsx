@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Home, MapPin, LayoutDashboard, PlusCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { to: '/feed', icon: Home, label: 'Feed' },
@@ -7,8 +8,66 @@ const navItems = [
   { to: '/onboarding', icon: PlusCircle, label: 'Add Place' },
 ];
 
+const STORAGE_KEY = 'kayaa_city';
+const DEFAULT_CITY = 'Johannesburg';
+
+function useCity(): string {
+  const [city, setCity] = useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEY) ?? '';
+  });
+
+  useEffect(() => {
+    // Already resolved — skip
+    if (localStorage.getItem(STORAGE_KEY)) return;
+
+    if (!navigator.geolocation) {
+      const fallback = DEFAULT_CITY;
+      localStorage.setItem(STORAGE_KEY, fallback);
+      setCity(fallback);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const addr = data.address ?? {};
+          // Prefer suburb / neighbourhood over city for granularity
+          const resolved =
+            addr.suburb ??
+            addr.neighbourhood ??
+            addr.town ??
+            addr.city ??
+            addr.county ??
+            DEFAULT_CITY;
+          localStorage.setItem(STORAGE_KEY, resolved);
+          setCity(resolved);
+        } catch {
+          localStorage.setItem(STORAGE_KEY, DEFAULT_CITY);
+          setCity(DEFAULT_CITY);
+        }
+      },
+      () => {
+        // User denied or error — fall back
+        localStorage.setItem(STORAGE_KEY, DEFAULT_CITY);
+        setCity(DEFAULT_CITY);
+      },
+      { timeout: 8000 }
+    );
+  }, []);
+
+  return city || DEFAULT_CITY;
+}
+
 export default function AppLayout() {
   const location = useLocation();
+  const city = useCity();
+
+  const locationLabel = location.pathname.startsWith('/venue') ? 'Place' : city;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
@@ -30,12 +89,19 @@ export default function AppLayout() {
             kayaa
           </span>
         </NavLink>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button
+          onClick={() => console.log('City selector coming soon')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            padding: '6px 8px', borderRadius: '8px',
+          }}
+        >
           <MapPin size={16} color="var(--color-muted)" />
-          <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-            {location.pathname.startsWith('/venue') ? 'Place' : 'Your city'}
+          <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            {locationLabel}
           </span>
-        </div>
+        </button>
       </header>
 
       {/* Main content */}
