@@ -304,6 +304,18 @@ export default function CheckInPage() {
             >
               Back to {venue!.name.split("'")[0].trim()}
             </Link>
+            {!isGhost && name.trim() && (
+              <Link
+                to={`/card/${encodeURIComponent(name.trim())}`}
+                style={{
+                  display: 'block', textDecoration: 'none',
+                  color: 'var(--color-accent)', fontSize: '14px', fontWeight: 600,
+                  padding: '10px', textAlign: 'center', fontFamily: 'DM Sans, sans-serif',
+                }}
+              >
+                View your Regular Card →
+              </Link>
+            )}
             <Link
               to="/feed"
               style={{

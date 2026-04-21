@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { MapPin, Share2 } from 'lucide-react';
 import type { Venue } from '../types';
 
 const categoryEmoji: Record<string, string> = {
@@ -165,26 +165,43 @@ export default function VenueCard({ venue }: VenueCardProps) {
           regulars
         </span>
 
-        <Link
-          to={`/venue/${venue.slug}/checkin`}
-          onClick={e => e.stopPropagation()}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px',
-            background: 'var(--color-accent)',
-            color: '#000',
-            textDecoration: 'none',
-            fontSize: '12px',
-            fontWeight: 700,
-            fontFamily: 'Syne, sans-serif',
-            padding: '6px 14px',
-            borderRadius: '20px',
-            letterSpacing: '0.01em',
-          }}
-        >
-          Check in
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`Check out ${venue.name} on Kayaa — https://kayaa.co.za/venue/${venue.slug}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '30px', height: '30px', borderRadius: '50%',
+              background: 'var(--color-surface2)',
+              border: '1px solid var(--color-border)',
+              flexShrink: 0,
+            }}
+          >
+            <Share2 size={14} color="var(--color-muted)" />
+          </a>
+          <Link
+            to={`/venue/${venue.slug}/checkin`}
+            onClick={e => e.stopPropagation()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: 'var(--color-accent)',
+              color: '#000',
+              textDecoration: 'none',
+              fontSize: '12px',
+              fontWeight: 700,
+              fontFamily: 'Syne, sans-serif',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Check in
+          </Link>
+        </div>
       </div>
     </div>
   );

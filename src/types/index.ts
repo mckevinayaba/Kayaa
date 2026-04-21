@@ -14,6 +14,7 @@ export interface Venue {
   followerCount: number;
   isOpen: boolean;
   openHours?: string;
+  whatsappNumber?: string;
   tags: string[];
   createdAt: string;
 }

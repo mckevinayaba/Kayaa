@@ -241,8 +241,16 @@ function StatsRow({ venue, eventsCount, regularsCount }: { venue: Venue; eventsC
   );
 }
 
+function formatWaNumber(n: string): string {
+  const digits = n.replace(/\D/g, '');
+  return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
+}
+
 function CheckInCTA({ venue }: { venue: Venue }) {
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`Check out ${venue.name} on Kayaa — https://kayaa.co.za/${venue.slug}`)}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`I found ${venue.name} on Kayaa. Check them out — https://kayaa.co.za/venue/${venue.slug}`)}`;
+  const waCheckinUrl = venue.whatsappNumber
+    ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}?text=${encodeURIComponent(`Hi, I'd like to check in at ${venue.name}`)}`
+    : null;
 
   return (
     <div style={{ marginBottom: '24px' }}>
@@ -256,7 +264,7 @@ function CheckInCTA({ venue }: { venue: Venue }) {
           Check in here
         </div>
       </Link>
-      <a href={shareUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
+      <a href={shareUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginBottom: waCheckinUrl ? '10px' : '0' }}>
         <div style={{
           background: 'transparent',
           border: '1.5px solid rgba(57,217,138,0.4)',
@@ -268,6 +276,21 @@ function CheckInCTA({ venue }: { venue: Venue }) {
           Share on WhatsApp
         </div>
       </a>
+      {waCheckinUrl && (
+        <a href={waCheckinUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
+          <div style={{
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: '14px', padding: '13px 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+            color: 'var(--color-muted)',
+          }}>
+            <span>💬</span>
+            Can't scan? Check in on WhatsApp
+          </div>
+        </a>
+      )}
     </div>
   );
 }

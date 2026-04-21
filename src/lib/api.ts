@@ -24,6 +24,7 @@ function dbVenueToVenue(row: any): Venue {
     followerCount: row.regulars_count ?? 0,
     isOpen: true,
     openHours: row.opening_hours ?? undefined,
+    whatsappNumber: row.whatsapp_number ?? undefined,
     tags: [],
     createdAt: row.created_at ?? '',
   };
@@ -546,6 +547,56 @@ export async function updateVenueSettings(venueId: string, settings: {
     .update(settings)
     .eq('id', venueId);
   return { error };
+}
+
+// ─── Visitor Regular Card ─────────────────────────────────────────────────────
+
+export interface VisitorVenueCheckin {
+  venueId: string;
+  venueName: string;
+  venueSlug: string;
+  venueType: string;
+  visitCount: number;
+  firstVisitAt: string;
+}
+
+export async function getVisitorCheckIns(visitorName: string): Promise<VisitorVenueCheckin[]> {
+  const { data, error } = await supabase
+    .from('check_ins')
+    .select('venue_id, created_at')
+    .eq('visitor_name', visitorName)
+    .eq('is_ghost', false)
+    .order('created_at', { ascending: true });
+
+  if (error || !data || data.length === 0) return [];
+
+  const groups: Record<string, { count: number; firstAt: string }> = {};
+  for (const row of data) {
+    if (!groups[row.venue_id]) {
+      groups[row.venue_id] = { count: 0, firstAt: row.created_at };
+    }
+    groups[row.venue_id].count++;
+  }
+
+  const venueIds = Object.keys(groups);
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name, slug, type')
+    .in('id', venueIds);
+
+  if (!venues) return [];
+
+  return venues
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((v: any) => ({
+      venueId: v.id,
+      venueName: v.name,
+      venueSlug: v.slug,
+      venueType: v.type,
+      visitCount: groups[v.id]?.count ?? 0,
+      firstVisitAt: groups[v.id]?.firstAt ?? '',
+    }))
+    .sort((a, b) => b.visitCount - a.visitCount);
 }
 
 // ─── Neighbourhood Board ──────────────────────────────────────────────────────
