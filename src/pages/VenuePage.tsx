@@ -241,17 +241,33 @@ function StatsRow({ venue, eventsCount, regularsCount }: { venue: Venue; eventsC
 }
 
 function CheckInCTA({ venue }: { venue: Venue }) {
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`Check out ${venue.name} on Kayaa — https://kayaa.co.za/${venue.slug}`)}`;
+
   return (
-    <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '24px' }}>
-      <div style={{
-        background: 'var(--color-accent)', color: '#000',
-        borderRadius: '14px', padding: '16px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-      }}>
-        Check in here
-      </div>
-    </Link>
+    <div style={{ marginBottom: '24px' }}>
+      <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}>
+        <div style={{
+          background: 'var(--color-accent)', color: '#000',
+          borderRadius: '14px', padding: '16px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+        }}>
+          Check in here
+        </div>
+      </Link>
+      <a href={shareUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
+        <div style={{
+          background: 'transparent',
+          border: '1.5px solid rgba(57,217,138,0.4)',
+          borderRadius: '14px', padding: '14px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          color: '#39D98A',
+        }}>
+          Share on WhatsApp
+        </div>
+      </a>
+    </div>
   );
 }
 

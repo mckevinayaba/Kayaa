@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink, Search, Plus } from 'lucide-react';
+import { MapPin, ExternalLink, Search, Plus, Download } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -549,9 +550,28 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
   const [publicPage, setPublicPage]       = useState(true);
   const [showRegulars, setShowRegulars]   = useState(true);
   const [quietCheckins, setQuietCheckins] = useState(true);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const qrUrl = `https://kayaa.co.za/${venue.slug}/checkin`;
 
   async function handleToggle(key: 'is_public' | 'show_regulars_publicly' | 'allow_quiet_checkins', val: boolean) {
     await updateVenueSettings(venueId, { [key]: val });
+  }
+
+  function downloadQR() {
+    const sourceCanvas = qrRef.current?.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!sourceCanvas) return;
+    const size = 512;
+    const out = document.createElement('canvas');
+    out.width = size;
+    out.height = size;
+    const ctx = out.getContext('2d')!;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(sourceCanvas, 0, 0, size, size);
+    const a = document.createElement('a');
+    a.href = out.toDataURL('image/png');
+    a.download = `${venue.slug}-kayaa-qr.png`;
+    a.click();
   }
 
   return (
@@ -616,6 +636,39 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
           checked={quietCheckins}
           onChange={v => { setQuietCheckins(v); handleToggle('allow_quiet_checkins', v); }}
         />
+      </div>
+
+      {/* QR code */}
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '14px', padding: '16px', marginBottom: '16px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+      }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', alignSelf: 'flex-start' }}>
+          Your check-in QR code
+        </div>
+        <div ref={qrRef} style={{
+          background: '#fff', padding: '14px', borderRadius: '12px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+        }}>
+          <QRCodeCanvas value={qrUrl} size={160} level="M" marginSize={0} />
+        </div>
+        <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'center', margin: 0 }}>
+          kayaa.co.za/{venue.slug}/checkin
+        </p>
+        <button
+          onClick={downloadQR}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.3)',
+            borderRadius: '10px', padding: '10px 20px',
+            color: 'var(--color-accent)', fontFamily: 'Syne, sans-serif',
+            fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+          }}
+        >
+          <Download size={14} />
+          Download QR code
+        </button>
       </div>
 
       <Link to={`/venue/${venue.slug}`} style={{ textDecoration: 'none' }}>
