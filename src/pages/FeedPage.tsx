@@ -5,8 +5,9 @@ import {
   getAllVenues, getAllEvents, getActiveStories,
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
   getMostLovedPlaces, getGlobalActivity,
+  getNeighbourhoodPosts, getLocalJobs,
 } from '../lib/api';
-import type { TrendingVenue, TonightEvent, ActivityItem } from '../lib/api';
+import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, LocalJob } from '../lib/api';
 import type { Venue, Event, Story } from '../types';
 import VenueCard from '../components/VenueCard';
 import ActivityMoment from '../components/ActivityMoment';
@@ -171,6 +172,142 @@ function NewPlacesSection({ venues }: { venues: Venue[] }) {
   );
 }
 
+// ─── Board & Jobs teasers ─────────────────────────────────────────────────────
+
+const BOARD_CAT_COLORS: Record<string, string> = {
+  announcement: '#60A5FA', lost_found: '#F5A623', question: '#A78BFA',
+  recommendation: '#39D98A', event: '#F472B6', general: '#94A3B8',
+};
+const BOARD_CAT_LABELS: Record<string, string> = {
+  announcement: 'Announcement', lost_found: 'Lost & Found', question: 'Question',
+  recommendation: 'Recommendation', event: 'Event', general: 'General',
+};
+const JOB_TYPE_COLORS: Record<string, string> = {
+  full_time: '#39D98A', part_time: '#60A5FA', once_off: '#F5A623', skill_offer: '#A78BFA',
+};
+const JOB_TYPE_LABELS: Record<string, string> = {
+  full_time: 'Full time', part_time: 'Part time', once_off: 'Once-off', skill_offer: 'Skill offer',
+};
+
+function teaserTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function BoardTeaser({ posts }: { posts: NeighbourhoodPost[] }) {
+  const navigate = useNavigate();
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+          From the neighbourhood board
+        </h2>
+        <button
+          onClick={() => navigate('/board')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}
+        >
+          See all →
+        </button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {posts.map(post => {
+          const color = BOARD_CAT_COLORS[post.category] ?? '#94A3B8';
+          return (
+            <div
+              key={post.id}
+              onClick={() => navigate('/board')}
+              style={{
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: '12px', padding: '12px', cursor: 'pointer',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px' }}>
+                  {BOARD_CAT_LABELS[post.category] ?? post.category}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{teaserTime(post.createdAt)}</span>
+              </div>
+              <p style={{
+                fontSize: '13px', color: 'var(--color-text)', margin: 0,
+                lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
+                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+              } as React.CSSProperties}>
+                {post.content}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function JobsTeaser({ jobs }: { jobs: LocalJob[] }) {
+  const navigate = useNavigate();
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+          Local opportunities
+        </h2>
+        <button
+          onClick={() => navigate('/jobs')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}
+        >
+          See all →
+        </button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {jobs.map(job => {
+          const color = JOB_TYPE_COLORS[job.jobType] ?? '#94A3B8';
+          return (
+            <div
+              key={job.id}
+              onClick={() => navigate('/jobs')}
+              style={{
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: '12px', padding: '12px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '12px',
+              }}
+            >
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+                background: `${color}18`, border: `1px solid ${color}30`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px',
+              }}>
+                💼
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+                  color: 'var(--color-text)', marginBottom: '3px',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {job.title}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '1px 7px', borderRadius: '20px' }}>
+                    {JOB_TYPE_LABELS[job.jobType] ?? job.jobType}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+                    👤 {job.postedBy}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── PWA Install Banner ───────────────────────────────────────────────────────
 
 function InstallBanner() {
@@ -262,6 +399,8 @@ export default function FeedPage() {
   const [newPlaces, setNewPlaces] = useState<Venue[]>([]);
   const [mostLoved, setMostLoved] = useState<Venue[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
+  const [boardJobs, setBoardJobs] = useState<LocalJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -279,7 +418,9 @@ export default function FeedPage() {
       getNewPlaces(),
       getMostLovedPlaces(),
       getGlobalActivity(),
-    ]).then(([v, e, s, tr, tn, np, ml, act]) => {
+      getNeighbourhoodPosts(city),
+      getLocalJobs(city),
+    ]).then(([v, e, s, tr, tn, np, ml, act, bp, bj]) => {
       setVenues(v);
       setEvents(e);
       setStories(s);
@@ -288,6 +429,8 @@ export default function FeedPage() {
       setNewPlaces(np);
       setMostLoved(ml);
       setActivity(act);
+      setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 2));
+      setBoardJobs((bj as LocalJob[]).slice(0, 2));
       setLoading(false);
     });
   }, []);
@@ -432,6 +575,12 @@ export default function FeedPage() {
 
       {/* Most loved */}
       {!loading && <MostLovedRail venues={mostLoved} city={city} />}
+
+      {/* Neighbourhood Board teaser */}
+      {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}
+
+      {/* Local Jobs teaser */}
+      {boardJobs.length > 0 && <JobsTeaser jobs={boardJobs} />}
 
       <InstallBanner />
     </div>
