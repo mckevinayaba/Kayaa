@@ -64,7 +64,7 @@ function VenueNotFound() {
     }}>
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
       <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px' }}>
-        Venue not found
+        Place not found
       </h2>
       <Link to="/feed" style={{ color: 'var(--color-accent)', fontSize: '14px', textDecoration: 'none' }}>
         ← Back to feed

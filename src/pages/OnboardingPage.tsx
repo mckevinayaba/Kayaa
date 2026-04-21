@@ -225,7 +225,7 @@ export default function OnboardingPage() {
     });
 
     if (venueErr || !venueRow) {
-      setErrors({ submit: 'Could not create your venue. Please try again.' });
+      setErrors({ submit: 'Could not create your place. Please try again.' });
       setSubmitting(false);
       return;
     }
@@ -478,7 +478,7 @@ export default function OnboardingPage() {
                 I agree to the Kayaa terms
               </p>
               <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                You're in control of your venue data, always.
+                You're in control of your place data, always.
               </p>
             </div>
             <ToggleSwitch
