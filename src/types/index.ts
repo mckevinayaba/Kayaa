@@ -41,6 +41,16 @@ export interface Event {
   createdAt: string;
 }
 
+export interface Story {
+  id: string;
+  venueId: string;
+  venueName: string;
+  venueType: string;
+  content: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export interface Post {
   id: string;
   venueId: string;

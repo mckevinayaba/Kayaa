@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   getVenueOwnerByUserId, getVenueById, getRecentCheckIns, getVenueRegulars,
-  getVenueEvents, createPost, createEvent, updateVenueSettings,
+  getVenueEvents, createPost, createEvent, updateVenueSettings, createStory,
 } from '../lib/api';
 import type { DashboardCheckIn, Regular } from '../lib/api';
 import type { Venue, Event } from '../types';
@@ -117,6 +117,11 @@ function HomeTab({ checkIns, venueId, venueSlug }: {
   const [posted, setPosted] = useState(false);
   const [postError, setPostError] = useState('');
 
+  const [storyText, setStoryText] = useState('');
+  const [postingStory, setPostingStory] = useState(false);
+  const [storyPosted, setStoryPosted] = useState(false);
+  const [storyError, setStoryError] = useState('');
+
   async function handlePost() {
     if (!postText.trim()) return;
     setPosting(true);
@@ -127,6 +132,18 @@ function HomeTab({ checkIns, venueId, venueSlug }: {
     setPosted(true);
     setPostText('');
     setTimeout(() => setPosted(false), 2500);
+  }
+
+  async function handleStory() {
+    if (!storyText.trim()) return;
+    setPostingStory(true);
+    setStoryError('');
+    const { error } = await createStory(venueId, storyText.trim());
+    setPostingStory(false);
+    if (error) { setStoryError('Could not post story. Try again.'); return; }
+    setStoryPosted(true);
+    setStoryText('');
+    setTimeout(() => setStoryPosted(false), 3000);
   }
 
   const todayCheckIns = checkIns.filter(ci => isToday(ci.createdAt));
@@ -221,7 +238,7 @@ function HomeTab({ checkIns, venueId, venueSlug }: {
       </div>
 
       {/* Post box */}
-      <div>
+      <div style={{ marginBottom: '24px' }}>
         <h2 style={{
           fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
           marginBottom: '12px', color: 'var(--color-text)',
@@ -263,6 +280,68 @@ function HomeTab({ checkIns, venueId, venueSlug }: {
               }}
             >
               {posted ? 'Posted ✓' : posting ? 'Posting…' : 'Post'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Story box */}
+      <div>
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          marginBottom: '4px', color: 'var(--color-text)',
+        }}>
+          Post a story
+        </h2>
+        <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '12px' }}>
+          Post a quick update (disappears in 24 hours)
+        </p>
+        <div style={{
+          background: 'var(--color-surface)',
+          border: '1px solid rgba(57,217,138,0.2)',
+          borderRadius: '14px', padding: '14px',
+        }}>
+          <textarea
+            value={storyText}
+            onChange={e => setStoryText(e.target.value.slice(0, 120))}
+            placeholder="What's happening at your place right now..."
+            maxLength={120}
+            style={{
+              width: '100%', minHeight: '72px',
+              background: 'transparent', border: 'none', outline: 'none',
+              color: 'var(--color-text)', fontSize: '14px',
+              fontFamily: 'DM Sans, sans-serif', resize: 'none',
+              lineHeight: 1.5, boxSizing: 'border-box',
+            }}
+          />
+          {storyError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{storyError}</p>}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)',
+          }}>
+            <span style={{
+              fontSize: '11px',
+              color: storyText.length >= 110 ? '#F5A623' : 'var(--color-muted)',
+            }}>
+              {120 - storyText.length} left
+            </span>
+            <button
+              onClick={handleStory}
+              disabled={postingStory || !storyText.trim()}
+              style={{
+                background: storyPosted
+                  ? 'rgba(57,217,138,0.2)'
+                  : postingStory || !storyText.trim()
+                    ? 'rgba(57,217,138,0.4)'
+                    : 'var(--color-accent)',
+                color: storyPosted ? 'var(--color-accent)' : '#000',
+                border: 'none', borderRadius: '10px', padding: '8px 20px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+                cursor: postingStory || !storyText.trim() ? 'default' : 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {storyPosted ? 'Your story is live for 24 hours ✓' : postingStory ? 'Posting…' : 'Post story'}
             </button>
           </div>
         </div>

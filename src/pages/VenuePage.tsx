@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Calendar } from 'lucide-react';
-import { getVenueBySlug, getVenueEvents, getVenuePosts } from '../lib/api';
+import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories } from '../lib/api';
 import { supabase } from '../lib/supabase';
-import type { Venue, Event, Post } from '../types';
+import type { Venue, Event, Post, Story } from '../types';
+import StoriesStrip from '../components/StoriesStrip';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -543,6 +544,7 @@ export default function VenuePage() {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
   const [regularsCount, setRegularsCount] = useState(0);
 
   useEffect(() => {
@@ -556,9 +558,10 @@ export default function VenuePage() {
       setRegularsCount(v.followerCount);
       setLoading(false);
 
-      // Fetch events + posts in parallel
+      // Fetch events, posts, stories in parallel
       getVenueEvents(v.id).then(setEvents);
       getVenuePosts(v.id).then(setPosts);
+      getActiveStories(v.id).then(setStories);
 
       // Realtime: listen for new check-ins and bump the regulars counter
       const channel = supabase
@@ -583,6 +586,7 @@ export default function VenuePage() {
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
         <StatsRow venue={venue} eventsCount={events.length} regularsCount={regularsCount} />
+        {stories.length > 0 && <StoriesStrip stories={stories} />}
         <CheckInCTA venue={venue} />
         <SocialProof venue={venue} regularsCount={regularsCount} />
         <EventsSection events={events} />

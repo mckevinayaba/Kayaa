@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Search } from 'lucide-react';
-import { getAllVenues, getAllEvents } from '../lib/api';
-import type { Venue, Event } from '../types';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Search, X } from 'lucide-react';
+import { getAllVenues, getAllEvents, getActiveStories } from '../lib/api';
+import type { Venue, Event, Story } from '../types';
 import VenueCard from '../components/VenueCard';
 import ActivityMoment from '../components/ActivityMoment';
 import EventRail from '../components/EventRail';
+import StoriesStrip from '../components/StoriesStrip';
 
 // --- Helpers ---
 
@@ -16,15 +17,14 @@ function getGreeting(): string {
 }
 
 type FilterKey = 'All' | 'Open now' | 'Busy now' | 'Events today';
-
 const FILTERS: FilterKey[] = ['All', 'Open now', 'Busy now', 'Events today'];
 
 function applyFilter(venues: Venue[], filter: FilterKey, venueIdsWithEvents: Set<string>): Venue[] {
   switch (filter) {
-    case 'Open now':      return venues.filter(v => v.isOpen);
-    case 'Busy now':      return venues.filter(v => v.checkinCount > 1000);
-    case 'Events today':  return venues.filter(v => venueIdsWithEvents.has(v.id));
-    default:              return venues;
+    case 'Open now':     return venues.filter(v => v.isOpen);
+    case 'Busy now':     return venues.filter(v => v.checkinCount > 1000);
+    case 'Events today': return venues.filter(v => venueIdsWithEvents.has(v.id));
+    default:             return venues;
   }
 }
 
@@ -33,7 +33,6 @@ const ACTIVITY_MOMENTS = [
   { id: 'a2', text: "3 new regulars this week at Mama Zulu's 🔥", time: '18 min ago', initial: 'M' },
   { id: 'a3', text: 'Ayanda grabbed airtime at Sipho Corner at 10pm — still open 🏪', time: '1 hr ago', initial: 'A' },
 ];
-
 const ACTIVITY_AFTER: Set<number> = new Set([0, 1, 2]);
 
 // --- Skeleton ---
@@ -61,8 +60,6 @@ function VenueCardSkeleton() {
   );
 }
 
-// --- Empty state ---
-
 function EmptyState() {
   return (
     <div style={{
@@ -83,19 +80,123 @@ function EmptyState() {
   );
 }
 
+// --- PWA Install Banner ---
+
+function InstallBanner() {
+  const [show, setShow] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const deferredRef = useRef<Event | null>(null);
+
+  useEffect(() => {
+    // Capture the browser install prompt
+    function onPrompt(e: Event) {
+      e.preventDefault();
+      deferredRef.current = e;
+    }
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
+
+  useEffect(() => {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (navigator as any).standalone === true;
+    if (isStandalone) return;
+
+    const dismissed = localStorage.getItem('kayaa_install_dismissed');
+    if (dismissed) return;
+
+    const visits = parseInt(localStorage.getItem('kayaa_feed_visits') ?? '0') + 1;
+    localStorage.setItem('kayaa_feed_visits', String(visits));
+
+    if (visits >= 2) setShow(true);
+  }, []);
+
+  if (!show) return null;
+
+  function handleAdd() {
+    if (deferredRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (deferredRef.current as any).prompt?.();
+      setShow(false);
+    } else {
+      setShowFallback(true);
+    }
+  }
+
+  function handleDismiss() {
+    localStorage.setItem('kayaa_install_dismissed', '1');
+    setShow(false);
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: '64px', left: 0, right: 0, zIndex: 40,
+      background: 'var(--color-surface)',
+      borderTop: '1px solid var(--color-border)',
+      padding: '12px 16px',
+      display: 'flex', alignItems: 'center', gap: '12px',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+          color: 'var(--color-text)', marginBottom: '2px',
+        }}>
+          Add Kayaa to your home screen
+        </div>
+        {showFallback ? (
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
+            Tap the share button in your browser, then tap <strong>Add to Home Screen</strong>
+          </div>
+        ) : (
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+            Open it like an app, any time.
+          </div>
+        )}
+      </div>
+      {!showFallback && (
+        <button
+          onClick={handleAdd}
+          style={{
+            background: 'var(--color-accent)', color: '#000', border: 'none',
+            borderRadius: '10px', padding: '8px 18px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          Add
+        </button>
+      )}
+      <button
+        onClick={handleDismiss}
+        style={{
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--color-muted)', flexShrink: 0, padding: '4px',
+        }}
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+}
+
 // --- Main page ---
 
 export default function FeedPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>('All');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    Promise.all([getAllVenues(), getAllEvents()]).then(([v, e]) => {
+    Promise.all([getAllVenues(), getAllEvents(), getActiveStories()]).then(([v, e, s]) => {
       setVenues(v);
       setEvents(e);
+      setStories(s);
       setLoading(false);
     });
   }, []);
@@ -121,6 +222,9 @@ export default function FeedPage() {
 
   return (
     <div style={{ padding: '16px' }}>
+
+      {/* Stories */}
+      <StoriesStrip stories={stories} />
 
       {/* Greeting + neighbourhood label */}
       <div style={{ marginBottom: '16px' }}>
@@ -186,7 +290,7 @@ export default function FeedPage() {
         ))}
       </div>
 
-      {/* Event rail — only on All filter, no search active */}
+      {/* Event rail */}
       {filter === 'All' && !search && events.length > 0 && (
         <EventRail events={events} venues={venues} />
       )}
@@ -223,6 +327,8 @@ export default function FeedPage() {
           })}
         </div>
       )}
+
+      <InstallBanner />
     </div>
   );
 }

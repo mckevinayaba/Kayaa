@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kayaa-dev",
+      "runtimeExecutable": "C:\\Windows\\System32\\cmd.exe",
+      "runtimeArgs": ["/c", "C:\\Users\\asus\\Downloads\\Kayaa App\\start-dev.cmd"],
+      "port": 5173
+    }
+  ]
+}

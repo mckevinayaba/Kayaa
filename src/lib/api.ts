@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { mockVenues, mockEvents, mockPosts } from './mockData';
-import type { Venue, Event, Post } from '../types';
+import type { Venue, Event, Post, Story } from '../types';
 
 // ─── DB row → App type mappers ────────────────────────────────────────────────
 
@@ -334,6 +334,36 @@ export async function createEvent(data: {
   price?: number;
 }) {
   const { error } = await supabase.from('events').insert(data);
+  return { error };
+}
+
+export async function getActiveStories(venueId?: string): Promise<Story[]> {
+  let query = supabase
+    .from('place_stories')
+    .select('*, venues(name, type)')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
+
+  if (venueId) query = query.eq('venue_id', venueId);
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((row: any) => ({
+    id: row.id,
+    venueId: row.venue_id,
+    venueName: row.venues?.name ?? '',
+    venueType: row.venues?.type ?? '',
+    content: row.content,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  }));
+}
+
+export async function createStory(venueId: string, content: string) {
+  const { error } = await supabase
+    .from('place_stories')
+    .insert({ venue_id: venueId, content });
   return { error };
 }
 

@@ -166,6 +166,23 @@ export default function CheckInPage() {
   if (step === 'success') {
     const displayName = name.trim().split(' ')[0];
     const isGhost = ghostMode;
+    const MILESTONES = new Set([1, 5, 10, 25, 50]);
+    const isMilestone = !isGhost && MILESTONES.has(visitNumber);
+
+    function getMilestoneMessage(): string {
+      switch (visitNumber) {
+        case 1:  return `Welcome to ${venue!.name}. You're part of the neighbourhood.`;
+        case 5:  return `5 visits. You're officially a regular at ${venue!.name}.`;
+        case 10: return `Visit 10. ${venue!.name} knows your name.`;
+        case 25: return `25 visits. You're one of ${venue!.name}'s most loyal regulars.`;
+        case 50: return `50 visits. Legend status at ${venue!.name}.`;
+        default: return `Visit ${visitNumber} at ${venue!.name}. Good to have you back.`;
+      }
+    }
+
+    const waText = encodeURIComponent(
+      `I just hit visit ${visitNumber} at ${venue!.name} on Kayaa! Check them out — https://kayaa.co.za/${slug}`
+    );
 
     return (
       <>
@@ -182,47 +199,100 @@ export default function CheckInPage() {
           .checkin-success-text  { animation: fadeUp  0.4s ease 0.3s both; }
           .checkin-success-sub   { animation: fadeUp  0.4s ease 0.45s both; }
           .checkin-success-ctas  { animation: fadeUp  0.4s ease 0.6s both; }
+          @keyframes cf1 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(-28px,-72px) scale(0);opacity:0} }
+          @keyframes cf2 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(28px,-80px) scale(0);opacity:0} }
+          @keyframes cf3 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(-44px,-56px) scale(0);opacity:0} }
+          @keyframes cf4 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(44px,-60px) scale(0);opacity:0} }
+          @keyframes cf5 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(-14px,-88px) scale(0);opacity:0} }
+          @keyframes cf6 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(18px,-76px) scale(0);opacity:0} }
+          @keyframes cf7 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(-36px,-64px) scale(0);opacity:0} }
+          @keyframes cf8 { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(36px,-68px) scale(0);opacity:0} }
+          .cf { position:absolute; width:7px; height:7px; borderRadius:50%; background:#39D98A; animation-duration:1.4s; animation-fill-mode:both; animation-timing-function:ease-out; }
+          .cf1{animation-name:cf1;animation-delay:0.1s}
+          .cf2{animation-name:cf2;animation-delay:0.15s}
+          .cf3{animation-name:cf3;animation-delay:0.05s}
+          .cf4{animation-name:cf4;animation-delay:0.2s}
+          .cf5{animation-name:cf5;animation-delay:0.1s}
+          .cf6{animation-name:cf6;animation-delay:0.08s}
+          .cf7{animation-name:cf7;animation-delay:0.18s;background:rgba(57,217,138,0.6)}
+          .cf8{animation-name:cf8;animation-delay:0.12s;background:rgba(57,217,138,0.7)}
         `}</style>
 
         <div style={{ padding: '24px 16px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
 
           <div className="checkin-success-icon" style={{
-            width: '88px', height: '88px', borderRadius: '50%',
+            position: 'relative',
+            width: isMilestone ? '96px' : '88px',
+            height: isMilestone ? '96px' : '88px',
+            borderRadius: '50%',
             background: isGhost ? 'rgba(255,255,255,0.04)' : 'rgba(57,217,138,0.12)',
-            border: `2px solid ${isGhost ? 'rgba(255,255,255,0.15)' : 'var(--color-accent)'}`,
+            border: `${isMilestone ? '3px' : '2px'} solid ${isGhost ? 'rgba(255,255,255,0.15)' : 'var(--color-accent)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '28px', fontSize: '40px',
+            marginBottom: '28px', fontSize: isMilestone ? '44px' : '40px',
           }}>
             {isGhost ? '👤' : '✓'}
+            {isMilestone && (
+              <>
+                <span className="cf cf1" />
+                <span className="cf cf2" />
+                <span className="cf cf3" />
+                <span className="cf cf4" />
+                <span className="cf cf5" />
+                <span className="cf cf6" />
+                <span className="cf cf7" />
+                <span className="cf cf8" />
+              </>
+            )}
           </div>
 
           <h1 className="checkin-success-text" style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: isMilestone ? '30px' : '28px',
             color: 'var(--color-text)', marginBottom: '12px', lineHeight: 1.2,
           }}>
             {isGhost ? "You're in — quietly." : `You're in, ${displayName}.`}
           </h1>
 
           <p className="checkin-success-sub" style={{
-            fontSize: '15px', color: 'var(--color-muted)', lineHeight: 1.65,
-            marginBottom: '40px', maxWidth: '280px',
+            fontSize: isMilestone ? '17px' : '15px',
+            color: 'var(--color-muted)', lineHeight: 1.65,
+            marginBottom: '40px', maxWidth: '300px',
           }}>
             {isGhost ? (
               <>The count went up.{' '}<span style={{ color: 'var(--color-text)' }}>The vibe is better.</span></>
+            ) : isMilestone ? (
+              <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{getMilestoneMessage()}</span>
             ) : isRegular ? (
               <>Visit {visitNumber} at{' '}
-                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue.name}</span>
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue!.name}</span>
                 . Good to have you back.
               </>
             ) : (
               <>Welcome to{' '}
-                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue.name}</span>
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{venue!.name}</span>
                 . You're officially part of the neighbourhood.
               </>
             )}
           </p>
 
           <div className="checkin-success-ctas" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {isMilestone && (
+              <a
+                href={`https://wa.me/?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', textDecoration: 'none',
+                  background: 'transparent',
+                  border: '1.5px solid rgba(57,217,138,0.4)',
+                  borderRadius: '14px', padding: '14px',
+                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+                  textAlign: 'center', color: '#39D98A',
+                }}
+              >
+                Share on WhatsApp
+              </a>
+            )}
             <Link
               to={`/venue/${slug}`}
               style={{
@@ -232,7 +302,7 @@ export default function CheckInPage() {
                 fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', textAlign: 'center',
               }}
             >
-              Back to {venue.name.split("'")[0].trim()}
+              Back to {venue!.name.split("'")[0].trim()}
             </Link>
             <Link
               to="/feed"
