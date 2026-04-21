@@ -337,6 +337,175 @@ export async function createEvent(data: {
   return { error };
 }
 
+// ─── Feed enrichment types ────────────────────────────────────────────────────
+
+export type TrendingVenue = Venue & { weeklyCheckins: number };
+
+export interface TonightEvent {
+  id: string;
+  venueId: string;
+  venueName: string;
+  venueSlug: string;
+  venueType: string;
+  title: string;
+  startsAt: string;
+  isFree: boolean;
+  price?: number;
+}
+
+// ─── Feed enrichment queries ──────────────────────────────────────────────────
+
+export async function getTrendingPlaces(): Promise<TrendingVenue[]> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: cis, error } = await supabase
+    .from('check_ins')
+    .select('venue_id')
+    .gte('created_at', sevenDaysAgo);
+
+  const fallback = [...mockVenues]
+    .sort((a, b) => b.followerCount - a.followerCount)
+    .slice(0, 5)
+    .map(v => ({ ...v, weeklyCheckins: Math.round(v.followerCount / 5) }));
+
+  if (error || !cis || cis.length === 0) return fallback;
+
+  const counts: Record<string, number> = {};
+  for (const ci of cis) counts[ci.venue_id] = (counts[ci.venue_id] ?? 0) + 1;
+
+  const topIds = Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([id]) => id);
+  if (topIds.length === 0) return fallback;
+
+  const { data: rows, error: ve } = await supabase
+    .from('venues').select('*').in('id', topIds).eq('is_active', true);
+
+  if (ve || !rows || rows.length === 0) return fallback;
+
+  return rows
+    .map(r => ({ ...dbVenueToVenue(r), weeklyCheckins: counts[r.id] ?? 0 }))
+    .sort((a, b) => b.weeklyCheckins - a.weeklyCheckins);
+}
+
+export async function getHappeningTonight(): Promise<TonightEvent[]> {
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*, venues(name, slug, type)')
+    .gte('event_date', dayStart)
+    .lt('event_date', dayEnd)
+    .order('event_date', { ascending: true });
+
+  if (error || !data || data.length === 0) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((row: any) => ({
+    id: row.id,
+    venueId: row.venue_id,
+    venueName: row.venues?.name ?? '',
+    venueSlug: row.venues?.slug ?? '',
+    venueType: row.venues?.type ?? '',
+    title: row.title,
+    startsAt: row.event_date,
+    isFree: (row.price ?? 0) === 0,
+    price: row.price > 0 ? row.price : undefined,
+  }));
+}
+
+export async function getNewPlaces(): Promise<Venue[]> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from('venues')
+    .select('*')
+    .gte('created_at', sevenDaysAgo)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (error || !data || data.length === 0) return [];
+  return data.map(dbVenueToVenue);
+}
+
+export async function getMostLovedPlaces(): Promise<Venue[]> {
+  const { data, error } = await supabase
+    .from('venues')
+    .select('*')
+    .gt('regulars_count', 0)
+    .eq('is_active', true)
+    .order('regulars_count', { ascending: false })
+    .limit(5);
+
+  if (error || !data || data.length === 0) {
+    return [...mockVenues]
+      .sort((a, b) => b.followerCount - a.followerCount)
+      .filter(v => v.followerCount > 0)
+      .slice(0, 5);
+  }
+  return data.map(dbVenueToVenue);
+}
+
+export async function getGlobalActivity(): Promise<ActivityItem[]> {
+  const [ciRes, postRes] = await Promise.all([
+    supabase
+      .from('check_ins')
+      .select('id, venue_id, visitor_name, is_ghost, created_at, visit_number')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('posts')
+      .select('id, venue_id, content, created_at')
+      .order('created_at', { ascending: false })
+      .limit(3),
+  ]);
+
+  const ciData = ciRes.data ?? [];
+  const postData = postRes.data ?? [];
+
+  if (ciData.length === 0 && postData.length === 0) {
+    return [
+      { id: 'm1', text: "Lerato checked in at Uncle Dee's Barbershop 💈", time: '2 min ago', initial: 'L' },
+      { id: 'm2', text: "Mama Zulu's Shisanyama posted an update", time: '18 min ago', initial: '✦' },
+      { id: 'm3', text: 'Someone checked in at Sipho Corner Spaza', time: '1 hr ago', initial: '👤' },
+      { id: 'm4', text: "Thabo became a regular at Mama Zulu's", time: '3 hr ago', initial: 'T' },
+      { id: 'm5', text: 'Faith Assembly Church added a new event', time: '5 hr ago', initial: '✦' },
+    ];
+  }
+
+  const venueIds = [...new Set([...ciData.map(r => r.venue_id), ...postData.map(r => r.venue_id)])];
+  const { data: vRows } = await supabase.from('venues').select('id, name').in('id', venueIds);
+  const venueMap: Record<string, string> = {};
+  for (const v of vRows ?? []) venueMap[v.id] = v.name;
+
+  const items: ActivityItem[] = [];
+  for (const ci of ciData) {
+    const place = venueMap[ci.venue_id] ?? 'a place nearby';
+    const first = (ci.visitor_name as string | null)?.split(' ')[0];
+    const isRegular = (ci.visit_number ?? 0) >= 5 && !ci.is_ghost && first;
+    items.push({
+      id: `ci-${ci.id}`,
+      text: isRegular
+        ? `${first} became a regular at ${place}`
+        : ci.is_ghost
+          ? `Someone checked in at ${place}`
+          : `${first ?? 'Someone'} checked in at ${place}`,
+      time: formatRelativeTime(ci.created_at),
+      initial: ci.is_ghost ? '👤' : ((ci.visitor_name as string)?.[0]?.toUpperCase() ?? '?'),
+    });
+  }
+  for (const p of postData) {
+    const place = venueMap[p.venue_id] ?? 'a place';
+    items.push({
+      id: `po-${p.id}`,
+      text: `${place} just posted an update`,
+      time: formatRelativeTime(p.created_at),
+      initial: '✦',
+    });
+  }
+
+  return items.slice(0, 5);
+}
+
 export async function getActiveStories(venueId?: string): Promise<Story[]> {
   let query = supabase
     .from('place_stories')
