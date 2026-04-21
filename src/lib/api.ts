@@ -25,6 +25,7 @@ function dbVenueToVenue(row: any): Venue {
     isOpen: true,
     openHours: row.opening_hours ?? undefined,
     whatsappNumber: row.whatsapp_number ?? undefined,
+    isVerified: row.is_verified ?? false,
     tags: [],
     createdAt: row.created_at ?? '',
   };
@@ -547,6 +548,31 @@ export async function updateVenueSettings(venueId: string, settings: {
     .update(settings)
     .eq('id', venueId);
   return { error };
+}
+
+// ─── Venue trust data ────────────────────────────────────────────────────────
+
+export interface VenueRecentStats {
+  monthlyCheckins: number;
+  weeklyCheckins: number;
+}
+
+export async function getVenueRecentStats(venueId: string): Promise<VenueRecentStats> {
+  const now = new Date();
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const weekAgo  = new Date(now.getTime() -  7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [monthRes, weekRes] = await Promise.all([
+    supabase.from('check_ins').select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId).gte('created_at', monthAgo),
+    supabase.from('check_ins').select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId).gte('created_at', weekAgo),
+  ]);
+
+  return {
+    monthlyCheckins: monthRes.count ?? 0,
+    weeklyCheckins:  weekRes.count  ?? 0,
+  };
 }
 
 // ─── Visitor Regular Card ─────────────────────────────────────────────────────

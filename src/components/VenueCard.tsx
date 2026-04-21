@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { MapPin, Share2 } from 'lucide-react';
+import { MapPin, Share2, CheckCircle2 } from 'lucide-react';
 import type { Venue } from '../types';
 
 const categoryEmoji: Record<string, string> = {
@@ -31,6 +31,14 @@ const categoryColor: Record<string, string> = {
 };
 
 const BUSY_THRESHOLD = 1000;
+const HOT_THRESHOLD    = 1500;
+const ACTIVE_THRESHOLD = 300;
+
+function getActivityLevel(count: number): { label: string; emoji: string } | null {
+  if (count >= HOT_THRESHOLD)    return { label: 'Hot',    emoji: '🔥' };
+  if (count >= ACTIVE_THRESHOLD) return { label: 'Active', emoji: '⚡' };
+  return null;
+}
 
 function getHumanDetail(description: string): string {
   const sentence = description.split('.')[0];
@@ -46,6 +54,7 @@ export default function VenueCard({ venue }: VenueCardProps) {
   const emoji = categoryEmoji[venue.category] ?? '📍';
   const color = categoryColor[venue.category] ?? '#39D98A';
   const isBusy = venue.checkinCount > BUSY_THRESHOLD;
+  const activity = getActivityLevel(venue.checkinCount);
 
   return (
     <div
@@ -81,21 +90,26 @@ export default function VenueCard({ venue }: VenueCardProps) {
 
         {/* Name + badges */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{
-            fontFamily: 'Syne, sans-serif',
-            fontWeight: 700,
-            fontSize: '16px',
-            color: 'var(--color-text)',
-            marginBottom: '5px',
-            lineHeight: 1.2,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}>
-            {venue.name}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+            <h3 style={{
+              fontFamily: 'Syne, sans-serif',
+              fontWeight: 700,
+              fontSize: '16px',
+              color: 'var(--color-text)',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              margin: 0, flex: 1, minWidth: 0,
+            }}>
+              {venue.name}
+            </h3>
+            {venue.isVerified && (
+              <CheckCircle2 size={15} color="#39D98A" style={{ flexShrink: 0 }} />
+            )}
+          </div>
 
-          {/* Type badge + status */}
+          {/* Type badge + status + activity */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{
               fontSize: '11px',
@@ -121,6 +135,16 @@ export default function VenueCard({ venue }: VenueCardProps) {
                 <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#6B7280', flexShrink: 0 }} />
                 <span style={{ fontSize: '11px', color: '#6B7280' }}>Closed</span>
               </>
+            )}
+            {activity && (
+              <span style={{
+                fontSize: '10px', fontWeight: 700,
+                color: activity.label === 'Hot' ? '#F5A623' : '#60A5FA',
+                background: activity.label === 'Hot' ? 'rgba(245,166,35,0.12)' : 'rgba(96,165,250,0.12)',
+                padding: '1px 7px', borderRadius: '20px',
+              }}>
+                {activity.emoji} {activity.label}
+              </span>
             )}
           </div>
 

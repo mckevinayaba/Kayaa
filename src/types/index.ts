@@ -15,6 +15,7 @@ export interface Venue {
   isOpen: boolean;
   openHours?: string;
   whatsappNumber?: string;
+  isVerified?: boolean;
   tags: string[];
   createdAt: string;
 }

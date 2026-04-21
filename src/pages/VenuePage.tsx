@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Calendar } from 'lucide-react';
-import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories } from '../lib/api';
+import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats } from '../lib/api';
+import type { VenueRecentStats } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
@@ -182,12 +183,29 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
           <span style={{ fontSize: '12px', fontWeight: 600, color: status.color }}>{status.label}</span>
         </div>
 
-        <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
-          color: 'var(--color-text)', lineHeight: 1.15, marginBottom: '8px',
-        }}>
-          {venue.name}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+            color: 'var(--color-text)', lineHeight: 1.15, margin: 0,
+          }}>
+            {venue.name}
+          </h1>
+          {venue.isVerified && (
+            <span
+              title="This place has been confirmed by the Kayaa team"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)',
+                borderRadius: '20px', padding: '3px 8px', flexShrink: 0,
+              }}
+            >
+              <CheckCircle2 size={12} color="#39D98A" />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
+                Verified
+              </span>
+            </span>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: venue.openHours ? '4px' : '12px' }}>
           <MapPin size={13} color="var(--color-muted)" />
@@ -211,32 +229,180 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
   );
 }
 
-function StatsRow({ venue, eventsCount, regularsCount }: { venue: Venue; eventsCount: number; regularsCount: number }) {
-  const todayCheckins = Math.max(1, Math.round(venue.checkinCount * 0.015));
-  const stats = [
-    { label: 'Regulars', value: regularsCount.toLocaleString() },
-    { label: 'Today', value: `${todayCheckins} check-ins` },
-    { label: 'Events', value: eventsCount > 0 ? `${eventsCount} upcoming` : 'None listed' },
-  ];
+// ─── Trust signals helpers ────────────────────────────────────────────────────
+
+const DAY_NUM: Record<string, number> = {
+  mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7,
+};
+
+function parseDaysOpenPerWeek(hours?: string): number | null {
+  if (!hours) return null;
+  const h = hours.toLowerCase();
+  if (/daily|7 day|every day/.test(h)) return 7;
+  const counted = new Set<number>();
+  const rangeRe = /\b(mon|tue|wed|thu|fri|sat|sun)\b\s*[–\-]\s*(mon|tue|wed|thu|fri|sat|sun)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = rangeRe.exec(h)) !== null) {
+    const s = DAY_NUM[m[1]], e = DAY_NUM[m[2]];
+    if (s && e) {
+      if (e >= s) { for (let d = s; d <= e; d++) counted.add(d); }
+      else { for (let d = s; d <= 7; d++) counted.add(d); for (let d = 1; d <= e; d++) counted.add(d); }
+    }
+  }
+  if (counted.size > 0) {
+    const pipeExtra = h.split('|').slice(1).join(' ');
+    const dayRe = /\b(mon|tue|wed|thu|fri|sat|sun)\b/g;
+    while ((m = dayRe.exec(pipeExtra)) !== null) if (DAY_NUM[m[1]]) counted.add(DAY_NUM[m[1]]);
+    return counted.size;
+  }
+  const dayRe2 = /\b(mon|tue|wed|thu|fri|sat|sun)\b/g;
+  while ((m = dayRe2.exec(h)) !== null) if (DAY_NUM[m[1]]) counted.add(DAY_NUM[m[1]]);
+  return counted.size > 0 ? counted.size : null;
+}
+
+// ─── Trust Signals section ────────────────────────────────────────────────────
+
+interface TrustSignalsProps {
+  venue: Venue;
+  events: Event[];
+  posts: Post[];
+  recentStats: VenueRecentStats;
+  regularsCount: number;
+}
+
+function TrustSignals({ venue, events, posts, recentStats, regularsCount }: TrustSignalsProps) {
+  const monthsActive = Math.max(1, Math.floor(
+    (Date.now() - new Date(venue.createdAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
+  ));
+  const daysOpen = parseDaysOpenPerWeek(venue.openHours);
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const hasRecentPosts = posts.some(p => new Date(p.createdAt).getTime() > thirtyDaysAgo);
+
+  type Signal = { icon: React.ReactNode; text: string; sub: string };
+  const signals: Signal[] = [];
+
+  if (regularsCount > 0) signals.push({
+    icon: <Users size={14} />,
+    text: regularsCount.toLocaleString(),
+    sub: 'regulars come back',
+  });
+
+  signals.push({
+    icon: <Calendar size={14} />,
+    text: `${monthsActive} month${monthsActive !== 1 ? 's' : ''}`,
+    sub: 'active on Kayaa',
+  });
+
+  if (hasRecentPosts) signals.push({
+    icon: <MessageSquare size={14} />,
+    text: 'Responds',
+    sub: 'to posts',
+  });
+
+  if (events.length > 0) signals.push({
+    icon: <Calendar size={14} />,
+    text: `${events.length}`,
+    sub: 'events hosted',
+  });
+
+  if (daysOpen) signals.push({
+    icon: <Clock size={14} />,
+    text: `${daysOpen} days`,
+    sub: 'a week',
+  });
+
+  if (recentStats.monthlyCheckins > 0) signals.push({
+    icon: <TrendingUp size={14} />,
+    text: recentStats.monthlyCheckins.toLocaleString(),
+    sub: 'check-ins this month',
+  });
+
+  if (signals.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', gap: '8px', margin: '16px 0' }}>
-      {stats.map(s => (
-        <div key={s.label} style={{
-          flex: 1, background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          borderRadius: '12px', padding: '12px 8px', textAlign: 'center',
-        }}>
-          <div style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
-            color: 'var(--color-text)', marginBottom: '2px',
+    <div style={{ margin: '12px 0 4px' }}>
+      <div style={{
+        display: 'flex', gap: '8px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        paddingBottom: '4px',
+      } as React.CSSProperties}>
+        {signals.map((sig, i) => (
+          <div key={i} style={{
+            flexShrink: 0,
+            background: 'var(--color-surface)',
+            border: '1px solid rgba(57,217,138,0.25)',
+            borderRadius: '12px',
+            padding: '10px 14px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            minWidth: 0,
           }}>
-            {s.value}
+            <span style={{ color: '#39D98A', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {sig.icon}
+            </span>
+            <div>
+              <div style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap',
+              }}>
+                {sig.text}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+                {sig.sub}
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {s.label}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Regulars love this place for ────────────────────────────────────────────
+
+interface RegularsLoveProps {
+  venue: Venue;
+  events: Event[];
+  posts: Post[];
+  recentStats: VenueRecentStats;
+}
+
+function RegularsLoveThisFor({ venue, events, posts, recentStats }: RegularsLoveProps) {
+  const reasons: string[] = [];
+  if (venue.followerCount > 50) reasons.push('A strong regular community');
+  if (events.length > 3) reasons.push('Regular events and activities');
+  const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  if (posts.some(p => new Date(p.createdAt).getTime() > fourteenDaysAgo))
+    reasons.push('An active owner who shares updates');
+  if (recentStats.weeklyCheckins > 10) reasons.push('Popular right now');
+  const monthsActive = Math.floor(
+    (Date.now() - new Date(venue.createdAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
+  );
+  if (monthsActive >= 12) reasons.push('A long-standing neighbourhood place');
+
+  if (reasons.length < 2) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{
+        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+        color: 'var(--color-text)', marginBottom: '12px',
+      }}>
+        Regulars love this place for
+      </h2>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {reasons.map(r => (
+          <span key={r} style={{
+            fontSize: '12px', fontWeight: 600, color: '#39D98A',
+            background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
+            padding: '6px 12px', borderRadius: '20px',
+            fontFamily: 'DM Sans, sans-serif',
+          }}>
+            {r}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -569,6 +735,7 @@ export default function VenuePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [regularsCount, setRegularsCount] = useState(0);
+  const [recentStats, setRecentStats] = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
 
   useEffect(() => {
     if (!slug) return;
@@ -581,10 +748,11 @@ export default function VenuePage() {
       setRegularsCount(v.followerCount);
       setLoading(false);
 
-      // Fetch events, posts, stories in parallel
+      // Fetch events, posts, stories, recent stats in parallel
       getVenueEvents(v.id).then(setEvents);
       getVenuePosts(v.id).then(setPosts);
       getActiveStories(v.id).then(setStories);
+      getVenueRecentStats(v.id).then(setRecentStats);
 
       // Realtime: listen for new check-ins and bump the regulars counter
       const channel = supabase
@@ -608,7 +776,8 @@ export default function VenuePage() {
       <HeroSection venue={venue} onBack={() => navigate(-1)} />
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
-        <StatsRow venue={venue} eventsCount={events.length} regularsCount={regularsCount} />
+        <TrustSignals venue={venue} events={events} posts={posts} recentStats={recentStats} regularsCount={regularsCount} />
+        <RegularsLoveThisFor venue={venue} events={events} posts={posts} recentStats={recentStats} />
         {stories.length > 0 && <StoriesStrip stories={stories} />}
         <CheckInCTA venue={venue} />
         <SocialProof venue={venue} regularsCount={regularsCount} />
