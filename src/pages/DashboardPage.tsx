@@ -731,6 +731,7 @@ export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>('home');
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [ownerName, setOwnerName] = useState('');
   const [venueId, setVenueId] = useState('');
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -749,22 +750,29 @@ export default function DashboardPage() {
 
     async function load() {
       setLoading(true);
-      const owner = await getVenueOwnerByUserId(user!.id);
-      if (!owner) { setLoading(false); return; }
+      setLoadError(false);
+      try {
+        const owner = await getVenueOwnerByUserId(user!.id);
+        if (!owner) { setLoading(false); return; }
 
-      setOwnerName(owner.ownerName);
-      setVenueId(owner.venueId);
+        setOwnerName(owner.ownerName);
+        setVenueId(owner.venueId);
 
-      const [v, evts, cis] = await Promise.all([
-        getVenueById(owner.venueId),
-        getVenueEvents(owner.venueId),
-        getRecentCheckIns(owner.venueId),
-      ]);
+        const [v, evts, cis] = await Promise.all([
+          getVenueById(owner.venueId),
+          getVenueEvents(owner.venueId),
+          getRecentCheckIns(owner.venueId),
+        ]);
 
-      setVenue(v);
-      setEvents(evts);
-      setCheckIns(cis);
-      setLoading(false);
+        setVenue(v);
+        setEvents(evts);
+        setCheckIns(cis);
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
@@ -807,13 +815,50 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '50vh', gap: '16px',
+      }}>
         <style>{`@keyframes dbSpin { to { transform: rotate(360deg); } }`}</style>
         <div style={{
-          width: '32px', height: '32px', borderRadius: '50%',
+          width: '36px', height: '36px', borderRadius: '50%',
           border: '3px solid rgba(57,217,138,0.2)', borderTopColor: '#39D98A',
           animation: 'dbSpin 0.8s linear infinite',
         }} />
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif' }}>
+          Loading your dashboard…
+        </span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '50vh', padding: '32px', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px',
+          color: 'var(--color-text)', marginBottom: '8px',
+        }}>
+          Something went wrong
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
+          Could not load your dashboard. Check your connection and try again.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            background: 'var(--color-accent)', color: '#000', border: 'none',
+            borderRadius: '12px', padding: '12px 28px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            cursor: 'pointer',
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
