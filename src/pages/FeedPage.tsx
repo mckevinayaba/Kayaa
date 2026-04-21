@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { mockEvents } from '../lib/mockData';
-import { getAllVenues } from '../lib/api';
-import type { Venue } from '../types';
+import { getAllVenues, getAllEvents } from '../lib/api';
+import type { Venue, Event } from '../types';
 import VenueCard from '../components/VenueCard';
 import ActivityMoment from '../components/ActivityMoment';
 import EventRail from '../components/EventRail';
@@ -20,9 +19,7 @@ type FilterKey = 'All' | 'Open now' | 'Busy now' | 'Events today';
 
 const FILTERS: FilterKey[] = ['All', 'Open now', 'Busy now', 'Events today'];
 
-const venueIdsWithEvents = new Set(mockEvents.map(e => e.venueId));
-
-function applyFilter(venues: Venue[], filter: FilterKey): Venue[] {
+function applyFilter(venues: Venue[], filter: FilterKey, venueIdsWithEvents: Set<string>): Venue[] {
   switch (filter) {
     case 'Open now':      return venues.filter(v => v.isOpen);
     case 'Busy now':      return venues.filter(v => v.checkinCount > 1000);
@@ -90,19 +87,23 @@ function EmptyState() {
 
 export default function FeedPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>('All');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    getAllVenues().then(data => {
-      setVenues(data);
+    Promise.all([getAllVenues(), getAllEvents()]).then(([v, e]) => {
+      setVenues(v);
+      setEvents(e);
       setLoading(false);
     });
   }, []);
 
+  const venueIdsWithEvents = useMemo(() => new Set(events.map(e => e.venueId)), [events]);
+
   const filteredVenues = useMemo(() => {
-    let result = applyFilter(venues, filter);
+    let result = applyFilter(venues, filter, venueIdsWithEvents);
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(v =>
@@ -113,7 +114,7 @@ export default function FeedPage() {
       );
     }
     return result;
-  }, [venues, filter, search]);
+  }, [venues, filter, search, venueIdsWithEvents]);
 
   const openCount = venues.filter(v => v.isOpen).length;
   let activityIndex = 0;
@@ -186,8 +187,8 @@ export default function FeedPage() {
       </div>
 
       {/* Event rail — only on All filter, no search active */}
-      {filter === 'All' && !search && (
-        <EventRail events={mockEvents} venues={venues} />
+      {filter === 'All' && !search && events.length > 0 && (
+        <EventRail events={events} venues={venues} />
       )}
 
       {/* Loading skeleton */}

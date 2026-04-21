@@ -1,37 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink, Search } from 'lucide-react';
-import { mockVenues, mockEvents } from '../lib/mockData';
-
-// ─── Mock data for owner's venue ──────────────────────────────────────────────
-
-const venue = mockVenues[0]; // Uncle Dee's Barbershop
-const upcomingEvents = mockEvents.filter(e => e.venueId === venue.id);
-
-const MOCK_CHECKINS = [
-  { id: 't1', name: 'Lerato K.',  time: '2 min ago',  visits: 23, isFirst: false, isGhost: false },
-  { id: 't2', name: 'Thabo M.',   time: '14 min ago', visits: 8,  isFirst: false, isGhost: false },
-  { id: 't3', name: 'Anonymous',  time: '22 min ago', visits: 0,  isFirst: false, isGhost: true  },
-  { id: 't4', name: 'Sipho D.',   time: '1 hr ago',   visits: 1,  isFirst: true,  isGhost: false },
-  { id: 't5', name: 'Nomsa P.',   time: '2 hrs ago',  visits: 12, isFirst: false, isGhost: false },
-  { id: 't6', name: 'Bongani T.', time: '3 hrs ago',  visits: 4,  isFirst: false, isGhost: false },
-];
-
-const MOCK_REGULARS = [
-  { id: 'r1', name: 'Lerato K.',   visits: 23, lastSeen: 'Today',       initial: 'L' },
-  { id: 'r2', name: 'Thabo M.',    visits: 18, lastSeen: 'Today',       initial: 'T' },
-  { id: 'r3', name: 'Nomsa P.',    visits: 12, lastSeen: '2 days ago',  initial: 'N' },
-  { id: 'r4', name: 'Sipho D.',    visits: 8,  lastSeen: 'Today',       initial: 'S' },
-  { id: 'r5', name: 'Bongani T.',  visits: 7,  lastSeen: '3 days ago',  initial: 'B' },
-  { id: 'r6', name: 'Ayanda Z.',   visits: 6,  lastSeen: '1 week ago',  initial: 'A' },
-  { id: 'r7', name: 'Khumalo M.',  visits: 5,  lastSeen: '2 days ago',  initial: 'K' },
-  { id: 'r8', name: 'Zanele N.',   visits: 3,  lastSeen: '1 week ago',  initial: 'Z' },
-  { id: 'r9', name: 'Palesa T.',   visits: 2,  lastSeen: '5 days ago',  initial: 'P' },
-];
-
-const AVATAR_COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
+import { MapPin, ExternalLink, Search, Plus } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import {
+  getVenueOwnerByUserId, getVenueById, getRecentCheckIns, getVenueRegulars,
+  getVenueEvents, createPost, createEvent, updateVenueSettings,
+} from '../lib/api';
+import type { DashboardCheckIn, Regular } from '../lib/api';
+import type { Venue, Event } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const AVATAR_COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -46,6 +27,20 @@ function getTodayLabel() {
 
 function avatarColor(index: number) {
   return AVATAR_COLORS[index % AVATAR_COLORS.length];
+}
+
+function isToday(iso: string): boolean {
+  return new Date(iso).toDateString() === new Date().toDateString();
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  return new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
 }
 
 // ─── Shared mini-components ───────────────────────────────────────────────────
@@ -109,18 +104,31 @@ function ToggleRow({ label, sub, checked, onChange }: {
   );
 }
 
-// ─── Tab content ──────────────────────────────────────────────────────────────
+// ─── Tab: Home ────────────────────────────────────────────────────────────────
 
-function HomeTab() {
+function HomeTab({ checkIns, venueId, venueSlug }: {
+  checkIns: DashboardCheckIn[];
+  venueId: string;
+  venueSlug: string;
+}) {
   const [postText, setPostText] = useState('');
+  const [posting, setPosting] = useState(false);
   const [posted, setPosted] = useState(false);
+  const [postError, setPostError] = useState('');
 
-  function handlePost() {
+  async function handlePost() {
     if (!postText.trim()) return;
+    setPosting(true);
+    setPostError('');
+    const { error } = await createPost({ venue_id: venueId, content: postText.trim() });
+    setPosting(false);
+    if (error) { setPostError('Could not post. Try again.'); return; }
     setPosted(true);
     setPostText('');
     setTimeout(() => setPosted(false), 2500);
   }
+
+  const todayCheckIns = checkIns.filter(ci => isToday(ci.createdAt));
 
   return (
     <div>
@@ -133,42 +141,48 @@ function HomeTab() {
           Who came in today
         </h2>
 
-        <div style={{
-          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          borderRadius: '14px', overflow: 'hidden',
-        }}>
-          {MOCK_CHECKINS.map((ci, i) => {
-            const color = ci.isGhost ? '#6B7280' : avatarColor(i);
-            return (
-              <div key={ci.id} style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '12px 14px',
-                borderBottom: i < MOCK_CHECKINS.length - 1 ? '1px solid var(--color-border)' : 'none',
-              }}>
-                <Avatar
-                  initial={ci.isGhost ? '?' : ci.name[0]}
-                  color={color}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: '14px', fontWeight: 600,
-                    color: ci.isGhost ? 'var(--color-muted)' : 'var(--color-text)',
-                  }}>
-                    {ci.isGhost ? 'Anonymous' : ci.name.split(' ')[0]}
+        {todayCheckIns.length === 0 ? (
+          <div style={{
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            borderRadius: '14px', padding: '28px', textAlign: 'center',
+          }}>
+            <p style={{ fontSize: '13px', color: 'var(--color-muted)' }}>No check-ins yet today</p>
+          </div>
+        ) : (
+          <div style={{
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            borderRadius: '14px', overflow: 'hidden',
+          }}>
+            {todayCheckIns.slice(0, 10).map((ci, i) => {
+              const color = ci.isGhost ? '#6B7280' : avatarColor(i);
+              return (
+                <div key={ci.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 14px',
+                  borderBottom: i < Math.min(todayCheckIns.length, 10) - 1 ? '1px solid var(--color-border)' : 'none',
+                }}>
+                  <Avatar initial={ci.isGhost ? '?' : ci.visitorName[0]} color={color} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '14px', fontWeight: 600,
+                      color: ci.isGhost ? 'var(--color-muted)' : 'var(--color-text)',
+                    }}>
+                      {ci.isGhost ? 'Anonymous' : ci.visitorName.split(' ')[0]}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{timeAgo(ci.createdAt)}</div>
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{ci.time}</div>
+                  {ci.isGhost ? (
+                    <Pill label="Anonymous · counted" color="#9CA3AF" bg="rgba(107,114,128,0.12)" />
+                  ) : ci.isFirstVisit ? (
+                    <Pill label="First visit" color="#F5A623" bg="rgba(245,166,35,0.12)" />
+                  ) : (
+                    <Pill label={`${ci.visitNumber} visits`} color="#39D98A" bg="rgba(57,217,138,0.1)" />
+                  )}
                 </div>
-                {ci.isGhost ? (
-                  <Pill label="Anonymous · counted" color="#9CA3AF" bg="rgba(107,114,128,0.12)" />
-                ) : ci.isFirst ? (
-                  <Pill label="First visit" color="#F5A623" bg="rgba(245,166,35,0.12)" />
-                ) : (
-                  <Pill label={`${ci.visits} visits`} color="#39D98A" bg="rgba(57,217,138,0.1)" />
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Quick actions */}
@@ -180,21 +194,7 @@ function HomeTab() {
           Quick actions
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {[
-            { label: 'Post update', color: 'var(--color-text)', bg: 'var(--color-surface)', border: 'var(--color-border)' },
-            { label: 'Add event',   color: 'var(--color-text)', bg: 'var(--color-surface)', border: 'var(--color-border)' },
-          ].map(a => (
-            <button key={a.label} style={{
-              flex: 1, padding: '12px 8px', borderRadius: '12px',
-              background: a.bg, border: `1px solid ${a.border}`,
-              color: a.color, fontSize: '13px', fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
-              minHeight: '48px',
-            }}>
-              {a.label}
-            </button>
-          ))}
-          <Link to={`/venue/${venue.slug}`} style={{ textDecoration: 'none', flex: 1 }}>
+          <Link to={`/venue/${venueSlug}`} style={{ textDecoration: 'none', flex: 1 }}>
             <button style={{
               width: '100%', padding: '12px 8px', borderRadius: '12px',
               background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)',
@@ -203,6 +203,17 @@ function HomeTab() {
               minHeight: '48px',
             }}>
               View page
+            </button>
+          </Link>
+          <Link to={`/venue/${venueSlug}/checkin`} style={{ textDecoration: 'none', flex: 1 }}>
+            <button style={{
+              width: '100%', padding: '12px 8px', borderRadius: '12px',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              color: 'var(--color-text)', fontSize: '13px', fontWeight: 600,
+              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+              minHeight: '48px',
+            }}>
+              Test check-in
             </button>
           </Link>
         </div>
@@ -223,16 +234,17 @@ function HomeTab() {
           <textarea
             value={postText}
             onChange={e => setPostText(e.target.value)}
-            placeholder="What's happening today at the shop..."
+            placeholder="What's happening today at your place..."
             maxLength={200}
             style={{
               width: '100%', minHeight: '80px',
               background: 'transparent', border: 'none', outline: 'none',
               color: 'var(--color-text)', fontSize: '14px',
               fontFamily: 'DM Sans, sans-serif', resize: 'none',
-              lineHeight: 1.5,
+              lineHeight: 1.5, boxSizing: 'border-box',
             }}
           />
+          {postError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{postError}</p>}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)',
@@ -240,15 +252,16 @@ function HomeTab() {
             <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{postText.length}/200</span>
             <button
               onClick={handlePost}
+              disabled={posting}
               style={{
                 background: posted ? 'rgba(57,217,138,0.2)' : 'var(--color-accent)',
                 color: posted ? 'var(--color-accent)' : '#000',
                 border: 'none', borderRadius: '10px', padding: '8px 20px',
                 fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-                cursor: 'pointer', transition: 'all 0.2s',
+                cursor: posting ? 'default' : 'pointer', transition: 'all 0.2s',
               }}
             >
-              {posted ? 'Posted ✓' : 'Post'}
+              {posted ? 'Posted ✓' : posting ? 'Posting…' : 'Post'}
             </button>
           </div>
         </div>
@@ -257,26 +270,24 @@ function HomeTab() {
   );
 }
 
-function RegularsTab() {
+// ─── Tab: Regulars ────────────────────────────────────────────────────────────
+
+function RegularsTab({ regulars, totalCount }: { regulars: Regular[]; totalCount: number }) {
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() =>
-    MOCK_REGULARS.filter(r => r.name.toLowerCase().includes(query.toLowerCase())),
-    [query]
+    regulars.filter(r => r.name.toLowerCase().includes(query.toLowerCase())),
+    [regulars, query]
   );
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
-          {MOCK_REGULARS.length} regulars
+          {totalCount} regulars
         </h2>
-        <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600 }}>
-          +{Math.round(venue.followerCount * 0.03)} this week
-        </span>
       </div>
 
-      {/* Search */}
       <div style={{ position: 'relative', marginBottom: '16px' }}>
         <Search size={14} color="var(--color-muted)" style={{
           position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none',
@@ -297,25 +308,29 @@ function RegularsTab() {
         />
       </div>
 
-      {/* List */}
       <div style={{
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '14px', overflow: 'hidden',
       }}>
-        {filtered.length === 0 ? (
+        {regulars.length === 0 ? (
+          <div style={{ padding: '32px', textAlign: 'center' }}>
+            <p style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
+              No named check-ins yet. Regulars appear once people start checking in with their names.
+            </p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '14px' }}>
             No regulars match that name
           </div>
         ) : filtered.map((r, i) => (
-          <div key={r.id} style={{
+          <div key={r.name} style={{
             display: 'flex', alignItems: 'center', gap: '12px',
             padding: '12px 14px',
             borderBottom: i < filtered.length - 1 ? '1px solid var(--color-border)' : 'none',
           }}>
             <Avatar initial={r.initial} color={avatarColor(i)} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>{r.name}</div>
-              <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Last seen {r.lastSeen}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>{r.name}</div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{
@@ -333,36 +348,91 @@ function RegularsTab() {
   );
 }
 
-function EventsTab() {
+// ─── Tab: Events ──────────────────────────────────────────────────────────────
+
+function EventsTab({ events, venueId, onEventAdded }: {
+  events: Event[];
+  venueId: string;
+  onEventAdded: (e: Event) => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [price, setPrice] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  async function handleAdd() {
+    if (!title.trim() || !date || !time) { setFormError('Fill in title, date, and time'); return; }
+    setSaving(true);
+    setFormError('');
+    const datetime = new Date(`${date}T${time}`).toISOString();
+    const priceNum = parseInt(price) || 0;
+    const { error } = await createEvent({
+      venue_id: venueId,
+      title: title.trim(),
+      event_date: datetime,
+      price: priceNum,
+    });
+    setSaving(false);
+    if (error) { setFormError('Could not save event. Run migration 002 first.'); return; }
+    // Refresh is handled by parent reloading events — for now just reset form
+    setTitle(''); setDate(''); setTime(''); setPrice('');
+    setShowForm(false);
+    // Optimistically add a fake event to the list
+    onEventAdded({
+      id: `tmp-${Date.now()}`,
+      venueId,
+      title: title.trim(),
+      description: '',
+      startsAt: datetime,
+      isFree: priceNum === 0,
+      price: priceNum > 0 ? priceNum : undefined,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  const inputSt: React.CSSProperties = {
+    width: '100%', background: 'var(--color-bg)',
+    border: '1px solid var(--color-border)', borderRadius: '10px',
+    padding: '10px 12px', color: 'var(--color-text)', fontSize: '14px',
+    fontFamily: 'DM Sans, sans-serif', outline: 'none',
+    boxSizing: 'border-box', minHeight: '44px',
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
           Upcoming events
         </h2>
-        {upcomingEvents.length > 0 && (
+        {events.length > 0 && (
           <span style={{
             fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)',
             background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px',
           }}>
-            {upcomingEvents.length} on
+            {events.length} on
           </span>
         )}
       </div>
 
-      {upcomingEvents.length === 0 ? (
+      {events.length === 0 && !showForm && (
         <div style={{
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '14px', padding: '32px', textAlign: 'center',
+          marginBottom: '12px',
         }}>
           <div style={{ fontSize: '32px', marginBottom: '10px' }}>📅</div>
           <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
             Nothing on the calendar yet.
           </p>
         </div>
-      ) : (
+      )}
+
+      {events.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
-          {upcomingEvents.map(event => (
+          {events.map(event => (
             <div key={event.id} style={{
               background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               borderRadius: '14px', padding: '14px',
@@ -385,17 +455,11 @@ function EventsTab() {
                 <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>
                   {event.title}
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
-                  {event.description}
-                </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                     {new Date(event.startsAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  <span style={{
-                    fontSize: '12px', fontWeight: 700,
-                    color: event.isFree ? '#39D98A' : 'var(--color-amber)',
-                  }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : '#F5A623' }}>
                     {event.isFree ? 'Free' : `R${event.price}`}
                   </span>
                 </div>
@@ -405,27 +469,93 @@ function EventsTab() {
         </div>
       )}
 
-      <button style={{
-        width: '100%', minHeight: '52px',
-        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-        borderRadius: '14px', color: 'var(--color-accent)',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
-        cursor: 'pointer',
-      }}>
-        + Add event
-      </button>
+      {showForm && (
+        <div style={{
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: '14px', padding: '16px', marginBottom: '12px',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Event title"
+              style={inputSt}
+            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...inputSt, flex: 1 }} />
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ ...inputSt, flex: 1 }} />
+            </div>
+            <input
+              type="number"
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              placeholder="Price in ZAR (leave blank for free)"
+              style={inputSt}
+            />
+            {formError && <p style={{ fontSize: '12px', color: '#F87171' }}>{formError}</p>}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => { setShowForm(false); setFormError(''); }}
+                style={{
+                  flex: 1, minHeight: '44px', background: 'var(--color-bg)',
+                  border: '1px solid var(--color-border)', borderRadius: '10px',
+                  color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif',
+                  fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdd}
+                disabled={saving}
+                style={{
+                  flex: 2, minHeight: '44px',
+                  background: saving ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
+                  border: 'none', borderRadius: '10px',
+                  color: '#000', fontFamily: 'Syne, sans-serif',
+                  fontWeight: 700, fontSize: '13px', cursor: saving ? 'default' : 'pointer',
+                }}
+              >
+                {saving ? 'Saving…' : 'Save event'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!showForm && (
+        <button
+          onClick={() => setShowForm(true)}
+          style={{
+            width: '100%', minHeight: '52px',
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            borderRadius: '14px', color: 'var(--color-accent)',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          }}
+        >
+          <Plus size={16} />
+          Add event
+        </button>
+      )}
     </div>
   );
 }
 
-function SettingsTab() {
-  const [publicPage, setPublicPage]           = useState(true);
-  const [showRegulars, setShowRegulars]       = useState(true);
-  const [quietCheckins, setQuietCheckins]     = useState(true);
+// ─── Tab: Settings ────────────────────────────────────────────────────────────
+
+function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
+  const [publicPage, setPublicPage]       = useState(true);
+  const [showRegulars, setShowRegulars]   = useState(true);
+  const [quietCheckins, setQuietCheckins] = useState(true);
+
+  async function handleToggle(key: 'is_public' | 'show_regulars_publicly' | 'allow_quiet_checkins', val: boolean) {
+    await updateVenueSettings(venueId, { [key]: val });
+  }
 
   return (
     <div>
-      {/* Venue info */}
       <div style={{
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '14px', padding: '16px', marginBottom: '16px',
@@ -436,7 +566,7 @@ function SettingsTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
           <MapPin size={12} color="var(--color-muted)" />
           <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-            {venue.address} · {venue.neighborhood}, {venue.city}
+            {venue.address ? `${venue.address} · ` : ''}{venue.neighborhood}, {venue.city}
           </span>
         </div>
         {venue.openHours && (
@@ -444,7 +574,6 @@ function SettingsTab() {
         )}
       </div>
 
-      {/* Plan card */}
       <div style={{
         background: 'rgba(57,217,138,0.05)',
         border: '1px solid rgba(57,217,138,0.2)',
@@ -465,32 +594,30 @@ function SettingsTab() {
         </span>
       </div>
 
-      {/* Toggles */}
       <div style={{
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '14px', padding: '0 16px', marginBottom: '16px',
       }}>
         <ToggleRow
-          label="Public venue page"
+          label="Public place page"
           sub="Anyone with the link can see your page"
           checked={publicPage}
-          onChange={setPublicPage}
+          onChange={v => { setPublicPage(v); handleToggle('is_public', v); }}
         />
         <ToggleRow
           label="Show regulars count publicly"
           sub="Visitors can see how many regulars you have"
           checked={showRegulars}
-          onChange={setShowRegulars}
+          onChange={v => { setShowRegulars(v); handleToggle('show_regulars_publicly', v); }}
         />
         <ToggleRow
           label="Allow quiet check-ins"
           sub="Regulars can check in anonymously"
           checked={quietCheckins}
-          onChange={setQuietCheckins}
+          onChange={v => { setQuietCheckins(v); handleToggle('allow_quiet_checkins', v); }}
         />
       </div>
 
-      {/* Public page link */}
       <Link to={`/venue/${venue.slug}`} style={{ textDecoration: 'none' }}>
         <div style={{
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
@@ -507,6 +634,35 @@ function SettingsTab() {
   );
 }
 
+// ─── No venue state ───────────────────────────────────────────────────────────
+
+function NoVenueState() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', minHeight: '50vh', padding: '32px', textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏪</div>
+      <h2 style={{
+        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px',
+        marginBottom: '8px', color: 'var(--color-text)',
+      }}>
+        No place yet
+      </h2>
+      <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '28px' }}>
+        Register your place to start tracking check-ins and regulars.
+      </p>
+      <Link to="/onboarding" style={{
+        display: 'block', background: 'var(--color-accent)', color: '#000',
+        textDecoration: 'none', borderRadius: '12px', padding: '13px 28px',
+        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+      }}>
+        Add your place
+      </Link>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type Tab = 'home' | 'regulars' | 'events' | 'settings';
@@ -517,15 +673,107 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'settings', label: 'Settings' },
 ];
 
-const METRICS = [
-  { value: MOCK_CHECKINS.length.toString(), label: 'today',        accent: true  },
-  { value: venue.followerCount.toString(),  label: 'regulars',     accent: false },
-  { value: Math.round(venue.followerCount * 0.03).toString(), label: 'new regulars', accent: false },
-  { value: upcomingEvents.length.toString(), label: 'upcoming',    accent: false },
-];
-
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>('home');
+
+  const [loading, setLoading] = useState(true);
+  const [ownerName, setOwnerName] = useState('');
+  const [venueId, setVenueId] = useState('');
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [checkIns, setCheckIns] = useState<DashboardCheckIn[]>([]);
+  const [regulars, setRegulars] = useState<Regular[]>([]);
+  const [regularsLoaded, setRegularsLoaded] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  const todayCount = useMemo(() =>
+    checkIns.filter(ci => isToday(ci.createdAt)).length,
+    [checkIns]
+  );
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function load() {
+      setLoading(true);
+      const owner = await getVenueOwnerByUserId(user!.id);
+      if (!owner) { setLoading(false); return; }
+
+      setOwnerName(owner.ownerName);
+      setVenueId(owner.venueId);
+
+      const [v, evts, cis] = await Promise.all([
+        getVenueById(owner.venueId),
+        getVenueEvents(owner.venueId),
+        getRecentCheckIns(owner.venueId),
+      ]);
+
+      setVenue(v);
+      setEvents(evts);
+      setCheckIns(cis);
+      setLoading(false);
+    }
+
+    load();
+  }, [user]);
+
+  // Load regulars lazily when that tab is selected
+  useEffect(() => {
+    if (tab !== 'regulars' || regularsLoaded || !venueId) return;
+    getVenueRegulars(venueId).then(data => {
+      setRegulars(data);
+      setRegularsLoaded(true);
+    });
+  }, [tab, venueId, regularsLoaded]);
+
+  // Realtime: prepend new check-ins
+  useEffect(() => {
+    if (!venueId) return;
+
+    const channel = supabase
+      .channel(`dashboard-checkins-${venueId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'check_ins', filter: `venue_id=eq.${venueId}` },
+        payload => {
+          const row = payload.new as Record<string, unknown>;
+          setCheckIns(prev => [{
+            id: row.id as string,
+            visitorName: (row.visitor_name as string) ?? 'Anonymous',
+            isGhost: (row.is_ghost as boolean) ?? false,
+            isFirstVisit: (row.is_first_visit as boolean) ?? false,
+            visitNumber: (row.visit_number as number) ?? 1,
+            createdAt: row.created_at as string,
+          }, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [venueId]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+        <style>{`@keyframes dbSpin { to { transform: rotate(360deg); } }`}</style>
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '50%',
+          border: '3px solid rgba(57,217,138,0.2)', borderTopColor: '#39D98A',
+          animation: 'dbSpin 0.8s linear infinite',
+        }} />
+      </div>
+    );
+  }
+
+  if (!venue || !venueId) return <NoVenueState />;
+
+  const metrics = [
+    { value: todayCount.toString(),              label: 'today',    accent: true  },
+    { value: venue.followerCount.toString(),     label: 'regulars', accent: false },
+    { value: events.length.toString(),           label: 'upcoming', accent: false },
+  ];
+
+  const firstName = ownerName.split(' ')[0] || 'there';
 
   return (
     <>
@@ -539,10 +787,10 @@ export default function DashboardPage() {
 
       <div style={{ padding: '16px 16px 0' }}>
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '4px' }}>
-            {getGreeting()}, Uncle Dee 👋
+            {getGreeting()}, {firstName} 👋
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', lineHeight: 1.2 }}>
@@ -556,7 +804,7 @@ export default function DashboardPage() {
           <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{getTodayLabel()}</p>
         </div>
 
-        {/* ── Metrics row — horizontal scroll ── */}
+        {/* Metrics row */}
         <div style={{
           display: 'flex', gap: '10px',
           overflowX: 'auto', scrollbarWidth: 'none',
@@ -565,7 +813,7 @@ export default function DashboardPage() {
           paddingBottom: '4px', marginBottom: '4px',
           WebkitOverflowScrolling: 'touch',
         } as React.CSSProperties}>
-          {METRICS.map((m, i) => (
+          {metrics.map((m, i) => (
             <div key={i} style={{
               flexShrink: 0, minWidth: '100px',
               background: 'var(--color-surface)',
@@ -587,13 +835,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Sticky tab bar ── */}
+      {/* Tab bar */}
       <div style={{
         position: 'sticky', top: '56px', zIndex: 30,
         background: 'var(--color-bg)',
         borderBottom: '1px solid var(--color-border)',
         padding: '0 16px',
-        display: 'flex', gap: '0',
+        display: 'flex',
         marginBottom: '20px',
       }}>
         {TABS.map(t => (
@@ -602,8 +850,7 @@ export default function DashboardPage() {
             onClick={() => setTab(t.key)}
             style={{
               flex: 1, padding: '12px 4px',
-              background: 'transparent',
-              border: 'none',
+              background: 'transparent', border: 'none',
               borderBottom: tab === t.key ? '2px solid var(--color-accent)' : '2px solid transparent',
               color: tab === t.key ? 'var(--color-accent)' : 'var(--color-muted)',
               fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
@@ -615,12 +862,24 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Tab content ── */}
+      {/* Tab content */}
       <div style={{ padding: '0 16px 120px' }}>
-        {tab === 'home'     && <HomeTab />}
-        {tab === 'regulars' && <RegularsTab />}
-        {tab === 'events'   && <EventsTab />}
-        {tab === 'settings' && <SettingsTab />}
+        {tab === 'home' && (
+          <HomeTab checkIns={checkIns} venueId={venueId} venueSlug={venue.slug} />
+        )}
+        {tab === 'regulars' && (
+          <RegularsTab regulars={regulars} totalCount={venue.followerCount} />
+        )}
+        {tab === 'events' && (
+          <EventsTab
+            events={events}
+            venueId={venueId}
+            onEventAdded={e => setEvents(prev => [e, ...prev])}
+          />
+        )}
+        {tab === 'settings' && (
+          <SettingsTab venue={venue} venueId={venueId} />
+        )}
       </div>
     </>
   );

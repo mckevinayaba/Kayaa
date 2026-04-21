@@ -4,7 +4,7 @@ import { Home, MapPin, LayoutDashboard, PlusCircle } from 'lucide-react';
 const navItems = [
   { to: '/feed', icon: Home, label: 'Feed' },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/onboarding', icon: PlusCircle, label: 'Add Venue' },
+  { to: '/onboarding', icon: PlusCircle, label: 'Add Place' },
 ];
 
 export default function AppLayout() {
@@ -33,7 +33,7 @@ export default function AppLayout() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MapPin size={16} color="var(--color-muted)" />
           <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-            {location.pathname.startsWith('/venue') ? 'Venue' : 'Your city'}
+            {location.pathname.startsWith('/venue') ? 'Place' : 'Your city'}
           </span>
         </div>
       </header>

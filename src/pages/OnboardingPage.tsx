@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { createVenue, createVenueOwner } from '../lib/api';
+import { signInWithPhone } from '../lib/auth';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ function toSlug(name: string): string {
 // ─── Shared components ────────────────────────────────────────────────────────
 
 function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
-  const labels = ['Your venue', 'About you', "You're live"];
+  const labels = ['Your place', 'About you', "You're live"];
   return (
     <div style={{ marginBottom: '28px' }}>
       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -195,8 +196,8 @@ export default function OnboardingPage() {
 
   function goStep2() {
     const errs: typeof errors = {};
-    if (!form.venueName.trim())    errs.venueName     = 'Give your venue a name';
-    if (!form.venueType)           errs.venueType     = 'Pick a type for your venue';
+    if (!form.venueName.trim())    errs.venueName     = 'Give your place a name';
+    if (!form.venueType)           errs.venueType     = 'Pick a type for your place';
     if (!form.neighbourhood.trim()) errs.neighbourhood = 'Tell us where you are';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setStep(2);
@@ -237,9 +238,15 @@ export default function OnboardingPage() {
     });
 
     if (ownerErr) {
-      // Venue was created — still advance, owner link is non-critical
       console.error('Owner creation failed:', ownerErr);
     }
+
+    // Store venueId so LoginPage can claim this venue_owner record
+    localStorage.setItem('kayaa_venue_id', venueRow.id);
+    localStorage.setItem('kayaa_pending_phone', form.ownerPhone.trim());
+
+    // Fire OTP in background — user enters code on /login
+    signInWithPhone(form.ownerPhone.trim()).catch(() => {});
 
     setSubmitting(false);
     setStep(3);
@@ -358,7 +365,7 @@ export default function OnboardingPage() {
           {/* CTA */}
           <div className="ob-cta" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/login')}
               style={{
                 width: '100%', minHeight: '56px',
                 background: 'var(--color-accent)', color: '#000',
@@ -560,7 +567,7 @@ export default function OnboardingPage() {
 
         {/* Venue name */}
         <div>
-          <label style={labelStyle}>What's your venue called?</label>
+          <label style={labelStyle}>What's your place called?</label>
           <input
             type="text"
             value={form.venueName}

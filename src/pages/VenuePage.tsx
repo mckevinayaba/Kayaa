@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Calendar } from 'lucide-react';
-import { mockPosts, mockCheckIns } from '../lib/mockData';
 import { getVenueBySlug, getVenueEvents, getVenuePosts } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post } from '../types';
@@ -109,7 +108,7 @@ function VenueNotFound() {
         fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px',
         marginBottom: '8px', color: 'var(--color-text)',
       }}>
-        This venue isn't on Kayaa yet
+        This place isn't on Kayaa yet
       </h2>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '28px' }}>
         Know this place? Help put it on the map for your community.
@@ -372,28 +371,16 @@ function EventsSection({ events }: { events: Event[] }) {
   );
 }
 
-function ActivitySection({ venueId }: { venueId: string }) {
-  const posts = mockPosts.filter(p => p.venueId === venueId);
-  const checkins = mockCheckIns.filter(c => c.venueId === venueId);
-
+function ActivitySection({ posts }: { posts: Post[] }) {
   type ActivityItem = { id: string; initial: string; text: string; time: string; color: string };
 
-  const items: ActivityItem[] = [
-    ...checkins.map((c, i) => ({
-      id: `ci-${c.id}`,
-      initial: c.userName[0],
-      text: `${c.userName.split(' ')[0]} checked in${c.note ? ` · "${c.note}"` : ''}`,
-      time: LIVE_TIMES[i % LIVE_TIMES.length],
-      color: AVATAR_COLORS[i % AVATAR_COLORS.length],
-    })),
-    ...posts.map((p, i) => ({
-      id: `po-${p.id}`,
-      initial: p.authorName[0],
-      text: `${p.authorName.split(' ')[0]} left a note`,
-      time: LIVE_TIMES[(i + 2) % LIVE_TIMES.length],
-      color: AVATAR_COLORS[(i + 2) % AVATAR_COLORS.length],
-    })),
-  ].slice(0, 4);
+  const items: ActivityItem[] = posts.slice(0, 4).map((p, i) => ({
+    id: `po-${p.id}`,
+    initial: p.authorName[0],
+    text: p.content.length > 55 ? p.content.slice(0, 55) + '…' : p.content,
+    time: LIVE_TIMES[i % LIVE_TIMES.length],
+    color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+  }));
 
   if (items.length === 0) return null;
 
@@ -583,7 +570,7 @@ export default function VenuePage() {
         <CheckInCTA venue={venue} />
         <SocialProof venue={venue} regularsCount={regularsCount} />
         <EventsSection events={events} />
-        <ActivitySection venueId={venue.id} />
+        <ActivitySection posts={posts} />
         <AboutSection venue={venue} />
         <PostsSection posts={posts} />
       </div>
