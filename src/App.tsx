@@ -8,6 +8,8 @@ import CheckInPage from './pages/CheckInPage';
 import DashboardPage from './pages/DashboardPage';
 import OnboardingPage from './pages/OnboardingPage';
 import LoginPage from './pages/LoginPage';
+import BoardPage from './pages/BoardPage';
+import JobsPage from './pages/JobsPage';
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
             <Route path="/venue/:slug/checkin" element={<CheckInPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/board" element={<BoardPage />} />
+            <Route path="/jobs" element={<JobsPage />} />
             <Route
               path="/dashboard"
               element={

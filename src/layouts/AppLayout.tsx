@@ -1,9 +1,11 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Home, MapPin, LayoutDashboard, PlusCircle } from 'lucide-react';
+import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, Briefcase } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const navItems = [
   { to: '/feed', icon: Home, label: 'Feed' },
+  { to: '/board', icon: MessageSquare, label: 'Board' },
+  { to: '/jobs', icon: Briefcase, label: 'Jobs' },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/onboarding', icon: PlusCircle, label: 'Add Place' },
 ];

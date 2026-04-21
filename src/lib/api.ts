@@ -547,3 +547,99 @@ export async function updateVenueSettings(venueId: string, settings: {
     .eq('id', venueId);
   return { error };
 }
+
+// ─── Neighbourhood Board ──────────────────────────────────────────────────────
+
+export interface NeighbourhoodPost {
+  id: string;
+  authorName: string;
+  content: string;
+  neighbourhood: string;
+  category: 'announcement' | 'lost_found' | 'question' | 'recommendation' | 'event' | 'general';
+  isAnonymous: boolean;
+  createdAt: string;
+}
+
+export async function getNeighbourhoodPosts(neighbourhood: string): Promise<NeighbourhoodPost[]> {
+  const { data, error } = await supabase
+    .from('neighbourhood_posts')
+    .select('*')
+    .eq('neighbourhood', neighbourhood)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error || !data) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((row: any) => ({
+    id: row.id,
+    authorName: row.author_name,
+    content: row.content,
+    neighbourhood: row.neighbourhood,
+    category: row.category,
+    isAnonymous: row.is_anonymous ?? false,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function createNeighbourhoodPost(data: {
+  author_name: string;
+  content: string;
+  neighbourhood: string;
+  category: string;
+  is_anonymous: boolean;
+}) {
+  const { error } = await supabase.from('neighbourhood_posts').insert(data);
+  return { error };
+}
+
+// ─── Local Jobs Board ─────────────────────────────────────────────────────────
+
+export interface LocalJob {
+  id: string;
+  title: string;
+  description: string;
+  neighbourhood: string;
+  jobType: 'full_time' | 'part_time' | 'once_off' | 'skill_offer';
+  contactInfo: string;
+  isPaid: boolean;
+  postedBy: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export async function getLocalJobs(neighbourhood: string): Promise<LocalJob[]> {
+  const { data, error } = await supabase
+    .from('local_jobs')
+    .select('*')
+    .eq('neighbourhood', neighbourhood)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    neighbourhood: row.neighbourhood,
+    jobType: row.job_type,
+    contactInfo: row.contact_info,
+    isPaid: row.is_paid ?? true,
+    postedBy: row.posted_by,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  }));
+}
+
+export async function createLocalJob(data: {
+  title: string;
+  description: string;
+  neighbourhood: string;
+  job_type: string;
+  contact_info: string;
+  is_paid: boolean;
+  posted_by: string;
+}) {
+  const { error } = await supabase.from('local_jobs').insert(data);
+  return { error };
+}
