@@ -105,12 +105,106 @@ function ToggleRow({ label, sub, checked, onChange }: {
   );
 }
 
+// ─── Pilot checklist ─────────────────────────────────────────────────────────
+
+function PilotChecklist({ venueId, venueCreatedAt, venueDescription, checkinCount }: {
+  venueId: string;
+  venueCreatedAt: string;
+  venueDescription: string;
+  checkinCount: number;
+}) {
+  const ageDays = (Date.now() - new Date(venueCreatedAt).getTime()) / 86400000;
+  if (ageDays > 14) return null;
+
+  const lsKey = `kayaa_pilot_${venueId}`;
+  const [ticked, setTicked] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem(lsKey) ?? '{}'); } catch { return {}; }
+  });
+
+  function tick(key: string) {
+    const next = { ...ticked, [key]: true };
+    setTicked(next);
+    localStorage.setItem(lsKey, JSON.stringify(next));
+  }
+
+  const items = [
+    { key: 'register',     label: 'Register your place',                       done: true },
+    { key: 'description',  label: 'Add a description (20+ characters)',         done: venueDescription.trim().length >= 20 },
+    { key: 'share',        label: 'Share your check-in link with a customer',   done: !!ticked.share },
+    { key: 'first_checkin',label: 'Get your first check-in',                    done: checkinCount > 0 },
+    { key: 'post',         label: 'Post an update',                             done: !!ticked.post },
+    { key: 'event',        label: 'Add an event',                               done: !!ticked.event },
+    { key: 'board',        label: 'Add to the neighbourhood board',             done: !!ticked.board },
+  ];
+
+  const doneCount = items.filter(i => i.done).length;
+  const allDone = doneCount === items.length;
+
+  if (allDone) {
+    return (
+      <div style={{
+        marginBottom: '24px', background: 'rgba(57,217,138,0.06)',
+        border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px',
+        padding: '20px', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '28px', marginBottom: '8px' }}>🎉</div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '4px' }}>
+          You're all set!
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
+          Your place is fully launched on Kayaa.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+        Getting started ({doneCount}/{items.length})
+      </h2>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
+        <div style={{ height: '4px', background: 'var(--color-border)', borderRadius: '2px', marginBottom: '14px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${(doneCount / items.length) * 100}%`, background: 'var(--color-accent)', borderRadius: '2px', transition: 'width 0.3s' }} />
+        </div>
+        {items.map((item, i) => (
+          <div
+            key={item.key}
+            onClick={() => !item.done && tick(item.key)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '9px 0',
+              borderBottom: i < items.length - 1 ? '1px solid var(--color-border)' : 'none',
+              cursor: item.done ? 'default' : 'pointer',
+            }}
+          >
+            <div style={{
+              width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+              background: item.done ? 'rgba(57,217,138,0.15)' : 'transparent',
+              border: `1.5px solid ${item.done ? '#39D98A' : 'var(--color-border)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {item.done && <span style={{ fontSize: '11px', color: '#39D98A' }}>✓</span>}
+            </div>
+            <span style={{ fontSize: '13px', color: item.done ? 'var(--color-muted)' : 'var(--color-text)', textDecoration: item.done ? 'line-through' : 'none' }}>
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab: Home ────────────────────────────────────────────────────────────────
 
-function HomeTab({ checkIns, venueId, venueSlug }: {
+function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescription, checkinCount }: {
   checkIns: DashboardCheckIn[];
   venueId: string;
   venueSlug: string;
+  venueCreatedAt: string;
+  venueDescription: string;
+  checkinCount: number;
 }) {
   const [postText, setPostText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -150,6 +244,12 @@ function HomeTab({ checkIns, venueId, venueSlug }: {
 
   return (
     <div>
+      <PilotChecklist
+        venueId={venueId}
+        venueCreatedAt={venueCreatedAt}
+        venueDescription={venueDescription}
+        checkinCount={checkinCount}
+      />
       {/* Who came in today */}
       <div style={{ marginBottom: '24px' }}>
         <h2 style={{
@@ -629,8 +729,19 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
   const [publicPage, setPublicPage]       = useState(true);
   const [showRegulars, setShowRegulars]   = useState(true);
   const [quietCheckins, setQuietCheckins] = useState(true);
+  const [notifyContact, setNotifyContact] = useState(() =>
+    localStorage.getItem('kayaa_notify_contact') ?? ''
+  );
+  const [notifySaved, setNotifySaved] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
-  const qrUrl = `https://kayaa.co.za/${venue.slug}/checkin`;
+  const qrUrl = `https://kayaa.co.za/venue/${venue.slug}/checkin`;
+
+  function saveNotify() {
+    if (!notifyContact.trim()) return;
+    localStorage.setItem('kayaa_notify_contact', notifyContact.trim());
+    setNotifySaved(true);
+    setTimeout(() => setNotifySaved(false), 2500);
+  }
 
   async function handleToggle(key: 'is_public' | 'show_regulars_publicly' | 'allow_quiet_checkins', val: boolean) {
     await updateVenueSettings(venueId, { [key]: val });
@@ -649,7 +760,7 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
     ctx.drawImage(sourceCanvas, 0, 0, size, size);
     const a = document.createElement('a');
     a.href = out.toDataURL('image/png');
-    a.download = `${venue.slug}-kayaa-qr.png`;
+    a.download = `kayaa-qr-${venue.slug}.png`;
     a.click();
   }
 
@@ -673,24 +784,77 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
         )}
       </div>
 
-      <div style={{
-        background: 'rgba(57,217,138,0.05)',
-        border: '1px solid rgba(57,217,138,0.2)',
-        borderRadius: '14px', padding: '14px 16px', marginBottom: '16px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-accent)', marginBottom: '2px' }}>
-            Kayaa Starter
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Free during pilot</div>
+      {/* Plan tiers */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '10px' }}>
+          Your plan
         </div>
-        <span style={{
-          fontSize: '11px', fontWeight: 700, color: '#39D98A',
-          background: 'rgba(57,217,138,0.12)', padding: '4px 10px', borderRadius: '20px',
-        }}>
-          Active
-        </span>
+
+        {/* Free */}
+        <div style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '2px' }}>Kayaa Free</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Free forever</div>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.12)', padding: '4px 10px', borderRadius: '20px' }}>Active</span>
+          </div>
+          {['Community page', 'QR check-in', 'Regulars list', 'Board & Jobs'].map(f => (
+            <div key={f} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: '#39D98A', fontSize: '12px' }}>✓</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{f}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Grow */}
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '2px' }}>Kayaa Grow</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Coming soon</div>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.12)', padding: '4px 10px', borderRadius: '20px' }}>Coming soon</span>
+          </div>
+          {['Everything in Free', 'Analytics dashboard', 'Promoted listing', 'Story boosts'].map(f => (
+            <div key={f} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: '#F5A623', fontSize: '12px' }}>✓</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{f}</span>
+            </div>
+          ))}
+          <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              value={notifyContact}
+              onChange={e => setNotifyContact(e.target.value)}
+              placeholder="Phone or email"
+              style={{ flex: 1, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' }}
+            />
+            <button
+              onClick={saveNotify}
+              style={{ background: notifySaved ? 'rgba(245,166,35,0.2)' : 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: '8px', padding: '8px 14px', color: '#F5A623', fontSize: '12px', fontWeight: 700, fontFamily: 'Syne, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              {notifySaved ? 'Saved ✓' : 'Notify me'}
+            </button>
+          </div>
+        </div>
+
+        {/* Pro */}
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '2px' }}>Kayaa Pro</div>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Coming soon</div>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.12)', padding: '4px 10px', borderRadius: '20px' }}>Coming soon</span>
+          </div>
+          {['Everything in Grow', 'Verified badge', 'Custom QR design', 'Priority support'].map(f => (
+            <div key={f} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: '#F5A623', fontSize: '12px' }}>✓</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{f}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={{
@@ -730,10 +894,13 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
           background: '#fff', padding: '14px', borderRadius: '12px',
           boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
         }}>
-          <QRCodeCanvas value={qrUrl} size={160} level="M" marginSize={0} />
+          <QRCodeCanvas value={qrUrl} size={200} level="M" marginSize={0} />
         </div>
         <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'center', margin: 0 }}>
-          kayaa.co.za/{venue.slug}/checkin
+          kayaa.co.za/venue/{venue.slug}/checkin
+        </p>
+        <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'center', margin: 0, lineHeight: 1.5 }}>
+          Print this and place it at your counter so customers can check in easily.
         </p>
         <button
           onClick={downloadQR}
@@ -1042,7 +1209,14 @@ export default function DashboardPage() {
       {/* Tab content */}
       <div style={{ padding: '0 16px 120px' }}>
         {tab === 'home' && (
-          <HomeTab checkIns={checkIns} venueId={venueId} venueSlug={venue.slug} />
+          <HomeTab
+            checkIns={checkIns}
+            venueId={venueId}
+            venueSlug={venue.slug}
+            venueCreatedAt={venue.createdAt}
+            venueDescription={venue.description}
+            checkinCount={venue.checkinCount}
+          />
         )}
         {tab === 'regulars' && (
           <RegularsTab regulars={regulars} totalCount={venue.followerCount} />

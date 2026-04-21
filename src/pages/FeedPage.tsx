@@ -421,7 +421,12 @@ export default function FeedPage() {
       getNeighbourhoodPosts(city),
       getLocalJobs(city),
     ]).then(([v, e, s, tr, tn, np, ml, act, bp, bj]) => {
-      setVenues(v);
+      // Exclude placeholder/test entries so only real places show in the feed
+      const TEST_NAMES = /\b(test|demo|example|setup a startup)\b/i;
+      const realVenues = (v as Venue[]).filter(p =>
+        p.description.trim().length >= 10 && !TEST_NAMES.test(p.name)
+      );
+      setVenues(realVenues);
       setEvents(e);
       setStories(s);
       setTrending(tr);

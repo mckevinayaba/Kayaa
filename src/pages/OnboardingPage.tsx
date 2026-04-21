@@ -196,9 +196,13 @@ export default function OnboardingPage() {
 
   function goStep2() {
     const errs: typeof errors = {};
-    if (!form.venueName.trim())    errs.venueName     = 'Give your place a name';
-    if (!form.venueType)           errs.venueType     = 'Pick a type for your place';
-    if (!form.neighbourhood.trim()) errs.neighbourhood = 'Tell us where you are';
+    if (!form.venueName.trim())               errs.venueName     = 'Give your place a name';
+    else if (form.venueName.trim().length < 3) errs.venueName    = 'Name must be at least 3 characters';
+    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName = 'Name cannot be numbers only';
+    if (!form.venueType)                       errs.venueType     = 'Pick a type for your place';
+    if (!form.neighbourhood.trim())            errs.neighbourhood = 'Tell us where you are';
+    if (!form.description.trim())              errs.description   = 'Add a short description of your place';
+    else if (form.description.trim().length < 20) errs.description = 'Description must be at least 20 characters';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setStep(2);
     window.scrollTo(0, 0);
@@ -614,25 +618,28 @@ export default function OnboardingPage() {
 
         {/* Description */}
         <div>
-          <label style={labelStyle}>
-            Describe your place in one line{' '}
-            <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span>
-          </label>
+          <label style={labelStyle}>Describe your place in one line</label>
           <textarea
             value={form.description}
             onChange={set('description')}
             placeholder="e.g. Best fades in Soweto, open 7 days a week"
-            maxLength={120}
+            maxLength={200}
             style={{
               ...inputStyle,
               minHeight: '80px',
               resize: 'vertical',
               lineHeight: 1.5,
+              border: `1px solid ${errors.description ? '#F87171' : 'var(--color-border)'}`,
             }}
           />
-          <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '4px' }}>
-            {form.description.length}/120
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '4px' }}>
+            <p style={{ fontSize: '12px', color: '#F87171', margin: 0, visibility: errors.description ? 'visible' : 'hidden' }}>
+              {errors.description ?? ' '}
+            </p>
+            <span style={{ fontSize: '11px', color: 'var(--color-muted)', flexShrink: 0, marginLeft: '8px' }}>
+              {form.description.length}/200
+            </span>
+          </div>
         </div>
       </div>
 
