@@ -635,6 +635,8 @@ export interface NeighbourhoodPost {
   category: 'announcement' | 'lost_found' | 'question' | 'recommendation' | 'event' | 'general';
   isAnonymous: boolean;
   createdAt: string;
+  title?: string;
+  repliesCount?: number;
 }
 
 export async function getNeighbourhoodPosts(neighbourhood: string): Promise<NeighbourhoodPost[]> {
@@ -682,6 +684,7 @@ export interface LocalJob {
   postedBy: string;
   createdAt: string;
   expiresAt: string;
+  payLabel?: string;
 }
 
 export async function getLocalJobs(neighbourhood: string): Promise<LocalJob[]> {

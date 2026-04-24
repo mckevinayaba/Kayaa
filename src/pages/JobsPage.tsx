@@ -43,6 +43,29 @@ function formatRelativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function sortJobs(jobs: LocalJob[]): LocalJob[] {
+  return [...jobs].sort((a, b) => {
+    const aIsHiring = a.jobType !== 'skill_offer';
+    const bIsHiring = b.jobType !== 'skill_offer';
+    const ageA = Date.now() - new Date(a.createdAt).getTime();
+    const ageB = Date.now() - new Date(b.createdAt).getTime();
+    const STALE_MS = 14 * 86400000;
+
+    // Hiring before skills
+    if (aIsHiring && !bIsHiring) return -1;
+    if (!aIsHiring && bIsHiring) return 1;
+
+    // Within same type: stale posts (>14d) go to bottom
+    const aStale = ageA > STALE_MS;
+    const bStale = ageB > STALE_MS;
+    if (!aStale && bStale) return -1;
+    if (aStale && !bStale) return 1;
+
+    // Then newest first
+    return ageA - ageB;
+  });
+}
+
 // ─── Job card ─────────────────────────────────────────────────────────────────
 
 function JobCard({ job, onShare }: { job: LocalJob; onShare: (j: LocalJob) => void }) {
@@ -82,13 +105,19 @@ function JobCard({ job, onShare }: { job: LocalJob; onShare: (j: LocalJob) => vo
       } as React.CSSProperties}>
         {job.description}
       </p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'flex', gap: '8px', fontFamily: 'DM Sans, sans-serif' }}>
-          <span>👤 {job.postedBy}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'flex', gap: '6px', fontFamily: 'DM Sans, sans-serif', flexWrap: 'wrap', flex: 1 }}>
+          <span>🏠 {job.postedBy}</span>
           <span>·</span>
           <span>📍 {job.neighbourhood}</span>
+          {job.payLabel && (
+            <>
+              <span>·</span>
+              <span style={{ color: '#39D98A', fontWeight: 600 }}>{job.payLabel}</span>
+            </>
+          )}
         </div>
-        <a href={contactHref} style={{ fontSize: '12px', fontWeight: 700, color: '#39D98A', textDecoration: 'none', fontFamily: 'DM Sans, sans-serif' }}>
+        <a href={contactHref} style={{ fontSize: '12px', fontWeight: 700, color: '#39D98A', textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', flexShrink: 0 }}>
           Contact →
         </a>
       </div>
@@ -136,11 +165,15 @@ function SkillCard({ job, onShare }: { job: LocalJob; onShare: (j: LocalJob) => 
           } as React.CSSProperties}>
             {job.description}
           </p>
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '10px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
             <span>👤 {job.postedBy}</span>
-            <span style={{ margin: '0 6px' }}>·</span>
+            <span style={{ margin: '0 2px' }}>·</span>
             <span>📍 {job.neighbourhood}</span>
-            {job.isPaid && <><span style={{ margin: '0 6px' }}>·</span><span style={{ color: '#39D98A' }}>Paid</span></>}
+            {job.payLabel ? (
+              <><span style={{ margin: '0 2px' }}>·</span><span style={{ color: '#39D98A', fontWeight: 600 }}>{job.payLabel}</span></>
+            ) : job.isPaid ? (
+              <><span style={{ margin: '0 2px' }}>·</span><span style={{ color: '#39D98A' }}>Paid</span></>
+            ) : null}
           </div>
           <a
             href={contactHref}
@@ -194,7 +227,8 @@ export default function JobsPage() {
 
   useEffect(() => {
     getLocalJobs(neighbourhood).then(data => {
-      setJobs(data.length > 0 ? data : sampleJobs);
+      const source = data.length > 0 ? data : sampleJobs;
+      setJobs(sortJobs(source));
       setLoading(false);
     });
   }, [neighbourhood]);

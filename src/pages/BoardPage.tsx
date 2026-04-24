@@ -44,6 +44,50 @@ function formatRelativeTime(iso: string): string {
   return `${days}d ago`;
 }
 
+function isToday(iso: string): boolean {
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+}
+
+function isTomorrow(iso: string): boolean {
+  const d = new Date(iso);
+  const tomorrow = new Date(Date.now() + 86400000);
+  return d.getFullYear() === tomorrow.getFullYear() &&
+    d.getMonth() === tomorrow.getMonth() &&
+    d.getDate() === tomorrow.getDate();
+}
+
+function sortPosts(posts: NeighbourhoodPost[], neighbourhood: string): NeighbourhoodPost[] {
+  const area = neighbourhood.toLowerCase();
+  return [...posts].sort((a, b) => {
+    let scoreA = 0;
+    let scoreB = 0;
+
+    // Area relevance
+    if (a.neighbourhood.toLowerCase().includes(area) || area.includes(a.neighbourhood.toLowerCase())) scoreA += 30;
+    if (b.neighbourhood.toLowerCase().includes(area) || area.includes(b.neighbourhood.toLowerCase())) scoreB += 30;
+
+    // Event today/tomorrow boost
+    if (a.category === 'event' && (isToday(a.createdAt) || isTomorrow(a.createdAt))) scoreA += 20;
+    if (b.category === 'event' && (isToday(b.createdAt) || isTomorrow(b.createdAt))) scoreB += 20;
+
+    // Replies boost (capped)
+    scoreA += Math.min((a.repliesCount ?? 0) * 2, 10);
+    scoreB += Math.min((b.repliesCount ?? 0) * 2, 10);
+
+    // Recency: newer = higher score (up to 100 points over 7 days)
+    const ageA = Date.now() - new Date(a.createdAt).getTime();
+    const ageB = Date.now() - new Date(b.createdAt).getTime();
+    scoreA += Math.max(0, 100 - (ageA / (7 * 86400000)) * 100);
+    scoreB += Math.max(0, 100 - (ageB / (7 * 86400000)) * 100);
+
+    return scoreB - scoreA;
+  });
+}
+
 export default function BoardPage() {
   const neighbourhood = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'Johannesburg';
   const [posts, setPosts] = useState<NeighbourhoodPost[]>([]);
@@ -59,7 +103,8 @@ export default function BoardPage() {
 
   useEffect(() => {
     getNeighbourhoodPosts(neighbourhood).then(data => {
-      setPosts(data.length > 0 ? data : sampleBoardPosts);
+      const source = data.length > 0 ? data : sampleBoardPosts;
+      setPosts(sortPosts(source, neighbourhood));
       setLoading(false);
     });
   }, [neighbourhood]);
@@ -254,6 +299,7 @@ export default function BoardPage() {
                 background: 'var(--color-surface)', border: '1px solid var(--color-border)',
                 borderRadius: '14px', padding: '14px',
               }}>
+                {/* Top row: badge + time + share */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{
                     fontSize: '11px', fontWeight: 600, color,
@@ -266,7 +312,7 @@ export default function BoardPage() {
                       {formatRelativeTime(post.createdAt)}
                     </span>
                     <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`${post.content} — from the ${post.neighbourhood} board on kayaa`)}`}
+                      href={`https://wa.me/?text=${encodeURIComponent(`${post.title ? post.title + ': ' : ''}${post.content} — from the ${post.neighbourhood} board on kayaa`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
@@ -277,17 +323,36 @@ export default function BoardPage() {
                   </div>
                 </div>
 
+                {/* Title (when present) */}
+                {post.title && (
+                  <div style={{
+                    fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                    fontSize: '14px', color: 'var(--color-text)', marginBottom: '4px', lineHeight: 1.3,
+                  }}>
+                    {post.title}
+                  </div>
+                )}
+
+                {/* Body */}
                 <p style={{
-                  fontSize: '14px', color: 'var(--color-text)', margin: '0 0 10px',
-                  lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif',
-                }}>
+                  fontSize: '13px', color: post.title ? 'var(--color-muted)' : 'var(--color-text)',
+                  margin: '0 0 10px', lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                } as React.CSSProperties}>
                   {post.content}
                 </p>
 
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'flex', gap: '8px', fontFamily: 'DM Sans, sans-serif' }}>
+                {/* Footer: author + area + replies */}
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'flex', gap: '8px', fontFamily: 'DM Sans, sans-serif', flexWrap: 'wrap' }}>
                   <span>{post.isAnonymous ? '🕶 Anonymous' : `👤 ${post.authorName}`}</span>
                   <span>·</span>
                   <span>📍 {post.neighbourhood}</span>
+                  {(post.repliesCount ?? 0) > 0 && (
+                    <>
+                      <span>·</span>
+                      <span>💬 {post.repliesCount}</span>
+                    </>
+                  )}
                 </div>
               </div>
             );
