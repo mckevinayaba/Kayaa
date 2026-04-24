@@ -5,6 +5,7 @@ import {
   createNeighbourhoodPost,
   type NeighbourhoodPost,
 } from '../lib/api';
+import { sampleBoardPosts } from '../data/sampleBoardPosts';
 
 const CATEGORY_LABELS: Record<string, string> = {
   announcement: 'Announcement',
@@ -58,7 +59,7 @@ export default function BoardPage() {
 
   useEffect(() => {
     getNeighbourhoodPosts(neighbourhood).then(data => {
-      setPosts(data);
+      setPosts(data.length > 0 ? data : sampleBoardPosts);
       setLoading(false);
     });
   }, [neighbourhood]);

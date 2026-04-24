@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Briefcase, Share2, Sparkles } from 'lucide-react';
 import { getLocalJobs, createLocalJob, type LocalJob } from '../lib/api';
 import ShareModal from '../components/ShareModal';
+import { sampleJobs } from '../data/sampleJobs';
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   full_time: 'Full time',
@@ -193,7 +194,7 @@ export default function JobsPage() {
 
   useEffect(() => {
     getLocalJobs(neighbourhood).then(data => {
-      setJobs(data);
+      setJobs(data.length > 0 ? data : sampleJobs);
       setLoading(false);
     });
   }, [neighbourhood]);
