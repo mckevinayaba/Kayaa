@@ -14,7 +14,7 @@ const navItems = [
 
 export default function AppLayout() {
   const routerLocation = useRouterLocation();
-  const { suburb, loading, error, setManualSuburb, refresh } = useLocation();
+  const { suburb, loading, error, setManualSuburb, confirm, refresh } = useLocation();
   const [areaOpen, setAreaOpen] = useState(false);
 
   // On venue pages, show "Place" in the nav; otherwise show detected suburb
@@ -35,8 +35,8 @@ export default function AppLayout() {
       {needsArea && (
         <AreaSelector
           currentSuburb={suburb}
-          onSelect={setManualSuburb}
-          onClose={() => {/* can't close if they haven't set area yet — handled by picking one */}}
+          onSelect={(s, c) => { setManualSuburb(s, c); confirm(); }}
+          onClose={() => {/* can't close until area is picked */}}
           showDeniedMessage
           onRequestDetect={refresh}
         />
@@ -46,7 +46,7 @@ export default function AppLayout() {
       {areaOpen && !needsArea && (
         <AreaSelector
           currentSuburb={suburb}
-          onSelect={setManualSuburb}
+          onSelect={(s, c) => { setManualSuburb(s, c); confirm(); setAreaOpen(false); }}
           onClose={() => setAreaOpen(false)}
           onRequestDetect={refresh}
         />

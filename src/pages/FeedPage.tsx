@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
 import { haversineKm } from '../lib/geocode';
+import NeighbourhoodGate from '../components/NeighbourhoodGate';
 import {
   getAllVenues, getAllEvents, getActiveStories,
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
@@ -20,6 +21,14 @@ import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type FeedScope = 'local' | 'nearby' | 'city';
+type ActivityFilter = 'All' | 'Open now' | 'Busy now' | 'Events today';
+
+const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Open now', 'Busy now', 'Events today'];
+const MAIN_CATS = new Set(['Barbershop', 'Shisanyama', 'Café', 'Salon', 'Tavern', 'Church', 'Carwash', 'Spaza Shop']);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getGreeting(): string {
@@ -29,10 +38,97 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-type ActivityFilter = 'All' | 'Open now' | 'Busy now' | 'Events today';
-const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Open now', 'Busy now', 'Events today'];
+const TEST_NAMES = /\b(test|demo|example|setup a startup)\b/i;
 
-const MAIN_CATS = new Set(['Barbershop', 'Shisanyama', 'Café', 'Salon', 'Tavern', 'Church', 'Carwash', 'Spaza Shop']);
+function isCleanVenue(v: Venue): boolean {
+  return v.description.trim().length >= 10 && !TEST_NAMES.test(v.name);
+}
+
+function venueMatchesLocal(v: Venue, suburb: string, city: string): boolean {
+  const vs = v.neighborhood.toLowerCase();
+  const vc = v.city.toLowerCase();
+  if (suburb) {
+    const us = suburb.toLowerCase();
+    if (vs.includes(us) || us.includes(vs) || vc.includes(us) || us.includes(vc)) return true;
+  }
+  if (city) {
+    const uc = city.toLowerCase();
+    if (vc.includes(uc) || uc.includes(vc)) return true;
+  }
+  return !suburb && !city; // no location set → pass everything
+}
+
+function venueMatchesNearby(v: Venue, city: string): boolean {
+  if (!city) return true;
+  const vc = v.city.toLowerCase();
+  const uc = city.toLowerCase();
+  return vc.includes(uc) || uc.includes(vc) || v.neighborhood.toLowerCase().includes(uc);
+}
+
+function filterAndRankByScope(
+  venues: Venue[],
+  scope: FeedScope,
+  suburb: string,
+  city: string,
+  userLat?: number,
+  userLon?: number,
+): Venue[] {
+  const clean = venues.filter(isCleanVenue);
+
+  let filtered: Venue[];
+
+  if (scope === 'city') {
+    // City-wide: all clean venues from DB, no geographic restriction
+    filtered = clean;
+  } else if (userLat != null && userLon != null) {
+    const kmLimit = scope === 'local' ? 10 : 25;
+    filtered = clean.filter(v => {
+      if (v.latitude != null && v.longitude != null) {
+        return haversineKm(userLat, userLon, v.latitude, v.longitude) <= kmLimit;
+      }
+      // Venue has no coords → text fallback
+      return scope === 'local'
+        ? venueMatchesLocal(v, suburb, city)
+        : venueMatchesNearby(v, city);
+    });
+  } else {
+    // No GPS — text-only
+    filtered = clean.filter(v =>
+      scope === 'local'
+        ? venueMatchesLocal(v, suburb, city)
+        : venueMatchesNearby(v, city)
+    );
+  }
+
+  // Sort: GPS distance first, then text area score
+  if (userLat != null && userLon != null) {
+    return [...filtered].sort((a, b) => {
+      const aCoords = a.latitude != null && a.longitude != null;
+      const bCoords = b.latitude != null && b.longitude != null;
+      if (aCoords && bCoords) {
+        return (
+          haversineKm(userLat, userLon, a.latitude!, a.longitude!) -
+          haversineKm(userLat, userLon, b.latitude!, b.longitude!)
+        );
+      }
+      if (aCoords) return -1;
+      if (bCoords) return 1;
+      return areaScore(b, suburb, city) - areaScore(a, suburb, city);
+    });
+  }
+
+  return [...filtered].sort((a, b) => areaScore(b, suburb, city) - areaScore(a, suburb, city));
+}
+
+function areaScore(venue: Venue, userSuburb: string, userCity: string): number {
+  const vSuburb = venue.neighborhood.toLowerCase();
+  const vCity   = venue.city.toLowerCase();
+  const uSuburb = userSuburb.toLowerCase();
+  const uCity   = userCity.toLowerCase();
+  if (uSuburb && vSuburb && (vSuburb.includes(uSuburb) || uSuburb.includes(vSuburb))) return 100;
+  if (uCity && vCity && (vCity.includes(uCity) || uCity.includes(vCity))) return 50;
+  return 0;
+}
 
 function applyActivityFilter(venues: Venue[], filter: ActivityFilter, venueIdsWithEvents: Set<string>): Venue[] {
   switch (filter) {
@@ -56,51 +152,41 @@ function applyCategoryFilter(venues: Venue[], cat: string, venueIdsWithEvents: S
 
 const ACTIVITY_AFTER = new Set([0, 1, 2]);
 
-// ─── Location ranking ─────────────────────────────────────────────────────────
+// ─── Scope selector ───────────────────────────────────────────────────────────
 
-function areaScore(venue: Venue, userSuburb: string, userCity: string): number {
-  const vSuburb = venue.neighborhood.toLowerCase();
-  const vCity   = venue.city.toLowerCase();
-  const uSuburb = userSuburb.toLowerCase();
-  const uCity   = userCity.toLowerCase();
-  if (uSuburb && vSuburb && (vSuburb.includes(uSuburb) || uSuburb.includes(vSuburb))) return 100;
-  if (uCity && vCity && (vCity.includes(uCity) || uCity.includes(vCity))) return 50;
-  return 0;
-}
+const SCOPE_LABELS: Record<FeedScope, string> = {
+  local: 'My neighbourhood',
+  nearby: 'Nearby',
+  city: 'City-wide',
+};
 
-function rankVenuesByArea(
-  venues: Venue[],
-  area: string,
-  userLat?: number,
-  userLon?: number,
-): Venue[] {
-  // Distance-first when user GPS and venue coords both exist
-  if (userLat != null && userLon != null) {
-    return [...venues].sort((a, b) => {
-      const aHasCoords = a.latitude != null && a.longitude != null;
-      const bHasCoords = b.latitude != null && b.longitude != null;
-      if (aHasCoords && bHasCoords) {
-        return (
-          haversineKm(userLat, userLon, a.latitude!, a.longitude!) -
-          haversineKm(userLat, userLon, b.latitude!, b.longitude!)
-        );
-      }
-      // Venues with coords rank above those without
-      if (aHasCoords) return -1;
-      if (bHasCoords) return 1;
-      // Both lack coords — fall back to text matching
-      const parts = area.split(',').map(s => s.trim());
-      const suburb = parts[0] ?? area;
-      const city   = parts[parts.length - 1] ?? area;
-      return areaScore(b, suburb, city) - areaScore(a, suburb, city);
-    });
-  }
-
-  // No GPS — pure text-based area matching
-  const parts  = area.split(',').map(s => s.trim());
-  const suburb = parts[0] ?? area;
-  const city   = parts[parts.length - 1] ?? area;
-  return [...venues].sort((a, b) => areaScore(b, suburb, city) - areaScore(a, suburb, city));
+function ScopeSelector({ value, onChange }: { value: FeedScope; onChange: (s: FeedScope) => void }) {
+  return (
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', flexWrap: 'nowrap' }}>
+      {(['local', 'nearby', 'city'] as FeedScope[]).map(s => (
+        <button
+          key={s}
+          onClick={() => onChange(s)}
+          style={{
+            padding: '5px 13px',
+            borderRadius: '20px',
+            border: value === s ? 'none' : '1px solid rgba(255,255,255,0.1)',
+            background: value === s ? 'rgba(57,217,138,0.15)' : 'transparent',
+            color: value === s ? '#39D98A' : 'rgba(255,255,255,0.45)',
+            fontSize: '12px',
+            fontWeight: 600,
+            fontFamily: 'DM Sans, sans-serif',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            transition: 'all 0.15s',
+          }}
+        >
+          {SCOPE_LABELS[s]}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -128,6 +214,8 @@ function VenueCardSkeleton() {
   );
 }
 
+// ─── Empty states ─────────────────────────────────────────────────────────────
+
 function EmptyState() {
   return (
     <div style={{
@@ -141,6 +229,43 @@ function EmptyState() {
       <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
         Try a different filter or check back later
       </p>
+    </div>
+  );
+}
+
+function LocalEmptyState({ scope, areaLabel, onExpand }: {
+  scope: FeedScope;
+  areaLabel: string;
+  onExpand: (s: FeedScope) => void;
+}) {
+  return (
+    <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+      <div style={{ fontSize: '36px', marginBottom: '12px' }}>📍</div>
+      <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '8px' }}>
+        No places in {scope === 'local' ? 'your neighbourhood' : 'your area'} yet
+      </h3>
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, marginBottom: '20px' }}>
+        {areaLabel} doesn't have any registered places yet.{' '}
+        {scope !== 'city' && 'Try expanding your search.'}
+      </p>
+      {scope !== 'city' && (
+        <button
+          onClick={() => onExpand(scope === 'local' ? 'nearby' : 'city')}
+          style={{
+            background: 'rgba(57,217,138,0.1)',
+            color: '#39D98A',
+            border: '1px solid rgba(57,217,138,0.25)',
+            borderRadius: '12px',
+            padding: '10px 22px',
+            fontFamily: 'DM Sans, sans-serif',
+            fontWeight: 600,
+            fontSize: '13px',
+            cursor: 'pointer',
+          }}
+        >
+          {scope === 'local' ? 'Show nearby areas →' : 'Show city-wide →'}
+        </button>
+      )}
     </div>
   );
 }
@@ -442,8 +567,8 @@ function InstallBanner() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
-  const { suburb, city, lat: userLat, lon: userLon } = useLocation();
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
+  const [rawVenues, setRawVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [trending, setTrending] = useState<TrendingVenue[]>([]);
@@ -457,8 +582,12 @@ export default function FeedPage() {
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const [scope, setScope] = useState<FeedScope>('nearby');
+  // Initialise from localStorage-backed needsConfirmation so gate shows on first visit
+  const [showAreaGate, setShowAreaGate] = useState(needsConfirmation);
 
   const areaLabel = suburb || city || 'Your area';
+  const gateOpen = showAreaGate;
 
   useEffect(() => {
     Promise.all([
@@ -473,16 +602,9 @@ export default function FeedPage() {
       getNeighbourhoodPosts(areaLabel),
       getLocalJobs(areaLabel),
     ]).then(([v, e, s, tr, tn, np, ml, act, bp, bj]) => {
-      // Exclude placeholder/test entries so only real places show in the feed
-      const TEST_NAMES = /\b(test|demo|example|setup a startup)\b/i;
-      const realVenues = (v as Venue[]).filter(p =>
-        p.description.trim().length >= 10 && !TEST_NAMES.test(p.name)
-      );
-      // Rank by real distance when GPS coords exist, text match otherwise
-      setVenues(rankVenuesByArea(realVenues, areaLabel, userLat, userLon));
+      setRawVenues(v as Venue[]);
       setEvents(e);
       setStories(s);
-      // Rails already localised server-side via city param
       setTrending(tr);
       setTonight(tn);
       setNewPlaces(np);
@@ -492,9 +614,17 @@ export default function FeedPage() {
       setBoardJobs((bj as LocalJob[]).slice(0, 2));
       setLoading(false);
     });
-  }, [areaLabel]); // re-fetch when suburb changes
+  }, [areaLabel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scope-filtered + ranked venues — recomputes when scope or location changes
+  const venues = useMemo(
+    () => filterAndRankByScope(rawVenues, scope, suburb, city, userLat, userLon),
+    [rawVenues, scope, suburb, city, userLat, userLon],
+  );
 
   const venueIdsWithEvents = useMemo(() => new Set(events.map(e => e.venueId)), [events]);
+
+  const isFiltered = !!(search.trim() || categoryFilter !== 'All' || activityFilter !== 'All');
 
   const filteredVenues = useMemo(() => {
     let result = applyCategoryFilter(venues, categoryFilter, venueIdsWithEvents);
@@ -520,21 +650,30 @@ export default function FeedPage() {
       {/* Stories */}
       <StoriesStrip stories={stories} />
 
-      {/* Greeting */}
-      <div style={{ marginBottom: '16px' }}>
+      {/* Greeting + area label */}
+      <div style={{ marginBottom: '14px' }}>
         <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '2px' }}>
           {getGreeting()} 👋
         </p>
-        <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
-          color: 'var(--color-text)', marginBottom: '2px', lineHeight: 1.2,
-        }}>
-          {areaLabel}
-        </h1>
+        <div
+          onClick={() => setShowAreaGate(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginBottom: '2px' }}
+        >
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
+            color: 'var(--color-text)', lineHeight: 1.2, margin: 0,
+          }}>
+            {areaLabel}
+          </h1>
+          <MapPin size={15} color="rgba(255,255,255,0.3)" style={{ marginTop: '2px' }} />
+        </div>
         <p style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600 }}>
           {loading ? 'Loading…' : `${openCount} places active now`}
         </p>
       </div>
+
+      {/* Scope selector */}
+      <ScopeSelector value={scope} onChange={s => { setScope(s); setCategoryFilter('All'); setActivityFilter('All'); }} />
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: '12px' }}>
@@ -607,7 +746,9 @@ export default function FeedPage() {
           <VenueCardSkeleton />
         </div>
       ) : filteredVenues.length === 0 ? (
-        <EmptyState />
+        isFiltered
+          ? <EmptyState />
+          : <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={setScope} />
       ) : (
         <div>
           {filteredVenues.map((venue, i) => {
@@ -642,6 +783,11 @@ export default function FeedPage() {
       {boardJobs.length > 0 && <JobsTeaser jobs={boardJobs} />}
 
       <InstallBanner />
+
+      {/* Neighbourhood gate — first run or manual area change */}
+      {gateOpen && (
+        <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />
+      )}
     </div>
   );
 }

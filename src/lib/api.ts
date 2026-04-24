@@ -73,7 +73,7 @@ export async function getAllVenues(): Promise<Venue[]> {
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
-  if (error || !data || data.length === 0) return mockVenues;
+  if (error || !data || data.length === 0) return mockVenues.filter(isRealVenue);
   return data.map(dbVenueToVenue);
 }
 
@@ -373,6 +373,20 @@ export interface TonightEvent {
 
 // ─── Feed enrichment queries ──────────────────────────────────────────────────
 
+const DEMO_NAMES = /\b(test|demo|example|setup a startup)\b/i;
+
+function isRealVenue(v: Venue): boolean {
+  return v.description.trim().length >= 10 && !DEMO_NAMES.test(v.name);
+}
+
+function matchesCityContext(v: Venue, city: string): boolean {
+  if (!city) return true;
+  const c = city.toLowerCase();
+  const vc = v.city.toLowerCase();
+  const vn = v.neighborhood.toLowerCase();
+  return vc.includes(c) || c.includes(vc) || vn.includes(c);
+}
+
 function localFirst<T extends Venue>(venues: T[], city: string): T[] {
   const c = city.toLowerCase();
   return [...venues].sort((a, b) => {
@@ -390,6 +404,7 @@ export async function getTrendingPlaces(city?: string): Promise<TrendingVenue[]>
     .gte('created_at', sevenDaysAgo);
 
   const fallback = [...mockVenues]
+    .filter(v => isRealVenue(v) && (!city || matchesCityContext(v, city)))
     .sort((a, b) => b.followerCount - a.followerCount)
     .slice(0, 5)
     .map(v => ({ ...v, weeklyCheckins: Math.round(v.followerCount / 5) }));
@@ -409,6 +424,7 @@ export async function getTrendingPlaces(city?: string): Promise<TrendingVenue[]>
 
   const venues = rows
     .map(r => ({ ...dbVenueToVenue(r), weeklyCheckins: counts[r.id] ?? 0 }))
+    .filter(isRealVenue)
     .sort((a, b) => b.weeklyCheckins - a.weeklyCheckins);
 
   if (!city) return venues.slice(0, 5);
@@ -454,7 +470,7 @@ export async function getNewPlaces(city?: string): Promise<Venue[]> {
     .limit(10);
 
   if (error || !data || data.length === 0) return [];
-  const venues = data.map(dbVenueToVenue);
+  const venues = data.map(dbVenueToVenue).filter(isRealVenue);
   if (!city) return venues.slice(0, 5);
   return localFirst(venues, city).slice(0, 5);
 }
@@ -470,12 +486,13 @@ export async function getMostLovedPlaces(city?: string): Promise<Venue[]> {
 
   if (error || !data || data.length === 0) {
     const fallback = [...mockVenues]
+      .filter(v => isRealVenue(v) && (!city || matchesCityContext(v, city)))
       .sort((a, b) => b.followerCount - a.followerCount)
       .filter(v => v.followerCount > 0);
     if (!city) return fallback.slice(0, 5);
     return localFirst(fallback, city).slice(0, 5);
   }
-  const venues = data.map(dbVenueToVenue);
+  const venues = data.map(dbVenueToVenue).filter(isRealVenue);
   if (!city) return venues.slice(0, 5);
   return localFirst(venues, city).slice(0, 5);
 }

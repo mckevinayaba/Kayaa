@@ -9,6 +9,7 @@ export interface LocationState {
   lat?: number;
   lon?: number;
   detectedAt?: number;
+  confirmedAt?: number;
 }
 
 export interface UseLocationResult {
@@ -18,7 +19,9 @@ export interface UseLocationResult {
   lon: number | undefined;
   loading: boolean;
   error: boolean;
+  needsConfirmation: boolean;
   setManualSuburb: (suburb: string, city?: string) => void;
+  confirm: () => void;
   refresh: () => void;
 }
 
@@ -118,6 +121,14 @@ export default function useLocation(): UseLocationResult {
     setError(false);
   }, []);
 
+  const confirm = useCallback(() => {
+    setState(prev => {
+      const updated = { ...prev, confirmedAt: Date.now() };
+      writeStorage(updated);
+      return updated;
+    });
+  }, []);
+
   return {
     suburb: state.suburb || '',
     city: state.city || '',
@@ -125,7 +136,9 @@ export default function useLocation(): UseLocationResult {
     lon: state.lon,
     loading,
     error,
+    needsConfirmation: !state.confirmedAt,
     setManualSuburb,
+    confirm,
     refresh: detect,
   };
 }
