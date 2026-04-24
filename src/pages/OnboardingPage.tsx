@@ -7,6 +7,11 @@ import { signInWithEmail } from '../lib/auth';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
+const SA_PROVINCES = [
+  'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
+  'Limpopo', 'Mpumalanga', 'North West', 'Free State', 'Northern Cape',
+];
+
 const VENUE_TYPES = [
   { emoji: '✂️', label: 'Barbershop' },
   { emoji: '☕', label: 'Café'        },
@@ -159,7 +164,10 @@ function errorStyle(show: boolean): React.CSSProperties {
 interface FormData {
   venueName: string;
   venueType: string;
-  neighbourhood: string;
+  streetAddress: string;
+  suburb: string;
+  city: string;
+  province: string;
   description: string;
   ownerName: string;
   ownerPhone: string;
@@ -168,7 +176,8 @@ interface FormData {
 }
 
 const empty: FormData = {
-  venueName: '', venueType: '', neighbourhood: '', description: '',
+  venueName: '', venueType: '', streetAddress: '', suburb: '', city: '',
+  province: 'Gauteng', description: '',
   ownerName: '', ownerPhone: '', ownerEmail: '', privacyAgreed: false,
 };
 
@@ -196,13 +205,15 @@ export default function OnboardingPage() {
 
   function goStep2() {
     const errs: typeof errors = {};
-    if (!form.venueName.trim())               errs.venueName     = 'Give your place a name';
-    else if (form.venueName.trim().length < 3) errs.venueName    = 'Name must be at least 3 characters';
-    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName = 'Name cannot be numbers only';
-    if (!form.venueType)                       errs.venueType     = 'Pick a type for your place';
-    if (!form.neighbourhood.trim())            errs.neighbourhood = 'Tell us where you are';
-    if (!form.description.trim())              errs.description   = 'Add a short description of your place';
-    else if (form.description.trim().length < 20) errs.description = 'Description must be at least 20 characters';
+    if (!form.venueName.trim())                   errs.venueName    = 'Give your place a name';
+    else if (form.venueName.trim().length < 3)    errs.venueName    = 'Name must be at least 3 characters';
+    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName    = 'Name cannot be numbers only';
+    if (!form.venueType)                          errs.venueType    = 'Pick a type for your place';
+    if (!form.suburb.trim())                      errs.suburb       = 'Add the suburb your place is in';
+    else if (form.suburb.trim().length < 3)       errs.suburb       = 'Enter a specific suburb, not just a city';
+    if (!form.city.trim())                        errs.city         = 'Add the city';
+    if (!form.description.trim())                 errs.description  = 'Add a short description of your place';
+    else if (form.description.trim().length < 20) errs.description  = 'Description must be at least 20 characters';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setStep(2);
     window.scrollTo(0, 0);
@@ -220,11 +231,17 @@ export default function OnboardingPage() {
     setSubmitting(true);
     setErrors({});
 
+    const suburb = form.suburb.trim();
+    const city   = form.city.trim();
+    const fullAddress = [form.streetAddress.trim(), suburb, city, form.province].filter(Boolean).join(', ');
+
     const { row: venueRow, error: venueErr } = await createVenue({
       name: form.venueName.trim(),
       type: form.venueType,
       slug,
-      location: form.neighbourhood.trim(),
+      location: `${suburb}, ${city}`,   // parsed by dbVenueToVenue as neighborhood, city
+      address: fullAddress,
+      province: form.province,
       description: form.description.trim() || undefined,
     });
 
@@ -600,20 +617,66 @@ export default function OnboardingPage() {
           <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
         </div>
 
-        {/* Neighbourhood */}
+        {/* Street address (optional but encouraged) */}
         <div>
-          <label style={labelStyle}>Where are you based?</label>
+          <label style={labelStyle}>Street address <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
           <input
             type="text"
-            value={form.neighbourhood}
-            onChange={set('neighbourhood')}
-            placeholder="e.g. Orlando West, Soweto"
+            value={form.streetAddress}
+            onChange={set('streetAddress')}
+            placeholder="e.g. 12 Vilakazi Street"
+            autoComplete="street-address"
+            style={{ ...inputStyle, border: '1px solid var(--color-border)' }}
+          />
+        </div>
+
+        {/* Suburb + City row */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>Suburb *</label>
+            <input
+              type="text"
+              value={form.suburb}
+              onChange={set('suburb')}
+              placeholder="e.g. Orlando West"
+              style={{
+                ...inputStyle,
+                border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}`,
+              }}
+            />
+            <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>City *</label>
+            <input
+              type="text"
+              value={form.city}
+              onChange={set('city')}
+              placeholder="e.g. Johannesburg"
+              style={{
+                ...inputStyle,
+                border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}`,
+              }}
+            />
+            <p style={errorStyle(!!errors.city)}>{errors.city}</p>
+          </div>
+        </div>
+
+        {/* Province */}
+        <div>
+          <label style={labelStyle}>Province *</label>
+          <select
+            value={form.province}
+            onChange={e => { setForm(f => ({ ...f, province: e.target.value })); }}
             style={{
               ...inputStyle,
-              border: `1px solid ${errors.neighbourhood ? '#F87171' : 'var(--color-border)'}`,
-            }}
-          />
-          <p style={errorStyle(!!errors.neighbourhood)}>{errors.neighbourhood}</p>
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              cursor: 'pointer',
+            } as React.CSSProperties}
+          >
+            {SA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
         </div>
 
         {/* Description */}

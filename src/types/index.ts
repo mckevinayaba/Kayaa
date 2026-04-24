@@ -7,6 +7,9 @@ export interface Venue {
   address: string;
   neighborhood: string;
   city: string;
+  province?: string;
+  latitude?: number;
+  longitude?: number;
   coverImage?: string;
   avatar?: string;
   ownerId?: string;

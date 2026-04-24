@@ -20,6 +20,10 @@ function dbVenueToVenue(row: any): Venue {
     address: row.address ?? '',
     neighborhood,
     city,
+    province: row.province ?? undefined,
+    // lat/lng ready for geocoding — null until DB migration adds the columns
+    latitude: row.latitude ?? undefined,
+    longitude: row.longitude ?? undefined,
     checkinCount: row.regulars_count ?? 0,
     followerCount: row.regulars_count ?? 0,
     isOpen: true,
@@ -145,6 +149,10 @@ export async function createVenue(data: {
   description?: string;
   opening_hours?: string;
   address?: string;
+  province?: string;
+  // lat/lng: pass when live geocoding is wired up
+  latitude?: number;
+  longitude?: number;
 }) {
   const { data: row, error } = await supabase
     .from('venues')

@@ -55,6 +55,29 @@ function applyCategoryFilter(venues: Venue[], cat: string, venueIdsWithEvents: S
 
 const ACTIVITY_AFTER = new Set([0, 1, 2]);
 
+// ─── Location ranking ─────────────────────────────────────────────────────────
+
+function areaScore(venue: Venue, userSuburb: string, userCity: string): number {
+  const vSuburb = venue.neighborhood.toLowerCase();
+  const vCity   = venue.city.toLowerCase();
+  const uSuburb = userSuburb.toLowerCase();
+  const uCity   = userCity.toLowerCase();
+
+  // Exact or partial suburb match — highest priority
+  if (uSuburb && vSuburb && (vSuburb.includes(uSuburb) || uSuburb.includes(vSuburb))) return 100;
+  // Same city
+  if (uCity && vCity && (vCity.includes(uCity) || uCity.includes(vCity))) return 50;
+  // No match — deprioritise but don't hide (may be relevant via search)
+  return 0;
+}
+
+function rankVenuesByArea(venues: Venue[], area: string): Venue[] {
+  const parts  = area.split(',').map(s => s.trim());
+  const suburb = parts.length > 1 ? parts[0] : area;
+  const city   = parts.length > 1 ? parts[parts.length - 1] : area;
+  return [...venues].sort((a, b) => areaScore(b, suburb, city) - areaScore(a, suburb, city));
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function VenueCardSkeleton() {
@@ -430,13 +453,21 @@ export default function FeedPage() {
       const realVenues = (v as Venue[]).filter(p =>
         p.description.trim().length >= 10 && !TEST_NAMES.test(p.name)
       );
-      setVenues(realVenues);
+      // Rank by proximity to user's area — local places surface first
+      setVenues(rankVenuesByArea(realVenues, areaLabel));
       setEvents(e);
       setStories(s);
+      // Prefer local trending/loved — sort by area proximity, keep global as fallback
+      const parts = areaLabel.split(',').map((s: string) => s.trim());
+      const uSuburb = parts.length > 1 ? parts[0] : areaLabel;
+      const uCity   = parts.length > 1 ? parts[parts.length - 1] : areaLabel;
+      const sortLocal = (arr: Venue[]) => [...arr].sort(
+        (a, b) => areaScore(b, uSuburb, uCity) - areaScore(a, uSuburb, uCity)
+      );
       setTrending(tr);
       setTonight(tn);
-      setNewPlaces(np);
-      setMostLoved(ml);
+      setNewPlaces(sortLocal(np as Venue[]) as typeof np);
+      setMostLoved(sortLocal(ml as Venue[]) as typeof ml);
       setActivity(act);
       setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 2));
       setBoardJobs((bj as LocalJob[]).slice(0, 2));
