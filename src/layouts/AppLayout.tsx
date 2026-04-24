@@ -1,105 +1,91 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet, NavLink, useLocation as useRouterLocation } from 'react-router-dom';
 import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, Briefcase } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import useLocation from '../hooks/useLocation';
+import AreaSelector from '../components/AreaSelector';
 
 const navItems = [
-  { to: '/feed', icon: Home, label: 'Feed' },
-  { to: '/board', icon: MessageSquare, label: 'Board' },
-  { to: '/jobs', icon: Briefcase, label: 'Jobs' },
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/onboarding', icon: PlusCircle, label: 'Add Place' },
+  { to: '/feed',       icon: Home,            label: 'Feed'      },
+  { to: '/board',      icon: MessageSquare,   label: 'Board'     },
+  { to: '/jobs',       icon: Briefcase,       label: 'Jobs'      },
+  { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/onboarding', icon: PlusCircle,      label: 'Add Place' },
 ];
 
-const STORAGE_KEY = 'kayaa_city';
-const DEFAULT_CITY = 'Johannesburg';
-
-function useCity(): string {
-  const [city, setCity] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY) ?? '';
-  });
-
-  useEffect(() => {
-    // Already resolved — skip
-    if (localStorage.getItem(STORAGE_KEY)) return;
-
-    if (!navigator.geolocation) {
-      const fallback = DEFAULT_CITY;
-      localStorage.setItem(STORAGE_KEY, fallback);
-      setCity(fallback);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json`,
-            { headers: { 'Accept-Language': 'en' } }
-          );
-          const data = await res.json();
-          const addr = data.address ?? {};
-          // Prefer suburb / neighbourhood over city for granularity
-          const resolved =
-            addr.suburb ??
-            addr.neighbourhood ??
-            addr.town ??
-            addr.city ??
-            addr.county ??
-            DEFAULT_CITY;
-          localStorage.setItem(STORAGE_KEY, resolved);
-          setCity(resolved);
-        } catch {
-          localStorage.setItem(STORAGE_KEY, DEFAULT_CITY);
-          setCity(DEFAULT_CITY);
-        }
-      },
-      () => {
-        // User denied or error — fall back
-        localStorage.setItem(STORAGE_KEY, DEFAULT_CITY);
-        setCity(DEFAULT_CITY);
-      },
-      { timeout: 8000 }
-    );
-  }, []);
-
-  return city || DEFAULT_CITY;
-}
-
 export default function AppLayout() {
-  const location = useLocation();
-  const city = useCity();
+  const routerLocation = useRouterLocation();
+  const { suburb, loading, error, setManualSuburb, refresh } = useLocation();
+  const [areaOpen, setAreaOpen] = useState(false);
 
-  const locationLabel = location.pathname.startsWith('/venue') ? 'Place' : city;
+  // On venue pages, show "Place" in the nav; otherwise show detected suburb
+  const isVenuePage = routerLocation.pathname.startsWith('/venue');
+  const locationLabel = isVenuePage
+    ? 'Place'
+    : loading
+      ? '…'
+      : suburb || 'Set area';
+
+  // Show AreaSelector automatically on first visit if geolocation was denied and no suburb set
+  const needsArea = error && !suburb;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
+
+      {/* AreaSelector (auto-shown when denied + no suburb) */}
+      {needsArea && (
+        <AreaSelector
+          currentSuburb={suburb}
+          onSelect={setManualSuburb}
+          onClose={() => {/* can't close if they haven't set area yet — handled by picking one */}}
+          showDeniedMessage
+          onRequestDetect={refresh}
+        />
+      )}
+
+      {/* Manual open */}
+      {areaOpen && !needsArea && (
+        <AreaSelector
+          currentSuburb={suburb}
+          onSelect={setManualSuburb}
+          onClose={() => setAreaOpen(false)}
+          onRequestDetect={refresh}
+        />
+      )}
+
       {/* Top nav */}
       <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '0 16px',
-        height: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
+        padding: '0 16px', height: '56px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <NavLink to="/feed" style={{ textDecoration: 'none' }}>
           <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-accent)', letterSpacing: '-0.5px' }}>
             kayaa
           </span>
         </NavLink>
+
         <button
-          onClick={() => console.log('City selector coming soon')}
+          onClick={() => !isVenuePage && setAreaOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            background: 'transparent', border: 'none', cursor: 'pointer',
+            background: 'transparent', border: 'none',
+            cursor: isVenuePage ? 'default' : 'pointer',
             padding: '6px 8px', borderRadius: '8px',
           }}
         >
-          <MapPin size={16} color="var(--color-muted)" />
+          {loading ? (
+            <>
+              <div style={{
+                width: '7px', height: '7px', borderRadius: '50%',
+                background: '#39D98A', opacity: 0.6,
+                animation: 'navLocPulse 1.2s ease-in-out infinite',
+              }} />
+              <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
+            </>
+          ) : (
+            <MapPin size={16} color="var(--color-muted)" />
+          )}
           <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
             {locationLabel}
           </span>
@@ -113,32 +99,20 @@ export default function AppLayout() {
 
       {/* Bottom mobile nav */}
       <nav style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        background: 'var(--color-surface)',
-        borderTop: '1px solid var(--color-border)',
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        height: '64px',
-        padding: '0 8px',
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+        background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)',
+        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+        height: '64px', padding: '0 8px',
       }}>
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             style={({ isActive }) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              textDecoration: 'none',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '4px', textDecoration: 'none',
               color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
-              flex: 1,
-              padding: '8px 0',
+              flex: 1, padding: '8px 0',
             })}
           >
             <Icon size={20} />

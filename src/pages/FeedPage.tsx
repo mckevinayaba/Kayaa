@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useLocation from '../hooks/useLocation';
 import {
   getAllVenues, getAllEvents, getActiveStories,
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
@@ -391,6 +392,7 @@ function InstallBanner() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
+  const { suburb, city } = useLocation();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
@@ -406,7 +408,7 @@ export default function FeedPage() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
 
-  const city = localStorage.getItem('kayaa_city') ?? 'Johannesburg';
+  const areaLabel = suburb || city || 'Your area';
 
   useEffect(() => {
     Promise.all([
@@ -418,8 +420,8 @@ export default function FeedPage() {
       getNewPlaces(),
       getMostLovedPlaces(),
       getGlobalActivity(),
-      getNeighbourhoodPosts(city),
-      getLocalJobs(city),
+      getNeighbourhoodPosts(areaLabel),
+      getLocalJobs(areaLabel),
     ]).then(([v, e, s, tr, tn, np, ml, act, bp, bj]) => {
       // Exclude placeholder/test entries so only real places show in the feed
       const TEST_NAMES = /\b(test|demo|example|setup a startup)\b/i;
@@ -438,7 +440,7 @@ export default function FeedPage() {
       setBoardJobs((bj as LocalJob[]).slice(0, 2));
       setLoading(false);
     });
-  }, []);
+  }, [areaLabel]); // re-fetch when suburb changes
 
   const venueIdsWithEvents = useMemo(() => new Set(events.map(e => e.venueId)), [events]);
 
@@ -475,7 +477,7 @@ export default function FeedPage() {
           fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
           color: 'var(--color-text)', marginBottom: '2px', lineHeight: 1.2,
         }}>
-          {city}
+          {areaLabel}
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600 }}>
           {loading ? 'Loading…' : `${openCount} places active now`}
@@ -579,7 +581,7 @@ export default function FeedPage() {
       )}
 
       {/* Most loved */}
-      {!loading && <MostLovedRail venues={mostLoved} city={city} />}
+      {!loading && <MostLovedRail venues={mostLoved} city={areaLabel} />}
 
       {/* Neighbourhood Board teaser */}
       {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MapPin, Share2, CheckCircle2 } from 'lucide-react';
 import type { Venue } from '../types';
+import ShareModal from './ShareModal';
 
 const categoryEmoji: Record<string, string> = {
   Barbershop: '✂️',
@@ -55,8 +57,10 @@ export default function VenueCard({ venue }: VenueCardProps) {
   const color = categoryColor[venue.category] ?? '#39D98A';
   const isBusy = venue.checkinCount > BUSY_THRESHOLD;
   const activity = getActivityLevel(venue.checkinCount);
+  const [shareOpen, setShareOpen] = useState(false);
 
   return (
+    <>
     <div
       onClick={() => navigate(`/venue/${venue.slug}`)}
       style={{
@@ -190,21 +194,18 @@ export default function VenueCard({ venue }: VenueCardProps) {
         </span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(`Check out ${venue.name} on Kayaa — https://kayaa.co.za/venue/${venue.slug}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
+          <button
+            onClick={e => { e.stopPropagation(); setShareOpen(true); }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '30px', height: '30px', borderRadius: '50%',
               background: 'var(--color-surface2)',
               border: '1px solid var(--color-border)',
-              flexShrink: 0,
+              flexShrink: 0, cursor: 'pointer',
             }}
           >
             <Share2 size={14} color="var(--color-muted)" />
-          </a>
+          </button>
           <Link
             to={`/venue/${venue.slug}/checkin`}
             onClick={e => e.stopPropagation()}
@@ -228,5 +229,22 @@ export default function VenueCard({ venue }: VenueCardProps) {
         </div>
       </div>
     </div>
+    <ShareModal
+      type="place"
+      data={{
+        name: venue.name,
+        slug: venue.slug,
+        category: venue.category,
+        emoji,
+        neighborhood: venue.neighborhood,
+        city: venue.city,
+        description: venue.description,
+        checkinCount: venue.checkinCount,
+        isOpen: venue.isOpen,
+      }}
+      isOpen={shareOpen}
+      onClose={() => setShareOpen(false)}
+    />
+  </>
   );
 }

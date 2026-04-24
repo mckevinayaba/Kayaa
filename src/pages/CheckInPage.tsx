@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin } from 'lucide-react';
 import { getVenueBySlug, createCheckIn, getVisitNumber } from '../lib/api';
 import type { Venue } from '../types';
+import ShareModal from '../components/ShareModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ export default function CheckInPage() {
   const [ghostMode, setGhostMode] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [visitNumber, setVisitNumber] = useState(1);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -180,12 +182,23 @@ export default function CheckInPage() {
       }
     }
 
-    const waText = encodeURIComponent(
-      `I just hit visit ${visitNumber} at ${venue!.name} on Kayaa! Check them out — https://kayaa.co.za/${slug}`
-    );
+    const milestoneMessage = getMilestoneMessage();
 
     return (
       <>
+        {isMilestone && (
+          <ShareModal
+            type="milestone"
+            data={{
+              visitNumber,
+              placeName: venue!.name,
+              placeSlug: slug!,
+              message: milestoneMessage,
+            }}
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+          />
+        )}
         <style>{`
           @keyframes scaleIn {
             from { transform: scale(0.4); opacity: 0; }
@@ -277,21 +290,19 @@ export default function CheckInPage() {
 
           <div className="checkin-success-ctas" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {isMilestone && (
-              <a
-                href={`https://wa.me/?text=${waText}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => setShareOpen(true)}
                 style={{
-                  display: 'block', textDecoration: 'none',
+                  display: 'block', width: '100%',
                   background: 'transparent',
                   border: '1.5px solid rgba(57,217,138,0.4)',
                   borderRadius: '14px', padding: '14px',
                   fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-                  textAlign: 'center', color: '#39D98A',
+                  textAlign: 'center', color: '#39D98A', cursor: 'pointer',
                 }}
               >
-                Share on WhatsApp
-              </a>
+                Share this milestone
+              </button>
             )}
             <Link
               to={`/venue/${slug}`}

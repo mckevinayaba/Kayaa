@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Share2 } from 'lucide-react';
 import {
   getNeighbourhoodPosts,
   createNeighbourhoodPost,
@@ -44,7 +44,7 @@ function formatRelativeTime(iso: string): string {
 }
 
 export default function BoardPage() {
-  const neighbourhood = localStorage.getItem('kayaa_city') ?? 'Johannesburg';
+  const neighbourhood = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'Johannesburg';
   const [posts, setPosts] = useState<NeighbourhoodPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('all');
@@ -105,7 +105,7 @@ export default function BoardPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
         <div>
           <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-text)', margin: 0 }}>
-            Neighbourhood Board
+            {neighbourhood} Board
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: 'DM Sans, sans-serif' }}>
             {neighbourhood}
@@ -260,9 +260,20 @@ export default function BoardPage() {
                   }}>
                     {CATEGORY_LABELS[post.category] ?? post.category}
                   </span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                    {formatRelativeTime(post.createdAt)}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+                      {formatRelativeTime(post.createdAt)}
+                    </span>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(`${post.content} — from the ${post.neighbourhood} board on kayaa`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{ display: 'flex', alignItems: 'center', color: 'var(--color-muted)' }}
+                    >
+                      <Share2 size={14} color="var(--color-muted)" />
+                    </a>
+                  </div>
                 </div>
 
                 <p style={{

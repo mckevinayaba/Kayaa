@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2 } from 'lucide-react';
+import ShareModal from '../components/ShareModal';
 import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats } from '../lib/api';
 import type { VenueRecentStats } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -412,52 +413,79 @@ function formatWaNumber(n: string): string {
   return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
 }
 
+const CHECKIN_CTA_EMOJI: Record<string, string> = {
+  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
+  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
+};
+
 function CheckInCTA({ venue }: { venue: Venue }) {
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`I found ${venue.name} on Kayaa. Check them out — https://kayaa.co.za/venue/${venue.slug}`)}`;
+  const [shareOpen, setShareOpen] = useState(false);
   const waCheckinUrl = venue.whatsappNumber
     ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}?text=${encodeURIComponent(`Hi, I'd like to check in at ${venue.name}`)}`
     : null;
 
   return (
-    <div style={{ marginBottom: '24px' }}>
-      <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}>
-        <div style={{
-          background: 'var(--color-accent)', color: '#000',
-          borderRadius: '14px', padding: '16px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-        }}>
-          Check in here
-        </div>
-      </Link>
-      <a href={shareUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginBottom: waCheckinUrl ? '10px' : '0' }}>
-        <div style={{
-          background: 'transparent',
-          border: '1.5px solid rgba(57,217,138,0.4)',
-          borderRadius: '14px', padding: '14px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-          color: '#39D98A',
-        }}>
-          Share on WhatsApp
-        </div>
-      </a>
-      {waCheckinUrl && (
-        <a href={waCheckinUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
+    <>
+      <ShareModal
+        type="place"
+        data={{
+          name: venue.name,
+          slug: venue.slug,
+          category: venue.category,
+          emoji: CHECKIN_CTA_EMOJI[venue.category] ?? '📍',
+          neighborhood: venue.neighborhood,
+          city: venue.city,
+          description: venue.description,
+          checkinCount: venue.checkinCount,
+          isOpen: venue.isOpen,
+        }}
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
+      <div style={{ marginBottom: '24px' }}>
+        <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}>
           <div style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: '14px', padding: '13px 20px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-            color: 'var(--color-muted)',
+            background: 'var(--color-accent)', color: '#000',
+            borderRadius: '14px', padding: '16px 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
           }}>
-            <span>💬</span>
-            Can't scan? Check in on WhatsApp
+            Check in here
           </div>
-        </a>
-      )}
-    </div>
+        </Link>
+        <button
+          onClick={() => setShareOpen(true)}
+          style={{
+            width: '100%', background: 'transparent',
+            border: '1.5px solid rgba(57,217,138,0.4)',
+            borderRadius: '14px', padding: '14px 20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            color: '#39D98A', cursor: 'pointer',
+            marginBottom: waCheckinUrl ? '10px' : '0',
+          }}
+        >
+          <Share2 size={16} color="#39D98A" />
+          Share this place
+        </button>
+        {waCheckinUrl && (
+          <a href={waCheckinUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: '14px', padding: '13px 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+              color: 'var(--color-muted)',
+            }}>
+              <span>💬</span>
+              Can't scan? Check in on WhatsApp
+            </div>
+          </a>
+        )}
+      </div>
+    </>
   );
 }
 
