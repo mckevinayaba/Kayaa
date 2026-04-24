@@ -14,6 +14,8 @@ export interface LocationState {
 export interface UseLocationResult {
   suburb: string;
   city: string;
+  lat: number | undefined;
+  lon: number | undefined;
   loading: boolean;
   error: boolean;
   setManualSuburb: (suburb: string, city?: string) => void;
@@ -119,6 +121,8 @@ export default function useLocation(): UseLocationResult {
   return {
     suburb: state.suburb || '',
     city: state.city || '',
+    lat: state.lat,
+    lon: state.lon,
     loading,
     error,
     setManualSuburb,

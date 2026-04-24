@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
+import { haversineKm } from '../lib/geocode';
 import {
   getAllVenues, getAllEvents, getActiveStories,
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
@@ -62,19 +63,43 @@ function areaScore(venue: Venue, userSuburb: string, userCity: string): number {
   const vCity   = venue.city.toLowerCase();
   const uSuburb = userSuburb.toLowerCase();
   const uCity   = userCity.toLowerCase();
-
-  // Exact or partial suburb match — highest priority
   if (uSuburb && vSuburb && (vSuburb.includes(uSuburb) || uSuburb.includes(vSuburb))) return 100;
-  // Same city
   if (uCity && vCity && (vCity.includes(uCity) || uCity.includes(vCity))) return 50;
-  // No match — deprioritise but don't hide (may be relevant via search)
   return 0;
 }
 
-function rankVenuesByArea(venues: Venue[], area: string): Venue[] {
+function rankVenuesByArea(
+  venues: Venue[],
+  area: string,
+  userLat?: number,
+  userLon?: number,
+): Venue[] {
+  // Distance-first when user GPS and venue coords both exist
+  if (userLat != null && userLon != null) {
+    return [...venues].sort((a, b) => {
+      const aHasCoords = a.latitude != null && a.longitude != null;
+      const bHasCoords = b.latitude != null && b.longitude != null;
+      if (aHasCoords && bHasCoords) {
+        return (
+          haversineKm(userLat, userLon, a.latitude!, a.longitude!) -
+          haversineKm(userLat, userLon, b.latitude!, b.longitude!)
+        );
+      }
+      // Venues with coords rank above those without
+      if (aHasCoords) return -1;
+      if (bHasCoords) return 1;
+      // Both lack coords — fall back to text matching
+      const parts = area.split(',').map(s => s.trim());
+      const suburb = parts[0] ?? area;
+      const city   = parts[parts.length - 1] ?? area;
+      return areaScore(b, suburb, city) - areaScore(a, suburb, city);
+    });
+  }
+
+  // No GPS — pure text-based area matching
   const parts  = area.split(',').map(s => s.trim());
-  const suburb = parts.length > 1 ? parts[0] : area;
-  const city   = parts.length > 1 ? parts[parts.length - 1] : area;
+  const suburb = parts[0] ?? area;
+  const city   = parts[parts.length - 1] ?? area;
   return [...venues].sort((a, b) => areaScore(b, suburb, city) - areaScore(a, suburb, city));
 }
 
@@ -417,7 +442,7 @@ function InstallBanner() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
-  const { suburb, city } = useLocation();
+  const { suburb, city, lat: userLat, lon: userLon } = useLocation();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
@@ -440,10 +465,10 @@ export default function FeedPage() {
       getAllVenues(),
       getAllEvents(),
       getActiveStories(),
-      getTrendingPlaces(),
+      getTrendingPlaces(city),
       getHappeningTonight(),
-      getNewPlaces(),
-      getMostLovedPlaces(),
+      getNewPlaces(city),
+      getMostLovedPlaces(city),
       getGlobalActivity(),
       getNeighbourhoodPosts(areaLabel),
       getLocalJobs(areaLabel),
@@ -453,21 +478,15 @@ export default function FeedPage() {
       const realVenues = (v as Venue[]).filter(p =>
         p.description.trim().length >= 10 && !TEST_NAMES.test(p.name)
       );
-      // Rank by proximity to user's area — local places surface first
-      setVenues(rankVenuesByArea(realVenues, areaLabel));
+      // Rank by real distance when GPS coords exist, text match otherwise
+      setVenues(rankVenuesByArea(realVenues, areaLabel, userLat, userLon));
       setEvents(e);
       setStories(s);
-      // Prefer local trending/loved — sort by area proximity, keep global as fallback
-      const parts = areaLabel.split(',').map((s: string) => s.trim());
-      const uSuburb = parts.length > 1 ? parts[0] : areaLabel;
-      const uCity   = parts.length > 1 ? parts[parts.length - 1] : areaLabel;
-      const sortLocal = (arr: Venue[]) => [...arr].sort(
-        (a, b) => areaScore(b, uSuburb, uCity) - areaScore(a, uSuburb, uCity)
-      );
+      // Rails already localised server-side via city param
       setTrending(tr);
       setTonight(tn);
-      setNewPlaces(sortLocal(np as Venue[]) as typeof np);
-      setMostLoved(sortLocal(ml as Venue[]) as typeof ml);
+      setNewPlaces(np);
+      setMostLoved(ml);
       setActivity(act);
       setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 2));
       setBoardJobs((bj as LocalJob[]).slice(0, 2));

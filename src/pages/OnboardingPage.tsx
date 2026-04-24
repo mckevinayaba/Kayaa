@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { createVenue, createVenueOwner } from '../lib/api';
+import { createVenue, createVenueOwner, updateVenueCoords } from '../lib/api';
 import { signInWithEmail } from '../lib/auth';
+import { geocodeAddress } from '../lib/geocode';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -265,6 +266,11 @@ export default function OnboardingPage() {
     // Store venueId so LoginPage can claim this venue_owner record
     localStorage.setItem('kayaa_venue_id', venueRow.id);
     localStorage.setItem('kayaa_pending_email', form.ownerEmail.trim());
+
+    // Geocode the address in background — best-effort, does not block onboarding
+    geocodeAddress(fullAddress).then(coords => {
+      if (coords) updateVenueCoords(venueRow.id, coords.lat, coords.lng).catch(() => {});
+    }).catch(() => {});
 
     // Fire OTP in background — user enters code on /login
     signInWithEmail(form.ownerEmail.trim()).catch(() => {});

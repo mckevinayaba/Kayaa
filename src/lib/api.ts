@@ -200,6 +200,14 @@ export async function getVenueById(id: string): Promise<Venue | null> {
   return dbVenueToVenue(data);
 }
 
+export async function updateVenueCoords(venueId: string, lat: number, lng: number) {
+  const { error } = await supabase
+    .from('venues')
+    .update({ latitude: lat, longitude: lng })
+    .eq('id', venueId);
+  return { error };
+}
+
 // ─── Dashboard-specific types ─────────────────────────────────────────────────
 
 export interface DashboardCheckIn {
@@ -365,7 +373,16 @@ export interface TonightEvent {
 
 // ─── Feed enrichment queries ──────────────────────────────────────────────────
 
-export async function getTrendingPlaces(): Promise<TrendingVenue[]> {
+function localFirst<T extends Venue>(venues: T[], city: string): T[] {
+  const c = city.toLowerCase();
+  return [...venues].sort((a, b) => {
+    const aLocal = a.city.toLowerCase().includes(c) || a.neighborhood.toLowerCase().includes(c) || c.includes(a.city.toLowerCase()) ? 1 : 0;
+    const bLocal = b.city.toLowerCase().includes(c) || b.neighborhood.toLowerCase().includes(c) || c.includes(b.city.toLowerCase()) ? 1 : 0;
+    return bLocal - aLocal;
+  });
+}
+
+export async function getTrendingPlaces(city?: string): Promise<TrendingVenue[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: cis, error } = await supabase
     .from('check_ins')
@@ -382,7 +399,7 @@ export async function getTrendingPlaces(): Promise<TrendingVenue[]> {
   const counts: Record<string, number> = {};
   for (const ci of cis) counts[ci.venue_id] = (counts[ci.venue_id] ?? 0) + 1;
 
-  const topIds = Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([id]) => id);
+  const topIds = Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 10).map(([id]) => id);
   if (topIds.length === 0) return fallback;
 
   const { data: rows, error: ve } = await supabase
@@ -390,9 +407,12 @@ export async function getTrendingPlaces(): Promise<TrendingVenue[]> {
 
   if (ve || !rows || rows.length === 0) return fallback;
 
-  return rows
+  const venues = rows
     .map(r => ({ ...dbVenueToVenue(r), weeklyCheckins: counts[r.id] ?? 0 }))
     .sort((a, b) => b.weeklyCheckins - a.weeklyCheckins);
+
+  if (!city) return venues.slice(0, 5);
+  return localFirst(venues, city).slice(0, 5);
 }
 
 export async function getHappeningTonight(): Promise<TonightEvent[]> {
@@ -423,7 +443,7 @@ export async function getHappeningTonight(): Promise<TonightEvent[]> {
   }));
 }
 
-export async function getNewPlaces(): Promise<Venue[]> {
+export async function getNewPlaces(city?: string): Promise<Venue[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from('venues')
@@ -431,28 +451,33 @@ export async function getNewPlaces(): Promise<Venue[]> {
     .gte('created_at', sevenDaysAgo)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
-    .limit(5);
+    .limit(10);
 
   if (error || !data || data.length === 0) return [];
-  return data.map(dbVenueToVenue);
+  const venues = data.map(dbVenueToVenue);
+  if (!city) return venues.slice(0, 5);
+  return localFirst(venues, city).slice(0, 5);
 }
 
-export async function getMostLovedPlaces(): Promise<Venue[]> {
+export async function getMostLovedPlaces(city?: string): Promise<Venue[]> {
   const { data, error } = await supabase
     .from('venues')
     .select('*')
     .gt('regulars_count', 0)
     .eq('is_active', true)
     .order('regulars_count', { ascending: false })
-    .limit(5);
+    .limit(10);
 
   if (error || !data || data.length === 0) {
-    return [...mockVenues]
+    const fallback = [...mockVenues]
       .sort((a, b) => b.followerCount - a.followerCount)
-      .filter(v => v.followerCount > 0)
-      .slice(0, 5);
+      .filter(v => v.followerCount > 0);
+    if (!city) return fallback.slice(0, 5);
+    return localFirst(fallback, city).slice(0, 5);
   }
-  return data.map(dbVenueToVenue);
+  const venues = data.map(dbVenueToVenue);
+  if (!city) return venues.slice(0, 5);
+  return localFirst(venues, city).slice(0, 5);
 }
 
 export async function getGlobalActivity(): Promise<ActivityItem[]> {
