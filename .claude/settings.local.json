@@ -24,7 +24,13 @@
       "mcp__Claude_Preview__preview_start",
       "PowerShell(Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; $env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; node scripts/gen-icons.mjs 2>&1; echo \"EXIT: $LASTEXITCODE\")",
       "PowerShell(Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; $env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; npx tsc --noEmit 2>&1)",
-      "PowerShell(Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; $env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; & node node_modules/typescript/bin/tsc --noEmit 2>&1 | Select-Object -First 40)"
+      "PowerShell(Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; $env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; & node node_modules/typescript/bin/tsc --noEmit 2>&1 | Select-Object -First 40)",
+      "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npx tsc --noEmit 2>&1 | Select-Object -First 60)",
+      "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & node \"$env:ProgramFiles\\\\nodejs\\\\node_modules\\\\typescript\\\\bin\\\\tsc\" --noEmit 2>&1 | Select-Object -First 60)",
+      "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & node \"node_modules\\\\.bin\\\\tsc.cmd\" --noEmit 2>&1 | Select-Object -First 60)",
+      "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\" | Select-Object -First 60)",
+      "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\nodejs\"; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & npm install html2canvas 2>&1)"
     ]
   }
 }
