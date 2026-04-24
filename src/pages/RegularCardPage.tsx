@@ -20,10 +20,6 @@ function formatMemberSince(iso: string): string {
   return new Date(iso).toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' });
 }
 
-function formatWaNumber(n: string): string {
-  const digits = n.replace(/\D/g, '');
-  return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
-}
 
 export default function RegularCardPage() {
   const { name: rawName } = useParams<{ name: string }>();

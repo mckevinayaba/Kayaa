@@ -55,10 +55,10 @@ function buildFilename(type: ShareCardType, card: ShareCardData): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-interface ShareModalProps extends ShareCardData {
+type ShareModalProps = ShareCardData & {
   isOpen: boolean;
   onClose: () => void;
-}
+};
 
 export default function ShareModal(props: ShareModalProps) {
   const { isOpen, onClose } = props;

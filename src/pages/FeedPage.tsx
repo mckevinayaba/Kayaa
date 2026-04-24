@@ -314,12 +314,14 @@ function JobsTeaser({ jobs }: { jobs: LocalJob[] }) {
 function InstallBanner() {
   const [show, setShow] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
-  const deferredRef = useRef<Event | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deferredRef = useRef<any>(null);
 
   useEffect(() => {
-    function onPrompt(e: Event) { e.preventDefault(); deferredRef.current = e; }
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function onPrompt(e: any) { e.preventDefault(); deferredRef.current = e; }
+    window.addEventListener('beforeinstallprompt' as keyof WindowEventMap, onPrompt as EventListener);
+    return () => window.removeEventListener('beforeinstallprompt' as keyof WindowEventMap, onPrompt as EventListener);
   }, []);
 
   useEffect(() => {
