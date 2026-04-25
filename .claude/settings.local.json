@@ -30,7 +30,14 @@
       "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & node \"node_modules\\\\.bin\\\\tsc.cmd\" --noEmit 2>&1 | Select-Object -First 60)",
       "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\" | Select-Object -First 60)",
       "PowerShell($env:PATH = \"$env:PATH;$env:APPDATA\\\\npm;$env:ProgramFiles\\\\nodejs\"; cd \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; cmd /c \"node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
-      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\nodejs\"; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & npm install html2canvas 2>&1)"
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\nodejs\"; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & npm install html2canvas 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; & \"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\" run build 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; git add src/components/ShareModal.tsx src/pages/FeedPage.tsx src/pages/RegularCardPage.tsx; git commit -m \"fix: resolve build errors blocking Vercel deployment\"; git push origin main 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; git add src/types/index.ts src/lib/api.ts src/pages/OnboardingPage.tsx src/pages/FeedPage.tsx; git commit -m \"feat: improve location capture and neighbourhood feed integrity\"; git push origin main 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1 | Select-String -NotMatch \"Warning|PLUGIN|rolldown|tailwind|chunk\")",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1 | Select-String -Pattern \"error TS|✓ built|Error\")",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; git add src/lib/areaGroups.ts src/pages/FeedPage.tsx; git status)"
     ]
   }
 }
