@@ -1631,3 +1631,24 @@ export async function uploadBoardImage(userId: string, file: File): Promise<stri
   const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
   return publicUrl;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COUNTRY WAITLIST
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function joinCountryWaitlist(
+  countryCode: string,
+  contact: string,
+): Promise<{ error: string | null }> {
+  const contactType = contact.includes('@') ? 'email' : 'phone';
+  try {
+    const { error } = await supabase.from('country_waitlist').insert({
+      country_code: countryCode,
+      contact:      contact.trim(),
+      contact_type: contactType,
+    });
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}

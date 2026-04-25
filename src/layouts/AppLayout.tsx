@@ -3,6 +3,8 @@ import { Outlet, NavLink, useLocation as useRouterLocation } from 'react-router-
 import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, Briefcase } from 'lucide-react';
 import useLocation from '../hooks/useLocation';
 import AreaSelector from '../components/AreaSelector';
+import CountrySelector from '../components/CountrySelector';
+import { useCountry } from '../contexts/CountryContext';
 
 const navItems = [
   { to: '/feed',       icon: Home,            label: 'Feed'      },
@@ -15,9 +17,10 @@ const navItems = [
 export default function AppLayout() {
   const routerLocation = useRouterLocation();
   const { suburb, loading, error, setManualSuburb, confirm, refresh } = useLocation();
-  const [areaOpen, setAreaOpen] = useState(false);
+  const { selectedCountry } = useCountry();
+  const [areaOpen,    setAreaOpen]    = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
 
-  // On venue pages, show "Place" in the nav; otherwise show detected suburb
   const isVenuePage = routerLocation.pathname.startsWith('/venue');
   const locationLabel = isVenuePage
     ? 'Place'
@@ -25,24 +28,21 @@ export default function AppLayout() {
       ? '…'
       : suburb || 'Set area';
 
-  // Show AreaSelector automatically on first visit if geolocation was denied and no suburb set
   const needsArea = error && !suburb;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
-      {/* AreaSelector (auto-shown when denied + no suburb) */}
+      {/* AreaSelector */}
       {needsArea && (
         <AreaSelector
           currentSuburb={suburb}
           onSelect={(s, c) => { setManualSuburb(s, c); confirm(); }}
-          onClose={() => {/* can't close until area is picked */}}
+          onClose={() => {}}
           showDeniedMessage
           onRequestDetect={refresh}
         />
       )}
-
-      {/* Manual open */}
       {areaOpen && !needsArea && (
         <AreaSelector
           currentSuburb={suburb}
@@ -50,6 +50,11 @@ export default function AppLayout() {
           onClose={() => setAreaOpen(false)}
           onRequestDetect={refresh}
         />
+      )}
+
+      {/* CountrySelector modal */}
+      {countryOpen && (
+        <CountrySelector onClose={() => setCountryOpen(false)} />
       )}
 
       {/* Top nav */}
@@ -60,36 +65,66 @@ export default function AppLayout() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <NavLink to="/feed" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-accent)', letterSpacing: '-0.5px' }}>
+          <span style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '20px', color: 'var(--color-accent)', letterSpacing: '-0.5px',
+          }}>
             kayaa
           </span>
         </NavLink>
 
-        <button
-          onClick={() => !isVenuePage && setAreaOpen(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            background: 'transparent', border: 'none',
-            cursor: isVenuePage ? 'default' : 'pointer',
-            padding: '6px 8px', borderRadius: '8px',
-          }}
-        >
-          {loading ? (
-            <>
-              <div style={{
-                width: '7px', height: '7px', borderRadius: '50%',
-                background: '#39D98A', opacity: 0.6,
-                animation: 'navLocPulse 1.2s ease-in-out infinite',
-              }} />
-              <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
-            </>
-          ) : (
-            <MapPin size={16} color="var(--color-muted)" />
-          )}
-          <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
-            {locationLabel}
-          </span>
-        </button>
+        {/* Right side: [flag code] | [📍 suburb] */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+
+          {/* Country flag trigger */}
+          <button
+            onClick={() => setCountryOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              background: 'transparent', border: 'none',
+              cursor: 'pointer',
+              padding: '6px 8px', borderRadius: '8px',
+            }}
+          >
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>{selectedCountry.flag}</span>
+            <span style={{
+              fontSize: '12px', fontWeight: 700,
+              color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif',
+            }}>
+              {selectedCountry.code}
+            </span>
+          </button>
+
+          {/* Divider */}
+          <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+
+          {/* Neighbourhood trigger */}
+          <button
+            onClick={() => !isVenuePage && setAreaOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'transparent', border: 'none',
+              cursor: isVenuePage ? 'default' : 'pointer',
+              padding: '6px 8px', borderRadius: '8px',
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{
+                  width: '7px', height: '7px', borderRadius: '50%',
+                  background: '#39D98A', opacity: 0.6,
+                  animation: 'navLocPulse 1.2s ease-in-out infinite',
+                }} />
+                <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
+              </>
+            ) : (
+              <MapPin size={14} color="var(--color-muted)" />
+            )}
+            <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+              {locationLabel}
+            </span>
+          </button>
+        </div>
       </header>
 
       {/* Main content */}
