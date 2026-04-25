@@ -24,6 +24,7 @@ import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
+import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
 //
@@ -43,7 +44,22 @@ type ActivityFilter = 'All' | 'Open now' | 'Busy now' | 'Events today';
 
 const LOCAL_THRESHOLD = 3; // min local venues before defaulting to nearby
 const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Open now', 'Busy now', 'Events today'];
-const MAIN_CATS = new Set(['Barbershop', 'Shisanyama', 'Café', 'Salon', 'Tavern', 'Church', 'Carwash', 'Spaza Shop']);
+
+// Key → venue.category matcher (covers all country variants stored in DB)
+const CAT_KEY_MATCH: Record<string, (cat: string) => boolean> = {
+  barbershop: cat => /barb|kinyozi|coiff/i.test(cat),
+  salon:      cat => /salon|nywele|beaut/i.test(cat),
+  food:       cat => /shisan|choma|buka|bukat|lishe|chop|maquis/i.test(cat),
+  tavern:     cat => /tavern|beer.?parlour|cabaret|drinking.?bar/i.test(cat),
+  spaza:      cat => /spaza|duka|kiosk|provision|boutique|alimentation/i.test(cat),
+  church:     cat => /church|kanisa|.?glise|chapel|faith|fellow/i.test(cat),
+  carwash:    cat => /car.?wash|lavage/i.test(cat),
+  cafe:       cat => /caf.?|coffee|boulang|eatery|bakery/i.test(cat),
+  gym:        cat => /gym|fitness|salle.?de.?sport/i.test(cat),
+  market:     cat => /market|soko|march.|tablier/i.test(cat),
+  mechanic:   cat => /mechanic|garage|vulcan|m.?canicien/i.test(cat),
+  other:      cat => !Object.entries(CAT_KEY_MATCH).filter(([k]) => k !== 'other').some(([, fn]) => fn(cat)),
+};
 
 const SCOPE_LABELS: Record<FeedScope, string> = {
   this_neighbourhood: 'My area',
@@ -179,14 +195,11 @@ function applyActivityFilter(venues: Venue[], filter: ActivityFilter, ids: Set<s
 }
 
 function applyCategoryFilter(venues: Venue[], cat: string, ids: Set<string>): Venue[] {
-  switch (cat) {
-    case 'All':    return venues;
-    case 'Food':   return venues.filter(v => ['Shisanyama', 'Café'].includes(v.category));
-    case 'Spaza':  return venues.filter(v => v.category === 'Spaza Shop');
-    case 'Events': return venues.filter(v => ids.has(v.id));
-    case 'More':   return venues.filter(v => !MAIN_CATS.has(v.category));
-    default:       return venues.filter(v => v.category === cat);
-  }
+  if (cat === 'All') return venues;
+  if (cat === 'events' || cat === 'Events') return venues.filter(v => ids.has(v.id));
+  const matchFn = CAT_KEY_MATCH[cat];
+  if (matchFn) return venues.filter(v => matchFn(v.category));
+  return venues.filter(v => v.category === cat);
 }
 
 const ACTIVITY_AFTER = new Set([0, 1, 2]);
@@ -510,6 +523,7 @@ function InstallBanner() {
 
 export default function FeedPage() {
   const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
+  const { selectedCountry, categoryLabels } = useCountry();
 
   // Raw data from API (unfiltered beyond isCleanVenue)
   const [rawVenues, setRawVenues] = useState<Venue[]>([]);
@@ -549,9 +563,15 @@ export default function FeedPage() {
     setManualScope(null);
   }, [areaLabel]);
 
+  const countryChips = useMemo(() => [
+    { key: 'All', label: 'All' },
+    ...categoryLabels.map(c => ({ key: c.key, label: `${c.emoji} ${c.label}` })),
+    { key: 'events', label: '📅 Events' },
+  ], [categoryLabels]);
+
   useEffect(() => {
     Promise.all([
-      getAllVenues(),
+      getAllVenues(selectedCountry.code),
       getAllEvents(),
       getActiveStories(),
       getTrendingPlaces(city),
@@ -599,7 +619,7 @@ export default function FeedPage() {
         }).catch(() => {/* non-critical, fail silently */});
       }
     });
-  }, [areaLabel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [areaLabel, selectedCountry.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleScopeChange(s: FeedScope) {
     setManualScope(s);
@@ -716,7 +736,7 @@ export default function FeedPage() {
       </div>
 
       {/* Category strip */}
-      <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} />
+      <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} chips={countryChips} />
 
       {/* Activity filter chips */}
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', paddingBottom: '4px', marginBottom: '20px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>

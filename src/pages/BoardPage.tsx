@@ -8,6 +8,7 @@ import {
   type BoardCategory,
 } from '../lib/api';
 import { getInteractiveUserId } from '../lib/api';
+import { useCountry } from '../contexts/CountryContext';
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -211,6 +212,7 @@ export default function BoardPage() {
   const suburb  = localStorage.getItem('kayaa_suburb') ?? '';
   const city    = localStorage.getItem('kayaa_city')   ?? 'Johannesburg';
   const display = suburb || city;
+  const { selectedCountry } = useCountry();
 
   const [posts,      setPosts]      = useState<BoardPost[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -227,12 +229,12 @@ export default function BoardPage() {
 
   useEffect(() => {
     setLoading(true);
-    getBoardPosts(suburb, city, activeTab === 'all' ? undefined : activeTab).then(({ posts: p, expanded: e }) => {
+    getBoardPosts(suburb, city, activeTab === 'all' ? undefined : activeTab, selectedCountry.code).then(({ posts: p, expanded: e }) => {
       setPosts(p);
       setExpanded(e);
       setLoading(false);
     });
-  }, [suburb, city, activeTab]);
+  }, [suburb, city, activeTab, selectedCountry.code]);
 
   const freshSafetyPosts = posts.filter(isSafetyFresh);
   const showSafetyBanner = freshSafetyPosts.length > 0 && !safetyDismissed;

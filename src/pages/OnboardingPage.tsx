@@ -5,25 +5,13 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { createVenue, createVenueOwner, updateVenueCoords, uploadVenueFile } from '../lib/api';
 import { signInWithEmail } from '../lib/auth';
 import { geocodeAddress } from '../lib/geocode';
+import { useCountry } from '../contexts/CountryContext';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const SA_PROVINCES = [
   'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
   'Limpopo', 'Mpumalanga', 'North West', 'Free State', 'Northern Cape',
-];
-
-const VENUE_TYPES = [
-  { emoji: '✂️', label: 'Barbershop' },
-  { emoji: '☕', label: 'Café'        },
-  { emoji: '💅', label: 'Salon'       },
-  { emoji: '🍺', label: 'Tavern'      },
-  { emoji: '🔥', label: 'Shisanyama' },
-  { emoji: '🏪', label: 'Spaza'       },
-  { emoji: '🚗', label: 'Carwash'     },
-  { emoji: '⛪', label: 'Church'      },
-  { emoji: '🏛️', label: 'Community'  },
-  { emoji: '➕', label: 'Other'       },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -65,12 +53,13 @@ function StepIndicator({ current }: { current: 1 | 2 | 3 | 4 }) {
   );
 }
 
-function VenueTypeGrid({ selected, onSelect }: {
+function VenueTypeGrid({ selected, onSelect, items }: {
   selected: string; onSelect: (label: string) => void;
+  items: { emoji: string; label: string }[];
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-      {VENUE_TYPES.map(({ emoji, label }) => {
+      {items.map(({ emoji, label }) => {
         const isSelected = selected === label;
         return (
           <button key={label} onClick={() => onSelect(label)} style={{
@@ -505,6 +494,11 @@ const empty: FormData = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
+  const { selectedCountry, categoryLabels, callingCode } = useCountry();
+  const venueTypeItems = [
+    ...categoryLabels.map(c => ({ emoji: c.emoji, label: c.label })),
+    { emoji: '➕', label: 'Other' },
+  ];
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [form, setForm] = useState<FormData>(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'cover' | 'submit', string>>>({});
@@ -571,6 +565,7 @@ export default function OnboardingPage() {
       cover_image: form.coverImageUrl || undefined,
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
       intro_video: form.introVideoUrl || undefined,
+      country_code: selectedCountry.code,
     });
 
     if (venueErr || !venueRow) {
@@ -690,7 +685,7 @@ export default function OnboardingPage() {
           </div>
           <div>
             <label style={labelStyle}>Your WhatsApp number</label>
-            <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder="+27 71 000 0000" autoComplete="tel"
+            <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder={`+${callingCode} 71 000 0000`} autoComplete="tel"
               style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
           </div>
           <div>
@@ -813,7 +808,7 @@ export default function OnboardingPage() {
         {/* Venue type grid */}
         <div>
           <label style={labelStyle}>What kind of place is it?</label>
-          <VenueTypeGrid selected={form.venueType} onSelect={v => { setForm(f => ({ ...f, venueType: v })); setErrors(er => ({ ...er, venueType: undefined })); }} />
+          <VenueTypeGrid selected={form.venueType} onSelect={v => { setForm(f => ({ ...f, venueType: v })); setErrors(er => ({ ...er, venueType: undefined })); }} items={venueTypeItems} />
           <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
         </div>
 
@@ -835,7 +830,11 @@ export default function OnboardingPage() {
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>City *</label>
             <input type="text" value={form.city} onChange={set('city')} placeholder="e.g. Johannesburg"
+              list="city-options"
               style={{ ...inputStyle, border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}` }} />
+            <datalist id="city-options">
+              {selectedCountry.launch_cities.map(c => <option key={c} value={c} />)}
+            </datalist>
             <p style={errorStyle(!!errors.city)}>{errors.city}</p>
           </div>
         </div>

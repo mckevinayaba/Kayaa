@@ -8,6 +8,7 @@ import {
 } from '../lib/api';
 import { getInteractiveUserId } from '../lib/api';
 import { BOARD_CATEGORIES } from './BoardPage';
+import { useCountry } from '../contexts/CountryContext';
 
 // ─── Step 1: Category picker ──────────────────────────────────────────────────
 
@@ -480,6 +481,7 @@ function PreviewStep({
 
 export default function BoardNewPage() {
   const navigate = useNavigate();
+  const { selectedCountry } = useCountry();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [category, setCategory] = useState<BoardCategory>('ask');
   const [formData, setFormData] = useState<FormData>({
@@ -500,6 +502,7 @@ export default function BoardNewPage() {
       price: formData.price ? Number(formData.price) : undefined,
       contact_whatsapp: formData.contactWhatsapp.trim() || undefined,
       images: formData.images,
+      country_code: selectedCountry.code,
     }, uid);
 
     if (!error && post) {

@@ -15,6 +15,7 @@ import BoardMinePage from './pages/BoardMinePage';
 import JobsPage from './pages/JobsPage';
 import RegularCardPage from './pages/RegularCardPage';
 import QRCheckInPage from './pages/QRCheckInPage';
+import CountriesPage from './pages/CountriesPage';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/board/:id" element={<BoardPostPage />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
+            <Route path="/countries" element={<CountriesPage />} />
             <Route
               path="/dashboard"
               element={
