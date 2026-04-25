@@ -80,7 +80,28 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'mechanic',   label: 'Garage / Mécanicien',      emoji: '🔧' },
     { key: 'other',      label: 'Autre Lieu',               emoji: '📍' },
   ],
+  // Cameroon — English preference
+  CM_EN: [
+    { key: 'barbershop', label: 'Barbershop',          emoji: '💈' },
+    { key: 'salon',      label: 'Hair Salon',          emoji: '💅' },
+    { key: 'food',       label: 'Chop House / Maquis', emoji: '🍖' },
+    { key: 'tavern',     label: 'Bar / Cabaret',       emoji: '🍺' },
+    { key: 'spaza',      label: 'Boutique / Shop',     emoji: '🛒' },
+    { key: 'church',     label: 'Church / Fellowship', emoji: '⛪' },
+    { key: 'carwash',    label: 'Car Wash',            emoji: '🚗' },
+    { key: 'cafe',       label: 'Café / Bakery',       emoji: '☕' },
+    { key: 'gym',        label: 'Gym / Fitness',       emoji: '💪' },
+    { key: 'market',     label: 'Market Stall',        emoji: '🏪' },
+    { key: 'mechanic',   label: 'Mechanic / Garage',   emoji: '🔧' },
+    { key: 'other',      label: 'Other Place',         emoji: '📍' },
+  ],
 };
 
-export const getCategoryLabels = (countryCode: string): CategoryConfig[] =>
-  CATEGORY_LABELS[countryCode] ?? CATEGORY_LABELS['ZA'];
+export const getCategoryLabels = (
+  countryCode: string,
+  language?: 'en' | 'fr',
+): CategoryConfig[] => {
+  // Cameroon has bilingual support
+  if (countryCode === 'CM' && language === 'en') return CATEGORY_LABELS['CM_EN'];
+  return CATEGORY_LABELS[countryCode] ?? CATEGORY_LABELS['ZA'];
+};

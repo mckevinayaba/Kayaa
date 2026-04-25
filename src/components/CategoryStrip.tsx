@@ -1,22 +1,23 @@
-const CHIPS = [
-  { key: 'All',       label: 'All'       },
-  { key: 'Barbershop', label: '✂️ Barbershop' },
-  { key: 'Food',      label: '🔥 Food'   },
-  { key: 'Salon',     label: '💅 Salon'  },
-  { key: 'Tavern',    label: '🍺 Tavern' },
-  { key: 'Church',    label: '⛪ Church' },
-  { key: 'Carwash',   label: '🚗 Carwash'},
-  { key: 'Spaza',     label: '🏪 Spaza'  },
-  { key: 'Events',    label: '📅 Events' },
-  { key: 'More',      label: '···  More' },
+export const DEFAULT_CHIPS = [
+  { key: 'All',        label: 'All'          },
+  { key: 'barbershop', label: '💈 Barbershop' },
+  { key: 'food',       label: '🍖 Food'       },
+  { key: 'salon',      label: '💅 Salon'      },
+  { key: 'tavern',     label: '🍺 Tavern'     },
+  { key: 'church',     label: '⛪ Church'     },
+  { key: 'carwash',    label: '🚗 Carwash'    },
+  { key: 'spaza',      label: '🛒 Spaza'      },
+  { key: 'Events',     label: '📅 Events'     },
 ];
 
 interface Props {
   value: string;
   onChange: (key: string) => void;
+  chips?: { key: string; label: string }[];
 }
 
-export default function CategoryStrip({ value, onChange }: Props) {
+export default function CategoryStrip({ value, onChange, chips }: Props) {
+  const items = chips ?? DEFAULT_CHIPS;
   return (
     <div style={{
       display: 'flex', gap: '7px',
@@ -26,7 +27,7 @@ export default function CategoryStrip({ value, onChange }: Props) {
       paddingBottom: '4px', marginBottom: '12px',
       WebkitOverflowScrolling: 'touch',
     } as React.CSSProperties}>
-      {CHIPS.map(chip => {
+      {items.map(chip => {
         const active = value === chip.key;
         return (
           <button

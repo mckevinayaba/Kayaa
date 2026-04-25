@@ -3,6 +3,7 @@ import { X, Check } from 'lucide-react';
 import { getAllCountries, type Country } from '../config/countries';
 import { useCountry } from '../contexts/CountryContext';
 import { joinCountryWaitlist } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
 
 function NotifyRow({ country }: { country: Country }) {
   const [open,       setOpen]       = useState(false);
@@ -90,17 +91,68 @@ function NotifyRow({ country }: { country: Country }) {
   );
 }
 
+// ─── Cameroon language picker ─────────────────────────────────────────────────
+
+function CmLanguagePicker({ onDone }: { onDone: () => void }) {
+  const { setPreferredLanguage } = useCountry();
+  return (
+    <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '16px' }}>
+      <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 12px' }}>
+        What language do you prefer?
+      </p>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button
+          onClick={() => { setPreferredLanguage('en'); onDone(); }}
+          style={{
+            flex: 1, padding: '12px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            fontSize: '14px', color: 'var(--color-text)',
+          }}
+        >
+          🇬🇧 English
+        </button>
+        <button
+          onClick={() => { setPreferredLanguage('fr'); onDone(); }}
+          style={{
+            flex: 1, padding: '12px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            fontSize: '14px', color: 'var(--color-text)',
+          }}
+        >
+          🇫🇷 Français
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
 export default function CountrySelector({ onClose }: { onClose: () => void }) {
   const { selectedCountry, setSelectedCountry } = useCountry();
+  const navigate = useNavigate();
   const countries = getAllCountries();
+  const [showCmPicker, setShowCmPicker] = useState(false);
 
   function handleSelect(country: Country) {
     if (!country.active) return;
     setSelectedCountry(country);
+    if (country.code === 'CM') {
+      setShowCmPicker(true);
+      return;
+    }
     onClose();
-    // Reload feed content for the new country
+    window.location.reload();
+  }
+
+  function handleCmDone() {
+    onClose();
     window.location.reload();
   }
 
@@ -227,6 +279,9 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
           })}
         </div>
 
+        {/* CM language picker — shown after selecting Cameroon */}
+        {showCmPicker && <CmLanguagePicker onDone={handleCmDone} />}
+
         {/* Footer */}
         <div style={{
           marginTop: '24px', paddingTop: '16px',
@@ -237,6 +292,17 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
         }}>
           More countries coming soon.<br />
           <span style={{ color: '#39D98A', fontWeight: 600 }}>kayaa</span> is building across Africa.
+          <br />
+          <button
+            onClick={() => { onClose(); navigate('/countries'); }}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#39D98A', fontSize: '12px', fontWeight: 600,
+              fontFamily: 'DM Sans, sans-serif', marginTop: '8px', padding: 0,
+            }}
+          >
+            See where kayaa is expanding →
+          </button>
         </div>
       </div>
     </>

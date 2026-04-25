@@ -79,12 +79,10 @@ function dbPostToPost(row: any): Post {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function getAllVenues(): Promise<Venue[]> {
-  const { data, error } = await supabase
-    .from('venues')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false });
+export async function getAllVenues(countryCode?: string): Promise<Venue[]> {
+  let q = supabase.from('venues').select('*').eq('is_active', true);
+  if (countryCode) q = q.eq('country_code', countryCode);
+  const { data, error } = await q.order('created_at', { ascending: false });
 
   if (error || !data || data.length === 0) return mockVenues.filter(isRealVenue);
   return data.map(dbVenueToVenue);
@@ -175,6 +173,7 @@ export async function createVenue(data: {
   opening_hours?: string;
   address?: string;
   province?: string;
+  country_code?: string;
   // lat/lng: pass when live geocoding is wired up
   latitude?: number;
   longitude?: number;
@@ -1485,6 +1484,7 @@ export async function getBoardPosts(
   suburb: string,
   city: string,
   category?: string,
+  countryCode?: string,
 ): Promise<{ posts: BoardPost[]; expanded: boolean }> {
   try {
     const now = new Date().toISOString();
@@ -1497,6 +1497,7 @@ export async function getBoardPosts(
       .limit(200);
 
     if (category && category !== 'all') q = q.eq('category', category);
+    if (countryCode) q = q.eq('country_code', countryCode);
 
     const { data, error } = await q;
     if (error || !data) return { posts: [], expanded: false };
@@ -1541,6 +1542,7 @@ export async function createBoardPost(
     price?: number;
     contact_whatsapp?: string;
     images?: string[];
+    country_code?: string;
   },
   userId?: string,
 ): Promise<{ error: string | null; post: BoardPost | null }> {
@@ -1553,6 +1555,7 @@ export async function createBoardPost(
     price: data.price ?? null,
     contact_whatsapp: data.contact_whatsapp ?? null,
     images: data.images ?? [],
+    country_code: data.country_code ?? 'ZA',
     status: 'active',
     expires_at,
   };
