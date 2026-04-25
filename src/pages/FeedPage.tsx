@@ -3,6 +3,7 @@ import { Search, X, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
 import { haversineKm } from '../lib/geocode';
+import { getAreaTier, tierScore } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
 import {
   getAllVenues, getAllEvents, getActiveStories,
@@ -63,23 +64,9 @@ function isCleanVenue(v: Venue): boolean {
   return v.description.trim().length >= 10 && !TEST_NAMES.test(v.name);
 }
 
-// STRICT suburb-only match — no city fallback. Used for this_neighbourhood.
-function matchesSuburb(v: Venue, suburb: string): boolean {
-  if (!suburb) return false;
-  const vs = v.neighborhood.toLowerCase();
-  const us = suburb.toLowerCase();
-  return vs.includes(us) || us.includes(vs);
-}
-
-// City-level match. Used for nearby / city_wide.
-function matchesCity(v: Venue, city: string): boolean {
-  if (!city) return true;
-  const vc = v.city.toLowerCase();
-  const uc = city.toLowerCase();
-  return vc.includes(uc) || uc.includes(vc) || v.neighborhood.toLowerCase().includes(uc);
-}
-
 // Single truth function for whether a venue falls inside a given scope.
+// GPS path: haversine distance (fast, accurate once coords are populated).
+// Text path: cluster-based tier lookup — prevents cross-city bleed.
 function venueInScope(
   v: Venue,
   scope: FeedScope,
@@ -93,27 +80,28 @@ function venueInScope(
   const hasGPS = userLat != null && userLon != null;
   const hasCoords = v.latitude != null && v.longitude != null;
 
+  if (hasGPS && hasCoords) {
+    const km = haversineKm(userLat!, userLon!, v.latitude!, v.longitude!);
+    switch (scope) {
+      case 'this_neighbourhood': return km <= 8;
+      case 'nearby':             return km <= 30;
+      case 'city_wide':          return km <= 60;
+    }
+  }
+
+  // Text fallback: use explicit cluster model so e.g. a Khayelitsha venue is
+  // always 'outside' for a Honeydew user (their clusters never overlap).
+  const tier = getAreaTier(v.neighborhood, v.city, suburb, city);
   switch (scope) {
-    case 'this_neighbourhood':
-      if (hasGPS && hasCoords) return haversineKm(userLat!, userLon!, v.latitude!, v.longitude!) <= 8;
-      return matchesSuburb(v, suburb); // strictly suburb — no city fallback
-
-    case 'nearby':
-      if (hasGPS && hasCoords) return haversineKm(userLat!, userLon!, v.latitude!, v.longitude!) <= 30;
-      return matchesCity(v, city || suburb);
-
-    case 'city_wide':
-      if (hasGPS && hasCoords) return haversineKm(userLat!, userLon!, v.latitude!, v.longitude!) <= 60;
-      return matchesCity(v, city || suburb);
+    case 'this_neighbourhood': return tier === 'exact';
+    case 'nearby':             return tier === 'exact' || tier === 'cluster';
+    case 'city_wide':          return tier === 'exact' || tier === 'cluster' || tier === 'metro';
   }
 }
 
 function areaScore(venue: Venue, suburb: string, city: string): number {
-  const vs = venue.neighborhood.toLowerCase();
-  const vc = venue.city.toLowerCase();
-  if (suburb && (vs.includes(suburb.toLowerCase()) || suburb.toLowerCase().includes(vs))) return 100;
-  if (city && (vc.includes(city.toLowerCase()) || city.toLowerCase().includes(vc))) return 50;
-  return 0;
+  const tier = getAreaTier(venue.neighborhood, venue.city, suburb, city);
+  return tierScore(tier);
 }
 
 // Filter + sort main venue list by scope.
