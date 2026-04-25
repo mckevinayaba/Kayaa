@@ -188,6 +188,17 @@ export async function createVenue(data: {
     .select()
     .single();
 
+  // If country_code column doesn't exist yet (migration pending), retry without it
+  if (error && (error.message.includes('country_code') || error.code === '42703')) {
+    const { country_code: _cc, ...rest } = data;
+    const { data: row2, error: error2 } = await supabase
+      .from('venues')
+      .insert(rest)
+      .select()
+      .single();
+    return { row: row2, error: error2 };
+  }
+
   return { row, error };
 }
 
