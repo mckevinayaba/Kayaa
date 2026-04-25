@@ -20,34 +20,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // On mount — restore any existing session (including magic link callbacks).
-    // Supabase automatically exchanges the #access_token hash fragment, so
-    // getSession() will already return the new session after a magic link click.
-    supabase.auth.getSession()
-      .then(({ data }) => {
+    async function init() {
+      // Extract magic link tokens from URL hash (#access_token=...&refresh_token=...)
+      // Supabase puts these there when emailRedirectTo lands the user back in the app.
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken  = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({
+          access_token:  accessToken,
+          refresh_token: refreshToken,
+        });
+        // Remove the tokens from the URL so they're not exposed in history
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // Now getSession() will return the freshly-set session (or any existing one)
+      try {
+        const { data } = await supabase.auth.getSession();
         setSession(data.session);
         setUser(data.session?.user ?? null);
-      })
-      .catch(() => {
+      } catch {
         // Session check failed — treat as unauthenticated
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    init();
+
+    // Keep session state in sync for sign-out and token refreshes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-
-      // When a magic link is clicked the browser lands with an access_token hash.
-      // Supabase fires SIGNED_IN — redirect to the dashboard automatically.
-      if (
-        event === 'SIGNED_IN' &&
-        typeof window !== 'undefined' &&
-        window.location.hash.includes('access_token')
-      ) {
-        window.location.replace('/dashboard');
-      }
     });
 
     return () => subscription.unsubscribe();

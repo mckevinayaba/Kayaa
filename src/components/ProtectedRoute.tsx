@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!loading) return;
-    const t = setTimeout(() => setTimedOut(true), 3000);
+    const t = setTimeout(() => setTimedOut(true), 10000);
     return () => clearTimeout(t);
   }, [loading]);
 

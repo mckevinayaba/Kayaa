@@ -3,7 +3,10 @@ import { supabase } from './supabase';
 export async function signInWithEmail(email: string) {
   return supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: 'https://kayaa.co.za/dashboard',
+    },
   });
 }
 
