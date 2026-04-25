@@ -936,3 +936,186 @@ export function getUserCheckInHistoryLocal(visitorId: string): CheckInHistoryIte
   const raw = localStorage.getItem(_histKey(visitorId));
   return raw ? JSON.parse(raw) : [];
 }
+
+// ─── Studio Dashboard API ─────────────────────────────────────────────────────
+
+export interface StudioStats {
+  todayCount: number;
+  weekCount: number;
+  lapsedCount: number;    // visitors whose last visit was >14 days ago
+  newFacesCount: number;  // first-time visitors this week
+  dailyAvg: number;
+}
+
+export interface WeeklyBar {
+  day: string;    // 'Mon' … 'Sun'
+  avg: number;    // average check-ins on this weekday over last 4 weeks
+  total: number;  // raw total for this weekday over 4 weeks
+}
+
+export interface StudioRegular {
+  name: string;
+  visitCount: number;
+  lastVisit: string;
+  badgeTier: BadgeTier;
+  streakDays: number;
+  isLapsed: boolean;
+  isNew: boolean;
+  isLoyal: boolean;
+}
+
+export interface CommunityReportData {
+  month: string;
+  totalCheckins: number;
+  uniqueVisitors: number;
+  loyalCount: number;
+  newFaces: number;
+  busiestDay: string;
+  avgFrequency: number;
+}
+
+export async function getDashboardStats(venueId: string): Promise<StudioStats> {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [todayRes, weekRes] = await Promise.all([
+    supabase.from('check_ins').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('created_at', todayStart),
+    supabase.from('check_ins').select('id, is_first_visit').eq('venue_id', venueId).gte('created_at', weekAgo),
+  ]);
+
+  const todayCount = todayRes.count ?? 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const weekRows: any[] = weekRes.data ?? [];
+  const weekCount = weekRows.length;
+  const newFacesCount = weekRows.filter(r => r.is_first_visit).length;
+  const dailyAvg = weekCount > 0 ? Math.round(weekCount / 7) : 0;
+
+  let lapsedCount = 0;
+  try {
+    const { count } = await supabase
+      .from('regular_scores')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .lt('last_visit', twoWeeksAgo);
+    lapsedCount = count ?? 0;
+  } catch { /* table may not exist */ }
+
+  return { todayCount, weekCount, lapsedCount, newFacesCount, dailyAvg };
+}
+
+export async function getWeeklyRhythm(venueId: string): Promise<WeeklyBar[]> {
+  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from('check_ins')
+    .select('created_at')
+    .eq('venue_id', venueId)
+    .gte('created_at', fourWeeksAgo);
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const totals = [0, 0, 0, 0, 0, 0, 0];
+  if (!error && data) {
+    for (const row of data) totals[new Date(row.created_at).getDay()]++;
+  }
+  // Return Mon–Sun order
+  return [1, 2, 3, 4, 5, 6, 0].map(dow => ({
+    day: dayNames[dow],
+    avg: Math.round((totals[dow] / 4) * 10) / 10,
+    total: totals[dow],
+  }));
+}
+
+export async function getStudioRegulars(venueId: string): Promise<StudioRegular[]> {
+  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Try regular_scores first (has structured data)
+  try {
+    const { data, error } = await supabase
+      .from('regular_scores')
+      .select('user_id, visit_count, last_visit, badge_tier, streak_days')
+      .eq('venue_id', venueId)
+      .order('visit_count', { ascending: false })
+      .limit(100);
+
+    if (!error && data && data.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return data.map((row: any) => ({
+        name: `Visitor …${(row.user_id as string).slice(-4)}`,
+        visitCount: row.visit_count ?? 1,
+        lastVisit: row.last_visit ?? '',
+        badgeTier: (row.badge_tier as BadgeTier) ?? calcBadgeTier(row.visit_count ?? 1),
+        streakDays: row.streak_days ?? 0,
+        isLapsed: row.last_visit ? new Date(row.last_visit) < new Date(twoWeeksAgo) : false,
+        isNew: (row.visit_count ?? 1) === 1,
+        isLoyal: (row.visit_count ?? 0) >= 10,
+      }));
+    }
+  } catch { /* regular_scores may not exist yet */ }
+
+  // Fallback: aggregate from check_ins by visitor_name
+  const { data: ciData, error: ciErr } = await supabase
+    .from('check_ins')
+    .select('visitor_name, created_at')
+    .eq('venue_id', venueId)
+    .eq('is_ghost', false)
+    .not('visitor_name', 'is', null)
+    .order('created_at', { ascending: false });
+
+  if (ciErr || !ciData) return [];
+
+  const map: Record<string, { visits: number; last: string }> = {};
+  for (const row of ciData) {
+    const name = row.visitor_name as string;
+    if (!map[name]) map[name] = { visits: 0, last: row.created_at };
+    map[name].visits++;
+    if (row.created_at > map[name].last) map[name].last = row.created_at;
+  }
+
+  return Object.entries(map)
+    .map(([name, d]) => ({
+      name,
+      visitCount: d.visits,
+      lastVisit: d.last,
+      badgeTier: calcBadgeTier(d.visits),
+      streakDays: 0,
+      isLapsed: d.last ? new Date(d.last) < new Date(twoWeeksAgo) : false,
+      isNew: d.visits === 1,
+      isLoyal: d.visits >= 10,
+    }))
+    .sort((a, b) => b.visitCount - a.visitCount);
+}
+
+export async function getCommunityReportData(venueId: string): Promise<CommunityReportData> {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const month = now.toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' });
+
+  const { data, error } = await supabase
+    .from('check_ins')
+    .select('created_at, visitor_name, is_ghost, is_first_visit, visit_number')
+    .eq('venue_id', venueId)
+    .gte('created_at', monthStart);
+
+  if (error || !data || data.length === 0) {
+    return { month, totalCheckins: 0, uniqueVisitors: 0, loyalCount: 0, newFaces: 0, busiestDay: '—', avgFrequency: 0 };
+  }
+
+  const totalCheckins = data.length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const names = new Set(data.filter((r: any) => !r.is_ghost && r.visitor_name).map((r: any) => r.visitor_name as string));
+  const uniqueVisitors = names.size;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loyalCount = data.filter((r: any) => (r.visit_number ?? 0) >= 10).length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newFaces = data.filter((r: any) => r.is_first_visit).length;
+
+  const dowCounts = [0, 0, 0, 0, 0, 0, 0];
+  for (const row of data) dowCounts[new Date(row.created_at).getDay()]++;
+  const busiestDow = dowCounts.indexOf(Math.max(...dowCounts));
+  const dayFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const busiestDay = dowCounts[busiestDow] > 0 ? dayFull[busiestDow] : '—';
+  const avgFrequency = uniqueVisitors > 0 ? Math.round((totalCheckins / uniqueVisitors) * 10) / 10 : 0;
+
+  return { month, totalCheckins, uniqueVisitors, loyalCount, newFaces, busiestDay, avgFrequency };
+}
