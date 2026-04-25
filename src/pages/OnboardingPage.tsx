@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+// react-router-dom not needed after magic-link auth — no navigate calls remain
 import { ArrowLeft, Shield, X } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { createVenue, createVenueOwner, updateVenueCoords, uploadVenueFile } from '../lib/api';
@@ -505,7 +505,6 @@ const empty: FormData = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
-  const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [form, setForm] = useState<FormData>(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'cover' | 'submit', string>>>({});
@@ -645,9 +644,25 @@ export default function OnboardingPage() {
             <p style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>Tap the QR code to download</p>
           </div>
           <div className="ob-cta">
-            <button onClick={() => navigate('/login')} style={{ width: '100%', minHeight: '56px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}>
-              Go to my dashboard →
-            </button>
+            {/* Magic link was sent in goStep4 — guide owner to check email */}
+            <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
+              <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: '0 0 6px' }}>
+                Check your email to access your dashboard
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.6 }}>
+                We sent a sign-in link to <strong style={{ color: 'var(--color-text)' }}>{form.ownerEmail}</strong>.
+                Tap the link in that email to sign in.
+              </p>
+            </div>
+            <a
+              href="https://mail.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
+            >
+              Open Gmail
+            </a>
           </div>
         </div>
       </>
