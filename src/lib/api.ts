@@ -11,6 +11,14 @@ function dbVenueToVenue(row: any): Venue {
   const city = parts.length > 1 ? parts[parts.length - 1] : location;
   const neighborhood = parts.length > 1 ? parts.slice(0, parts.length - 1).join(', ') : '';
 
+  // Parse gallery_images from jsonb
+  let galleryImages: string[] = [];
+  if (Array.isArray(row.gallery_images)) {
+    galleryImages = row.gallery_images as string[];
+  } else if (typeof row.gallery_images === 'string') {
+    try { galleryImages = JSON.parse(row.gallery_images); } catch { galleryImages = []; }
+  }
+
   return {
     id: row.id,
     slug: row.slug,
@@ -24,6 +32,9 @@ function dbVenueToVenue(row: any): Venue {
     // lat/lng ready for geocoding — null until DB migration adds the columns
     latitude: row.latitude ?? undefined,
     longitude: row.longitude ?? undefined,
+    coverImage: row.cover_image ?? undefined,
+    galleryImages,
+    introVideo: row.intro_video ?? undefined,
     checkinCount: row.regulars_count ?? 0,
     followerCount: row.regulars_count ?? 0,
     isOpen: true,
@@ -141,6 +152,18 @@ export async function getVisitNumber(venueId: string, visitorName: string): Prom
   return (count ?? 0) + 1;
 }
 
+/** Upload a file to the venue-media Storage bucket. Returns the public URL. */
+export async function uploadVenueFile(path: string, file: File): Promise<string> {
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage
+    .from('venue-media')
+    .getPublicUrl(path);
+  return publicUrl;
+}
+
 export async function createVenue(data: {
   name: string;
   type: string;
@@ -153,6 +176,10 @@ export async function createVenue(data: {
   // lat/lng: pass when live geocoding is wired up
   latitude?: number;
   longitude?: number;
+  // Media
+  cover_image?: string;
+  gallery_images?: string[];
+  intro_video?: string;
 }) {
   const { data: row, error } = await supabase
     .from('venues')

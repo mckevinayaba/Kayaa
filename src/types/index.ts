@@ -11,6 +11,8 @@ export interface Venue {
   latitude?: number;
   longitude?: number;
   coverImage?: string;
+  galleryImages?: string[];  // all gallery photos including cover as [0]
+  introVideo?: string;       // short intro video URL
   avatar?: string;
   ownerId?: string;
   checkinCount: number;

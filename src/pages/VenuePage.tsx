@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2, X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
 import ShareModal from '../components/ShareModal';
 import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats, getUserVenueScoreLocal, getVisitorId } from '../lib/api';
 import type { VenueRecentStats } from '../lib/api';
@@ -132,27 +132,41 @@ function VenueNotFound() {
 
 // ─── Sub-sections ─────────────────────────────────────────────────────────────
 
-function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
+function HeroSection({ venue, onBack, onPlayVideo }: { venue: Venue; onBack: () => void; onPlayVideo?: () => void }) {
   const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
   const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
   const status = getStatus(venue);
+  const hasCover = !!venue.coverImage;
 
   return (
     <div style={{ position: 'relative' }}>
       <div style={{
-        height: '200px',
-        background: `linear-gradient(160deg, ${color}22 0%, #0D1117 100%)`,
+        height: '220px',
+        background: hasCover
+          ? `url(${venue.coverImage}) center/cover no-repeat`
+          : `linear-gradient(160deg, ${color}22 0%, #0D1117 100%)`,
         position: 'relative', overflow: 'hidden',
       }}>
+        {/* Dark gradient overlay for text legibility */}
         <div style={{
-          position: 'absolute', top: '-40px', right: '-40px',
-          width: '180px', height: '180px', borderRadius: '50%',
-          background: `${color}18`, filter: 'blur(40px)',
+          position: 'absolute', inset: 0,
+          background: hasCover
+            ? 'linear-gradient(to bottom, rgba(13,17,23,0.3) 0%, rgba(13,17,23,0.75) 100%)'
+            : 'none',
         }} />
+
+        {!hasCover && (
+          <div style={{
+            position: 'absolute', top: '-40px', right: '-40px',
+            width: '180px', height: '180px', borderRadius: '50%',
+            background: `${color}18`, filter: 'blur(40px)',
+          }} />
+        )}
+
         <button
           onClick={onBack}
           style={{
-            position: 'absolute', top: '16px', left: '16px',
+            position: 'absolute', top: '16px', left: '16px', zIndex: 2,
             width: '36px', height: '36px', borderRadius: '50%',
             background: 'rgba(13,17,23,0.6)', border: '1px solid rgba(255,255,255,0.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -161,18 +175,39 @@ function HeroSection({ venue, onBack }: { venue: Venue; onBack: () => void }) {
         >
           <ArrowLeft size={16} color="#fff" />
         </button>
-        <div style={{
-          position: 'absolute', bottom: '-28px', left: '16px',
-          width: '64px', height: '64px', borderRadius: '18px',
-          background: `${color}20`, border: `2px solid ${color}50`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-        }}>
-          {emoji}
-        </div>
+
+        {/* Play button overlay if intro video exists */}
+        {venue.introVideo && onPlayVideo && (
+          <button
+            onClick={onPlayVideo}
+            style={{
+              position: 'absolute', top: '50%', left: '50%', zIndex: 2,
+              transform: 'translate(-50%, -50%)',
+              width: '52px', height: '52px', borderRadius: '50%',
+              background: 'rgba(57,217,138,0.9)', border: '3px solid rgba(255,255,255,0.8)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', backdropFilter: 'blur(4px)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+            }}
+          >
+            <Play size={20} color="#000" fill="#000" style={{ marginLeft: '2px' } as React.CSSProperties} />
+          </button>
+        )}
+
+        {!hasCover && (
+          <div style={{
+            position: 'absolute', bottom: '-28px', left: '16px', zIndex: 1,
+            width: '64px', height: '64px', borderRadius: '18px',
+            background: `${color}20`, border: `2px solid ${color}50`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          }}>
+            {emoji}
+          </div>
+        )}
       </div>
 
-      <div style={{ padding: '40px 16px 0', background: 'var(--color-bg)' }}>
+      <div style={{ padding: hasCover ? '16px 16px 0' : '40px 16px 0', background: 'var(--color-bg)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <span style={{
             fontSize: '11px', fontWeight: 600, color,
@@ -774,6 +809,229 @@ function PostsSection({ posts }: { posts: Post[] }) {
   );
 }
 
+// ─── Gallery Strip ────────────────────────────────────────────────────────────
+
+function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (idx: number) => void }) {
+  const images = venue.galleryImages ?? [];
+  if (images.length < 2) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '10px' }}>
+        Inside {venue.name}
+      </h2>
+      <div style={{
+        display: 'flex', gap: '8px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        paddingBottom: '4px',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        {images.map((url, i) => (
+          <div
+            key={i}
+            onClick={() => onImageClick(i)}
+            style={{
+              flexShrink: 0, width: '140px', height: '140px',
+              borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <img
+              src={url}
+              alt={`${venue.name} photo ${i + 1}`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Image Lightbox ───────────────────────────────────────────────────────────
+
+function ImageLightbox({
+  images, index, onClose, onNavigate,
+}: {
+  images: string[]; index: number; onClose: () => void; onNavigate: (idx: number) => void;
+}) {
+  const touchStartX = useRef<number | null>(null);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0 && index < images.length - 1) onNavigate(index + 1);
+    if (dx > 0 && index > 0) onNavigate(index - 1);
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(0,0,0,0.95)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      {/* Close */}
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', top: '16px', right: '16px', zIndex: 201,
+          width: '36px', height: '36px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.12)', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <X size={18} color="#fff" />
+      </button>
+
+      {/* Counter */}
+      <div style={{
+        position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
+        fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'DM Sans, sans-serif',
+        background: 'rgba(0,0,0,0.4)', borderRadius: '20px', padding: '4px 12px',
+      }}>
+        {index + 1} / {images.length}
+      </div>
+
+      {/* Image */}
+      <img
+        src={images[index]}
+        alt={`Photo ${index + 1}`}
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '100vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '4px' }}
+      />
+
+      {/* Left nav */}
+      {index > 0 && (
+        <button
+          onClick={e => { e.stopPropagation(); onNavigate(index - 1); }}
+          style={{
+            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+            width: '36px', height: '36px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.12)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <ChevronLeft size={20} color="#fff" />
+        </button>
+      )}
+
+      {/* Right nav */}
+      {index < images.length - 1 && (
+        <button
+          onClick={e => { e.stopPropagation(); onNavigate(index + 1); }}
+          style={{
+            position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+            width: '36px', height: '36px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.12)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <ChevronRight size={20} color="#fff" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Video Card ───────────────────────────────────────────────────────────────
+
+function VideoCard({ venue }: { venue: Venue }) {
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  if (!venue.introVideo) return null;
+
+  function toggleMute() {
+    if (!videoRef.current) return;
+    const newMuted = !muted;
+    videoRef.current.muted = newMuted;
+    setMuted(newMuted);
+  }
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '10px' }}>
+        Watch {venue.name} in action
+      </h2>
+      <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', background: '#000' }}>
+        <video
+          ref={videoRef}
+          src={venue.introVideo}
+          autoPlay muted loop playsInline
+          style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }}
+        />
+        <button
+          onClick={toggleMute}
+          style={{
+            position: 'absolute', bottom: '12px', right: '12px',
+            width: '34px', height: '34px', borderRadius: '50%',
+            background: 'rgba(13,17,23,0.7)', border: '1px solid rgba(255,255,255,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', backdropFilter: 'blur(8px)',
+          }}
+        >
+          {muted
+            ? <VolumeX size={15} color="#fff" />
+            : <Volume2 size={15} color="#fff" />
+          }
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Video Modal ──────────────────────────────────────────────────────────────
+
+function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(0,0,0,0.97)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', top: '16px', right: '16px',
+          width: '36px', height: '36px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.12)', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <X size={18} color="#fff" />
+      </button>
+      <video
+        src={src}
+        autoPlay controls playsInline
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '100vw', maxHeight: '90vh', borderRadius: '8px' }}
+      />
+    </div>
+  );
+}
+
 function StickyCheckinBar({ venue }: { venue: Venue }) {
   return (
     <div style={{
@@ -809,6 +1067,8 @@ export default function VenuePage() {
   const [stories, setStories] = useState<Story[]>([]);
   const [regularsCount, setRegularsCount] = useState(0);
   const [recentStats, setRecentStats] = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -844,13 +1104,28 @@ export default function VenuePage() {
   if (loading) return <VenueSkeleton />;
   if (notFound || !venue) return <VenueNotFound />;
 
+  const galleryImages = venue.galleryImages ?? [];
+
   return (
     <div>
-      <HeroSection venue={venue} onBack={() => navigate(-1)} />
+      <HeroSection
+        venue={venue}
+        onBack={() => navigate(-1)}
+        onPlayVideo={venue.introVideo ? () => setVideoModalOpen(true) : undefined}
+      />
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
         <TrustSignals venue={venue} events={events} posts={posts} recentStats={recentStats} regularsCount={regularsCount} />
         <RegularsLoveThisFor venue={venue} events={events} posts={posts} recentStats={recentStats} />
+
+        {/* Gallery strip — only if 2+ images */}
+        {galleryImages.length >= 2 && (
+          <GalleryStrip venue={venue} onImageClick={idx => setLightboxIdx(idx)} />
+        )}
+
+        {/* Intro video card */}
+        {venue.introVideo && <VideoCard venue={venue} />}
+
         {stories.length > 0 && <StoriesStrip stories={stories} />}
         <UserVisitBadge venueId={venue.id} />
         <CheckInCTA venue={venue} />
@@ -862,6 +1137,21 @@ export default function VenuePage() {
       </div>
 
       <StickyCheckinBar venue={venue} />
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && galleryImages.length > 0 && (
+        <ImageLightbox
+          images={galleryImages}
+          index={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+          onNavigate={setLightboxIdx}
+        />
+      )}
+
+      {/* Video modal */}
+      {videoModalOpen && venue.introVideo && (
+        <VideoModal src={venue.introVideo} onClose={() => setVideoModalOpen(false)} />
+      )}
     </div>
   );
 }
