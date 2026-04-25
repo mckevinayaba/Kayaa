@@ -9,6 +9,9 @@ import DashboardPage from './pages/DashboardPage';
 import OnboardingPage from './pages/OnboardingPage';
 import LoginPage from './pages/LoginPage';
 import BoardPage from './pages/BoardPage';
+import BoardPostPage from './pages/BoardPostPage';
+import BoardNewPage from './pages/BoardNewPage';
+import BoardMinePage from './pages/BoardMinePage';
 import JobsPage from './pages/JobsPage';
 import RegularCardPage from './pages/RegularCardPage';
 import QRCheckInPage from './pages/QRCheckInPage';
@@ -27,6 +30,9 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/board" element={<BoardPage />} />
+            <Route path="/board/mine" element={<BoardMinePage />} />
+            <Route path="/board/new" element={<BoardNewPage />} />
+            <Route path="/board/:id" element={<BoardPostPage />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
             <Route

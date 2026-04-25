@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { mockVenues, mockEvents, mockPosts } from './mockData';
 import type { Venue, Event, Post, Story } from '../types';
+import { getAreaTier } from './areaGroups';
 
 // ─── DB row → App type mappers ────────────────────────────────────────────────
 
@@ -1406,4 +1407,227 @@ export async function removeEventRsvp(eventId: string, userId: string): Promise<
   try {
     await supabase.from('event_rsvps').delete().eq('event_id', eventId).eq('user_id', userId);
   } catch { /* noop */ }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOARD POSTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type BoardCategory =
+  | 'for_sale' | 'free' | 'services' | 'jobs' | 'lost_found'
+  | 'announcements' | 'ask' | 'events' | 'accommodation' | 'safety';
+
+export type BoardPostStatus = 'active' | 'resolved' | 'taken' | 'expired';
+
+export interface BoardPost {
+  id: string;
+  userId?: string;
+  neighbourhood: string;
+  category: BoardCategory;
+  title: string;
+  description?: string;
+  price?: number;
+  contactWhatsapp?: string;
+  images: string[];
+  status: BoardPostStatus;
+  createdAt: string;
+  expiresAt?: string;
+}
+
+export function calcBoardExpiry(category: BoardCategory): string | null {
+  const now = Date.now();
+  switch (category) {
+    case 'for_sale': case 'free': case 'accommodation':
+      return new Date(now + 14 * 86400000).toISOString();
+    case 'services': case 'jobs':
+      return new Date(now + 30 * 86400000).toISOString();
+    case 'announcements': case 'ask': case 'events':
+      return new Date(now + 7 * 86400000).toISOString();
+    case 'safety':
+      return new Date(now + 48 * 3600000).toISOString();
+    case 'lost_found':
+    default:
+      return null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbBoardPost(row: any): BoardPost {
+  return {
+    id: row.id,
+    userId: row.user_id ?? undefined,
+    neighbourhood: row.neighbourhood ?? '',
+    category: (row.category as BoardCategory) ?? 'ask',
+    title: row.title ?? '',
+    description: row.description ?? undefined,
+    price: row.price ?? undefined,
+    contactWhatsapp: row.contact_whatsapp ?? undefined,
+    images: Array.isArray(row.images) ? row.images : [],
+    status: (row.status as BoardPostStatus) ?? 'active',
+    createdAt: row.created_at ?? new Date().toISOString(),
+    expiresAt: row.expires_at ?? undefined,
+  };
+}
+
+function sortBoardPosts(posts: BoardPost[]): BoardPost[] {
+  const now = Date.now();
+  const sixHours = 6 * 3600000;
+  return [...posts].sort((a, b) => {
+    // Active safety posts < 6h always first
+    const aSafety = a.category === 'safety' && (now - new Date(a.createdAt).getTime()) < sixHours ? 1 : 0;
+    const bSafety = b.category === 'safety' && (now - new Date(b.createdAt).getTime()) < sixHours ? 1 : 0;
+    if (bSafety !== aSafety) return bSafety - aSafety;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
+
+export async function getBoardPosts(
+  suburb: string,
+  city: string,
+  category?: string,
+): Promise<{ posts: BoardPost[]; expanded: boolean }> {
+  try {
+    const now = new Date().toISOString();
+    let q = supabase
+      .from('board_posts')
+      .select('*')
+      .eq('status', 'active')
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (category && category !== 'all') q = q.eq('category', category);
+
+    const { data, error } = await q;
+    if (error || !data) return { posts: [], expanded: false };
+
+    const allPosts = data.map(dbBoardPost);
+
+    // Cluster-filter client-side (same logic as feed)
+    const local = allPosts.filter(p => {
+      const tier = getAreaTier(p.neighbourhood, p.neighbourhood, suburb, city);
+      return tier === 'exact' || tier === 'cluster';
+    });
+
+    if (local.length >= 5) return { posts: sortBoardPosts(local), expanded: false };
+
+    // Expand to metro if not enough local
+    const metro = allPosts.filter(p => {
+      const tier = getAreaTier(p.neighbourhood, p.neighbourhood, suburb, city);
+      return tier !== 'outside';
+    });
+
+    const expanded = metro.length > local.length;
+    return { posts: sortBoardPosts(metro.length > 0 ? metro : allPosts.slice(0, 30)), expanded };
+  } catch {
+    return { posts: [], expanded: false };
+  }
+}
+
+export async function getBoardPost(id: string): Promise<BoardPost | null> {
+  try {
+    const { data, error } = await supabase.from('board_posts').select('*').eq('id', id).single();
+    if (error || !data) return null;
+    return dbBoardPost(data);
+  } catch { return null; }
+}
+
+export async function createBoardPost(
+  data: {
+    neighbourhood: string;
+    category: BoardCategory;
+    title: string;
+    description?: string;
+    price?: number;
+    contact_whatsapp?: string;
+    images?: string[];
+  },
+  userId?: string,
+): Promise<{ error: string | null; post: BoardPost | null }> {
+  const expires_at = calcBoardExpiry(data.category);
+  const payload: Record<string, unknown> = {
+    neighbourhood: data.neighbourhood,
+    category: data.category,
+    title: data.title.slice(0, 80),
+    description: data.description?.slice(0, 500) ?? null,
+    price: data.price ?? null,
+    contact_whatsapp: data.contact_whatsapp ?? null,
+    images: data.images ?? [],
+    status: 'active',
+    expires_at,
+  };
+  if (userId) payload.user_id = userId;
+
+  try {
+    const { data: row, error } = await supabase.from('board_posts').insert(payload).select().single();
+    if (error) {
+      // FK violation — retry without user_id
+      if (error.code === '23503' && userId) {
+        const { user_id: _u, ...safePayload } = payload as { user_id?: string } & Record<string, unknown>;
+        void _u;
+        const { data: row2, error: e2 } = await supabase.from('board_posts').insert(safePayload).select().single();
+        if (e2 || !row2) return { error: e2?.message ?? 'Failed to post', post: null };
+        return { error: null, post: dbBoardPost(row2) };
+      }
+      return { error: error.message, post: null };
+    }
+    if (!row) return { error: 'No row returned', post: null };
+    return { error: null, post: dbBoardPost(row) };
+  } catch (e) {
+    return { error: String(e), post: null };
+  }
+}
+
+export async function updateBoardPostStatus(
+  id: string,
+  status: BoardPostStatus,
+  _userId?: string,
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from('board_posts').update({ status }).eq('id', id);
+    return { error: error?.message ?? null };
+  } catch (e) { return { error: String(e) }; }
+}
+
+export async function deleteBoardPost(id: string, _userId?: string): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from('board_posts').delete().eq('id', id);
+    return { error: error?.message ?? null };
+  } catch (e) { return { error: String(e) }; }
+}
+
+export async function getUserBoardPosts(userId: string): Promise<BoardPost[]> {
+  try {
+    const { data, error } = await supabase
+      .from('board_posts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data.map(dbBoardPost);
+  } catch { return []; }
+}
+
+export async function getBoardPostsByIds(ids: string[]): Promise<BoardPost[]> {
+  if (ids.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from('board_posts')
+      .select('*')
+      .in('id', ids)
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data.map(dbBoardPost);
+  } catch { return []; }
+}
+
+export async function uploadBoardImage(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `board/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
+  return publicUrl;
 }

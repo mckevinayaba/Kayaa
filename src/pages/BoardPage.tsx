@@ -1,364 +1,419 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Share2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, AlertTriangle, X, MessageCircle, ChevronRight } from 'lucide-react';
 import {
-  getNeighbourhoodPosts,
-  createNeighbourhoodPost,
-  type NeighbourhoodPost,
+  getBoardPosts,
+  updateBoardPostStatus,
+  type BoardPost,
+  type BoardCategory,
 } from '../lib/api';
-import { sampleBoardPosts } from '../data/sampleBoardPosts';
+import { getInteractiveUserId } from '../lib/api';
 
-const CATEGORY_LABELS: Record<string, string> = {
-  announcement: 'Announcement',
-  lost_found: 'Lost & Found',
-  question: 'Question',
-  recommendation: 'Recommendation',
-  event: 'Event',
-  general: 'General',
-};
+// ─── Category config ──────────────────────────────────────────────────────────
 
-const CATEGORY_COLORS: Record<string, string> = {
-  announcement: '#60A5FA',
-  lost_found: '#F5A623',
-  question: '#A78BFA',
-  recommendation: '#39D98A',
-  event: '#F472B6',
-  general: '#94A3B8',
-};
-
-const TABS = [
-  { key: 'all', label: 'All' },
-  { key: 'announcement', label: 'Announcements' },
-  { key: 'lost_found', label: 'Lost & Found' },
-  { key: 'question', label: 'Questions' },
-  { key: 'event', label: 'Events' },
+export const BOARD_CATEGORIES: { key: BoardCategory; label: string; emoji: string; color: string }[] = [
+  { key: 'for_sale',       label: 'For Sale',      emoji: '🛍️',  color: '#F5A623' },
+  { key: 'free',           label: 'Free',          emoji: '🎁',  color: '#39D98A' },
+  { key: 'services',       label: 'Services',      emoji: '🔧',  color: '#60A5FA' },
+  { key: 'jobs',           label: 'Jobs',          emoji: '💼',  color: '#A78BFA' },
+  { key: 'lost_found',     label: 'Lost & Found',  emoji: '🔍',  color: '#F472B6' },
+  { key: 'announcements',  label: 'Announcements', emoji: '📢',  color: '#34D399' },
+  { key: 'ask',            label: 'Ask',           emoji: '❓',  color: '#94A3B8' },
+  { key: 'events',         label: 'Events',        emoji: '🎉',  color: '#FB923C' },
+  { key: 'accommodation',  label: 'Accommodation', emoji: '🏠',  color: '#60A5FA' },
+  { key: 'safety',         label: 'Safety',        emoji: '🚨',  color: '#EF4444' },
 ];
 
-function formatRelativeTime(iso: string): string {
+function getCategoryConfig(key: string) {
+  return BOARD_CATEGORIES.find(c => c.key === key) ?? {
+    key: 'ask', label: key, emoji: '📌', color: '#94A3B8',
+  };
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatAge(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'just now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function isToday(iso: string): boolean {
-  const d = new Date(iso);
-  const now = new Date();
-  return d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
+function isSafetyFresh(post: BoardPost): boolean {
+  return post.category === 'safety' &&
+    (Date.now() - new Date(post.createdAt).getTime()) < 6 * 3600000;
 }
 
-function isTomorrow(iso: string): boolean {
-  const d = new Date(iso);
-  const tomorrow = new Date(Date.now() + 86400000);
-  return d.getFullYear() === tomorrow.getFullYear() &&
-    d.getMonth() === tomorrow.getMonth() &&
-    d.getDate() === tomorrow.getDate();
+function getMineIds(): string[] {
+  try { return JSON.parse(localStorage.getItem('kayaa_board_mine') ?? '[]'); }
+  catch { return []; }
 }
 
-function sortPosts(posts: NeighbourhoodPost[], neighbourhood: string): NeighbourhoodPost[] {
-  const area = neighbourhood.toLowerCase();
-  return [...posts].sort((a, b) => {
-    let scoreA = 0;
-    let scoreB = 0;
+// ─── Post card ────────────────────────────────────────────────────────────────
 
-    // Area relevance
-    if (a.neighbourhood.toLowerCase().includes(area) || area.includes(a.neighbourhood.toLowerCase())) scoreA += 30;
-    if (b.neighbourhood.toLowerCase().includes(area) || area.includes(b.neighbourhood.toLowerCase())) scoreB += 30;
+function PostCard({
+  post,
+  isMine,
+  onMarkTaken,
+  onMarkResolved,
+}: {
+  post: BoardPost;
+  isMine: boolean;
+  onMarkTaken: (id: string) => void;
+  onMarkResolved: (id: string) => void;
+}) {
+  const navigate = useNavigate();
+  const cat = getCategoryConfig(post.category);
+  const fresh = isSafetyFresh(post);
+  const safetyStyle = fresh
+    ? { borderLeft: '3px solid #EF4444', background: 'rgba(239,68,68,0.06)' }
+    : {};
 
-    // Event today/tomorrow boost
-    if (a.category === 'event' && (isToday(a.createdAt) || isTomorrow(a.createdAt))) scoreA += 20;
-    if (b.category === 'event' && (isToday(b.createdAt) || isTomorrow(b.createdAt))) scoreB += 20;
+  return (
+    <div
+      onClick={() => navigate(`/board/${post.id}`)}
+      style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '14px',
+        padding: '14px',
+        cursor: 'pointer',
+        position: 'relative',
+        ...safetyStyle,
+      }}
+    >
+      {/* Category badge + age */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{
+          fontSize: '11px', fontWeight: 700,
+          color: fresh ? '#EF4444' : cat.color,
+          background: fresh ? 'rgba(239,68,68,0.12)' : `${cat.color}18`,
+          padding: '2px 8px', borderRadius: '20px',
+        }}>
+          {cat.emoji} {cat.label}
+        </span>
+        <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+          {formatAge(post.createdAt)}
+        </span>
+      </div>
 
-    // Replies boost (capped)
-    scoreA += Math.min((a.repliesCount ?? 0) * 2, 10);
-    scoreB += Math.min((b.repliesCount ?? 0) * 2, 10);
+      {/* Title */}
+      <div style={{
+        fontFamily: 'Syne, sans-serif', fontWeight: 700,
+        fontSize: '14px', color: 'var(--color-text)',
+        marginBottom: post.description ? '4px' : '8px',
+        lineHeight: 1.35,
+      }}>
+        {post.title}
+      </div>
 
-    // Recency: newer = higher score (up to 100 points over 7 days)
-    const ageA = Date.now() - new Date(a.createdAt).getTime();
-    const ageB = Date.now() - new Date(b.createdAt).getTime();
-    scoreA += Math.max(0, 100 - (ageA / (7 * 86400000)) * 100);
-    scoreB += Math.max(0, 100 - (ageB / (7 * 86400000)) * 100);
+      {/* Description preview */}
+      {post.description && (
+        <p style={{
+          fontSize: '13px', color: 'var(--color-muted)',
+          margin: '0 0 10px', lineHeight: 1.55,
+          fontFamily: 'DM Sans, sans-serif',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        } as React.CSSProperties}>
+          {post.description}
+        </p>
+      )}
 
-    return scoreB - scoreA;
-  });
+      {/* Price */}
+      {post.price != null && (
+        <div style={{
+          fontSize: '15px', fontWeight: 700,
+          color: '#39D98A', marginBottom: '10px',
+          fontFamily: 'DM Sans, sans-serif',
+        }}>
+          R{post.price.toLocaleString()}
+        </div>
+      )}
+
+      {/* Footer row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            📍 {post.neighbourhood}
+          </span>
+          {post.images.length > 0 && (
+            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+          {/* WhatsApp contact button */}
+          {post.contactWhatsapp && (
+            <a
+              href={`https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                background: '#25D366', color: '#000',
+                borderRadius: '20px', padding: '5px 10px',
+                fontSize: '11px', fontWeight: 700,
+                fontFamily: 'DM Sans, sans-serif', textDecoration: 'none',
+              }}
+            >
+              <MessageCircle size={12} /> WhatsApp
+            </a>
+          )}
+
+          {/* Owner quick-actions */}
+          {isMine && post.status === 'active' && (
+            <>
+              {post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation' ? (
+                <button
+                  onClick={() => onMarkTaken(post.id)}
+                  style={{
+                    background: 'var(--color-border)', color: 'var(--color-muted)',
+                    border: 'none', borderRadius: '20px', padding: '5px 10px',
+                    fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                    fontFamily: 'DM Sans, sans-serif',
+                  }}
+                >
+                  Mark taken
+                </button>
+              ) : (
+                <button
+                  onClick={() => onMarkResolved(post.id)}
+                  style={{
+                    background: 'var(--color-border)', color: 'var(--color-muted)',
+                    border: 'none', borderRadius: '20px', padding: '5px 10px',
+                    fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                    fontFamily: 'DM Sans, sans-serif',
+                  }}
+                >
+                  Resolve
+                </button>
+              )}
+            </>
+          )}
+
+          <ChevronRight size={14} color="var(--color-muted)" />
+        </div>
+      </div>
+    </div>
+  );
 }
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function BoardPage() {
-  const neighbourhood = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'Johannesburg';
-  const [posts, setPosts] = useState<NeighbourhoodPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('all');
-  const [showForm, setShowForm] = useState(false);
+  const navigate = useNavigate();
+  const suburb  = localStorage.getItem('kayaa_suburb') ?? '';
+  const city    = localStorage.getItem('kayaa_city')   ?? 'Johannesburg';
+  const display = suburb || city;
 
-  const [name, setName] = useState('');
-  const [isAnon, setIsAnon] = useState(false);
-  const [category, setCategory] = useState('general');
-  const [content, setContent] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [posts,      setPosts]      = useState<BoardPost[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [expanded,   setExpanded]   = useState(false);
+  const [activeTab,  setActiveTab]  = useState<string>('all');
+  const [mineIds,    setMineIds]    = useState<string[]>([]);
+  const [safetyDismissed, setSafetyDismissed] = useState(false);
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    getNeighbourhoodPosts(neighbourhood).then(data => {
-      const source = data.length > 0 ? data : sampleBoardPosts;
-      setPosts(sortPosts(source, neighbourhood));
+    getInteractiveUserId().then(setUserId);
+    setMineIds(getMineIds());
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    getBoardPosts(suburb, city, activeTab === 'all' ? undefined : activeTab).then(({ posts: p, expanded: e }) => {
+      setPosts(p);
+      setExpanded(e);
       setLoading(false);
     });
-  }, [neighbourhood]);
+  }, [suburb, city, activeTab]);
 
-  const filtered = tab === 'all' ? posts : posts.filter(p => p.category === tab);
+  const freshSafetyPosts = posts.filter(isSafetyFresh);
+  const showSafetyBanner = freshSafetyPosts.length > 0 && !safetyDismissed;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!content.trim() || submitting) return;
-    setSubmitting(true);
+  async function handleMarkTaken(id: string) {
+    setPosts(prev => prev.filter(p => p.id !== id));
+    await updateBoardPostStatus(id, 'taken', userId);
+  }
 
-    const authorName = isAnon ? 'Anonymous' : (name.trim() || 'Anonymous');
-    const newPost: NeighbourhoodPost = {
-      id: `local-${Date.now()}`,
-      authorName,
-      content: content.trim(),
-      neighbourhood,
-      category: category as NeighbourhoodPost['category'],
-      isAnonymous: isAnon,
-      createdAt: new Date().toISOString(),
-    };
-
-    setPosts(prev => [newPost, ...prev]);
-    setShowForm(false);
-    setContent('');
-    setName('');
-    setIsAnon(false);
-    setCategory('general');
-
-    await createNeighbourhoodPost({
-      author_name: authorName,
-      content: newPost.content,
-      neighbourhood,
-      category,
-      is_anonymous: isAnon,
-    });
-
-    setSubmitting(false);
+  async function handleMarkResolved(id: string) {
+    setPosts(prev => prev.filter(p => p.id !== id));
+    await updateBoardPostStatus(id, 'resolved', userId);
   }
 
   return (
-    <div style={{ padding: '16px' }}>
+    <div style={{ paddingBottom: '100px', minHeight: '100vh', background: 'var(--color-bg)' }}>
+
+      {/* Safety banner */}
+      {showSafetyBanner && (
+        <div style={{
+          background: 'rgba(239,68,68,0.12)',
+          borderBottom: '1px solid rgba(239,68,68,0.3)',
+          padding: '12px 16px',
+          display: 'flex', alignItems: 'flex-start', gap: '10px',
+        }}>
+          <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: '1px' }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#EF4444', fontFamily: 'DM Sans, sans-serif' }}>
+              {freshSafetyPosts.length} safety alert{freshSafetyPosts.length > 1 ? 's' : ''} in your area
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(239,68,68,0.7)', fontFamily: 'DM Sans, sans-serif', marginTop: '2px' }}>
+              {freshSafetyPosts[0].title}
+            </div>
+          </div>
+          <button
+            onClick={() => setSafetyDismissed(true)}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0 }}
+          >
+            <X size={16} color="#EF4444" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+      <div style={{ padding: '16px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-text)', margin: 0 }}>
-            {neighbourhood} Board
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: '22px', color: 'var(--color-text)', margin: 0,
+          }}>
+            The Board
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: 'DM Sans, sans-serif' }}>
-            {neighbourhood}
+          <p style={{
+            fontSize: '13px', color: 'var(--color-muted)',
+            margin: '3px 0 0', fontFamily: 'DM Sans, sans-serif',
+          }}>
+            {display} · {loading ? '…' : `${posts.length} active posts`}
+            {expanded && !loading && (
+              <span style={{ color: '#F5A623', marginLeft: '6px' }}>· expanded area</span>
+            )}
           </p>
         </div>
         <button
-          onClick={() => setShowForm(v => !v)}
+          onClick={() => navigate('/board/mine')}
           style={{
-            background: '#39D98A', color: '#000', border: 'none',
-            borderRadius: '20px', padding: '8px 14px',
-            fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: '20px', padding: '6px 12px',
+            fontSize: '12px', fontWeight: 600,
+            color: 'var(--color-muted)', cursor: 'pointer',
             fontFamily: 'DM Sans, sans-serif',
           }}
         >
-          {showForm ? 'Cancel' : '+ Post'}
+          My posts
         </button>
       </div>
 
-      {/* Inline post form */}
-      {showForm && (
-        <form
-          onSubmit={handleSubmit}
+      {/* Category filter strip */}
+      <div style={{
+        display: 'flex', gap: '6px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        padding: '14px 16px 0',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        {/* All pill */}
+        <button
+          onClick={() => setActiveTab('all')}
           style={{
-            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            borderRadius: '14px', padding: '14px', marginTop: '14px', marginBottom: '4px',
+            flexShrink: 0, padding: '6px 14px',
+            borderRadius: '20px',
+            border: activeTab === 'all' ? 'none' : '1px solid var(--color-border)',
+            background: activeTab === 'all' ? '#39D98A' : 'var(--color-surface)',
+            color: activeTab === 'all' ? '#000' : 'var(--color-muted)',
+            fontSize: '12px', fontWeight: 700,
+            fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <input
-              type="text"
-              placeholder="Your name (optional)"
-              value={isAnon ? '' : name}
-              disabled={isAnon}
-              onChange={e => setName(e.target.value)}
-              style={{
-                flex: 1, background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-                borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)',
-                fontSize: '13px', fontFamily: 'DM Sans, sans-serif',
-                opacity: isAnon ? 0.4 : 1, outline: 'none',
-              }}
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--color-muted)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              <input type="checkbox" checked={isAnon} onChange={e => setIsAnon(e.target.checked)} />
-              Anonymous
-            </label>
-          </div>
+          All
+        </button>
 
-          <select
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-            style={{
-              width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-              borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)',
-              fontSize: '13px', fontFamily: 'DM Sans, sans-serif', marginBottom: '10px',
-              boxSizing: 'border-box',
-            }}
-          >
-            {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-
-          <textarea
-            placeholder="What's happening in the neighbourhood?"
-            value={content}
-            onChange={e => setContent(e.target.value.slice(0, 280))}
-            rows={3}
-            style={{
-              width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-              borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)',
-              fontSize: '13px', fontFamily: 'DM Sans, sans-serif',
-              resize: 'none', boxSizing: 'border-box', marginBottom: '6px', outline: 'none',
-            }}
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-              {280 - content.length} chars left
-            </span>
+        {BOARD_CATEGORIES.map(cat => {
+          const active = activeTab === cat.key;
+          const isSafety = cat.key === 'safety';
+          return (
             <button
-              type="submit"
-              disabled={!content.trim() || submitting}
+              key={cat.key}
+              onClick={() => setActiveTab(cat.key)}
               style={{
-                background: content.trim() ? '#39D98A' : 'var(--color-border)',
-                color: content.trim() ? '#000' : 'var(--color-muted)',
-                border: 'none', borderRadius: '20px', padding: '8px 16px',
-                fontSize: '13px', fontWeight: 700,
-                cursor: content.trim() ? 'pointer' : 'default',
-                fontFamily: 'DM Sans, sans-serif',
+                flexShrink: 0, padding: '6px 12px',
+                borderRadius: '20px',
+                border: active ? 'none' : `1px solid ${isSafety ? 'rgba(239,68,68,0.3)' : 'var(--color-border)'}`,
+                background: active
+                  ? (isSafety ? '#EF4444' : cat.color)
+                  : (isSafety ? 'rgba(239,68,68,0.08)' : 'var(--color-surface)'),
+                color: active ? '#000' : (isSafety ? '#EF4444' : 'var(--color-muted)'),
+                fontSize: '12px', fontWeight: 600,
+                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
-              Post to board
+              {cat.emoji} {cat.label}
             </button>
-          </div>
-
-          <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '8px' }}>
-            📍 {neighbourhood}
-          </div>
-        </form>
-      )}
-
-      {/* Tab bar */}
-      <div style={{
-        display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '4px', marginTop: '14px', marginBottom: '14px',
-      } as React.CSSProperties}>
-        {TABS.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            style={{
-              flexShrink: 0, padding: '6px 13px', borderRadius: '20px',
-              border: tab === t.key ? 'none' : '1px solid var(--color-border)',
-              background: tab === t.key ? '#39D98A' : 'var(--color-surface)',
-              color: tab === t.key ? '#000' : 'var(--color-muted)',
-              fontSize: '12px', fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Posts */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-muted)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif' }}>
-          Loading...
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0' }}>
-          <div style={{ marginBottom: '12px' }}><MessageSquare size={32} color="var(--color-border)" /></div>
-          <div style={{ color: 'var(--color-muted)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif' }}>
-            {tab === 'all' ? 'No posts yet. Be the first!' : `No ${(CATEGORY_LABELS[tab] ?? tab).toLowerCase()} posts yet.`}
+      {/* Feed */}
+      <div style={{ padding: '14px 16px 0' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
+            Loading…
           </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filtered.map(post => {
-            const color = CATEGORY_COLORS[post.category] ?? '#94A3B8';
-            return (
-              <div key={post.id} style={{
-                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                borderRadius: '14px', padding: '14px',
-              }}>
-                {/* Top row: badge + time + share */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{
-                    fontSize: '11px', fontWeight: 600, color,
-                    background: `${color}18`, padding: '2px 8px', borderRadius: '20px',
-                  }}>
-                    {CATEGORY_LABELS[post.category] ?? post.category}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                      {formatRelativeTime(post.createdAt)}
-                    </span>
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`${post.title ? post.title + ': ' : ''}${post.content} — from the ${post.neighbourhood} board on kayaa`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{ display: 'flex', alignItems: 'center', color: 'var(--color-muted)' }}
-                    >
-                      <Share2 size={14} color="var(--color-muted)" />
-                    </a>
-                  </div>
-                </div>
+        ) : posts.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>
+              {activeTab === 'all' ? '📌' : getCategoryConfig(activeTab).emoji}
+            </div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
+              Nothing here yet
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+              Be the first to post in {display}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {posts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                isMine={mineIds.includes(post.id) || post.userId === userId}
+                onMarkTaken={handleMarkTaken}
+                onMarkResolved={handleMarkResolved}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-                {/* Title (when present) */}
-                {post.title && (
-                  <div style={{
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700,
-                    fontSize: '14px', color: 'var(--color-text)', marginBottom: '4px', lineHeight: 1.3,
-                  }}>
-                    {post.title}
-                  </div>
-                )}
-
-                {/* Body */}
-                <p style={{
-                  fontSize: '13px', color: post.title ? 'var(--color-muted)' : 'var(--color-text)',
-                  margin: '0 0 10px', lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif',
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                } as React.CSSProperties}>
-                  {post.content}
-                </p>
-
-                {/* Footer: author + area + replies */}
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'flex', gap: '8px', fontFamily: 'DM Sans, sans-serif', flexWrap: 'wrap' }}>
-                  <span>{post.isAnonymous ? '🕶 Anonymous' : `👤 ${post.authorName}`}</span>
-                  <span>·</span>
-                  <span>📍 {post.neighbourhood}</span>
-                  {(post.repliesCount ?? 0) > 0 && (
-                    <>
-                      <span>·</span>
-                      <span>💬 {post.repliesCount}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* FAB */}
+      <button
+        onClick={() => navigate('/board/new')}
+        style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '20px',
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          background: '#39D98A',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(57,217,138,0.4)',
+          zIndex: 50,
+        }}
+      >
+        <Plus size={24} color="#000" strokeWidth={2.5} />
+      </button>
     </div>
   );
 }
