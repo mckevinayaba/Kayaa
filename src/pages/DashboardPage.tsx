@@ -11,6 +11,7 @@ import {
   getDashboardStats, getWeeklyRhythm, getStudioRegulars, getCommunityReportData,
   getHeadingThereList, uploadVenueFile,
   createVenueStory24, getActiveVenueStory, deleteVenueStory24, getStoryViewCount,
+  getEventRsvpCountsBatch,
 } from '../lib/api';
 import type {
   DashboardCheckIn, HeadingThereEntry,
@@ -824,6 +825,12 @@ function EventsTab({ events, venueId, onEventAdded }: {
   const [price, setPrice] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [rsvpCounts, setRsvpCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (events.length === 0) return;
+    getEventRsvpCountsBatch(events.map(e => e.id)).then(setRsvpCounts);
+  }, [events]);
 
   async function handleAdd() {
     if (!title.trim() || !date || !time) { setFormError('Fill in title, date, and time'); return; }
@@ -861,9 +868,14 @@ function EventsTab({ events, venueId, onEventAdded }: {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>{event.title}</div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{new Date(event.startsAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}</span>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : '#F5A623' }}>{event.isFree ? 'Free' : `R${event.price}`}</span>
+                  {(rsvpCounts[event.id] ?? 0) > 0 && (
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.1)', padding: '1px 8px', borderRadius: '20px' }}>
+                      👋 {rsvpCounts[event.id]} interested
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

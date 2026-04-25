@@ -1367,3 +1367,43 @@ export async function getActiveStoryVenuesBatch(venueIds: string[]): Promise<Set
     return new Set((data ?? []).map(r => r.venue_id));
   } catch { return new Set(); }
 }
+
+// ─── Feature: Event Soft RSVP ─────────────────────────────────────────────────
+
+export async function getEventRsvpCount(eventId: string): Promise<number> {
+  try {
+    const { count } = await supabase.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', eventId);
+    return count ?? 0;
+  } catch { return 0; }
+}
+
+export async function getEventRsvpCountsBatch(eventIds: string[]): Promise<Record<string, number>> {
+  if (eventIds.length === 0) return {};
+  try {
+    const { data } = await supabase.from('event_rsvps').select('event_id').in('event_id', eventIds);
+    const counts: Record<string, number> = {};
+    for (const row of data ?? []) {
+      counts[row.event_id] = (counts[row.event_id] ?? 0) + 1;
+    }
+    return counts;
+  } catch { return {}; }
+}
+
+export async function checkUserRsvp(eventId: string, userId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase.from('event_rsvps').select('id').eq('event_id', eventId).eq('user_id', userId).maybeSingle();
+    return !!data;
+  } catch { return false; }
+}
+
+export async function addEventRsvp(eventId: string, userId: string): Promise<void> {
+  try {
+    await supabase.from('event_rsvps').upsert({ event_id: eventId, user_id: userId }, { onConflict: 'event_id,user_id' });
+  } catch { /* noop */ }
+}
+
+export async function removeEventRsvp(eventId: string, userId: string): Promise<void> {
+  try {
+    await supabase.from('event_rsvps').delete().eq('event_id', eventId).eq('user_id', userId);
+  } catch { /* noop */ }
+}

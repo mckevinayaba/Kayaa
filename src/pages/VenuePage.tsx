@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2, X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
 import ShareModal from '../components/ShareModal';
 import StoryViewer from '../components/StoryViewer';
 import {
@@ -9,9 +9,9 @@ import {
   getHeadingThereCount, signalHeadingThere, cancelHeadingThere,
   getVibeSummary, reportVibe, cancelVibeReport,
   getActiveVenueStory, getInteractiveUserId,
+  getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
 } from '../lib/api';
 import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType } from '../lib/api';
-import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
 
@@ -30,15 +30,6 @@ const CATEGORY_COLOR: Record<string, string> = {
   'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
 };
 
-const BUSIEST_BY_CATEGORY: Record<string, string> = {
-  Barbershop: 'Busiest on Saturdays · Usually from 10am',
-  Shisanyama: 'Busiest on weekends · From 12pm',
-  Church: 'Busiest on Sundays · From 9am',
-  'Spaza Shop': 'Busy all day · Peaks around 6pm',
-  Salon: 'Busiest on Fridays and Saturdays',
-  Tutoring: 'Busiest Mon–Fri from 4pm',
-  Tavern: 'Busiest Fri & Sat nights',
-};
 
 const AVATAR_COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
 
@@ -272,183 +263,6 @@ function HeroSection({ venue, onBack, onPlayVideo }: { venue: Venue; onBack: () 
   );
 }
 
-// ─── Trust signals helpers ────────────────────────────────────────────────────
-
-const DAY_NUM: Record<string, number> = {
-  mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7,
-};
-
-function parseDaysOpenPerWeek(hours?: string): number | null {
-  if (!hours) return null;
-  const h = hours.toLowerCase();
-  if (/daily|7 day|every day/.test(h)) return 7;
-  const counted = new Set<number>();
-  const rangeRe = /\b(mon|tue|wed|thu|fri|sat|sun)\b\s*[–\-]\s*(mon|tue|wed|thu|fri|sat|sun)\b/g;
-  let m: RegExpExecArray | null;
-  while ((m = rangeRe.exec(h)) !== null) {
-    const s = DAY_NUM[m[1]], e = DAY_NUM[m[2]];
-    if (s && e) {
-      if (e >= s) { for (let d = s; d <= e; d++) counted.add(d); }
-      else { for (let d = s; d <= 7; d++) counted.add(d); for (let d = 1; d <= e; d++) counted.add(d); }
-    }
-  }
-  if (counted.size > 0) {
-    const pipeExtra = h.split('|').slice(1).join(' ');
-    const dayRe = /\b(mon|tue|wed|thu|fri|sat|sun)\b/g;
-    while ((m = dayRe.exec(pipeExtra)) !== null) if (DAY_NUM[m[1]]) counted.add(DAY_NUM[m[1]]);
-    return counted.size;
-  }
-  const dayRe2 = /\b(mon|tue|wed|thu|fri|sat|sun)\b/g;
-  while ((m = dayRe2.exec(h)) !== null) if (DAY_NUM[m[1]]) counted.add(DAY_NUM[m[1]]);
-  return counted.size > 0 ? counted.size : null;
-}
-
-// ─── Trust Signals section ────────────────────────────────────────────────────
-
-interface TrustSignalsProps {
-  venue: Venue;
-  events: Event[];
-  posts: Post[];
-  recentStats: VenueRecentStats;
-  regularsCount: number;
-}
-
-function TrustSignals({ venue, events, posts, recentStats, regularsCount }: TrustSignalsProps) {
-  const monthsActive = Math.max(1, Math.floor(
-    (Date.now() - new Date(venue.createdAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
-  ));
-  const daysOpen = parseDaysOpenPerWeek(venue.openHours);
-  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const hasRecentPosts = posts.some(p => new Date(p.createdAt).getTime() > thirtyDaysAgo);
-
-  type Signal = { icon: React.ReactNode; text: string; sub: string };
-  const signals: Signal[] = [];
-
-  if (regularsCount > 0) signals.push({
-    icon: <Users size={14} />,
-    text: regularsCount.toLocaleString(),
-    sub: 'regulars come back',
-  });
-
-  signals.push({
-    icon: <Calendar size={14} />,
-    text: `${monthsActive} month${monthsActive !== 1 ? 's' : ''}`,
-    sub: 'active on Kayaa',
-  });
-
-  if (hasRecentPosts) signals.push({
-    icon: <MessageSquare size={14} />,
-    text: 'Responds',
-    sub: 'to posts',
-  });
-
-  if (events.length > 0) signals.push({
-    icon: <Calendar size={14} />,
-    text: `${events.length}`,
-    sub: 'events hosted',
-  });
-
-  if (daysOpen) signals.push({
-    icon: <Clock size={14} />,
-    text: `${daysOpen} days`,
-    sub: 'a week',
-  });
-
-  if (recentStats.monthlyCheckins > 0) signals.push({
-    icon: <TrendingUp size={14} />,
-    text: recentStats.monthlyCheckins.toLocaleString(),
-    sub: 'check-ins this month',
-  });
-
-  if (signals.length === 0) return null;
-
-  return (
-    <div style={{ margin: '12px 0 4px' }}>
-      <div style={{
-        display: 'flex', gap: '8px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '4px',
-      } as React.CSSProperties}>
-        {signals.map((sig, i) => (
-          <div key={i} style={{
-            flexShrink: 0,
-            background: 'var(--color-surface)',
-            border: '1px solid rgba(57,217,138,0.25)',
-            borderRadius: '12px',
-            padding: '10px 14px',
-            display: 'flex', alignItems: 'center', gap: '8px',
-            minWidth: 0,
-          }}>
-            <span style={{ color: '#39D98A', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              {sig.icon}
-            </span>
-            <div>
-              <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-                color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap',
-              }}>
-                {sig.text}
-              </div>
-              <div style={{ fontSize: '10px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-                {sig.sub}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Regulars love this place for ────────────────────────────────────────────
-
-interface RegularsLoveProps {
-  venue: Venue;
-  events: Event[];
-  posts: Post[];
-  recentStats: VenueRecentStats;
-}
-
-function RegularsLoveThisFor({ venue, events, posts, recentStats }: RegularsLoveProps) {
-  const reasons: string[] = [];
-  if (venue.followerCount > 50) reasons.push('A strong regular community');
-  if (events.length > 3) reasons.push('Regular events and activities');
-  const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
-  if (posts.some(p => new Date(p.createdAt).getTime() > fourteenDaysAgo))
-    reasons.push('An active owner who shares updates');
-  if (recentStats.weeklyCheckins > 10) reasons.push('Popular right now');
-  const monthsActive = Math.floor(
-    (Date.now() - new Date(venue.createdAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
-  );
-  if (monthsActive >= 12) reasons.push('A long-standing neighbourhood place');
-
-  if (reasons.length < 2) return null;
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-        color: 'var(--color-text)', marginBottom: '12px',
-      }}>
-        Regulars love this place for
-      </h2>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {reasons.map(r => (
-          <span key={r} style={{
-            fontSize: '12px', fontWeight: 600, color: '#39D98A',
-            background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
-            padding: '6px 12px', borderRadius: '20px',
-            fontFamily: 'DM Sans, sans-serif',
-          }}>
-            {r}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─── User visit badge ─────────────────────────────────────────────────────────
 
@@ -500,54 +314,246 @@ function formatWaNumber(n: string): string {
   return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
 }
 
+// ─── Quick Stats Row (spec section 2) ────────────────────────────────────────
+
+const VIBE_WINNER_LABEL: Record<VibeType, string> = {
+  busy: '🔥 Busy right now', chilled: '😌 Chilled right now', happening: '🎉 Happening right now',
+};
+
+function QuickStatsRow({ venue, recentStats }: { venue: Venue; recentStats: VenueRecentStats }) {
+  const [vibeWinner, setVibeWinner] = useState<VibeType | null>(null);
+  const waUrl = venue.whatsappNumber
+    ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}`
+    : null;
+
+  useEffect(() => {
+    getVibeSummary(venue.id).then(s => {
+      if (s.winning) setVibeWinner(s.winning);
+    }).catch(() => {});
+  }, [venue.id]);
+
+  return (
+    <div style={{
+      paddingTop: '14px', paddingBottom: '14px',
+      borderBottom: '1px solid var(--color-border)',
+      marginBottom: '14px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: '14px', color: 'var(--color-text)', fontWeight: 600 }}>
+            {venue.checkinCount.toLocaleString()}
+          </span>
+          <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}> regulars</span>
+          {recentStats.weeklyCheckins > 0 && (
+            <>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> · </span>
+              <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
+                {recentStats.weeklyCheckins} check-ins this week
+              </span>
+            </>
+          )}
+          {vibeWinner && (
+            <div style={{ marginTop: '4px', fontSize: '12px', fontWeight: 700, color: '#F97316' }}>
+              {VIBE_WINNER_LABEL[vibeWinner]}
+            </div>
+          )}
+        </div>
+        {waUrl && (
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
+              borderRadius: '20px', padding: '7px 14px', textDecoration: 'none',
+              fontSize: '12px', fontWeight: 700, color: '#39D98A',
+              fontFamily: 'DM Sans, sans-serif', flexShrink: 0,
+            }}
+          >
+            💬 WhatsApp
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Top Regulars (spec section 8) ───────────────────────────────────────────
+
+const TOP_REGULAR_NAMES = ['Thabo', 'Nomsa', 'Sipho', 'Lerato', 'Bongani'];
+const TOP_REGULAR_BADGE_ICONS: Record<string, string> = {
+  newcomer: '🌱', regular: '⭐', loyal: '🔥', legend: '👑',
+};
+const TOP_REGULAR_BADGES = ['legend', 'loyal', 'loyal', 'regular', 'regular'];
+
+function TopRegularsSection({ venue }: { venue: Venue }) {
+  const initials = REGULARS_BY_VENUE[venue.id] ?? ['T', 'N', 'S', 'L', 'B'];
+  const top5 = initials.slice(0, 5);
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        People who call this home
+      </h2>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', overflow: 'hidden' }}>
+        {top5.map((initial, i) => {
+          const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+          const badge = TOP_REGULAR_BADGES[i];
+          return (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 14px',
+              borderBottom: i < top5.length - 1 ? '1px solid var(--color-border)' : 'none',
+            }}>
+              <div style={{
+                width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+                background: `${color}18`, border: `1.5px solid ${color}40`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color,
+              }}>
+                {initial}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', fontFamily: 'Syne, sans-serif' }}>
+                  {TOP_REGULAR_NAMES[i % TOP_REGULAR_NAMES.length]}
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                {TOP_REGULAR_BADGE_ICONS[badge]} {badge.charAt(0).toUpperCase() + badge.slice(1)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const CHECKIN_CTA_EMOJI: Record<string, string> = {
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
   Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
   Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
 };
 
-function CheckInCTA({ venue }: { venue: Venue }) {
+// ─── Primary Actions (spec section 4) ────────────────────────────────────────
+// Merges Check-in CTA + Heading There into one section
+
+function PrimaryActions({ venue }: { venue: Venue }) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [isHeading, setIsHeading] = useState(false);
+  const [headingCount, setHeadingCount] = useState(0);
+  const [headingLoaded, setHeadingLoaded] = useState(false);
+  const [toast, setToast] = useState('');
+  const sessionKey = `kayaa_heading_${venue.id}`;
   const waCheckinUrl = venue.whatsappNumber
     ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}?text=${encodeURIComponent(`Hi, I'd like to check in at ${venue.name}`)}`
     : null;
+  const emoji = CHECKIN_CTA_EMOJI[venue.category] ?? '📍';
+
+  useEffect(() => {
+    const local = sessionStorage.getItem(sessionKey) === '1';
+    setIsHeading(local);
+    getHeadingThereCount(venue.id).then(c => {
+      setHeadingCount(c);
+      setHeadingLoaded(true);
+    });
+  }, [venue.id, sessionKey]);
+
+  async function handleSignal() {
+    if (isHeading) return;
+    setIsHeading(true);
+    setHeadingCount(c => c + 1);
+    sessionStorage.setItem(sessionKey, '1');
+    const uid = await getInteractiveUserId();
+    await signalHeadingThere(venue.id, uid);
+    setToast(`${venue.name.split(' ')[0]} can see you're on the way! 🚶`);
+    setTimeout(() => setToast(''), 3500);
+  }
+
+  async function handleCancel() {
+    setIsHeading(false);
+    setHeadingCount(c => Math.max(0, c - 1));
+    sessionStorage.removeItem(sessionKey);
+    const uid = await getInteractiveUserId();
+    await cancelHeadingThere(venue.id, uid);
+  }
 
   return (
     <>
       <ShareModal
         type="place"
         data={{
-          name: venue.name,
-          slug: venue.slug,
-          category: venue.category,
-          emoji: CHECKIN_CTA_EMOJI[venue.category] ?? '📍',
-          neighborhood: venue.neighborhood,
-          city: venue.city,
-          description: venue.description,
-          checkinCount: venue.checkinCount,
-          isOpen: venue.isOpen,
+          name: venue.name, slug: venue.slug, category: venue.category,
+          emoji, neighborhood: venue.neighborhood, city: venue.city,
+          description: venue.description, checkinCount: venue.checkinCount, isOpen: venue.isOpen,
         }}
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
       />
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '20px' }}>
+        {toast && (
+          <div style={{ background: 'rgba(57,217,138,0.10)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
+            {toast}
+          </div>
+        )}
+
+        {/* Check In — large primary */}
         <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}>
           <div style={{
             background: 'var(--color-accent)', color: '#000',
             borderRadius: '14px', padding: '16px 20px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px',
+            letterSpacing: '0.01em',
           }}>
-            Check in here
+            CHECK IN HERE
           </div>
         </Link>
+
+        {/* Heading There — ghost secondary */}
+        {isHeading ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '13px 16px', marginBottom: '10px',
+            background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px',
+          }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>
+              On my way ✓
+            </span>
+            <button onClick={handleCancel} style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleSignal}
+            style={{
+              width: '100%', background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px',
+              padding: '14px 20px', color: '#fff',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+              cursor: 'pointer', textAlign: 'center', marginBottom: '10px',
+            }}
+          >
+            I'm heading there 🚶
+          </button>
+        )}
+
+        {/* Heading count */}
+        {headingLoaded && headingCount > 0 && (
+          <p style={{ fontSize: '13px', color: '#39D98A', textAlign: 'center', margin: '0 0 10px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>
+            {headingCount === 1 ? '1 person is heading here right now' : `${headingCount} people are heading here right now`}
+          </p>
+        )}
+
+        {/* Share */}
         <button
           onClick={() => setShareOpen(true)}
           style={{
             width: '100%', background: 'transparent',
-            border: '1.5px solid rgba(57,217,138,0.4)',
-            borderRadius: '14px', padding: '14px 20px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            border: '1px solid rgba(57,217,138,0.3)', borderRadius: '14px',
+            padding: '13px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
             color: '#39D98A', cursor: 'pointer',
             marginBottom: waCheckinUrl ? '10px' : '0',
@@ -556,11 +562,12 @@ function CheckInCTA({ venue }: { venue: Venue }) {
           <Share2 size={16} color="#39D98A" />
           Share this place
         </button>
+
+        {/* WhatsApp check-in */}
         {waCheckinUrl && (
           <a href={waCheckinUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
             <div style={{
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
+              background: 'transparent', border: '1px solid var(--color-border)',
               borderRadius: '14px', padding: '13px 20px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
@@ -576,57 +583,43 @@ function CheckInCTA({ venue }: { venue: Venue }) {
   );
 }
 
-function SocialProof({ venue, regularsCount }: { venue: Venue; regularsCount: number }) {
-  const initials = REGULARS_BY_VENUE[venue.id] ?? ['A', 'B', 'C', 'D', 'E', 'F'];
-  const newRegulars = Math.max(2, Math.round(regularsCount * 0.03));
-  const busiest = BUSIEST_BY_CATEGORY[venue.category] ?? 'Popular with locals';
-
-  return (
-    <div style={{
-      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-      borderRadius: '14px', padding: '16px', marginBottom: '20px',
-    }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
-        Who comes here
-      </h2>
-
-      <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '12px' }}>
-        <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{regularsCount.toLocaleString()}</span> people call this their spot
-      </p>
-
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', alignItems: 'center' }}>
-        {initials.map((initial, i) => (
-          <div key={i} style={{
-            width: '36px', height: '36px', borderRadius: '50%',
-            background: `${AVATAR_COLORS[i % AVATAR_COLORS.length]}20`,
-            border: `2px solid ${AVATAR_COLORS[i % AVATAR_COLORS.length]}50`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-            color: AVATAR_COLORS[i % AVATAR_COLORS.length], flexShrink: 0,
-          }}>
-            {initial}
-          </div>
-        ))}
-        <span style={{ fontSize: '12px', color: 'var(--color-muted)', marginLeft: '4px' }}>
-          +{Math.max(0, regularsCount - initials.length).toLocaleString()}
-        </span>
-      </div>
-
-      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{busiest}</span>
-        <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600 }}>
-          +{newRegulars} new regulars this week
-        </span>
-      </div>
-    </div>
-  );
-}
+// ─── Events Section with soft RSVP (spec section 9 + bonus) ─────────────────
 
 function EventsSection({ events }: { events: Event[] }) {
+  const [rsvpCounts, setRsvpCounts] = useState<Record<string, number>>({});
+  const [userRsvps, setUserRsvps] = useState<Record<string, boolean>>({});
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    if (events.length === 0) return;
+    getInteractiveUserId().then(uid => {
+      setUserId(uid);
+      const ids = events.map(e => e.id);
+      getEventRsvpCountsBatch(ids).then(setRsvpCounts);
+      Promise.all(ids.map(id => checkUserRsvp(id, uid))).then(results => {
+        const map: Record<string, boolean> = {};
+        ids.forEach((id, i) => { map[id] = results[i]; });
+        setUserRsvps(map);
+      });
+    });
+  }, [events]);
+
+  async function handleRsvp(eventId: string) {
+    if (!userId) return;
+    const isGoing = userRsvps[eventId] ?? false;
+    setUserRsvps(prev => ({ ...prev, [eventId]: !isGoing }));
+    setRsvpCounts(prev => ({ ...prev, [eventId]: Math.max(0, (prev[eventId] ?? 0) + (isGoing ? -1 : 1)) }));
+    if (isGoing) { await removeEventRsvp(eventId, userId); }
+    else { await addEventRsvp(eventId, userId); }
+    getEventRsvpCount(eventId).then(c => setRsvpCounts(prev => ({ ...prev, [eventId]: c })));
+  }
+
+  const upcoming = events.slice(0, 2);
+
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>What's happening</h2>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>Upcoming events</h2>
         {events.length > 0 && (
           <span style={{
             fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)',
@@ -637,7 +630,7 @@ function EventsSection({ events }: { events: Event[] }) {
         )}
       </div>
 
-      {events.length === 0 ? (
+      {upcoming.length === 0 ? (
         <div style={{
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '14px', padding: '24px 16px', textAlign: 'center',
@@ -649,85 +642,81 @@ function EventsSection({ events }: { events: Event[] }) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {events.map(event => (
-            <div key={event.id} style={{
-              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-              borderRadius: '14px', padding: '14px',
-              display: 'flex', gap: '12px', alignItems: 'flex-start',
-            }}>
-              <div style={{
-                flexShrink: 0, width: '48px',
-                background: 'var(--color-surface2)', borderRadius: '10px',
-                padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)',
+          {upcoming.map(event => {
+            const going = userRsvps[event.id] ?? false;
+            const count = rsvpCounts[event.id] ?? 0;
+            return (
+              <div key={event.id} style={{
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: '14px', padding: '14px',
               }}>
-                <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>
-                  {new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div style={{
+                    flexShrink: 0, width: '48px',
+                    background: 'var(--color-surface2)', borderRadius: '10px',
+                    padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)',
+                  }}>
+                    <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>
+                      {new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}
+                    </div>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', lineHeight: 1 }}>
+                      {new Date(event.startsAt).getDate()}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
+                      {event.title}
+                    </div>
+                    {event.description && (
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
+                        {event.description}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', color: 'var(--color-muted)' }}>
+                        <Calendar size={11} />
+                        {formatEventDate(event.startsAt)} · {formatEventTime(event.startsAt)}
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : '#F5A623' }}>
+                        {event.isFree ? 'Free' : `R${event.price}`}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', lineHeight: 1 }}>
-                  {new Date(event.startsAt).getDate()}
+
+                {/* RSVP row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+                  {count > 0 ? (
+                    <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                      👋 {count === 1 ? '1 person might come' : `${count} people might come`}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Be the first to RSVP</span>
+                  )}
+                  <button
+                    onClick={() => handleRsvp(event.id)}
+                    style={{
+                      background: going ? 'rgba(57,217,138,0.1)' : 'transparent',
+                      border: going ? '1px solid rgba(57,217,138,0.3)' : '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: '20px', padding: '6px 14px',
+                      fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                      color: going ? '#39D98A' : 'var(--color-muted)',
+                      fontFamily: 'DM Sans, sans-serif',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}
+                  >
+                    {going ? (
+                      <>Going 👋 <span style={{ fontSize: '11px', opacity: 0.7 }}>· Cancel</span></>
+                    ) : (
+                      'I might come 👋'
+                    )}
+                  </button>
                 </div>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
-                  {event.title}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
-                  {event.description}
-                </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', color: 'var(--color-muted)' }}>
-                    <Calendar size={11} />
-                    {formatEventDate(event.startsAt)} · {formatEventTime(event.startsAt)}
-                  </span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : 'var(--color-amber)' }}>
-                    {event.isFree ? 'Free' : `R${event.price}`}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-    </div>
-  );
-}
-
-function ActivitySection({ posts }: { posts: Post[] }) {
-  type ActivityItem = { id: string; initial: string; text: string; time: string; color: string };
-
-  const items: ActivityItem[] = posts.slice(0, 4).map((p, i) => ({
-    id: `po-${p.id}`,
-    initial: p.authorName[0],
-    text: p.content.length > 55 ? p.content.slice(0, 55) + '…' : p.content,
-    time: LIVE_TIMES[i % LIVE_TIMES.length],
-    color: AVATAR_COLORS[i % AVATAR_COLORS.length],
-  }));
-
-  if (items.length === 0) return null;
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>Latest</h2>
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', overflow: 'hidden' }}>
-        {items.map((item, i) => (
-          <div key={item.id} style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '12px 14px',
-            borderBottom: i < items.length - 1 ? '1px solid var(--color-border)' : 'none',
-          }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
-              background: `${item.color}18`, border: `1.5px solid ${item.color}40`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: item.color,
-            }}>
-              {item.initial}
-            </div>
-            <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-muted)' }}>{item.text}</span>
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)', opacity: 0.6, flexShrink: 0 }}>{item.time}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -812,73 +801,6 @@ function PostsSection({ posts, venueName, venueId }: { posts: Post[]; venueName:
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── Feature 1: Heading There ────────────────────────────────────────────────
-
-function HeadingThereSection({ venueId, venueName }: { venueId: string; venueName: string }) {
-  const [isHeading, setIsHeading] = useState(false);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState('');
-
-  const sessionKey = `kayaa_heading_${venueId}`;
-
-  useEffect(() => {
-    const local = sessionStorage.getItem(sessionKey) === '1';
-    setIsHeading(local);
-    getHeadingThereCount(venueId).then(c => {
-      setCount(c + (local ? 0 : 0)); // DB count is authoritative
-      setLoading(false);
-    });
-  }, [venueId, sessionKey]);
-
-  async function handleSignal() {
-    if (isHeading) return;
-    setIsHeading(true);
-    setCount(c => c + 1);
-    sessionStorage.setItem(sessionKey, '1');
-    const uid = await getInteractiveUserId();
-    await signalHeadingThere(venueId, uid);
-    setToast(`Nice! ${venueName.split(' ')[0]} can see you're on the way.`);
-    setTimeout(() => setToast(''), 3500);
-  }
-
-  async function handleCancel() {
-    setIsHeading(false);
-    setCount(c => Math.max(0, c - 1));
-    sessionStorage.removeItem(sessionKey);
-    const uid = await getInteractiveUserId();
-    await cancelHeadingThere(venueId, uid);
-  }
-
-  return (
-    <div style={{ marginBottom: '16px' }}>
-      {toast && (
-        <div style={{ background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
-          {toast}
-        </div>
-      )}
-      {isHeading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px' }}>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>On my way ✓</span>
-          <button onClick={handleCancel} style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Cancel</button>
-        </div>
-      ) : (
-        <button
-          onClick={handleSignal}
-          style={{ width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px', padding: '14px 20px', color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer', textAlign: 'center' }}
-        >
-          I'm heading there 🚶
-        </button>
-      )}
-      {!loading && count > 0 && (
-        <p style={{ fontSize: '12px', color: '#39D98A', textAlign: 'center', marginTop: '8px', fontFamily: 'DM Sans, sans-serif' }}>
-          {count === 1 ? '1 person is heading here right now' : `${count} people are heading here right now`}
-        </p>
-      )}
     </div>
   );
 }
@@ -1276,7 +1198,6 @@ export default function VenuePage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
-  const [regularsCount, setRegularsCount] = useState(0);
   const [recentStats, setRecentStats] = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
@@ -1291,7 +1212,6 @@ export default function VenuePage() {
     getVenueBySlug(slug).then(v => {
       if (!v) { setNotFound(true); setLoading(false); return; }
       setVenue(v);
-      setRegularsCount(v.followerCount);
       setLoading(false);
 
       // Fetch events, posts, stories, recent stats, active story in parallel
@@ -1300,18 +1220,6 @@ export default function VenuePage() {
       getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
-
-      // Realtime: listen for new check-ins and bump the regulars counter
-      const channel = supabase
-        .channel(`checkins-${v.id}`)
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'check_ins', filter: `venue_id=eq.${v.id}` },
-          () => setRegularsCount(n => n + 1)
-        )
-        .subscribe();
-
-      return () => { supabase.removeChannel(channel); };
     });
   }, [slug]);
 
@@ -1351,33 +1259,41 @@ export default function VenuePage() {
       )}
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
-        <TrustSignals venue={venue} events={events} posts={posts} recentStats={recentStats} regularsCount={regularsCount} />
-        <RegularsLoveThisFor venue={venue} events={events} posts={posts} recentStats={recentStats} />
 
-        {/* Gallery strip — only if 2+ images */}
+        {/* 2. Quick Stats Row — regulars · check-ins · WhatsApp · vibe */}
+        <QuickStatsRow venue={venue} recentStats={recentStats} />
+
+        {/* 3. User's Personal Status */}
+        <UserVisitBadge venueId={venue.id} />
+
+        {/* 4. Primary Actions — Check In + Heading There */}
+        <PrimaryActions venue={venue} />
+
+        {/* 5. Vibe Check */}
+        <VibeCheckSection venueId={venue.id} />
+
+        {/* 6. Gallery Strip — only if 2+ images */}
         {galleryImages2.length >= 2 && (
           <GalleryStrip venue={venue} onImageClick={idx => setLightboxIdx(idx)} />
         )}
 
-        {/* Intro video card */}
+        {/* 7. Intro Video */}
         {venue.introVideo && <VideoCard venue={venue} />}
 
+        {/* Text stories (legacy) */}
         {stories.length > 0 && <StoriesStrip stories={stories} />}
 
-        {/* Vibe Check */}
-        <VibeCheckSection venueId={venue.id} />
+        {/* 8. Top Regulars */}
+        <TopRegularsSection venue={venue} />
 
-        <UserVisitBadge venueId={venue.id} />
-        <CheckInCTA venue={venue} />
-
-        {/* Heading There */}
-        <HeadingThereSection venueId={venue.id} venueName={venue.name} />
-
-        <SocialProof venue={venue} regularsCount={regularsCount} />
+        {/* 9. Upcoming Events with RSVP */}
         <EventsSection events={events} />
-        <ActivitySection posts={posts} />
-        <AboutSection venue={venue} />
+
+        {/* 10. Posts */}
         <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} />
+
+        {/* About — kept at bottom for reference */}
+        <AboutSection venue={venue} />
       </div>
 
       <StickyCheckinBar venue={venue} />
