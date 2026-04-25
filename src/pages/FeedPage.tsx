@@ -10,10 +10,13 @@ import {
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
   getMostLovedPlaces, getGlobalActivity,
   getNeighbourhoodPosts, getLocalJobs,
+  getHeadingThereCountsBatch, getVibeWinnersBatch,
+  getActiveStoryVenuesBatch, getActiveVenueStory,
 } from '../lib/api';
-import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, LocalJob } from '../lib/api';
+import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, LocalJob, VibeType, VenueStory24 } from '../lib/api';
 import type { Venue, Event, Story } from '../types';
 import VenueCard from '../components/VenueCard';
+import StoryViewer from '../components/StoryViewer';
 import ActivityMoment from '../components/ActivityMoment';
 import EventRail from '../components/EventRail';
 import StoriesStrip from '../components/StoriesStrip';
@@ -521,6 +524,12 @@ export default function FeedPage() {
   const [boardJobs, setBoardJobs] = useState<LocalJob[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Interactivity data (Sprint 5)
+  const [headingCounts, setHeadingCounts] = useState<Record<string, number>>({});
+  const [vibeWinners, setVibeWinners] = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
+  const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
+  const [viewingStory, setViewingStory] = useState<{ story: VenueStory24; venueName: string; venueCategory: string } | null>(null);
+
   // UI filters
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -574,6 +583,20 @@ export default function FeedPage() {
           .filter(u => venueInScope(u, 'this_neighbourhood', suburb, city, userLat, userLon))
           .length;
         setScope(localCount >= LOCAL_THRESHOLD ? 'this_neighbourhood' : 'nearby');
+      }
+
+      // Batch-load interactivity data for all venues
+      const venueIds = venues.map(v => v.id);
+      if (venueIds.length > 0) {
+        Promise.all([
+          getHeadingThereCountsBatch(venueIds),
+          getVibeWinnersBatch(venueIds),
+          getActiveStoryVenuesBatch(venueIds),
+        ]).then(([hc, vw, as_]) => {
+          setHeadingCounts(hc);
+          setVibeWinners(vw);
+          setActiveStoryVenueIds(as_);
+        }).catch(() => {/* non-critical, fail silently */});
       }
     });
   }, [areaLabel]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -737,9 +760,20 @@ export default function FeedPage() {
             const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
             const moment = showActivity ? activity[activityIdx] : null;
             if (showActivity) activityIdx++;
+            const hasActiveStory = activeStoryVenueIds.has(venue.id);
             return (
               <div key={venue.id}>
-                <VenueCard venue={venue} />
+                <VenueCard
+                  venue={venue}
+                  headingCount={headingCounts[venue.id] ?? 0}
+                  vibeWinner={vibeWinners[venue.id] ?? null}
+                  hasActiveStory={hasActiveStory}
+                  onStoryTap={hasActiveStory ? () => {
+                    getActiveVenueStory(venue.id).then(story => {
+                      if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
+                    }).catch(() => {});
+                  } : undefined}
+                />
                 {moment && <ActivityMoment key={moment.id} text={moment.text} time={moment.time} initial={moment.initial} />}
               </div>
             );
@@ -771,6 +805,16 @@ export default function FeedPage() {
       {/* Neighbourhood gate — first run or manual area change */}
       {showAreaGate && (
         <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />
+      )}
+
+      {/* Story viewer — fullscreen overlay */}
+      {viewingStory && (
+        <StoryViewer
+          story={viewingStory.story}
+          venueName={viewingStory.venueName}
+          venueCategory={viewingStory.venueCategory}
+          onClose={() => setViewingStory(null)}
+        />
       )}
     </div>
   );

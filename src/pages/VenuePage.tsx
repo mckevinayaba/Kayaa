@@ -2,8 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2, X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
 import ShareModal from '../components/ShareModal';
-import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats, getUserVenueScoreLocal, getVisitorId } from '../lib/api';
-import type { VenueRecentStats } from '../lib/api';
+import StoryViewer from '../components/StoryViewer';
+import {
+  getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
+  getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
+  getHeadingThereCount, signalHeadingThere, cancelHeadingThere,
+  getVibeSummary, reportVibe, cancelVibeReport,
+  getActiveVenueStory, getInteractiveUserId,
+} from '../lib/api';
+import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
@@ -767,43 +774,247 @@ function AboutSection({ venue }: { venue: Venue }) {
   );
 }
 
-function PostsSection({ posts }: { posts: Post[] }) {
+function PostsSection({ posts, venueName, venueId }: { posts: Post[]; venueName: string; venueId: string }) {
   if (posts.length === 0) return null;
+  const score = getUserVenueScoreLocal(venueId, getVisitorId());
+  const visitCount = score?.visitCount ?? 0;
 
   return (
     <div style={{ marginBottom: '20px' }}>
       <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>What people say</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {posts.map((post, idx) => (
-          <div key={post.id} style={{
-            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            borderRadius: '14px', padding: '14px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
-                background: 'rgba(57,217,138,0.1)', border: '1.5px solid rgba(57,217,138,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
-              }}>
-                {post.authorName[0]}
-              </div>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
-                  {post.authorName.split(' ')[0]}
+        {posts.map((post, idx) => {
+          if (post.audience === 'regulars_only' && visitCount < 3) {
+            return <LockedPostCard key={post.id} post={post} venueName={venueName} visitCount={visitCount} />;
+          }
+          return (
+            <div key={post.id} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px', position: 'relative' }}>
+              {post.audience === 'regulars_only' && (
+                <span style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '10px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.1)', padding: '2px 7px', borderRadius: '10px', border: '1px solid rgba(245,166,35,0.2)' }}>
+                  🔒 Regulars only
+                </span>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, background: 'rgba(57,217,138,0.1)', border: '1.5px solid rgba(57,217,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
+                  {post.authorName[0]}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[idx % LIVE_TIMES.length]}</div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{post.authorName.split(' ')[0]}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[idx % LIVE_TIMES.length]}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, marginBottom: '10px' }}>{post.content}</p>
+              <div style={{ display: 'flex', gap: '14px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>❤️ {post.likeCount}</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>💬 {post.commentCount}</span>
               </div>
             </div>
-            <p style={{ fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, marginBottom: '10px' }}>
-              {post.content}
-            </p>
-            <div style={{ display: 'flex', gap: '14px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>❤️ {post.likeCount}</span>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>💬 {post.commentCount}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Feature 1: Heading There ────────────────────────────────────────────────
+
+function HeadingThereSection({ venueId, venueName }: { venueId: string; venueName: string }) {
+  const [isHeading, setIsHeading] = useState(false);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState('');
+
+  const sessionKey = `kayaa_heading_${venueId}`;
+
+  useEffect(() => {
+    const local = sessionStorage.getItem(sessionKey) === '1';
+    setIsHeading(local);
+    getHeadingThereCount(venueId).then(c => {
+      setCount(c + (local ? 0 : 0)); // DB count is authoritative
+      setLoading(false);
+    });
+  }, [venueId, sessionKey]);
+
+  async function handleSignal() {
+    if (isHeading) return;
+    setIsHeading(true);
+    setCount(c => c + 1);
+    sessionStorage.setItem(sessionKey, '1');
+    const uid = await getInteractiveUserId();
+    await signalHeadingThere(venueId, uid);
+    setToast(`Nice! ${venueName.split(' ')[0]} can see you're on the way.`);
+    setTimeout(() => setToast(''), 3500);
+  }
+
+  async function handleCancel() {
+    setIsHeading(false);
+    setCount(c => Math.max(0, c - 1));
+    sessionStorage.removeItem(sessionKey);
+    const uid = await getInteractiveUserId();
+    await cancelHeadingThere(venueId, uid);
+  }
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      {toast && (
+        <div style={{ background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
+          {toast}
+        </div>
+      )}
+      {isHeading ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px' }}>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>On my way ✓</span>
+          <button onClick={handleCancel} style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Cancel</button>
+        </div>
+      ) : (
+        <button
+          onClick={handleSignal}
+          style={{ width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px', padding: '14px 20px', color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer', textAlign: 'center' }}
+        >
+          I'm heading there 🚶
+        </button>
+      )}
+      {!loading && count > 0 && (
+        <p style={{ fontSize: '12px', color: '#39D98A', textAlign: 'center', marginTop: '8px', fontFamily: 'DM Sans, sans-serif' }}>
+          {count === 1 ? '1 person is heading here right now' : `${count} people are heading here right now`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Feature 2: Vibe Check ───────────────────────────────────────────────────
+
+const VIBE_CONFIG: Record<VibeType, { emoji: string; label: string; color: string }> = {
+  busy:      { emoji: '🔥', label: 'Busy',      color: '#F97316' },
+  chilled:   { emoji: '😌', label: 'Chilled',   color: '#60A5FA' },
+  happening: { emoji: '🎉', label: 'Happening', color: '#A78BFA' },
+};
+
+function VibeCheckSection({ venueId }: { venueId: string }) {
+  const [summary, setSummary] = useState<VibeSummary | null>(null);
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    getInteractiveUserId().then(uid => {
+      setUserId(uid);
+      getVibeSummary(venueId, uid).then(setSummary);
+    });
+  }, [venueId]);
+
+  async function handleVibeTap(vibe: VibeType) {
+    if (!summary) return;
+    const isSame = summary.userVibe === vibe;
+    // Optimistic update
+    const next: VibeSummary = { ...summary };
+    if (isSame) {
+      next[vibe] = Math.max(0, next[vibe] - 1);
+      next.userVibe = null; next.userExpiresAt = null;
+    } else {
+      if (summary.userVibe) next[summary.userVibe] = Math.max(0, next[summary.userVibe] - 1);
+      next[vibe] = next[vibe] + 1;
+      next.userVibe = vibe;
+      next.userExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    }
+    const max = Math.max(next.busy, next.chilled, next.happening);
+    next.winning = max >= 2 ? (['busy', 'chilled', 'happening'] as VibeType[]).find(v => next[v] === max) ?? null : null;
+    next.winningCount = max >= 2 ? max : 0;
+    setSummary(next);
+
+    if (isSame) { await cancelVibeReport(venueId, userId); }
+    else { await reportVibe(venueId, userId, vibe); }
+    // Refresh from DB
+    getVibeSummary(venueId, userId).then(setSummary);
+  }
+
+  const vibes: VibeType[] = ['busy', 'chilled', 'happening'];
+  const minsLeft = summary?.userExpiresAt
+    ? Math.max(0, Math.round((new Date(summary.userExpiresAt).getTime() - Date.now()) / 60000))
+    : null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        What's the vibe right now?
+      </h2>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+        {vibes.map(v => {
+          const cfg = VIBE_CONFIG[v];
+          const active = summary?.userVibe === v;
+          return (
+            <button
+              key={v}
+              onClick={() => handleVibeTap(v)}
+              style={{
+                flex: 1, padding: '10px 4px', borderRadius: '20px',
+                background: active ? '#39D98A' : 'var(--color-surface)',
+                border: active ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                color: active ? '#000' : '#fff',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+              }}
+            >
+              <span>{cfg.emoji}</span>
+              <span>{cfg.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {summary && (
+        summary.winning ? (
+          <p style={{ fontSize: '13px', fontWeight: 700, color: VIBE_CONFIG[summary.winning].color, fontFamily: 'Syne, sans-serif', margin: 0 }}>
+            {VIBE_CONFIG[summary.winning].emoji} {VIBE_CONFIG[summary.winning].label} right now — {summary.winningCount} people said so
+          </p>
+        ) : (
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', margin: 0 }}>
+            Be the first to report the vibe
+          </p>
+        )
+      )}
+      {summary?.userVibe && minsLeft !== null && minsLeft > 0 && (
+        <p style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '6px', fontFamily: 'DM Sans, sans-serif' }}>
+          Thanks for the update. Expires in {minsLeft} minutes.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Feature 4: Locked Post Card ─────────────────────────────────────────────
+
+function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; venueName: string; visitCount: number }) {
+  const needed = Math.max(0, 3 - visitCount);
+  return (
+    <div style={{
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+      borderRadius: '14px', overflow: 'hidden', marginBottom: '10px',
+      position: 'relative',
+    }}>
+      {/* Blurred background placeholder */}
+      <div style={{
+        padding: '14px', filter: 'blur(4px)', userSelect: 'none', opacity: 0.3,
+        pointerEvents: 'none',
+      }}>
+        <div style={{ height: '14px', background: 'var(--color-muted)', borderRadius: '4px', marginBottom: '8px', width: '80%' }} />
+        <div style={{ height: '12px', background: 'var(--color-muted)', borderRadius: '4px', width: '60%' }} />
+      </div>
+      {/* Overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(13,17,23,0.85)', backdropFilter: 'blur(8px)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '20px', textAlign: 'center', gap: '8px',
+      }}>
+        <span style={{ fontSize: '28px' }}>🔒</span>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Regulars only</div>
+        <p style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
+          {venueName} shared this with their regulars.
+        </p>
+        <p style={{ fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: 0 }}>
+          {visitCount === 0
+            ? 'Check in here to start unlocking regulars posts.'
+            : `You've been here ${visitCount} time${visitCount !== 1 ? 's' : ''}. Visit ${needed} more time${needed !== 1 ? 's' : ''} to unlock.`}
+        </p>
       </div>
     </div>
   );
@@ -1069,6 +1280,8 @@ export default function VenuePage() {
   const [recentStats, setRecentStats] = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [activeStory, setActiveStory] = useState<VenueStory24 | null>(null);
+  const [storyViewerOpen, setStoryViewerOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -1081,11 +1294,12 @@ export default function VenuePage() {
       setRegularsCount(v.followerCount);
       setLoading(false);
 
-      // Fetch events, posts, stories, recent stats in parallel
+      // Fetch events, posts, stories, recent stats, active story in parallel
       getVenueEvents(v.id).then(setEvents);
       getVenuePosts(v.id).then(setPosts);
       getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
+      getActiveVenueStory(v.id).then(setActiveStory);
 
       // Realtime: listen for new check-ins and bump the regulars counter
       const channel = supabase
@@ -1104,7 +1318,7 @@ export default function VenuePage() {
   if (loading) return <VenueSkeleton />;
   if (notFound || !venue) return <VenueNotFound />;
 
-  const galleryImages = venue.galleryImages ?? [];
+  const galleryImages2 = venue.galleryImages ?? [];
 
   return (
     <div>
@@ -1114,12 +1328,34 @@ export default function VenuePage() {
         onPlayVideo={venue.introVideo ? () => setVideoModalOpen(true) : undefined}
       />
 
+      {/* Story ring on hero — tap to open if active story */}
+      {activeStory && (
+        <div style={{ padding: '0 16px' }}>
+          <button
+            onClick={() => setStoryViewerOpen(true)}
+            style={{
+              width: '100%', background: 'rgba(34,197,94,0.08)',
+              border: '1.5px solid #22c55e', borderRadius: '12px',
+              padding: '10px 16px', cursor: 'pointer', marginTop: '12px',
+              display: 'flex', alignItems: 'center', gap: '10px',
+            }}
+          >
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid #22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
+              📸
+            </div>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e' }}>
+              Watch today's story from {venue.name.split(' ')[0]}
+            </span>
+          </button>
+        </div>
+      )}
+
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
         <TrustSignals venue={venue} events={events} posts={posts} recentStats={recentStats} regularsCount={regularsCount} />
         <RegularsLoveThisFor venue={venue} events={events} posts={posts} recentStats={recentStats} />
 
         {/* Gallery strip — only if 2+ images */}
-        {galleryImages.length >= 2 && (
+        {galleryImages2.length >= 2 && (
           <GalleryStrip venue={venue} onImageClick={idx => setLightboxIdx(idx)} />
         )}
 
@@ -1127,21 +1363,29 @@ export default function VenuePage() {
         {venue.introVideo && <VideoCard venue={venue} />}
 
         {stories.length > 0 && <StoriesStrip stories={stories} />}
+
+        {/* Vibe Check */}
+        <VibeCheckSection venueId={venue.id} />
+
         <UserVisitBadge venueId={venue.id} />
         <CheckInCTA venue={venue} />
+
+        {/* Heading There */}
+        <HeadingThereSection venueId={venue.id} venueName={venue.name} />
+
         <SocialProof venue={venue} regularsCount={regularsCount} />
         <EventsSection events={events} />
         <ActivitySection posts={posts} />
         <AboutSection venue={venue} />
-        <PostsSection posts={posts} />
+        <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} />
       </div>
 
       <StickyCheckinBar venue={venue} />
 
       {/* Lightbox */}
-      {lightboxIdx !== null && galleryImages.length > 0 && (
+      {lightboxIdx !== null && galleryImages2.length > 0 && (
         <ImageLightbox
-          images={galleryImages}
+          images={galleryImages2}
           index={lightboxIdx}
           onClose={() => setLightboxIdx(null)}
           onNavigate={setLightboxIdx}
@@ -1151,6 +1395,16 @@ export default function VenuePage() {
       {/* Video modal */}
       {videoModalOpen && venue.introVideo && (
         <VideoModal src={venue.introVideo} onClose={() => setVideoModalOpen(false)} />
+      )}
+
+      {/* Story viewer */}
+      {storyViewerOpen && activeStory && (
+        <StoryViewer
+          story={activeStory}
+          venueName={venue.name}
+          venueCategory={venue.category}
+          onClose={() => setStoryViewerOpen(false)}
+        />
       )}
     </div>
   );

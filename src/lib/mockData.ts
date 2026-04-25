@@ -155,6 +155,7 @@ export const mockPosts: Post[] = [
     likeCount: 47,
     commentCount: 12,
     createdAt: '2025-04-12T15:30:00Z',
+    audience: 'public',
   },
   {
     id: 'p2',
@@ -165,6 +166,7 @@ export const mockPosts: Post[] = [
     likeCount: 33,
     commentCount: 5,
     createdAt: '2025-04-10T11:00:00Z',
+    audience: 'public',
   },
   {
     id: 'p3',
@@ -175,6 +177,7 @@ export const mockPosts: Post[] = [
     likeCount: 89,
     commentCount: 21,
     createdAt: '2025-04-08T14:00:00Z',
+    audience: 'public',
   },
   {
     id: 'p4',
@@ -185,6 +188,7 @@ export const mockPosts: Post[] = [
     likeCount: 102,
     commentCount: 18,
     createdAt: '2025-04-05T09:00:00Z',
+    audience: 'public',
   },
   {
     id: 'p5',
@@ -195,6 +199,7 @@ export const mockPosts: Post[] = [
     likeCount: 56,
     commentCount: 8,
     createdAt: '2025-04-03T22:00:00Z',
+    audience: 'public',
   },
   {
     id: 'p6',
@@ -205,6 +210,7 @@ export const mockPosts: Post[] = [
     likeCount: 74,
     commentCount: 30,
     createdAt: '2025-04-06T13:00:00Z',
+    audience: 'public',
   },
 ];
 

@@ -72,6 +72,7 @@ function dbPostToPost(row: any): Post {
     likeCount: 0,
     commentCount: 0,
     createdAt: row.created_at ?? '',
+    audience: (row.audience as 'public' | 'regulars_only') ?? 'public',
   };
 }
 
@@ -366,7 +367,7 @@ export async function getAllEvents(): Promise<Event[]> {
   return data.map(dbEventToEvent);
 }
 
-export async function createPost(data: { venue_id: string; content: string }) {
+export async function createPost(data: { venue_id: string; content: string; audience?: 'public' | 'regulars_only' }) {
   const { error } = await supabase.from('posts').insert(data);
   return { error };
 }
@@ -1145,4 +1146,224 @@ export async function getCommunityReportData(venueId: string): Promise<Community
   const avgFrequency = uniqueVisitors > 0 ? Math.round((totalCheckins / uniqueVisitors) * 10) / 10 : 0;
 
   return { month, totalCheckins, uniqueVisitors, loyalCount, newFaces, busiestDay, avgFrequency };
+}
+
+// ─── Interactive user ID ──────────────────────────────────────────────────────
+// Prefers Supabase auth UID (logged-in users); falls back to a stable anon UUID
+// stored in localStorage. DB FK may reject anon IDs — all callers try-catch.
+
+export async function getInteractiveUserId(): Promise<string> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) return user.id;
+  } catch { /* not logged in */ }
+  let id = localStorage.getItem('kayaa_interact_uid');
+  if (!id) {
+    try { id = crypto.randomUUID(); } catch { id = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`; }
+    localStorage.setItem('kayaa_interact_uid', id);
+  }
+  return id;
+}
+
+// ─── Feature 1: Heading There ─────────────────────────────────────────────────
+
+export interface HeadingThereEntry {
+  userId: string;
+  createdAt: string;
+}
+
+export async function getHeadingThereCount(venueId: string): Promise<number> {
+  try {
+    const { count } = await supabase
+      .from('heading_there')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .gt('expires_at', new Date().toISOString());
+    return count ?? 0;
+  } catch { return 0; }
+}
+
+export async function getHeadingThereList(venueId: string): Promise<HeadingThereEntry[]> {
+  try {
+    const { data } = await supabase
+      .from('heading_there')
+      .select('user_id, created_at')
+      .eq('venue_id', venueId)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+    return (data ?? []).map(r => ({ userId: r.user_id, createdAt: r.created_at }));
+  } catch { return []; }
+}
+
+export async function signalHeadingThere(venueId: string, userId: string): Promise<void> {
+  try {
+    await supabase.from('heading_there').upsert(
+      { user_id: userId, venue_id: venueId },
+      { onConflict: 'user_id,venue_id' }
+    );
+  } catch { /* FK may fail for anon users — local state handles UX */ }
+}
+
+export async function cancelHeadingThere(venueId: string, userId: string): Promise<void> {
+  try {
+    await supabase.from('heading_there').delete()
+      .eq('venue_id', venueId).eq('user_id', userId);
+  } catch { /* noop */ }
+}
+
+export async function getHeadingThereCountsBatch(venueIds: string[]): Promise<Record<string, number>> {
+  if (venueIds.length === 0) return {};
+  try {
+    const { data } = await supabase
+      .from('heading_there')
+      .select('venue_id')
+      .in('venue_id', venueIds)
+      .gt('expires_at', new Date().toISOString());
+    const counts: Record<string, number> = {};
+    for (const row of data ?? []) counts[row.venue_id] = (counts[row.venue_id] ?? 0) + 1;
+    return counts;
+  } catch { return {}; }
+}
+
+// ─── Feature 2: Vibe Check ────────────────────────────────────────────────────
+
+export type VibeType = 'busy' | 'chilled' | 'happening';
+
+export interface VibeSummary {
+  busy: number; chilled: number; happening: number;
+  winning: VibeType | null; winningCount: number;
+  userVibe: VibeType | null; userExpiresAt: string | null;
+}
+
+export async function getVibeSummary(venueId: string, userId?: string): Promise<VibeSummary> {
+  const empty: VibeSummary = { busy: 0, chilled: 0, happening: 0, winning: null, winningCount: 0, userVibe: null, userExpiresAt: null };
+  try {
+    const { data } = await supabase
+      .from('vibe_reports')
+      .select('vibe, user_id, expires_at')
+      .eq('venue_id', venueId)
+      .gt('expires_at', new Date().toISOString());
+
+    const counts = { busy: 0, chilled: 0, happening: 0 };
+    let userVibe: VibeType | null = null;
+    let userExpiresAt: string | null = null;
+
+    for (const row of data ?? []) {
+      const v = row.vibe as VibeType;
+      if (v in counts) counts[v]++;
+      if (userId && row.user_id === userId) { userVibe = v; userExpiresAt = row.expires_at; }
+    }
+
+    const max = Math.max(counts.busy, counts.chilled, counts.happening);
+    const winning: VibeType | null = max >= 2
+      ? (['busy', 'chilled', 'happening'] as VibeType[]).find(v => counts[v] === max) ?? null
+      : null;
+
+    return { ...counts, winning, winningCount: max >= 2 ? max : 0, userVibe, userExpiresAt };
+  } catch { return empty; }
+}
+
+export async function reportVibe(venueId: string, userId: string, vibe: VibeType): Promise<void> {
+  try {
+    await supabase.from('vibe_reports').upsert(
+      { user_id: userId, venue_id: venueId, vibe },
+      { onConflict: 'user_id,venue_id' }
+    );
+  } catch { /* noop */ }
+}
+
+export async function cancelVibeReport(venueId: string, userId: string): Promise<void> {
+  try {
+    await supabase.from('vibe_reports').delete()
+      .eq('venue_id', venueId).eq('user_id', userId);
+  } catch { /* noop */ }
+}
+
+export async function getVibeWinnersBatch(venueIds: string[]): Promise<Record<string, { vibe: VibeType; count: number } | null>> {
+  if (venueIds.length === 0) return {};
+  try {
+    const { data } = await supabase
+      .from('vibe_reports')
+      .select('venue_id, vibe')
+      .in('venue_id', venueIds)
+      .gt('expires_at', new Date().toISOString());
+
+    const perVenue: Record<string, { busy: number; chilled: number; happening: number }> = {};
+    for (const row of data ?? []) {
+      if (!perVenue[row.venue_id]) perVenue[row.venue_id] = { busy: 0, chilled: 0, happening: 0 };
+      const v = row.vibe as VibeType;
+      if (v in perVenue[row.venue_id]) perVenue[row.venue_id][v]++;
+    }
+
+    const result: Record<string, { vibe: VibeType; count: number } | null> = {};
+    for (const id of venueIds) {
+      const c = perVenue[id];
+      if (!c) { result[id] = null; continue; }
+      const max = Math.max(c.busy, c.chilled, c.happening);
+      if (max < 2) { result[id] = null; continue; }
+      const vibe = (['busy', 'chilled', 'happening'] as VibeType[]).find(v => c[v] === max)!;
+      result[id] = { vibe, count: max };
+    }
+    return result;
+  } catch { return {}; }
+}
+
+// ─── Feature 3: Venue Stories 24h ────────────────────────────────────────────
+
+export interface VenueStory24 {
+  id: string;
+  venueId: string;
+  mediaUrl: string;
+  mediaType: 'photo' | 'video';
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export async function getActiveVenueStory(venueId: string): Promise<VenueStory24 | null> {
+  try {
+    const { data } = await supabase
+      .from('venue_stories')
+      .select('*')
+      .eq('venue_id', venueId)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return null;
+    return { id: data.id, venueId: data.venue_id, mediaUrl: data.media_url, mediaType: data.media_type as 'photo' | 'video', caption: data.caption ?? null, createdAt: data.created_at, expiresAt: data.expires_at };
+  } catch { return null; }
+}
+
+export async function createVenueStory24(data: {
+  venue_id: string; media_url: string; media_type: 'photo' | 'video'; caption?: string;
+}): Promise<{ error: string | null; story: VenueStory24 | null }> {
+  try {
+    const { data: row, error } = await supabase.from('venue_stories').insert(data).select().single();
+    if (error || !row) return { error: error?.message ?? 'Failed to post story', story: null };
+    return { error: null, story: { id: row.id, venueId: row.venue_id, mediaUrl: row.media_url, mediaType: row.media_type as 'photo' | 'video', caption: row.caption ?? null, createdAt: row.created_at, expiresAt: row.expires_at } };
+  } catch (e) { return { error: String(e), story: null }; }
+}
+
+export async function deleteVenueStory24(storyId: string): Promise<void> {
+  try { await supabase.from('venue_stories').delete().eq('id', storyId); } catch { /* noop */ }
+}
+
+export async function trackStoryView(storyId: string, userId: string): Promise<void> {
+  try { await supabase.from('story_views').upsert({ story_id: storyId, user_id: userId }, { onConflict: 'story_id,user_id' }); } catch { /* noop */ }
+}
+
+export async function getStoryViewCount(storyId: string): Promise<number> {
+  try {
+    const { count } = await supabase.from('story_views').select('id', { count: 'exact', head: true }).eq('story_id', storyId);
+    return count ?? 0;
+  } catch { return 0; }
+}
+
+export async function getActiveStoryVenuesBatch(venueIds: string[]): Promise<Set<string>> {
+  if (venueIds.length === 0) return new Set();
+  try {
+    const { data } = await supabase.from('venue_stories').select('venue_id').in('venue_id', venueIds).gt('expires_at', new Date().toISOString());
+    return new Set((data ?? []).map(r => r.venue_id));
+  } catch { return new Set(); }
 }

@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import type { Story } from '../types';
+import type { VenueStory24 } from '../lib/api';
+import { trackStoryView, getInteractiveUserId } from '../lib/api';
+
+interface StoryViewerProps {
+  story: VenueStory24;
+  venueName: string;
+  venueCategory: string;
+  onClose: () => void;
+}
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
@@ -8,120 +16,90 @@ const CATEGORY_EMOJI: Record<string, string> = {
   Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
 };
 
-const CATEGORY_COLOR: Record<string, string> = {
-  Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
-  Café: '#F59E0B', Church: '#A78BFA', Carwash: '#34D399',
-  'Spaza Shop': '#60A5FA', Salon: '#F472B6', Tutoring: '#34D399',
-  'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
-};
+const PHOTO_DURATION = 5000;
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
-  const hrs = Math.floor(mins / 60);
-  return `${hrs} hour${hrs !== 1 ? 's' : ''} ago`;
-}
-
-const DURATION = 5000;
-
-export default function StoryViewer({ story, onClose }: { story: Story; onClose: () => void }) {
+export default function StoryViewer({ story, venueName, venueCategory, onClose }: StoryViewerProps) {
   const [progress, setProgress] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef(Date.now());
-  const rafRef = useRef<number>(0);
+  const emoji = CATEGORY_EMOJI[venueCategory] ?? '📍';
 
   useEffect(() => {
-    startRef.current = Date.now();
+    getInteractiveUserId().then(uid => trackStoryView(story.id, uid));
+  }, [story.id]);
 
-    function tick() {
-      const pct = Math.min((Date.now() - startRef.current) / DURATION, 1);
-      setProgress(pct);
-      if (pct < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        onClose();
-      }
+  useEffect(() => {
+    if (story.mediaType === 'photo') {
+      startRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        const elapsed = Date.now() - startRef.current;
+        const pct = Math.min(elapsed / PHOTO_DURATION, 1);
+        setProgress(pct);
+        if (pct >= 1) { clearInterval(timerRef.current!); onClose(); }
+      }, 50);
+      return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }
+  }, [story.mediaType, onClose]);
 
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [onClose]);
-
-  const emoji = CATEGORY_EMOJI[story.venueType] ?? '📍';
-  const color = CATEGORY_COLOR[story.venueType] ?? '#39D98A';
+  function handleVideoTimeUpdate() {
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    setProgress(v.currentTime / v.duration);
+  }
 
   return (
     <div
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: '#0D1117',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '0 32px',
-      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 300, background: '#000', display: 'flex', flexDirection: 'column' }}
     >
       {/* Progress bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
-        background: 'rgba(255,255,255,0.12)',
-      }}>
-        <div style={{
-          height: '100%', background: '#39D98A',
-          width: `${progress * 100}%`,
-        }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2, height: '3px', background: 'rgba(255,255,255,0.25)' }}>
+        <div style={{ height: '100%', background: '#fff', width: `${progress * 100}%` }} />
       </div>
 
-      {/* Close */}
-      <button
-        onClick={e => { e.stopPropagation(); onClose(); }}
-        style={{
-          position: 'absolute', top: '16px', right: '16px',
-          width: '36px', height: '36px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.1)', border: 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
-        <X size={18} color="#fff" />
-      </button>
-
-      {/* Avatar */}
-      <div style={{
-        width: '80px', height: '80px', borderRadius: '50%',
-        background: `${color}20`, border: `2px solid ${color}60`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '36px', marginBottom: '20px',
-      }}>
-        {emoji}
+      {/* Top bar */}
+      <div style={{ position: 'absolute', top: 12, left: 0, right: 0, zIndex: 2, padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
+            {emoji}
+          </div>
+          <div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>{venueName}</div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>24h story</div>
+          </div>
+        </div>
+        <button
+          onClick={e => { e.stopPropagation(); onClose(); }}
+          style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <X size={16} color="#fff" />
+        </button>
       </div>
 
-      <div style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px',
-        color: '#fff', marginBottom: '6px', textAlign: 'center',
-      }}>
-        {story.venueName}
-      </div>
-      <div style={{
-        fontSize: '12px', color, fontWeight: 600,
-        background: `${color}18`, padding: '2px 10px', borderRadius: '20px',
-        marginBottom: '32px',
-      }}>
-        {story.venueType}
-      </div>
+      {/* Media */}
+      {story.mediaType === 'photo' ? (
+        <img src={story.mediaUrl} alt="Story" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      ) : (
+        <video
+          ref={videoRef}
+          src={story.mediaUrl}
+          autoPlay playsInline
+          onTimeUpdate={handleVideoTimeUpdate}
+          onEnded={onClose}
+          onClick={e => e.stopPropagation()}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      )}
 
-      <p style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '22px',
-        color: '#fff', textAlign: 'center', lineHeight: 1.5,
-        marginBottom: '32px', maxWidth: '340px',
-      }}>
-        {story.content}
-      </p>
-
-      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontFamily: 'DM Sans, sans-serif' }}>
-        Posted {timeAgo(story.createdAt)}
-      </span>
+      {/* Caption */}
+      {story.caption && (
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2, padding: '60px 20px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '16px', color: '#fff', lineHeight: 1.5, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            {story.caption}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

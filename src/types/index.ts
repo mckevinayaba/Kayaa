@@ -69,4 +69,5 @@ export interface Post {
   likeCount: number;
   commentCount: number;
   createdAt: string;
+  audience: 'public' | 'regulars_only';
 }

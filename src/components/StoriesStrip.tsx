@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import type { Story } from '../types';
-import StoryViewer from './StoryViewer';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
@@ -79,7 +79,23 @@ export default function StoriesStrip({ stories }: { stories: Story[] }) {
         })}
       </div>
 
-      {active && <StoryViewer story={active} onClose={() => setActive(null)} />}
+      {active && (
+        <div
+          onClick={() => setActive(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}
+        >
+          <button
+            onClick={() => setActive(null)}
+            style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <X size={18} color="#fff" />
+          </button>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginBottom: '12px', fontFamily: 'DM Sans, sans-serif' }}>{active.venueName}</div>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '18px', color: '#fff', lineHeight: 1.6, textAlign: 'center', margin: 0, maxWidth: '340px' }}>
+            {active.content}
+          </p>
+        </div>
+      )}
     </>
   );
 }

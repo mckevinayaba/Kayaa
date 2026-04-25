@@ -1,18 +1,20 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink, Search, Plus, Download, Share2, Printer } from 'lucide-react';
+import { MapPin, ExternalLink, Search, Plus, Download, Share2, Printer, Camera, Video, X as XIcon } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   getVenueOwnerByUserId, getVenueById, getRecentCheckIns,
-  getVenueEvents, createPost, createEvent, updateVenueSettings, createStory,
+  getVenueEvents, createPost, createEvent, updateVenueSettings,
   getUserCheckInHistoryLocal, getVisitorId,
   getDashboardStats, getWeeklyRhythm, getStudioRegulars, getCommunityReportData,
+  getHeadingThereList, uploadVenueFile,
+  createVenueStory24, getActiveVenueStory, deleteVenueStory24, getStoryViewCount,
 } from '../lib/api';
 import type {
-  DashboardCheckIn,
-  StudioStats, WeeklyBar, StudioRegular, CommunityReportData,
+  DashboardCheckIn, HeadingThereEntry,
+  StudioStats, WeeklyBar, StudioRegular, CommunityReportData, VenueStory24,
 } from '../lib/api';
 import type { Venue, Event } from '../types';
 
@@ -346,29 +348,91 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
   const [posting, setPosting] = useState(false);
   const [posted, setPosted] = useState(false);
   const [postError, setPostError] = useState('');
-  const [storyText, setStoryText] = useState('');
-  const [postingStory, setPostingStory] = useState(false);
-  const [storyPosted, setStoryPosted] = useState(false);
+  const [postAudience, setPostAudience] = useState<'public' | 'regulars_only'>('public');
+
+  // Story creation
+  const [showStorySheet, setShowStorySheet] = useState(false);
+  const [storyMediaUrl, setStoryMediaUrl] = useState('');
+  const [storyMediaType, setStoryMediaType] = useState<'photo' | 'video'>('photo');
+  const [storyCaption, setStoryCaption] = useState('');
+  const [storyUploading, setStoryUploading] = useState(false);
+  const [storyPosting, setStoryPosting] = useState(false);
   const [storyError, setStoryError] = useState('');
+  const [activeStory, setActiveStory] = useState<VenueStory24 | null>(null);
+  const [storyViews, setStoryViews] = useState(0);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const storySessionId = useRef(`story_${Date.now().toString(36)}`);
+
+  // Heading there
+  const [headingList, setHeadingList] = useState<HeadingThereEntry[]>([]);
+
+  useEffect(() => {
+    getActiveVenueStory(venueId).then(s => {
+      setActiveStory(s);
+      if (s) getStoryViewCount(s.id).then(setStoryViews);
+    });
+    getHeadingThereList(venueId).then(setHeadingList);
+
+    // Realtime: heading_there changes
+    const ch = supabase.channel(`heading-${venueId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'heading_there', filter: `venue_id=eq.${venueId}` }, () => {
+        getHeadingThereList(venueId).then(setHeadingList);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [venueId]);
 
   async function handlePost() {
     if (!postText.trim()) return;
     setPosting(true); setPostError('');
-    const { error } = await createPost({ venue_id: venueId, content: postText.trim() });
+    const { error } = await createPost({ venue_id: venueId, content: postText.trim(), audience: postAudience });
     setPosting(false);
     if (error) { setPostError('Could not post. Try again.'); return; }
-    setPosted(true); setPostText('');
+    setPosted(true); setPostText(''); setPostAudience('public');
     setTimeout(() => setPosted(false), 2500);
   }
 
-  async function handleStory() {
-    if (!storyText.trim()) return;
-    setPostingStory(true); setStoryError('');
-    const { error } = await createStory(venueId, storyText.trim());
-    setPostingStory(false);
-    if (error) { setStoryError('Could not post story. Try again.'); return; }
-    setStoryPosted(true); setStoryText('');
-    setTimeout(() => setStoryPosted(false), 3000);
+  async function handleStoryMediaSelect(file: File, type: 'photo' | 'video') {
+    if (type === 'video' && file.size > 50 * 1024 * 1024) {
+      setStoryError('Video must be under 50MB');
+      return;
+    }
+    if (type === 'photo' && file.size > 10 * 1024 * 1024) {
+      setStoryError('Photo must be under 10MB');
+      return;
+    }
+    setStoryError(''); setStoryUploading(true);
+    try {
+      const ext = file.name.split('.').pop() ?? (type === 'photo' ? 'jpg' : 'mp4');
+      const path = `stories/${venueId}/${storySessionId.current}.${ext}`;
+      const url = await uploadVenueFile(path, file);
+      setStoryMediaUrl(url); setStoryMediaType(type);
+    } catch (e) { setStoryError('Upload failed. Try again.'); }
+    setStoryUploading(false);
+  }
+
+  async function handlePostStory() {
+    if (!storyMediaUrl) return;
+    setStoryPosting(true);
+    const { error, story } = await createVenueStory24({
+      venue_id: venueId, media_url: storyMediaUrl,
+      media_type: storyMediaType, caption: storyCaption.trim() || undefined,
+    });
+    setStoryPosting(false);
+    if (error) { setStoryError(error); return; }
+    setActiveStory(story); setStoryViews(0);
+    setShowStorySheet(false); setStoryMediaUrl(''); setStoryCaption(''); setStoryError('');
+  }
+
+  async function handleDeleteStory() {
+    if (!activeStory) return;
+    await deleteVenueStory24(activeStory.id);
+    setActiveStory(null); setStoryViews(0);
+  }
+
+  function hoursLeft(expiresAt: string): number {
+    return Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 3600000));
   }
 
   const todayCheckIns = checkIns.filter(ci => isToday(ci.createdAt));
@@ -376,11 +440,114 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
 
   return (
     <div>
+      <style>{`@keyframes progScan2 { 0% { left: -45%; } 100% { left: 100%; } }`}</style>
+
+      {/* Story creation sheet */}
+      {showStorySheet && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowStorySheet(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: 'var(--color-surface)', borderRadius: '20px 20px 0 0', padding: '20px 16px 40px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>Share today's story</h2>
+              <button onClick={() => setShowStorySheet(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><XIcon size={18} color="var(--color-muted)" /></button>
+            </div>
+
+            {/* Media picker */}
+            {!storyMediaUrl ? (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleStoryMediaSelect(f, 'photo'); }} />
+                <input ref={videoInputRef} type="file" accept="video/*" capture="environment" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleStoryMediaSelect(f, 'video'); }} />
+                <button onClick={() => photoInputRef.current?.click()} style={{ flex: 1, padding: '20px 8px', borderRadius: '14px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <Camera size={24} color="#39D98A" />
+                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Photo</span>
+                </button>
+                <button onClick={() => videoInputRef.current?.click()} style={{ flex: 1, padding: '20px 8px', borderRadius: '14px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <Video size={24} color="#60A5FA" />
+                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Short Video</span>
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '16px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+                {storyMediaType === 'photo'
+                  ? <img src={storyMediaUrl} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }} />
+                  : <video src={storyMediaUrl} muted autoPlay loop playsInline style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }} />
+                }
+                <button onClick={() => { setStoryMediaUrl(''); }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <XIcon size={14} color="#fff" />
+                </button>
+              </div>
+            )}
+
+            {storyUploading && (
+              <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '2px', overflow: 'hidden', marginBottom: '12px', position: 'relative' }}>
+                <div style={{ position: 'absolute', height: '100%', width: '45%', background: '#39D98A', borderRadius: '2px', animation: 'progScan2 1.2s ease-in-out infinite' }} />
+              </div>
+            )}
+
+            {/* Caption */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  value={storyCaption}
+                  onChange={e => setStoryCaption(e.target.value.slice(0, 80))}
+                  placeholder="What's happening today? (optional — 80 chars max)"
+                  style={{ width: '100%', minHeight: '72px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                <span style={{ fontSize: '10px', color: 'var(--color-muted)' }}>{storyCaption.length}/80</span>
+              </div>
+              {/* Quick captions */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                {['Fresh in today 💈', 'Busy right now — short wait', 'Closed today, back tomorrow', 'Special price until 6pm'].map(q => (
+                  <button key={q} onClick={() => setStoryCaption(q.slice(0, 80))} style={{ fontSize: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '4px 10px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {storyError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '10px' }}>{storyError}</p>}
+
+            <button
+              onClick={handlePostStory}
+              disabled={!storyMediaUrl || storyPosting || storyUploading}
+              style={{ width: '100%', minHeight: '52px', background: !storyMediaUrl || storyPosting ? 'rgba(57,217,138,0.4)' : '#39D98A', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: !storyMediaUrl ? 'default' : 'pointer' }}
+            >
+              {storyPosting ? 'Posting…' : 'Post Story — live for 24 hours'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <SlowDayAlert
         todayCount={stats?.todayCount ?? 0}
         dailyAvg={stats?.dailyAvg ?? 0}
         onNudge={onNudge}
       />
+
+      {/* Story CTA or Active Story */}
+      {activeStory ? (
+        <div style={{ marginBottom: '20px', background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '22px' }}>📸</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e', marginBottom: '2px' }}>
+              Story active — {hoursLeft(activeStory.expiresAt)}h remaining
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{storyViews} view{storyViews !== 1 ? 's' : ''}</div>
+          </div>
+          <button onClick={handleDeleteStory} style={{ background: 'none', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', padding: '6px 10px', color: '#F87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', flexShrink: 0 }}>
+            Delete
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowStorySheet(true)}
+          style={{ width: '100%', marginBottom: '20px', padding: '16px', background: 'transparent', border: '1.5px solid rgba(57,217,138,0.35)', borderRadius: '14px', color: '#39D98A', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+        >
+          <Camera size={16} />
+          📸 Share what's happening today
+        </button>
+      )}
 
       <PilotChecklist
         venueId={venueId} venueCreatedAt={venueCreatedAt}
@@ -398,6 +565,32 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
             <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '10px 4px 4px', lineHeight: 1.5 }}>
               {insight}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Heading your way */}
+      {headingList.length > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+            Heading your way 🚶
+          </h2>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(245,166,35,0.25)', borderRadius: '14px', overflow: 'hidden' }}>
+            {headingList.map((entry, i) => {
+              const minsAgo = Math.floor((Date.now() - new Date(entry.createdAt).getTime()) / 60000);
+              const timeLabel = minsAgo < 1 ? 'just now' : minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo / 60)} hr ago`;
+              const shortId = entry.userId.slice(-4).toUpperCase();
+              return (
+                <div key={entry.userId + i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderBottom: i < headingList.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                  <Avatar initial={shortId[0]} color="#F5A623" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>Someone is on their way</div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{timeLabel}</div>
+                  </div>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.12)', padding: '2px 8px', borderRadius: '10px' }}>Coming</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -466,31 +659,27 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
             placeholder="What's happening today at your place..." maxLength={200}
             style={{ width: '100%', minHeight: '80px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box' }}
           />
+          {/* Audience selector */}
+          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginBottom: '6px', fontFamily: 'DM Sans, sans-serif' }}>Who can see this post?</div>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+              {(['public', 'regulars_only'] as const).map(a => (
+                <button key={a} onClick={() => setPostAudience(a)} style={{ flex: 1, padding: '7px 4px', borderRadius: '10px', background: postAudience === a ? 'var(--color-accent)' : 'var(--color-bg)', border: postAudience === a ? 'none' : '1px solid var(--color-border)', color: postAudience === a ? '#000' : 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+                  {a === 'public' ? '🌍 Everyone' : '🔒 Regulars only'}
+                </button>
+              ))}
+            </div>
+            {postAudience === 'regulars_only' && (
+              <p style={{ fontSize: '11px', color: '#F5A623', margin: '0 0 8px', lineHeight: 1.4 }}>
+                Only people who have visited 3+ times will see this post.
+              </p>
+            )}
+          </div>
           {postError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{postError}</p>}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
             <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{postText.length}/200</span>
             <button onClick={handlePost} disabled={posting} style={{ background: posted ? 'rgba(57,217,138,0.2)' : 'var(--color-accent)', color: posted ? 'var(--color-accent)' : '#000', border: 'none', borderRadius: '10px', padding: '8px 20px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: posting ? 'default' : 'pointer', transition: 'all 0.2s' }}>
               {posted ? 'Posted ✓' : posting ? 'Posting…' : 'Post'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Story box */}
-      <div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--color-text)' }}>Post a story</h2>
-        <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '12px' }}>Quick update — disappears in 24 hours</p>
-        <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px', padding: '14px' }}>
-          <textarea
-            value={storyText} onChange={e => setStoryText(e.target.value.slice(0, 120))}
-            placeholder="What's happening at your place right now..." maxLength={120}
-            style={{ width: '100%', minHeight: '72px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box' }}
-          />
-          {storyError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{storyError}</p>}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
-            <span style={{ fontSize: '11px', color: storyText.length >= 110 ? '#F5A623' : 'var(--color-muted)' }}>{120 - storyText.length} left</span>
-            <button onClick={handleStory} disabled={postingStory || !storyText.trim()} style={{ background: storyPosted ? 'rgba(57,217,138,0.2)' : postingStory || !storyText.trim() ? 'rgba(57,217,138,0.4)' : 'var(--color-accent)', color: storyPosted ? 'var(--color-accent)' : '#000', border: 'none', borderRadius: '10px', padding: '8px 20px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: postingStory || !storyText.trim() ? 'default' : 'pointer', transition: 'all 0.2s' }}>
-              {storyPosted ? 'Live for 24h ✓' : postingStory ? 'Posting…' : 'Post story'}
             </button>
           </div>
         </div>
