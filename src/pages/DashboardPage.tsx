@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import {
   getVenueOwnerByUserId, getVenueById, getRecentCheckIns, getVenueRegulars,
   getVenueEvents, createPost, createEvent, updateVenueSettings, createStory,
+  getUserCheckInHistoryLocal, getVisitorId,
 } from '../lib/api';
 import type { DashboardCheckIn, Regular } from '../lib/api';
 import type { Venue, Event } from '../types';
@@ -734,7 +735,8 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
   );
   const [notifySaved, setNotifySaved] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
-  const qrUrl = `https://kayaa.co.za/venue/${venue.slug}/checkin`;
+  // QR codes point to /checkin/:id so they work even if slug changes
+  const qrUrl = `https://kayaa.co.za/checkin/${venue.id}`;
 
   function saveNotify() {
     if (!notifyContact.trim()) return;
@@ -897,7 +899,7 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
           <QRCodeCanvas value={qrUrl} size={200} level="M" marginSize={0} />
         </div>
         <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'center', margin: 0 }}>
-          kayaa.co.za/venue/{venue.slug}/checkin
+          kayaa.co.za/checkin/{venue.id.slice(0, 8)}…
         </p>
         <p style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'center', margin: 0, lineHeight: 1.5 }}>
           Print this and place it at your counter so customers can check in easily.
@@ -933,31 +935,125 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
   );
 }
 
+// ─── Check-in history section ─────────────────────────────────────────────────
+
+const HIST_BADGE_ICON: Record<string, string> = {
+  newcomer: '🌱', regular: '⭐', loyal: '🔥', legend: '👑',
+};
+const HIST_CAT_EMOJI: Record<string, string> = {
+  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
+  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
+};
+
+function CheckInHistorySection() {
+  const history = getUserCheckInHistoryLocal(getVisitorId());
+
+  if (history.length === 0) {
+    return (
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '14px', padding: '24px 16px', textAlign: 'center', marginBottom: '16px',
+      }}>
+        <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏪</div>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px', fontFamily: 'Syne, sans-serif' }}>
+          No check-ins yet
+        </p>
+        <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          Find a place nearby and tap <strong>Check In</strong>.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {history.map(item => {
+          const daysAgo = item.lastVisit
+            ? Math.floor((Date.now() - new Date(item.lastVisit).getTime()) / (1000 * 60 * 60 * 24))
+            : null;
+          const lastLabel =
+            daysAgo === 0 ? 'Today' :
+            daysAgo === 1 ? 'Yesterday' :
+            daysAgo != null ? `${daysAgo}d ago` : '';
+          const catEmoji = HIST_CAT_EMOJI[item.venueType] ?? '📍';
+
+          return (
+            <Link
+              key={item.venueId}
+              to={`/venue/${item.venueSlug}`}
+              style={{ textDecoration: 'none' }}
+            >
+              <div style={{
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: '12px', padding: '12px 14px',
+                display: 'flex', alignItems: 'center', gap: '12px',
+              }}>
+                <span style={{ fontSize: '22px', flexShrink: 0 }}>{catEmoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+                    color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    marginBottom: '2px',
+                  }}>
+                    {item.venueName}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 700, color: '#39D98A',
+                      background: 'rgba(57,217,138,0.1)', padding: '1px 7px', borderRadius: '20px',
+                    }}>
+                      {HIST_BADGE_ICON[item.badgeTier]} {item.badgeTier}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+                      {item.visitCount} visit{item.visitCount !== 1 ? 's' : ''}
+                    </span>
+                    {lastLabel && (
+                      <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· {lastLabel}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── No venue state ───────────────────────────────────────────────────────────
 
 function NoVenueState() {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', minHeight: '50vh', padding: '32px', textAlign: 'center',
-    }}>
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏪</div>
-      <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px',
-        marginBottom: '8px', color: 'var(--color-text)',
-      }}>
-        No place yet
+    <div style={{ padding: '24px 16px 80px' }}>
+      {/* Register CTA */}
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏪</div>
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px',
+          marginBottom: '8px', color: 'var(--color-text)',
+        }}>
+          No place yet
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+          Register your place to start tracking check-ins and regulars.
+        </p>
+        <Link to="/onboarding" style={{
+          display: 'inline-block', background: 'var(--color-accent)', color: '#000',
+          textDecoration: 'none', borderRadius: '12px', padding: '13px 28px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+        }}>
+          Add your place
+        </Link>
+      </div>
+
+      {/* Check-in history */}
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        Your Check-In History
       </h2>
-      <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '28px' }}>
-        Register your place to start tracking check-ins and regulars.
-      </p>
-      <Link to="/onboarding" style={{
-        display: 'block', background: 'var(--color-accent)', color: '#000',
-        textDecoration: 'none', borderRadius: '12px', padding: '13px 28px',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-      }}>
-        Add your place
-      </Link>
+      <CheckInHistorySection />
     </div>
   );
 }
@@ -1207,7 +1303,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Tab content */}
-      <div style={{ padding: '0 16px 120px' }}>
+      <div style={{ padding: '0 16px 40px' }}>
         {tab === 'home' && (
           <HomeTab
             checkIns={checkIns}
@@ -1231,6 +1327,14 @@ export default function DashboardPage() {
         {tab === 'settings' && (
           <SettingsTab venue={venue} venueId={venueId} />
         )}
+      </div>
+
+      {/* Check-in history — always visible at the bottom */}
+      <div style={{ padding: '0 16px 120px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+          Your Check-In History
+        </h2>
+        <CheckInHistorySection />
       </div>
     </>
   );

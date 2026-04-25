@@ -773,3 +773,166 @@ export async function createLocalJob(data: {
   const { error } = await supabase.from('local_jobs').insert(data);
   return { error };
 }
+
+// ─── Check-in scoring (localStorage-first, DB best-effort) ───────────────────
+//
+// We use a persistent anonymous visitorId stored in localStorage.
+// All scores are written locally first (instant UX), then mirrored to
+// `visits` and `regular_scores` tables when they exist.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type BadgeTier = 'newcomer' | 'regular' | 'loyal' | 'legend';
+
+/** Map visit count → badge tier. */
+export function calcBadgeTier(visits: number): BadgeTier {
+  if (visits >= 25) return 'legend';
+  if (visits >= 10) return 'loyal';
+  if (visits >= 3) return 'regular';
+  return 'newcomer';
+}
+
+/** Persistent anonymous visitor ID — generated once, stored in localStorage. */
+export function getVisitorId(): string {
+  let id = localStorage.getItem('kayaa_visitor_id');
+  if (!id) {
+    id = `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem('kayaa_visitor_id', id);
+  }
+  return id;
+}
+
+export interface UserVenueScore {
+  visitCount: number;
+  lastVisit: string;
+  badgeTier: BadgeTier;
+  streakDays: number;
+  prevBadgeTier: BadgeTier; // used to detect badge upgrades on celebration screen
+}
+
+export interface CheckInHistoryItem {
+  venueId: string;
+  venueName: string;
+  venueSlug: string;
+  venueType: string;
+  visitCount: number;
+  lastVisit: string;
+  badgeTier: BadgeTier;
+}
+
+// ── Internal localStorage key helpers ────────────────────────────────────────
+
+function _scoreKey(venueId: string, userId: string) { return `ks_${userId}_${venueId}`; }
+function _histKey(userId: string) { return `kh_${userId}`; }
+function _lastKey(venueId: string, userId: string) { return `klv_${userId}_${venueId}`; }
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Returns true if the visitor already checked in at this venue within 3 hours.
+ * Checks localStorage first (instant), then DB (graceful fallback).
+ */
+export async function isRecentDuplicate(venueId: string, visitorId: string): Promise<boolean> {
+  const raw = localStorage.getItem(_lastKey(venueId, visitorId));
+  if (raw && Date.now() - parseInt(raw) < 3 * 60 * 60 * 1000) return true;
+  try {
+    const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from('visits')
+      .select('id')
+      .eq('venue_id', venueId)
+      .eq('user_id', visitorId)
+      .gte('checked_in_at', cutoff)
+      .limit(1);
+    if (data && data.length > 0) return true;
+  } catch { /* visits table may not exist yet */ }
+  return false;
+}
+
+/**
+ * Save a check-in:
+ * 1. Block if visitor already checked in at this venue within 3 hours
+ * 2. Update localStorage score + history immediately
+ * 3. Persist to `visits` and `regular_scores` DB tables (best-effort)
+ * 4. Bump venue regulars_count via existing RPC
+ */
+export async function saveVisit(params: {
+  venueId: string;
+  venueName: string;
+  venueSlug: string;
+  venueType: string;
+  visitorId: string;
+  method: 'gps' | 'qr' | 'qr_link' | 'manual';
+}): Promise<{ score: UserVenueScore; alreadyCheckedIn: boolean }> {
+  const { venueId, venueName, venueSlug, venueType, visitorId, method } = params;
+
+  // ── Duplicate guard ──────────────────────────────────────────────────────────
+  if (await isRecentDuplicate(venueId, visitorId)) {
+    const stored = localStorage.getItem(_scoreKey(venueId, visitorId));
+    const s = stored
+      ? (JSON.parse(stored) as Omit<UserVenueScore, 'prevBadgeTier'>)
+      : { visitCount: 1, lastVisit: '', badgeTier: 'newcomer' as BadgeTier, streakDays: 0 };
+    return { score: { ...s, prevBadgeTier: s.badgeTier }, alreadyCheckedIn: true };
+  }
+
+  // ── Read current score ───────────────────────────────────────────────────────
+  const storedRaw = localStorage.getItem(_scoreKey(venueId, visitorId));
+  const prev = storedRaw ? (JSON.parse(storedRaw) as Omit<UserVenueScore, 'prevBadgeTier'>) : null;
+  const prevBadge: BadgeTier = prev?.badgeTier ?? 'newcomer';
+  const now = new Date().toISOString();
+
+  // Streak: extend if last visit was ≤48 h ago
+  let streak = prev?.streakDays ?? 0;
+  if (prev?.lastVisit) {
+    const diffH = (Date.now() - new Date(prev.lastVisit).getTime()) / 3_600_000;
+    streak = diffH <= 48 ? streak + 1 : 1;
+  } else {
+    streak = 1;
+  }
+
+  const newCount = (prev?.visitCount ?? 0) + 1;
+  const badgeTier = calcBadgeTier(newCount);
+  const score: UserVenueScore = { visitCount: newCount, lastVisit: now, badgeTier, streakDays: streak, prevBadgeTier: prevBadge };
+
+  // ── Write to localStorage ────────────────────────────────────────────────────
+  localStorage.setItem(_scoreKey(venueId, visitorId), JSON.stringify({ visitCount: newCount, lastVisit: now, badgeTier, streakDays: streak }));
+  localStorage.setItem(_lastKey(venueId, visitorId), String(Date.now()));
+
+  // Update history list
+  const histRaw = localStorage.getItem(_histKey(visitorId));
+  const hist: CheckInHistoryItem[] = histRaw ? JSON.parse(histRaw) : [];
+  const idx = hist.findIndex(h => h.venueId === venueId);
+  const item: CheckInHistoryItem = { venueId, venueName, venueSlug, venueType, visitCount: newCount, lastVisit: now, badgeTier };
+  if (idx >= 0) hist[idx] = item; else hist.unshift(item);
+  hist.sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
+  localStorage.setItem(_histKey(visitorId), JSON.stringify(hist.slice(0, 200)));
+
+  // ── Persist to DB (best-effort) ──────────────────────────────────────────────
+  try {
+    await supabase.from('visits').insert({ venue_id: venueId, user_id: visitorId, checked_in_at: now, method });
+  } catch { /* visits table may not exist yet */ }
+
+  try {
+    await supabase.from('regular_scores').upsert(
+      { venue_id: venueId, user_id: visitorId, visit_count: newCount, last_visit: now, streak_days: streak, badge_tier: badgeTier },
+      { onConflict: 'venue_id,user_id' }
+    );
+  } catch { /* regular_scores table may not exist yet */ }
+
+  // Bump venue's regulars_count (existing RPC — keeps dashboard stats accurate)
+  try { await supabase.rpc('increment_regulars_count', { venue_id: venueId }); } catch {}
+
+  return { score, alreadyCheckedIn: false };
+}
+
+/** Read a user's score for one venue from localStorage (synchronous). */
+export function getUserVenueScoreLocal(venueId: string, visitorId: string): Omit<UserVenueScore, 'prevBadgeTier'> | null {
+  const raw = localStorage.getItem(_scoreKey(venueId, visitorId));
+  return raw ? JSON.parse(raw) : null;
+}
+
+/** All venues this visitor has checked into, sorted by most recent. */
+export function getUserCheckInHistoryLocal(visitorId: string): CheckInHistoryItem[] {
+  const raw = localStorage.getItem(_histKey(visitorId));
+  return raw ? JSON.parse(raw) : [];
+}

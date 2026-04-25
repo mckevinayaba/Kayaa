@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Calendar, Users, MessageSquare, TrendingUp, CheckCircle2, Share2 } from 'lucide-react';
 import ShareModal from '../components/ShareModal';
-import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats } from '../lib/api';
+import { getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories, getVenueRecentStats, getUserVenueScoreLocal, getVisitorId } from '../lib/api';
 import type { VenueRecentStats } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Venue, Event, Post, Story } from '../types';
@@ -408,6 +408,51 @@ function RegularsLoveThisFor({ venue, events, posts, recentStats }: RegularsLove
   );
 }
 
+// ─── User visit badge ─────────────────────────────────────────────────────────
+
+const VISIT_BADGE_ICON: Record<string, string> = {
+  newcomer: '🌱', regular: '⭐', loyal: '🔥', legend: '👑',
+};
+
+function UserVisitBadge({ venueId }: { venueId: string }) {
+  const score = getUserVenueScoreLocal(venueId, getVisitorId());
+  if (!score || score.visitCount === 0) return null;
+
+  const daysAgo = score.lastVisit
+    ? Math.floor((Date.now() - new Date(score.lastVisit).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  const lastVisitLabel =
+    daysAgo === 0 ? 'Last visit today' :
+    daysAgo === 1 ? 'Last visit yesterday' :
+    daysAgo != null ? `Last visit ${daysAgo} days ago` : '';
+
+  return (
+    <div style={{
+      background: 'rgba(57,217,138,0.06)',
+      border: '1px solid rgba(57,217,138,0.16)',
+      borderRadius: '12px', padding: '12px 14px',
+      marginBottom: '12px',
+      display: 'flex', alignItems: 'center', gap: '10px',
+    }}>
+      <span style={{ fontSize: '22px', flexShrink: 0 }}>
+        {VISIT_BADGE_ICON[score.badgeTier] ?? '✓'}
+      </span>
+      <div>
+        <div style={{
+          fontSize: '13px', fontWeight: 700, color: '#fff',
+          fontFamily: 'Syne, sans-serif', marginBottom: '1px',
+        }}>
+          You've been here {score.visitCount} {score.visitCount === 1 ? 'time' : 'times'}
+        </div>
+        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.48)' }}>
+          {score.badgeTier.charAt(0).toUpperCase() + score.badgeTier.slice(1)}{lastVisitLabel ? ` · ${lastVisitLabel}` : ''}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function formatWaNumber(n: string): string {
   const digits = n.replace(/\D/g, '');
   return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
@@ -807,6 +852,7 @@ export default function VenuePage() {
         <TrustSignals venue={venue} events={events} posts={posts} recentStats={recentStats} regularsCount={regularsCount} />
         <RegularsLoveThisFor venue={venue} events={events} posts={posts} recentStats={recentStats} />
         {stories.length > 0 && <StoriesStrip stories={stories} />}
+        <UserVisitBadge venueId={venue.id} />
         <CheckInCTA venue={venue} />
         <SocialProof venue={venue} regularsCount={regularsCount} />
         <EventsSection events={events} />

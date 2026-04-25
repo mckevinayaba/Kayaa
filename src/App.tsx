@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage';
 import BoardPage from './pages/BoardPage';
 import JobsPage from './pages/JobsPage';
 import RegularCardPage from './pages/RegularCardPage';
+import QRCheckInPage from './pages/QRCheckInPage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/venue/:slug" element={<VenuePage />} />
             <Route path="/venue/:slug/checkin" element={<CheckInPage />} />
+            <Route path="/checkin/:venueId" element={<QRCheckInPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/board" element={<BoardPage />} />
