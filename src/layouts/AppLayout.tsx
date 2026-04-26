@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation } from 'react-router-dom';
-import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, Briefcase } from 'lucide-react';
+import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, CheckSquare } from 'lucide-react';
 import useLocation from '../hooks/useLocation';
 import AreaSelector from '../components/AreaSelector';
 import CountrySelector from '../components/CountrySelector';
@@ -9,7 +9,7 @@ import { useCountry } from '../contexts/CountryContext';
 const navItems = [
   { to: '/feed',       icon: Home,            label: 'Feed'      },
   { to: '/board',      icon: MessageSquare,   label: 'Board'     },
-  { to: '/jobs',       icon: Briefcase,       label: 'Jobs'      },
+  { to: '/checkin',    icon: CheckSquare,     label: 'Check In'  },
   { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/onboarding', icon: PlusCircle,      label: 'Add Place' },
 ];
