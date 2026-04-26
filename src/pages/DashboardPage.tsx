@@ -1249,21 +1249,196 @@ function CheckInHistorySection() {
   );
 }
 
-// ─── No venue state ───────────────────────────────────────────────────────────
+// ─── Regulars Passport (non-owner dashboard) ─────────────────────────────────
+
+function computeScore(history: ReturnType<typeof getUserCheckInHistoryLocal>): number {
+  if (history.length === 0) return 0;
+
+  // Unique venues × 8, max 32
+  const uniqueVenues = Math.min(history.length * 8, 32);
+
+  // Average visit frequency × 10, max 30 (clamp avg visits to 3 before ×10)
+  const avgVisits = history.reduce((sum, h) => sum + h.visitCount, 0) / history.length;
+  const avgScore = Math.min(Math.floor(avgVisits) * 10, 30);
+
+  // Longest streak × 5, max 20 (streakDays available on history items)
+  const maxStreak = history.reduce((best, h) => {
+    const s = (h as { streakDays?: number }).streakDays ?? 0;
+    return Math.max(best, s);
+  }, 0);
+  const streakScore = Math.min(maxStreak * 5, 20);
+
+  // Months active × 3, max 18
+  const months = new Set(
+    history
+      .filter(h => h.lastVisit)
+      .map(h => new Date(h.lastVisit!).toISOString().slice(0, 7))
+  ).size;
+  const monthScore = Math.min(months * 3, 18);
+
+  return Math.min(uniqueVenues + avgScore + streakScore + monthScore, 100);
+}
+
+function ScoreMeter({ score }: { score: number }) {
+  const color = score >= 75 ? '#F5A623' : score >= 40 ? '#39D98A' : '#60A5FA';
+  const tier  = score >= 75 ? 'Legend'  : score >= 40 ? 'Regular'  : score >= 15 ? 'Newcomer' : 'Explorer';
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Regular Score</div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '36px', color, lineHeight: 1 }}>{score}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '28px', marginBottom: '4px' }}>
+            {score >= 75 ? '👑' : score >= 40 ? '🔥' : score >= 15 ? '⭐' : '🌱'}
+          </div>
+          <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color }}>{tier}</div>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.6s ease' }} />
+      </div>
+      <div style={{ marginTop: '8px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+        {score < 100 ? `${100 - score} points to next level` : 'Maximum score reached 🎉'}
+      </div>
+    </div>
+  );
+}
 
 function NoVenueState() {
+  const history = getUserCheckInHistoryLocal(getVisitorId());
+  const score   = computeScore(history);
+
+  // "My places" = venues with 3+ visits, sorted by visit count desc
+  const myPlaces = [...history]
+    .filter(h => h.visitCount >= 3)
+    .sort((a, b) => b.visitCount - a.visitCount);
+
+  const recentCheckIns = [...history]
+    .sort((a, b) => {
+      const aTime = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
+      const bTime = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
+      return bTime - aTime;
+    })
+    .slice(0, 10);
+
+  function handleShare() {
+    const text = `I scored ${score}/100 on my Kayaa Regular Score 🏆 — ${myPlaces.length} regular spot${myPlaces.length !== 1 ? 's' : ''} in my neighbourhood. Check out kayaa.app`;
+    const url  = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+
   return (
-    <div style={{ padding: '24px 16px 80px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏪</div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px', color: 'var(--color-text)' }}>No place yet</h2>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '24px' }}>Register your place to start tracking check-ins and regulars.</p>
-        <Link to="/onboarding" style={{ display: 'inline-block', background: 'var(--color-accent)', color: '#000', textDecoration: 'none', borderRadius: '12px', padding: '13px 28px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>
+    <div style={{ padding: '24px 16px 100px' }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', marginBottom: '4px' }}>Your Passport</div>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)' }}>Track your neighbourhood presence</div>
+      </div>
+
+      {/* Score card */}
+      <ScoreMeter score={score} />
+
+      {/* My Places (3+ visits) */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>My Places</h2>
+          {myPlaces.length === 0 && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>3+ visits earns a spot</span>
+          )}
+        </div>
+        {myPlaces.length === 0 ? (
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+            <div style={{ fontSize: '28px', marginBottom: '8px' }}>📍</div>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>Visit a place 3 times to unlock it as a regular spot.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {myPlaces.map(item => {
+              const catEmoji = HIST_CAT_EMOJI[item.venueType] ?? '📍';
+              return (
+                <Link key={item.venueId} to={`/venue/${item.venueSlug}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '22px', flexShrink: 0 }}>{catEmoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{item.venueName}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.1)', padding: '1px 7px', borderRadius: '20px' }}>{HIST_BADGE_ICON[item.badgeTier]} {item.badgeTier}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{item.visitCount} visit{item.visitCount !== 1 ? 's' : ''}</span>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>→</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Recent check-ins */}
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>Recent Check-ins</h2>
+        {recentCheckIns.length === 0 ? (
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+            <div style={{ fontSize: '28px', marginBottom: '8px' }}>🏪</div>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>No check-ins yet. Find a place and tap Check In.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {recentCheckIns.map(item => {
+              const catEmoji = HIST_CAT_EMOJI[item.venueType] ?? '📍';
+              const daysAgo  = item.lastVisit ? Math.floor((Date.now() - new Date(item.lastVisit).getTime()) / 86400000) : null;
+              const lastLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo != null ? `${daysAgo}d ago` : '';
+              return (
+                <Link key={item.venueId} to={`/venue/${item.venueSlug}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '20px', flexShrink: 0 }}>{catEmoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.venueName}</div>
+                      {lastLabel && <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>{lastLabel}</div>}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Share card */}
+      {score > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <button
+            onClick={handleShare}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)',
+              borderRadius: '12px', padding: '14px', cursor: 'pointer',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
+            }}
+          >
+            <Share2 size={18} />
+            Share my Regular Score
+          </button>
+        </div>
+      )}
+
+      {/* Register a place CTA */}
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏪</div>
+        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '8px' }}>Own a place?</h3>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: '16px' }}>Register it on kayaa to track check-ins and grow your regulars.</p>
+        <Link
+          to="/onboarding"
+          style={{ display: 'inline-block', background: 'var(--color-accent)', color: '#000', textDecoration: 'none', borderRadius: '12px', padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px' }}
+        >
           Add your place
         </Link>
       </div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>Your Check-In History</h2>
-      <CheckInHistorySection />
     </div>
   );
 }
