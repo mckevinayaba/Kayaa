@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import LandingPage from './pages/LandingPage';
 import FeedPage from './pages/FeedPage';
 import VenuePage from './pages/VenuePage';
 import CheckInPage from './pages/CheckInPage';
@@ -17,13 +19,23 @@ import RegularCardPage from './pages/RegularCardPage';
 import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 
+// Root: authenticated → /feed, anonymous → landing page
+function RootRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return null; // wait for session check
+  if (user) return <Navigate to="/feed" replace />;
+  return <LandingPage />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Landing page — outside AppLayout, has its own nav */}
+          <Route path="/" element={<RootRoute />} />
+
           <Route element={<AppLayout />}>
-            <Route index element={<Navigate to="/feed" replace />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/venue/:slug" element={<VenuePage />} />
             <Route path="/venue/:slug/checkin" element={<CheckInPage />} />

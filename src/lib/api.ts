@@ -1666,3 +1666,24 @@ export async function joinCountryWaitlist(
     return { error: String(e) };
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMMUNITY STORIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function saveCommunityStory(data: {
+  place_name: string;
+  place_type?: string;
+  story?: string;
+  contact?: string;
+}): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from('community_stories').insert({
+      ...data,
+      source: 'landing_page',
+    });
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}
