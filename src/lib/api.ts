@@ -1687,3 +1687,100 @@ export async function saveCommunityStory(data: {
     return { error: String(e) };
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER POSTS (neighbourhood feed)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type UserPostCategory =
+  | 'story' | 'news' | 'alert' | 'question'
+  | 'recommendation' | 'event' | 'spotted';
+
+export interface UserPost {
+  id: string;
+  userId: string | null;
+  neighbourhood: string;
+  countryCode: string;
+  category: UserPostCategory;
+  content: string;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbUserPost(row: any): UserPost {
+  return {
+    id: row.id,
+    userId: row.user_id ?? null,
+    neighbourhood: row.neighbourhood ?? '',
+    countryCode: row.country_code ?? 'ZA',
+    category: row.category ?? 'story',
+    content: row.content ?? '',
+    imageUrl: row.image_url ?? null,
+    createdAt: row.created_at ?? '',
+  };
+}
+
+/** Fetch recent neighbourhood posts for the feed (last 30). */
+export async function getUserPostsForFeed(): Promise<UserPost[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if (error || !data) return [];
+    return data.map(dbUserPost);
+  } catch { return []; }
+}
+
+/** Fetch active safety alerts (last 24 h). */
+export async function getSafetyAlerts(): Promise<UserPost[]> {
+  try {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('user_posts')
+      .select('*')
+      .eq('category', 'alert')
+      .gt('created_at', cutoff)
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data.map(dbUserPost);
+  } catch { return []; }
+}
+
+/** Create a user post (authenticated). */
+export async function createUserPost(
+  userId: string,
+  data: {
+    neighbourhood: string;
+    category: UserPostCategory;
+    content: string;
+    image_url?: string;
+    country_code?: string;
+  }
+): Promise<{ post: UserPost | null; error: string | null }> {
+  try {
+    const { data: row, error } = await supabase
+      .from('user_posts')
+      .insert({ ...data, user_id: userId })
+      .select()
+      .single();
+    if (error || !row) return { post: null, error: error?.message ?? 'Insert failed' };
+    return { post: dbUserPost(row), error: null };
+  } catch (e) {
+    return { post: null, error: String(e) };
+  }
+}
+
+/** Upload an image for a user post. Returns public URL. */
+export async function uploadUserPostImage(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const path = `user-posts/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
+  return publicUrl;
+}

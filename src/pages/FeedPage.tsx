@@ -1,19 +1,21 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, X, MapPin } from 'lucide-react';
+import { Search, X, MapPin, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier, tierScore } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
+import PostComposer from '../components/PostComposer';
 import {
   getAllVenues, getAllEvents, getActiveStories,
   getTrendingPlaces, getHappeningTonight, getNewPlaces,
   getMostLovedPlaces, getGlobalActivity,
-  getNeighbourhoodPosts, getLocalJobs,
+  getNeighbourhoodPosts,
   getHeadingThereCountsBatch, getVibeWinnersBatch,
   getActiveStoryVenuesBatch, getActiveVenueStory,
+  getUserPostsForFeed, getSafetyAlerts,
 } from '../lib/api';
-import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, LocalJob, VibeType, VenueStory24 } from '../lib/api';
+import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost } from '../lib/api';
 import type { Venue, Event, Story } from '../types';
 import VenueCard from '../components/VenueCard';
 import StoryViewer from '../components/StoryViewer';
@@ -284,12 +286,41 @@ function ScopeNote({ children }: { children: React.ReactNode }) {
 
 // ─── Empty states ─────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ onCompose, onCheckin, onAddPlace }: {
+  onCompose: () => void;
+  onCheckin: () => void;
+  onAddPlace: () => void;
+}) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '56px 24px', textAlign: 'center' }}>
-      <div style={{ fontSize: '40px', marginBottom: '16px', opacity: 0.5 }}>🔍</div>
-      <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>No places found</h3>
-      <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>Try a different filter or check back later</p>
+    <div style={{ padding: '40px 16px', textAlign: 'center' }}>
+      <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
+        Your neighbourhood is quiet right now.
+      </h3>
+      <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '28px', lineHeight: 1.5 }}>
+        Be the first to share something.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {[
+          { emoji: '📝', label: 'Share something you know', action: onCompose },
+          { emoji: '📍', label: 'Check in somewhere nearby', action: onCheckin },
+          { emoji: '➕', label: 'Add a place to kayaa', action: onAddPlace },
+        ].map(({ emoji, label, action }) => (
+          <button
+            key={label}
+            onClick={action}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              background: '#161B22', border: '1px solid #21262D',
+              borderRadius: '14px', padding: '14px 16px', cursor: 'pointer',
+              textAlign: 'left', width: '100%',
+            }}
+          >
+            <span style={{ fontSize: '24px' }}>{emoji}</span>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#F0F6FC', fontWeight: 500 }}>{label}</span>
+            <span style={{ marginLeft: 'auto', color: '#39D98A', fontSize: '16px' }}>→</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -328,6 +359,147 @@ function LocalEmptyState({ scope, areaLabel, onExpand }: {
           Show {nextLabel} →
         </button>
       )}
+    </div>
+  );
+}
+
+// ─── User Post Card ───────────────────────────────────────────────────────────
+
+const POST_CAT: Record<string, { label: string; color: string; bg: string }> = {
+  story:          { label: 'Story',          color: '#93C5FD', bg: 'rgba(96,165,250,0.12)'  },
+  news:           { label: 'News',           color: '#FCD34D', bg: 'rgba(245,158,11,0.12)'  },
+  alert:          { label: 'Alert',          color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)'   },
+  question:       { label: 'Question',       color: '#C4B5FD', bg: 'rgba(167,139,250,0.12)' },
+  recommendation: { label: 'Tip',            color: '#6EE7B7', bg: 'rgba(57,217,138,0.12)'  },
+  event:          { label: 'Event',          color: '#6EE7B7', bg: 'rgba(52,211,153,0.12)'  },
+  spotted:        { label: 'Spotted',        color: '#C4B5FD', bg: 'rgba(139,92,246,0.12)'  },
+};
+
+function timeAgoFeed(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+function initials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function UserPostCard({ post }: { post: UserPost }) {
+  const [expanded, setExpanded] = useState(false);
+  const cat = POST_CAT[post.category] ?? { label: post.category, color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' };
+  const authorName = post.userId ? 'Neighbour' : 'kayaa team';
+  const authorInitials = initials(authorName);
+  const isAlert = post.category === 'alert';
+  const isLong = post.content.length > 240;
+
+  return (
+    <div style={{
+      background: '#161B22',
+      border: `1px solid ${isAlert ? 'rgba(239,68,68,0.4)' : '#21262D'}`,
+      borderLeft: isAlert ? '3px solid #EF4444' : undefined,
+      borderRadius: '12px',
+      padding: '14px 16px',
+      marginBottom: '10px',
+    }}>
+      {/* Top row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+        {/* Avatar */}
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+          background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '11px', color: '#39D98A',
+        }}>
+          {authorInitials}
+        </div>
+        {/* Name + area */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+            {authorName}
+          </span>
+          <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 4px', fontSize: '12px' }}>·</span>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+            {post.neighbourhood}
+          </span>
+        </div>
+        {/* Category badge */}
+        <span style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700,
+          color: cat.color, background: cat.bg, borderRadius: '20px', padding: '2px 9px',
+          whiteSpace: 'nowrap', flexShrink: 0,
+        }}>
+          {cat.label}
+        </span>
+        {/* Time */}
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
+          {timeAgoFeed(post.createdAt)}
+        </span>
+      </div>
+
+      {/* Content */}
+      <p style={{
+        fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(240,246,252,0.9)',
+        lineHeight: 1.6, margin: 0,
+        display: !expanded && isLong ? '-webkit-box' : undefined,
+        WebkitLineClamp: !expanded && isLong ? 3 : undefined,
+        WebkitBoxOrient: !expanded && isLong ? 'vertical' : undefined,
+        overflow: !expanded && isLong ? 'hidden' : undefined,
+      } as React.CSSProperties}>
+        {post.content}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          style={{ background: 'none', border: 'none', color: '#39D98A', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '4px 0 0', fontFamily: 'DM Sans, sans-serif' }}
+        >
+          {expanded ? 'Show less' : 'Read more'}
+        </button>
+      )}
+
+      {/* Image */}
+      {post.imageUrl && (
+        <img src={post.imageUrl} alt="Post" loading="lazy" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px', border: '1px solid #21262D' }} />
+      )}
+
+      {/* Footer */}
+      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <button disabled style={{
+          background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'default',
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+        }}>
+          💬 Reply
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Safety Alert Banner ──────────────────────────────────────────────────────
+
+function SafetyAlertBanner({ post }: { post: UserPost }) {
+  return (
+    <div style={{
+      background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.35)',
+      borderLeft: '3px solid #EF4444', borderRadius: '12px', padding: '12px 14px', marginBottom: '10px',
+    }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <span style={{ fontSize: '16px', flexShrink: 0 }}>🚨</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#FCA5A5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Safety Alert</span>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.neighbourhood} · {timeAgoFeed(post.createdAt)}</span>
+          </div>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.85)', lineHeight: 1.55, margin: 0 }}>
+            {post.content}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -392,9 +564,6 @@ const BOARD_CAT_LABELS: Record<string, string> = {
   announcement: 'Announcement', lost_found: 'Lost & Found', question: 'Question',
   recommendation: 'Recommendation', event: 'Event', general: 'General',
 };
-const JOB_TYPE_COLORS: Record<string, string> = { full_time: '#39D98A', part_time: '#60A5FA', once_off: '#F5A623', skill_offer: '#A78BFA' };
-const JOB_TYPE_LABELS: Record<string, string> = { full_time: 'Full time', part_time: 'Part time', once_off: 'Once-off', skill_offer: 'Skill offer' };
-
 function teaserTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
@@ -425,35 +594,6 @@ function BoardTeaser({ posts }: { posts: NeighbourhoodPost[] }) {
               <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                 {post.content}
               </p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function JobsTeaser({ jobs }: { jobs: LocalJob[] }) {
-  const navigate = useNavigate();
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>Local opportunities</h2>
-        <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}>See all →</button>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {jobs.map(job => {
-          const color = JOB_TYPE_COLORS[job.jobType] ?? '#94A3B8';
-          return (
-            <div key={job.id} onClick={() => navigate('/jobs')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0, background: `${color}18`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>💼</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', marginBottom: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{job.title}</div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '1px 7px', borderRadius: '20px' }}>{JOB_TYPE_LABELS[job.jobType] ?? job.jobType}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>👤 {job.postedBy}</span>
-                </div>
-              </div>
             </div>
           );
         })}
@@ -522,6 +662,7 @@ function InstallBanner() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
+  const navigate = useNavigate();
   const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
   const { selectedCountry, categoryLabels } = useCountry();
 
@@ -535,7 +676,9 @@ export default function FeedPage() {
   const [rawMostLoved, setRawMostLoved] = useState<Venue[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
-  const [boardJobs, setBoardJobs] = useState<LocalJob[]>([]);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+  const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
+  const [showComposer, setShowComposer] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Interactivity data (Sprint 5)
@@ -580,8 +723,9 @@ export default function FeedPage() {
       getMostLovedPlaces(city),
       getGlobalActivity(),
       getNeighbourhoodPosts(areaLabel),
-      getLocalJobs(areaLabel),
-    ]).then(([v, e, s, tr, tn, np, ml, act, bp, bj]) => {
+      getUserPostsForFeed(),
+      getSafetyAlerts(),
+    ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa]) => {
       const venues = v as Venue[];
       setRawVenues(venues);
       setEvents(e);
@@ -592,7 +736,8 @@ export default function FeedPage() {
       setRawMostLoved(ml);
       setActivity(act);
       setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 2));
-      setBoardJobs((bj as LocalJob[]).slice(0, 2));
+      setUserPosts(up as UserPost[]);
+      setSafetyAlerts(sa as UserPost[]);
       setLoading(false);
 
       // Smart default scope: use this_neighbourhood only if enough local places exist.
@@ -767,13 +912,36 @@ export default function FeedPage() {
         <EventRail events={events} venues={venues} />
       )}
 
+      {/* Safety alerts — always at top */}
+      {safetyAlerts.map(a => <SafetyAlertBanner key={a.id} post={a} />)}
+
+      {/* Community posts — visible when no filters active */}
+      {!loading && !isFiltered && userPosts.length > 0 && (
+        <div style={{ marginBottom: '8px' }}>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
+            From the neighbourhood
+          </h2>
+          {userPosts.slice(0, 5).map(p => <UserPostCard key={p.id} post={p} />)}
+          {userPosts.length > 5 && (
+            <button
+              onClick={() => setShowComposer(true)}
+              style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}
+            >
+              + {userPosts.length - 5} more posts — share yours
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Venue cards with interleaved activity */}
       {loading ? (
         <div><VenueCardSkeleton /><VenueCardSkeleton /><VenueCardSkeleton /></div>
       ) : filteredVenues.length === 0 ? (
         isFiltered
-          ? <EmptyState />
-          : <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} />
+          ? <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
+          : userPosts.length > 0
+            ? <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} />
+            : <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
       ) : (
         <div>
           {filteredVenues.map((venue, i) => {
@@ -817,8 +985,7 @@ export default function FeedPage() {
       {/* Neighbourhood Board teaser */}
       {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}
 
-      {/* Local Jobs teaser */}
-      {boardJobs.length > 0 && <JobsTeaser jobs={boardJobs} />}
+      {/* Jobs teaser removed — Jobs lives under Board categories */}
 
       <InstallBanner />
 
@@ -834,6 +1001,33 @@ export default function FeedPage() {
           venueName={viewingStory.venueName}
           venueCategory={viewingStory.venueCategory}
           onClose={() => setViewingStory(null)}
+        />
+      )}
+
+      {/* Floating compose button */}
+      <button
+        onClick={() => setShowComposer(true)}
+        title="Share something with your neighbourhood"
+        style={{
+          position: 'fixed', bottom: '80px', right: '16px', zIndex: 50,
+          width: '52px', height: '52px', borderRadius: '50%',
+          background: '#39D98A', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(57,217,138,0.45)',
+          cursor: 'pointer', transition: 'transform 0.15s, filter 0.15s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
+        onMouseLeave={e => (e.currentTarget.style.filter = '')}
+      >
+        <PenSquare size={22} color="#0D1117" />
+      </button>
+
+      {/* Post composer */}
+      {showComposer && (
+        <PostComposer
+          neighbourhood={suburb || areaLabel}
+          onClose={() => setShowComposer(false)}
+          onPosted={post => setUserPosts(prev => [post, ...prev])}
         />
       )}
     </div>
