@@ -864,6 +864,8 @@ export default function FeedPage() {
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [showComposer, setShowComposer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [cacheDate, setCacheDate] = useState<string | null>(null);
 
   // Interactivity data (Sprint 5)
   const [headingCounts, setHeadingCounts] = useState<Record<string, number>>({});
@@ -900,6 +902,27 @@ export default function FeedPage() {
     { key: 'events', label: '📅 Events' },
   ], [categoryLabels]);
 
+  // Online/offline detection
+  useEffect(() => {
+    const on  = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online',  on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+
+  useEffect(() => {
+    // Load from cache immediately when offline so screen isn't blank
+    if (!navigator.onLine) {
+      const cached = localStorage.getItem('kayaa_cached_venues');
+      const ts     = localStorage.getItem('kayaa_venues_cached_at');
+      if (cached) {
+        try { setRawVenues(JSON.parse(cached)); setLoading(false); } catch { /* noop */ }
+      }
+      if (ts) setCacheDate(ts);
+    }
+  }, []);
+
   useEffect(() => {
     Promise.all([
       getAllVenues(selectedCountry.code),
@@ -916,6 +939,11 @@ export default function FeedPage() {
     ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa]) => {
       const venues = v as Venue[];
       setRawVenues(venues);
+      // Cache top 50 for offline use
+      try {
+        localStorage.setItem('kayaa_cached_venues', JSON.stringify(venues.slice(0, 50)));
+        localStorage.setItem('kayaa_venues_cached_at', new Date().toISOString());
+      } catch { /* storage full — noop */ }
       setEvents(e);
       setStories(s);
       setRawTrending(tr);
@@ -1043,6 +1071,27 @@ export default function FeedPage() {
 
   return (
     <div style={{ padding: '16px' }}>
+
+      {/* Offline banner */}
+      {!isOnline && (
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: '10px',
+          background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)',
+          borderRadius: '12px', padding: '10px 14px', marginBottom: '14px',
+        }}>
+          <span style={{ fontSize: '16px', flexShrink: 0 }}>⚠️</span>
+          <div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F59E0B' }}>
+              You're offline
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px', lineHeight: 1.4 }}>
+              {cacheDate
+                ? `Showing places saved ${new Date(cacheDate).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}. Some info may be outdated.`
+                : 'No cached data available. Connect to the internet to load places.'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stories strip with "+" compose bubble */}
       <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />

@@ -20,6 +20,7 @@ import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
 import SkillsPage from './pages/SkillsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -53,6 +54,8 @@ export default function App() {
             <Route path="/skills"  element={<SkillsPage />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
             <Route path="/countries" element={<CountriesPage />} />
+            <Route path="/profile"   element={<ProfilePage />} />
+            <Route path="/search"    element={<Navigate to="/checkin" replace />} />
             <Route
               path="/dashboard"
               element={

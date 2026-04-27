@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation } from 'react-router-dom';
-import { Home, MapPin, LayoutDashboard, PlusCircle, MessageSquare, CheckSquare } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import useLocation from '../hooks/useLocation';
 import AreaSelector from '../components/AreaSelector';
 import CountrySelector from '../components/CountrySelector';
 import { useCountry } from '../contexts/CountryContext';
 
 const navItems = [
-  { to: '/feed',       icon: Home,            label: 'Feed'      },
-  { to: '/board',      icon: MessageSquare,   label: 'Board'     },
-  { to: '/checkin',    icon: CheckSquare,     label: 'Check In'  },
-  { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/onboarding', icon: PlusCircle,      label: 'Add Place' },
+  { to: '/feed',       emoji: '🏠', label: 'Feed'      },
+  { to: '/checkin',    emoji: '📍', label: 'Explore'   },
+  { to: '/board',      emoji: '💬', label: 'Board'     },
+  { to: '/onboarding', emoji: '➕', label: 'Add Place' },
+  { to: '/profile',    emoji: '👤', label: 'Me'        },
 ];
 
 export default function AppLayout() {
@@ -135,23 +135,43 @@ export default function AppLayout() {
       {/* Bottom mobile nav */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)',
+        background: '#0D1117',
+        borderTop: '1px solid rgba(57,217,138,0.1)',
         display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-        height: '64px', padding: '0 8px',
+        height: '64px',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: '8px', paddingRight: '8px',
       }}>
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {navItems.map(({ to, emoji, label }) => (
           <NavLink
             key={to}
             to={to}
             style={({ isActive }) => ({
               display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '4px', textDecoration: 'none',
-              color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
-              flex: 1, padding: '8px 0',
+              gap: '3px', textDecoration: 'none',
+              color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
+              flex: 1, padding: '8px 0', minWidth: '60px',
+              transition: 'color 0.15s',
             })}
           >
-            <Icon size={20} />
-            <span style={{ fontSize: '11px', fontWeight: 500 }}>{label}</span>
+            {({ isActive }) => (
+              <>
+                <span style={{
+                  fontSize: '22px', lineHeight: 1,
+                  filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
+                  transition: 'filter 0.15s',
+                }}>
+                  {emoji}
+                </span>
+                <span style={{
+                  fontSize: '10px', fontWeight: isActive ? 700 : 500,
+                  fontFamily: 'DM Sans, sans-serif',
+                  letterSpacing: '0.01em',
+                }}>
+                  {label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

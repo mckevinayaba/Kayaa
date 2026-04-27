@@ -74,151 +74,175 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         style={{
           background: 'var(--color-surface)',
           border: '1px solid var(--color-border)',
-          borderRadius: '16px', padding: '16px', marginBottom: '12px',
+          borderRadius: '16px', overflow: 'hidden', marginBottom: '12px',
           cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
           position: 'relative',
         }}
       >
-        {/* Vibe badge — top-right */}
-        {vibeWinner && (
-          <div style={{
-            position: 'absolute', top: '12px', right: '12px',
-            background: 'rgba(13,17,23,0.85)', borderRadius: '12px',
-            padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px',
-            border: '1px solid rgba(255,255,255,0.12)',
-          }}>
-            <span style={{ fontSize: '11px' }}>{VIBE_EMOJI[vibeWinner.vibe]}</span>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
-              {VIBE_LABEL[vibeWinner.vibe]}
-            </span>
-          </div>
-        )}
-
-        {/* Top row: avatar + name block */}
-        <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '12px' }}>
-          {/* Emoji avatar — with optional story ring */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            {hasActiveStory && (
-              <div
-                onClick={e => { e.stopPropagation(); onStoryTap?.(); }}
-                style={{
-                  position: 'absolute', inset: '-4px', borderRadius: '18px',
-                  border: '2.5px solid #22c55e',
-                  animation: 'storyRing 2s ease-in-out infinite',
-                  cursor: 'pointer', zIndex: 1,
-                }}
-              />
-            )}
+        {/* ── 16:9 photo header ── */}
+        <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden' }}>
+          {venue.coverImage ? (
+            <img
+              src={venue.coverImage}
+              alt={venue.name}
+              loading="lazy"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            /* Emoji fallback — gradient + large category emoji */
             <div style={{
-              width: '52px', height: '52px', borderRadius: '14px',
-              background: `${color}18`, border: `1px solid ${color}30`,
+              position: 'absolute', inset: 0,
+              background: `linear-gradient(135deg, ${color}22 0%, ${color}08 100%)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '24px', position: 'relative', zIndex: 0,
+              fontSize: '56px',
             }}>
               {emoji}
             </div>
+          )}
+
+          {/* Status badge overlay — top-left */}
+          <div style={{
+            position: 'absolute', top: '10px', left: '10px',
+            background: `${status.color}dd`, backdropFilter: 'blur(6px)',
+            borderRadius: '20px', padding: '4px 10px',
+            display: 'flex', alignItems: 'center', gap: '4px',
+          }}>
+            <span style={{ fontSize: '12px' }}>{status.dot}</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
+              {status.label}
+            </span>
           </div>
 
-          {/* Name + badges */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
-              <h3 style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-                color: 'var(--color-text)', lineHeight: 1.2,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                margin: 0, flex: 1, minWidth: 0,
-              }}>
-                {venue.name}
-              </h3>
-              {venue.isVerified && <CheckCircle2 size={15} color="#39D98A" style={{ flexShrink: 0 }} />}
+          {/* Vibe badge — top-right */}
+          {vibeWinner && (
+            <div style={{
+              position: 'absolute', top: '10px', right: '10px',
+              background: 'rgba(13,17,23,0.85)', borderRadius: '12px',
+              padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px',
+              border: '1px solid rgba(255,255,255,0.12)',
+            }}>
+              <span style={{ fontSize: '11px' }}>{VIBE_EMOJI[vibeWinner.vibe]}</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
+                {VIBE_LABEL[vibeWinner.vibe]}
+              </span>
             </div>
+          )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
-                {venue.category}
+          {/* Story ring on avatar thumbnail — bottom-left */}
+          {hasActiveStory && (
+            <div
+              onClick={e => { e.stopPropagation(); onStoryTap?.(); }}
+              style={{
+                position: 'absolute', bottom: '10px', left: '10px',
+                width: '36px', height: '36px', borderRadius: '10px',
+                border: '2px solid #22c55e',
+                background: `${color}33`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '18px', cursor: 'pointer', zIndex: 1,
+                animation: 'storyRing 2s ease-in-out infinite',
+              }}
+            >
+              {emoji}
+            </div>
+          )}
+        </div>
+
+        {/* ── Card body ── */}
+        <div style={{ padding: '14px 16px 0' }}>
+
+          {/* Category header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
+              {emoji} {venue.category}
+            </span>
+            {venue.isVerified && <CheckCircle2 size={14} color="#39D98A" />}
+            {(venue.checkinsToday ?? 0) > 0 && (
+              <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 600, marginLeft: 'auto' }}>
+                📍 {venue.checkinsToday} today
               </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: status.color, background: `${status.color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
-                {status.dot} {status.label}
+            )}
+          </div>
+
+          {/* Place name */}
+          <h3 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px',
+            color: 'var(--color-text)', lineHeight: 1.2, margin: '0 0 4px',
+          }}>
+            {venue.name}
+          </h3>
+
+          {/* Location */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px' }}>
+            <MapPin size={11} color="var(--color-muted)" />
+            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+              {venue.neighborhood}, {venue.city}
+            </span>
+          </div>
+
+          {recommendationReason && (
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700,
+                color: 'rgba(255,255,255,0.45)',
+                fontFamily: 'DM Sans, sans-serif',
+                letterSpacing: '0.02em',
+              }}>
+                {recommendationReason}
               </span>
-              {(venue.checkinsToday ?? 0) > 0 && (
-                <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>
-                  📍 {venue.checkinsToday} today
+            </div>
+          )}
+
+          <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: '14px' }}>
+            {getHumanDetail(venue.description)}
+          </p>
+
+          {/* Bottom row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {(venue.regularsCount ?? venue.checkinCount) > 50 && (
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                  <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                    💛 {(venue.regularsCount ?? venue.checkinCount).toLocaleString()}
+                  </span> regulars
+                </span>
+              )}
+              {venue.lastCheckinAt && (
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                  · {timeAgoShort(venue.lastCheckinAt)}
+                </span>
+              )}
+              {headingCount > 0 && (
+                <span style={{
+                  fontSize: '11px', fontWeight: 700,
+                  background: 'rgba(245,166,35,0.12)',
+                  color: '#F5A623', border: '1px solid rgba(245,166,35,0.25)',
+                  borderRadius: '10px', padding: '2px 7px',
+                  animation: 'headingPulse 2s ease-in-out infinite',
+                  display: 'inline-block',
+                }}>
+                  🚶 {headingCount}
                 </span>
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '4px' }}>
-              <MapPin size={11} color="var(--color-muted)" />
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {venue.neighborhood}, {venue.city}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={e => { e.stopPropagation(); setShareOpen(true); }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '50%', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', flexShrink: 0, cursor: 'pointer' }}
+              >
+                <Share2 size={14} color="var(--color-muted)" />
+              </button>
+              <Link
+                to={`/venue/${venue.slug}/checkin`}
+                onClick={e => e.stopPropagation()}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--color-accent)', color: '#000', textDecoration: 'none', fontSize: '12px', fontWeight: 700, fontFamily: 'Syne, sans-serif', padding: '6px 14px', borderRadius: '20px', letterSpacing: '0.01em' }}
+              >
+                Check in
+              </Link>
             </div>
           </div>
-        </div>
-
-        {recommendationReason && (
-          <div style={{ marginBottom: '8px' }}>
-            <span style={{
-              fontSize: '10px', fontWeight: 700,
-              color: 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans, sans-serif',
-              letterSpacing: '0.02em',
-            }}>
-              {recommendationReason}
-            </span>
-          </div>
-        )}
-
-        <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: '14px' }}>
-          {getHumanDetail(venue.description)}
-        </p>
-
-        {/* Bottom row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            {(venue.regularsCount ?? venue.checkinCount) > 50 && (
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>
-                  💛 {(venue.regularsCount ?? venue.checkinCount).toLocaleString()}
-                </span> regulars
-              </span>
-            )}
-            {venue.lastCheckinAt && (
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-                · {timeAgoShort(venue.lastCheckinAt)}
-              </span>
-            )}
-            {headingCount > 0 && (
-              <span style={{
-                fontSize: '11px', fontWeight: 700,
-                background: 'rgba(245,166,35,0.12)',
-                color: '#F5A623', border: '1px solid rgba(245,166,35,0.25)',
-                borderRadius: '10px', padding: '2px 7px',
-                animation: 'headingPulse 2s ease-in-out infinite',
-                display: 'inline-block',
-              }}>
-                🚶 {headingCount}
-              </span>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              onClick={e => { e.stopPropagation(); setShareOpen(true); }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '50%', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', flexShrink: 0, cursor: 'pointer' }}
-            >
-              <Share2 size={14} color="var(--color-muted)" />
-            </button>
-            <Link
-              to={`/venue/${venue.slug}/checkin`}
-              onClick={e => e.stopPropagation()}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--color-accent)', color: '#000', textDecoration: 'none', fontSize: '12px', fontWeight: 700, fontFamily: 'Syne, sans-serif', padding: '6px 14px', borderRadius: '20px', letterSpacing: '0.01em' }}
-            >
-              Check in
-            </Link>
-          </div>
-        </div>
-      </div>
+        </div>{/* end card body */}
+      </div>{/* end card */}
 
       <ShareModal
         type="place"
