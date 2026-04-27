@@ -189,6 +189,17 @@ function scopeFilterRail<T extends Venue>(
   return { venues: venues.slice(0, 3), expanded: true, expandedScope: 'city_wide' };
 }
 
+// Sort venues: busy → open → quiet → closed, then by check-ins today descending
+function sortByActivity(venues: Venue[]): Venue[] {
+  const priority: Record<string, number> = { busy: 0, open: 1, quiet: 2, closed: 3 };
+  return [...venues].sort((a, b) => {
+    const pa = priority[a.venueStatus ?? 'open'] ?? 1;
+    const pb = priority[b.venueStatus ?? 'open'] ?? 1;
+    if (pa !== pb) return pa - pb;
+    return (b.checkinsToday ?? 0) - (a.checkinsToday ?? 0);
+  });
+}
+
 function applyActivityFilter(venues: Venue[], filter: ActivityFilter, ids: Set<string>): Venue[] {
   switch (filter) {
     case 'Open now':     return venues.filter(v => v.venueStatus !== 'closed');
@@ -992,38 +1003,48 @@ export default function FeedPage() {
       {/* Safety alerts — always at top */}
       {safetyAlerts.map(a => <SafetyAlertBanner key={a.id} post={a} />)}
 
-      {/* Community posts — visible when no filters active */}
-      {!loading && !isFiltered && userPosts.length > 0 && (
-        <div style={{ marginBottom: '8px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-            From the neighbourhood
-          </h2>
-          {userPosts.slice(0, 5).map(p => (
-            <UserPostCard key={p.id} post={p} liked={likedPostIds.has(p.id)} onLike={handleLike} />
-          ))}
-          {userPosts.length > 5 && (
-            <button
-              onClick={() => setShowComposer(true)}
-              style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}
-            >
-              + {userPosts.length - 5} more posts — share yours
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Venue cards with interleaved activity */}
+      {/* ── Active Places Nearby ──────────────────────────────── */}
       {loading ? (
-        <div><VenueCardSkeleton /><VenueCardSkeleton /><VenueCardSkeleton /></div>
+        <div>
+          <div style={{ height: '20px', width: '40%', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', marginBottom: '14px' }} />
+          <VenueCardSkeleton /><VenueCardSkeleton /><VenueCardSkeleton />
+        </div>
       ) : filteredVenues.length === 0 ? (
-        isFiltered
-          ? <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
-          : userPosts.length > 0
-            ? <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} />
-            : <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
+        /* Empty state — only show harsh message if no posts either */
+        isFiltered ? (
+          <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔍</div>
+            <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '6px' }}>
+              No {categoryFilter !== 'All' ? categoryFilter.toLowerCase() + 's' : 'places'} found
+              {activityFilter !== 'All' ? ` that are ${activityFilter.toLowerCase()}` : ''} in {areaLabel}
+            </p>
+            {scope !== 'explore_all' && (
+              <button
+                onClick={() => handleScopeChange(scope === 'this_neighbourhood' ? 'nearby' : scope === 'nearby' ? 'city_wide' : 'explore_all')}
+                style={{ background: 'none', border: '1px solid rgba(57,217,138,0.3)', color: '#39D98A', borderRadius: '10px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', marginTop: '8px' }}
+              >
+                Show {SCOPE_LABELS[scope === 'this_neighbourhood' ? 'nearby' : scope === 'nearby' ? 'city_wide' : 'explore_all']} →
+              </button>
+            )}
+          </div>
+        ) : userPosts.length > 0 ? (
+          <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} />
+        ) : (
+          <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
+        )
       ) : (
         <div>
-          {filteredVenues.map((venue, i) => {
+          {/* Section header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+              Active places nearby
+            </h2>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+              {filteredVenues.length} place{filteredVenues.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {sortByActivity(filteredVenues).map((venue, i) => {
             const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
             const moment = showActivity ? activity[activityIdx] : null;
             if (showActivity) activityIdx++;
@@ -1045,6 +1066,31 @@ export default function FeedPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── From the neighbourhood (community posts) ────────── */}
+      {!loading && !isFiltered && userPosts.length > 0 && (
+        <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 16px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+              From the neighbourhood
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+          {userPosts.slice(0, 5).map(p => (
+            <UserPostCard key={p.id} post={p} liked={likedPostIds.has(p.id)} onLike={handleLike} />
+          ))}
+          {userPosts.length > 5 && (
+            <button
+              onClick={() => setShowComposer(true)}
+              style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}
+            >
+              + {userPosts.length - 5} more posts — share yours
+            </button>
+          )}
         </div>
       )}
 
