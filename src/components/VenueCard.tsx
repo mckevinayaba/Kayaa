@@ -52,9 +52,10 @@ interface VenueCardProps {
   vibeWinner?: { vibe: VibeType; count: number } | null;
   hasActiveStory?: boolean;
   onStoryTap?: () => void;
+  recommendationReason?: string;
 }
 
-export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap }: VenueCardProps) {
+export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason }: VenueCardProps) {
   const navigate = useNavigate();
   const emoji  = categoryEmoji[venue.category] ?? '📍';
   const color  = categoryColor[venue.category] ?? '#39D98A';
@@ -154,6 +155,19 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             </div>
           </div>
         </div>
+
+        {recommendationReason && (
+          <div style={{ marginBottom: '8px' }}>
+            <span style={{
+              fontSize: '10px', fontWeight: 700,
+              color: 'rgba(255,255,255,0.45)',
+              fontFamily: 'DM Sans, sans-serif',
+              letterSpacing: '0.02em',
+            }}>
+              {recommendationReason}
+            </span>
+          </div>
+        )}
 
         <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: '14px' }}>
           {getHumanDetail(venue.description)}

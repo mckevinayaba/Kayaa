@@ -262,6 +262,23 @@ function getVelocityLabel(venue: Venue): string | null {
   return null;
 }
 
+function getRecommendationReason(venue: Venue, userNeighbourhood: string): string | null {
+  const lastWeek = venue.checkinsLastWeek ?? 0;
+  const growth = venue.checkinsThisWeek / Math.max(lastWeek, 1);
+  const loyaltyRatio = venue.regularsCount / Math.max(venue.checkinCount, 1);
+  const isNew = new Date(venue.createdAt).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const isGem = venue.regularsCount >= 20 && loyaltyRatio > 0.5 && venue.checkinCount < 500;
+  const isSameArea = (venue.neighborhood ?? '').toLowerCase() === (userNeighbourhood ?? '').toLowerCase();
+
+  if (growth > 1.5 && venue.checkinsThisWeek >= 3) return '🔥 Trending in your area';
+  if (venue.checkinsToday > 10) return '⚡ Busy right now';
+  if (venue.regularsCount > 200) return '💛 Community favourite';
+  if (isSameArea && venue.venueStatus !== 'closed') return '📍 In your neighbourhood';
+  if (isNew) return '✨ New on Kayaa';
+  if (isGem) return '💎 Hidden gem';
+  return null;
+}
+
 function applySortMode(venues: Venue[], mode: SortMode, userNeighbourhood: string): Venue[] {
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
@@ -869,7 +886,10 @@ export default function FeedPage() {
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
-  const [sortMode, setSortMode] = useState<SortMode>('for_you');
+  const [sortMode, setSortMode] = useState<SortMode>(() => {
+    const saved = localStorage.getItem('kayaa_feed_sort') as SortMode | null;
+    return saved ?? 'for_you';
+  });
 
   // Scope: starts at 'nearby' (safe default); set to smart default after data loads.
   // manualScope tracks whether the user explicitly picked a scope this session.
@@ -1114,7 +1134,10 @@ export default function FeedPage() {
       </div>
 
       {/* Sort mode selector */}
-      <SortSelector value={sortMode} onChange={setSortMode} />
+      <SortSelector value={sortMode} onChange={mode => {
+        setSortMode(mode);
+        localStorage.setItem('kayaa_feed_sort', mode);
+      }} />
 
       {/* Trending this week — scope-filtered */}
       {trendingResult.expanded && trendingResult.venues.length > 0 && (
@@ -1209,6 +1232,7 @@ export default function FeedPage() {
                   if (showActivity) activityIdx++;
                   const hasActiveStory = activeStoryVenueIds.has(venue.id);
                   const velLabel = sortMode === 'trending' ? getVelocityLabel(venue) : null;
+                  const reason   = getRecommendationReason(venue, suburb);
                   return (
                     <div key={venue.id}>
                       {velLabel && (
@@ -1221,6 +1245,7 @@ export default function FeedPage() {
                         headingCount={headingCounts[venue.id] ?? 0}
                         vibeWinner={vibeWinners[venue.id] ?? null}
                         hasActiveStory={hasActiveStory}
+                        recommendationReason={reason ?? undefined}
                         onStoryTap={hasActiveStory ? () => {
                           getActiveVenueStory(venue.id).then(story => {
                             if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
@@ -1261,6 +1286,95 @@ export default function FeedPage() {
           )}
         </div>
       )}
+
+      {/* ── Hidden Gems ──────────────────────────────────────── */}
+      {!loading && !isFiltered && (() => {
+        const gems = venues
+          .filter(v => {
+            const ratio = v.regularsCount / Math.max(v.checkinCount, 1);
+            return (
+              v.regularsCount >= 20 &&
+              v.regularsCount <= 300 &&
+              ratio > 0.5 &&
+              (v.checkinsThisWeek ?? 0) >= 3 &&
+              v.checkinCount < 800
+            );
+          })
+          .sort((a, b) => {
+            const ra = a.regularsCount / Math.max(a.checkinCount, 1);
+            const rb = b.regularsCount / Math.max(b.checkinCount, 1);
+            return rb - ra;
+          })
+          .slice(0, 6);
+
+        if (gems.length === 0) return null;
+
+        return (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+                💎 Hidden Gems
+              </h2>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                High loyalty · low noise
+              </span>
+            </div>
+            <div style={{
+              display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none',
+              marginLeft: '-16px', paddingLeft: '16px',
+              marginRight: '-16px', paddingRight: '16px',
+              paddingBottom: '4px', WebkitOverflowScrolling: 'touch',
+            } as React.CSSProperties}>
+              {gems.map(venue => {
+                const catEmoji: Record<string, string> = {
+                  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
+                  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+                  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
+                };
+                const catColor: Record<string, string> = {
+                  Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
+                  Café: '#F59E0B', Church: '#A78BFA', Carwash: '#34D399',
+                  'Spaza Shop': '#60A5FA', Salon: '#F472B6', Tutoring: '#34D399',
+                  'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
+                };
+                const emoji = catEmoji[venue.category] ?? '📍';
+                const color = catColor[venue.category] ?? '#39D98A';
+                const loyaltyPct = Math.round((venue.regularsCount / Math.max(venue.checkinCount, 1)) * 100);
+                return (
+                  <div
+                    key={venue.id}
+                    onClick={() => navigate(`/venue/${venue.slug}`)}
+                    style={{
+                      flexShrink: 0, width: '148px', cursor: 'pointer',
+                      background: 'var(--color-surface)',
+                      border: '1px solid rgba(167,139,250,0.2)',
+                      borderRadius: '14px', padding: '12px',
+                    }}
+                  >
+                    <div style={{
+                      width: '38px', height: '38px', borderRadius: '10px',
+                      background: `${color}18`, border: `1px solid ${color}30`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '18px', marginBottom: '8px',
+                    }}>
+                      {emoji}
+                    </div>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--color-text)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {venue.name}
+                    </div>
+                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {venue.neighborhood}
+                    </div>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#A78BFA', background: 'rgba(167,139,250,0.12)', padding: '2px 7px', borderRadius: '20px', display: 'inline-block' }}>
+                      {loyaltyPct}% loyal
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Most loved — scope-filtered */}
       {!loading && (
