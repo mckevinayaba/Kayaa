@@ -198,17 +198,6 @@ function scopeFilterRail<T extends Venue>(
   return { venues: venues.slice(0, 3), expanded: true, expandedScope: 'city_wide' };
 }
 
-// Sort venues: busy → open → quiet → closed, then by check-ins today descending
-function sortByActivity(venues: Venue[]): Venue[] {
-  const priority: Record<string, number> = { busy: 0, open: 1, quiet: 2, closed: 3 };
-  return [...venues].sort((a, b) => {
-    const pa = priority[a.venueStatus ?? 'open'] ?? 1;
-    const pb = priority[b.venueStatus ?? 'open'] ?? 1;
-    if (pa !== pb) return pa - pb;
-    return (b.checkinsToday ?? 0) - (a.checkinsToday ?? 0);
-  });
-}
-
 // ─── Trust-weighted algorithm ─────────────────────────────────────────────────
 //
 //  trust_score = (0.4 × recency) + (0.3 × regularity) + (0.2 × velocity) + (0.1 × proximity)
