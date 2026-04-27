@@ -312,6 +312,40 @@ export default function BoardPage() {
         </button>
       </div>
 
+      {/* Post Your Skills banner */}
+      <div
+        onClick={() => navigate('/board/new?cat=services')}
+        style={{
+          margin: '14px 16px 0',
+          background: 'linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(57,217,138,0.08) 100%)',
+          border: '1px solid rgba(96,165,250,0.25)',
+          borderRadius: '14px',
+          padding: '14px 16px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}
+      >
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
+          background: 'rgba(96,165,250,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '20px',
+        }}>
+          🔧
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '2px' }}>
+            Post Your Skills
+          </div>
+          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
+            Barber, mechanic, tutor, cleaner, DJ — let your neighbourhood find you
+          </div>
+        </div>
+        <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</span>
+      </div>
+
       {/* Category filter strip */}
       <div style={{
         display: 'flex', gap: '6px',

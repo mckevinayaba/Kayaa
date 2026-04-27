@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Camera, X, AlertTriangle } from 'lucide-react';
 import {
   createBoardPost,
@@ -26,8 +26,34 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
         Choose a category to get started
       </p>
 
+      {/* Post Your Skills hero card — full-width, above the grid */}
+      <button
+        onClick={() => onSelect('services')}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
+          background: 'linear-gradient(135deg, rgba(96,165,250,0.14) 0%, rgba(57,217,138,0.08) 100%)',
+          border: '1px solid rgba(96,165,250,0.3)',
+          borderRadius: '16px', padding: '18px 16px',
+          cursor: 'pointer', textAlign: 'left', marginBottom: '10px',
+          boxShadow: '0 2px 12px rgba(96,165,250,0.1)',
+        }}
+      >
+        <div style={{ fontSize: '32px', flexShrink: 0 }}>🔧</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px', color: 'var(--color-text)', marginBottom: '3px' }}>
+            Post Your Skills
+          </div>
+          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
+            Barber · mechanic · DJ · tutor · cleaner · caterer · plumber
+          </div>
+        </div>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: '#60A5FA', background: 'rgba(96,165,250,0.12)', padding: '3px 8px', borderRadius: '20px', flexShrink: 0, fontFamily: 'DM Sans, sans-serif' }}>
+          Services
+        </span>
+      </button>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {BOARD_CATEGORIES.map(cat => {
+        {BOARD_CATEGORIES.filter(c => c.key !== 'services').map(cat => {
           const isSafety = cat.key === 'safety';
           return (
             <button
@@ -120,6 +146,18 @@ function DetailsForm({
 
   return (
     <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
+
+      {/* Services: Post Your Skills hint */}
+      {category === 'services' && (
+        <div style={{
+          background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
+          borderRadius: '12px', padding: '12px 14px', marginBottom: '16px',
+        }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', margin: 0, lineHeight: 1.5 }}>
+            💡 Tip: Be specific about what you offer, your price, and how to reach you. Posts stay active for 30 days.
+          </p>
+        </div>
+      )}
 
       {/* Safety urgency toggle */}
       {isSafety && (
@@ -481,9 +519,19 @@ function PreviewStep({
 
 export default function BoardNewPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { selectedCountry } = useCountry();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [category, setCategory] = useState<BoardCategory>('ask');
+
+  // Pre-select category from query param (e.g. ?cat=services from "Post Your Skills" CTA)
+  useEffect(() => {
+    const cat = searchParams.get('cat') as BoardCategory | null;
+    if (cat && ['for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation','safety'].includes(cat)) {
+      setCategory(cat);
+      setStep(2);
+    }
+  }, [searchParams]);
   const [formData, setFormData] = useState<FormData>({
     title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false,
   });
