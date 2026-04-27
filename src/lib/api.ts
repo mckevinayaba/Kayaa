@@ -1704,6 +1704,7 @@ export interface UserPost {
   category: UserPostCategory;
   content: string;
   imageUrl: string | null;
+  likesCount: number;
   createdAt: string;
 }
 
@@ -1717,6 +1718,7 @@ function dbUserPost(row: any): UserPost {
     category: row.category ?? 'story',
     content: row.content ?? '',
     imageUrl: row.image_url ?? null,
+    likesCount: row.likes_count ?? 0,
     createdAt: row.created_at ?? '',
   };
 }
@@ -1783,4 +1785,30 @@ export async function uploadUserPostImage(userId: string, file: File): Promise<s
   if (error) throw new Error(error.message);
   const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
   return publicUrl;
+}
+
+/** Toggle like on a post. Returns new liked state. */
+export async function likePost(postId: string, userId: string): Promise<void> {
+  await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
+}
+
+export async function unlikePost(postId: string, userId: string): Promise<void> {
+  await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+}
+
+/**
+ * Returns the set of post IDs that the given user has liked.
+ * Pass the list of post IDs currently visible in the feed to keep the query small.
+ */
+export async function getUserLikedPosts(userId: string, postIds: string[]): Promise<Set<string>> {
+  if (!userId || postIds.length === 0) return new Set();
+  try {
+    const { data, error } = await supabase
+      .from('post_likes')
+      .select('post_id')
+      .eq('user_id', userId)
+      .in('post_id', postIds);
+    if (error || !data) return new Set();
+    return new Set(data.map((r: { post_id: string }) => r.post_id));
+  } catch { return new Set(); }
 }

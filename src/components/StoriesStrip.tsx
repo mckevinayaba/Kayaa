@@ -22,10 +22,16 @@ function getRingColor(createdAt: string): string {
   return '#6B7280';
 }
 
-export default function StoriesStrip({ stories }: { stories: Story[] }) {
+interface StoriesStripProps {
+  stories: Story[];
+  onCompose?: () => void;
+}
+
+export default function StoriesStrip({ stories, onCompose }: StoriesStripProps) {
   const [active, setActive] = useState<Story | null>(null);
 
-  if (stories.length === 0) return null;
+  // Hide strip entirely if no stories and no compose button
+  if (stories.length === 0 && !onCompose) return null;
 
   return (
     <>
@@ -37,6 +43,41 @@ export default function StoriesStrip({ stories }: { stories: Story[] }) {
         paddingBottom: '4px', marginBottom: '16px',
         WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
+
+        {/* "+" compose bubble — always first */}
+        {onCompose && (
+          <button
+            onClick={onCompose}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '6px', flexShrink: 0, background: 'transparent', border: 'none',
+              cursor: 'pointer', padding: '4px 0',
+            }}
+          >
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '50%',
+              border: '2px dashed rgba(57,217,138,0.5)', padding: '2px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '50%',
+                background: 'rgba(57,217,138,0.08)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '22px', color: '#39D98A',
+              }}>
+                +
+              </div>
+            </div>
+            <span style={{
+              fontSize: '10px', color: 'rgba(57,217,138,0.7)',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+              maxWidth: '56px', textAlign: 'center',
+            }}>
+              Share
+            </span>
+          </button>
+        )}
+
         {stories.map(story => {
           const emoji = CATEGORY_EMOJI[story.venueType] ?? '📍';
           const color = CATEGORY_COLOR[story.venueType] ?? '#39D98A';

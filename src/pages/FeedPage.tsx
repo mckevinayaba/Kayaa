@@ -14,8 +14,10 @@ import {
   getHeadingThereCountsBatch, getVibeWinnersBatch,
   getActiveStoryVenuesBatch, getActiveVenueStory,
   getUserPostsForFeed, getSafetyAlerts,
+  likePost, unlikePost, getUserLikedPosts,
 } from '../lib/api';
 import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 import type { Venue, Event, Story } from '../types';
 import VenueCard from '../components/VenueCard';
 import StoryViewer from '../components/StoryViewer';
@@ -389,13 +391,31 @@ function initials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-function UserPostCard({ post }: { post: UserPost }) {
+interface UserPostCardProps {
+  post: UserPost;
+  liked: boolean;
+  onLike: (postId: string, currentlyLiked: boolean) => void;
+}
+
+function UserPostCard({ post, liked, onLike }: UserPostCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [localLiked, setLocalLiked] = useState(liked);
+  const [localCount, setLocalCount] = useState(post.likesCount);
   const cat = POST_CAT[post.category] ?? { label: post.category, color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' };
   const authorName = post.userId ? 'Neighbour' : 'kayaa team';
   const authorInitials = initials(authorName);
   const isAlert = post.category === 'alert';
   const isLong = post.content.length > 240;
+
+  // Sync if parent liked state changes (e.g. after data load)
+  useEffect(() => { setLocalLiked(liked); }, [liked]);
+
+  function handleLike() {
+    const next = !localLiked;
+    setLocalLiked(next);
+    setLocalCount(c => next ? c + 1 : Math.max(0, c - 1));
+    onLike(post.id, localLiked);
+  }
 
   return (
     <div style={{
@@ -467,11 +487,24 @@ function UserPostCard({ post }: { post: UserPost }) {
       )}
 
       {/* Footer */}
-      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button
+          onClick={handleLike}
+          style={{
+            background: 'none', border: 'none',
+            color: localLiked ? '#39D98A' : 'rgba(255,255,255,0.35)',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            padding: 0, transition: 'color 0.15s',
+          }}
+        >
+          <span style={{ fontSize: '15px' }}>{localLiked ? '👍' : '👍'}</span>
+          <span style={{ fontWeight: localLiked ? 700 : 400 }}>{localCount > 0 ? localCount : ''}</span>
+        </button>
         <button disabled style={{
-          background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'default',
-          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', cursor: 'default',
+          display: 'inline-flex', alignItems: 'center', gap: '5px', padding: 0,
         }}>
           💬 Reply
         </button>
@@ -663,6 +696,7 @@ function InstallBanner() {
 
 export default function FeedPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
   const { selectedCountry, categoryLabels } = useCountry();
 
@@ -678,6 +712,7 @@ export default function FeedPage() {
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [showComposer, setShowComposer] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -736,9 +771,17 @@ export default function FeedPage() {
       setRawMostLoved(ml);
       setActivity(act);
       setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 2));
-      setUserPosts(up as UserPost[]);
+      const posts = up as UserPost[];
+      setUserPosts(posts);
       setSafetyAlerts(sa as UserPost[]);
       setLoading(false);
+
+      // Load which posts the current user has liked
+      if (user && posts.length > 0) {
+        getUserLikedPosts(user.id, posts.map(p => p.id))
+          .then(ids => setLikedPostIds(ids))
+          .catch(() => {});
+      }
 
       // Smart default scope: use this_neighbourhood only if enough local places exist.
       // Respect manual override if user already tapped a chip.
@@ -829,27 +872,61 @@ export default function FeedPage() {
     return `None near ${areaLabel} — showing wider area`;
   }
 
+  function handleLike(postId: string, currentlyLiked: boolean) {
+    if (!user) return;
+    if (currentlyLiked) {
+      setLikedPostIds(prev => { const next = new Set(prev); next.delete(postId); return next; });
+      unlikePost(postId, user.id).catch(() => {
+        // rollback on failure
+        setLikedPostIds(prev => new Set([...prev, postId]));
+      });
+    } else {
+      setLikedPostIds(prev => new Set([...prev, postId]));
+      likePost(postId, user.id).catch(() => {
+        setLikedPostIds(prev => { const next = new Set(prev); next.delete(postId); return next; });
+      });
+    }
+  }
+
   return (
     <div style={{ padding: '16px' }}>
 
-      {/* Stories */}
-      <StoriesStrip stories={stories} />
+      {/* Stories strip with "+" compose bubble */}
+      <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />
 
       {/* Greeting + clickable area label */}
-      <div style={{ marginBottom: '14px' }}>
+      <div style={{ marginBottom: '10px' }}>
         <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '2px' }}>{getGreeting()} 👋</p>
         <div
           onClick={() => setShowAreaGate(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginBottom: '2px' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginBottom: '10px' }}
         >
           <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', lineHeight: 1.2, margin: 0 }}>
             {areaLabel}
           </h1>
           <MapPin size={15} color="rgba(255,255,255,0.3)" style={{ marginTop: '2px' }} />
         </div>
-        <p style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600 }}>
-          {loading ? 'Loading…' : `${openCount} places active now`}
-        </p>
+        {/* Neighbourhood pulse stat strip */}
+        {!loading && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ fontSize: '11px', color: '#39D98A' }}>🏪</span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>{openCount} active</span>
+            </div>
+            {userPosts.length > 0 && (
+              <div style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ fontSize: '11px' }}>💬</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#60A5FA' }}>{userPosts.length} post{userPosts.length !== 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {activity.length > 0 && (
+              <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ fontSize: '11px' }}>📍</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#F59E0B' }}>{activity.length} check-ins</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Scope selector */}
@@ -921,7 +998,9 @@ export default function FeedPage() {
           <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
             From the neighbourhood
           </h2>
-          {userPosts.slice(0, 5).map(p => <UserPostCard key={p.id} post={p} />)}
+          {userPosts.slice(0, 5).map(p => (
+            <UserPostCard key={p.id} post={p} liked={likedPostIds.has(p.id)} onLike={handleLike} />
+          ))}
           {userPosts.length > 5 && (
             <button
               onClick={() => setShowComposer(true)}
