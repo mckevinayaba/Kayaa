@@ -33,6 +33,9 @@ export default function AppLayout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
+      {/* Skip link — visible on keyboard focus, hidden otherwise */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
       {/* AreaSelector */}
       {needsArea && (
         <AreaSelector
@@ -128,12 +131,12 @@ export default function AppLayout() {
       </header>
 
       {/* Main content */}
-      <main style={{ flex: 1, paddingBottom: '72px', maxWidth: '640px', width: '100%', margin: '0 auto' }}>
+      <main id="main-content" style={{ flex: 1, paddingBottom: '72px', maxWidth: '640px', width: '100%', margin: '0 auto' }}>
         <Outlet />
       </main>
 
       {/* Bottom mobile nav */}
-      <nav style={{
+      <nav aria-label="Main navigation" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         background: '#0D1117',
         borderTop: '1px solid rgba(57,217,138,0.1)',

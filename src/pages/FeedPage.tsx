@@ -866,6 +866,16 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [cacheDate, setCacheDate] = useState<string | null>(null);
+  // Pagination
+  const [visibleCount, setVisibleCount] = useState(20);
+  // Pull-to-refresh
+  const [pullDelta, setPullDelta] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const touchStartY  = useRef(0);
+  const pullDeltaRef = useRef(0);
+  const refreshingRef = useRef(false);
+  const liveRegion   = useRef<HTMLDivElement>(null);
 
   // Interactivity data (Sprint 5)
   const [headingCounts, setHeadingCounts] = useState<Record<string, number>>({});
@@ -923,6 +933,55 @@ export default function FeedPage() {
     }
   }, []);
 
+  // Infinite scroll: load 20 more when user scrolls near the bottom
+  useEffect(() => {
+    function onScroll() {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400) {
+        setVisibleCount(c => c + 20);
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Reset visible count whenever a filter or sort changes
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [sortMode, categoryFilter, activityFilter, search, scope]);
+
+  // Pull-to-refresh: detect downward overscroll when already at the top
+  useEffect(() => {
+    function onTouchStart(e: TouchEvent) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+    function onTouchMove(e: TouchEvent) {
+      if (window.scrollY > 8) return;
+      const delta = e.touches[0].clientY - touchStartY.current;
+      if (delta > 0) {
+        const clamped = Math.min(delta, 80);
+        pullDeltaRef.current = clamped;
+        setPullDelta(clamped);
+      }
+    }
+    function onTouchEnd() {
+      if (pullDeltaRef.current > 60 && !refreshingRef.current) {
+        refreshingRef.current = true;
+        setRefreshing(true);
+        setRefreshKey(k => k + 1);
+      }
+      pullDeltaRef.current = 0;
+      setPullDelta(0);
+    }
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove',  onTouchMove,  { passive: true });
+    window.addEventListener('touchend',   onTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove',  onTouchMove);
+      window.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, []); // refs carry state — empty dep array is intentional
+
   useEffect(() => {
     Promise.all([
       getAllVenues(selectedCountry.code),
@@ -956,6 +1015,8 @@ export default function FeedPage() {
       setUserPosts(posts);
       setSafetyAlerts(sa as UserPost[]);
       setLoading(false);
+      setRefreshing(false);
+      refreshingRef.current = false;
 
       // Load which posts the current user has liked
       if (user && posts.length > 0) {
@@ -987,8 +1048,8 @@ export default function FeedPage() {
           setActiveStoryVenueIds(as_);
         }).catch(() => {/* non-critical, fail silently */});
       }
-    });
-  }, [areaLabel, selectedCountry.code]); // eslint-disable-line react-hooks/exhaustive-deps
+    }).catch(() => { setRefreshing(false); refreshingRef.current = false; });
+  }, [areaLabel, selectedCountry.code, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleScopeChange(s: FeedScope) {
     setManualScope(s);
@@ -1025,6 +1086,12 @@ export default function FeedPage() {
     }
     return result;
   }, [venues, activityFilter, categoryFilter, search, venueIdsWithEvents]);
+
+  // Pre-sorted list used for both rendering and count display
+  const sortedVenues = useMemo(
+    () => applySortMode(filteredVenues, sortMode, suburb),
+    [filteredVenues, sortMode, suburb],
+  );
 
   // ─── Computed: scope-filtered rails ─────────────────────────────────────────
 
@@ -1071,6 +1138,42 @@ export default function FeedPage() {
 
   return (
     <div style={{ padding: '16px' }}>
+
+      {/* Accessible live region — announces load/refresh state to screen readers */}
+      <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">
+        {loading ? 'Loading places…' : refreshing ? 'Refreshing…' : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''} loaded`}
+      </div>
+
+      {/* Pull-to-refresh indicator */}
+      {pullDelta > 10 && (
+        <div style={{
+          position: 'fixed', top: '56px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: '20px', padding: '6px 14px',
+          opacity: Math.min(pullDelta / 60, 1),
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            width: '14px', height: '14px', borderRadius: '50%',
+            border: '2px solid rgba(57,217,138,0.35)', borderTopColor: '#39D98A',
+            transform: `rotate(${Math.min(pullDelta * 4.5, 360)}deg)`,
+          }} />
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+            {pullDelta >= 60 ? 'Release to refresh' : 'Pull to refresh'}
+          </span>
+        </div>
+      )}
+
+      {/* Subtle refreshing banner (shown after release until data returns) */}
+      {refreshing && !loading && (
+        <div style={{ textAlign: 'center', padding: '4px 0 8px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '5px 12px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid rgba(57,217,138,0.25)', borderTopColor: '#39D98A', animation: 'spin 0.8s linear infinite' }} />
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>Refreshing…</span>
+          </div>
+        </div>
+      )}
 
       {/* Offline banner */}
       {!isOnline && (
@@ -1234,8 +1337,7 @@ export default function FeedPage() {
           {/* Section header: sort label + tagline */}
           {(() => {
             const mode = SORT_MODES.find(m => m.key === sortMode)!;
-            const sorted = applySortMode(filteredVenues, sortMode, suburb);
-            const activeNowCount = sortMode === 'active_now' ? sorted.length : 0;
+            const activeNowCount = sortMode === 'active_now' ? sortedVenues.length : 0;
             return (
               <>
                 <div style={{ marginBottom: '12px' }}>
@@ -1252,7 +1354,7 @@ export default function FeedPage() {
                   </p>
                 </div>
 
-                {sorted.length === 0 && sortMode === 'active_now' && (
+                {sortedVenues.length === 0 && sortMode === 'active_now' && (
                   <div style={{ textAlign: 'center', padding: '28px 0 12px' }}>
                     <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚡</div>
                     <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
@@ -1264,7 +1366,7 @@ export default function FeedPage() {
                   </div>
                 )}
 
-                {sorted.map((venue, i) => {
+                {sortedVenues.slice(0, visibleCount).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
                   const moment = showActivity ? activity[activityIdx] : null;
                   if (showActivity) activityIdx++;
@@ -1294,6 +1396,19 @@ export default function FeedPage() {
                     </div>
                   );
                 })}
+
+                {/* More to load — spinner triggers next batch via scroll listener */}
+                {visibleCount < sortedVenues.length && (
+                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid rgba(57,217,138,0.25)', borderTopColor: '#39D98A', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
+                  </div>
+                )}
+                {/* End of feed */}
+                {sortedVenues.length > 20 && visibleCount >= sortedVenues.length && (
+                  <p style={{ textAlign: 'center', padding: '20px 0 8px', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.22)', margin: 0 }}>
+                    You've seen it all ✓
+                  </p>
+                )}
               </>
             );
           })()}

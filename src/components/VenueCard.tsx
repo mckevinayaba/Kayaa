@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MapPin, Share2, CheckCircle2 } from 'lucide-react';
 import type { Venue } from '../types';
@@ -62,6 +62,22 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
   const status = statusConfig(venue.venueStatus ?? (venue.isOpen ? 'open' : 'closed'));
   const [shareOpen, setShareOpen] = useState(false);
 
+  // Lazy-load: only fetch the cover image once the card scrolls into view
+  const cardRef   = useRef<HTMLDivElement>(null);
+  const [inView,   setInView]   = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
+      { rootMargin: '200px' },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <>
       <style>{`
@@ -70,6 +86,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
       `}</style>
 
       <div
+        ref={cardRef}
         onClick={() => navigate(`/venue/${venue.slug}`)}
         style={{
           background: 'var(--color-surface)',
@@ -82,12 +99,31 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         {/* ── 16:9 photo header ── */}
         <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden' }}>
           {venue.coverImage ? (
-            <img
-              src={venue.coverImage}
-              alt={venue.name}
-              loading="lazy"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <>
+              {/* Shimmer placeholder — shows until image is loaded */}
+              {!imgLoaded && (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(90deg, var(--color-surface2) 25%, rgba(255,255,255,0.05) 50%, var(--color-surface2) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s ease-in-out infinite',
+                }} />
+              )}
+              {/* Only attach src after card enters viewport */}
+              {inView && (
+                <img
+                  src={venue.coverImage}
+                  alt={venue.name}
+                  onLoad={() => setImgLoaded(true)}
+                  style={{
+                    position: 'absolute', inset: 0, width: '100%', height: '100%',
+                    objectFit: 'cover',
+                    opacity: imgLoaded ? 1 : 0,
+                    transition: 'opacity 0.4s ease',
+                  }}
+                />
+              )}
+            </>
           ) : (
             /* Emoji fallback — gradient + large category emoji */
             <div style={{
