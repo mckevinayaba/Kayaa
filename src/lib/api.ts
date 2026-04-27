@@ -1425,7 +1425,7 @@ export async function removeEventRsvp(eventId: string, userId: string): Promise<
 
 export type BoardCategory =
   | 'for_sale' | 'free' | 'services' | 'jobs' | 'lost_found'
-  | 'announcements' | 'ask' | 'events' | 'accommodation' | 'safety';
+  | 'announcements' | 'announcer' | 'ask' | 'events' | 'accommodation' | 'safety';
 
 export type BoardPostStatus = 'active' | 'resolved' | 'taken' | 'expired';
 
@@ -1467,11 +1467,14 @@ function dbBoardPost(row: any): BoardPost {
     id: row.id,
     userId: row.user_id ?? undefined,
     neighbourhood: row.neighbourhood ?? '',
-    category: (row.category as BoardCategory) ?? 'ask',
+    // prod DB uses 'announcer'; normalise to 'announcements' for display
+    category: ((row.category === 'announcer' ? 'announcements' : row.category) as BoardCategory) ?? 'ask',
     title: row.title ?? '',
     description: row.description ?? undefined,
     price: row.price ?? undefined,
-    contactWhatsapp: row.contact_whatsapp ?? undefined,
+    contactWhatsapp: row.contact_whatsapp
+      ?? (row.contact_method === 'whatsapp' ? row.contact_value : undefined)
+      ?? undefined,
     images: Array.isArray(row.images) ? row.images : [],
     status: (row.status as BoardPostStatus) ?? 'active',
     createdAt: row.created_at ?? new Date().toISOString(),
@@ -1507,7 +1510,14 @@ export async function getBoardPosts(
       .order('created_at', { ascending: false })
       .limit(200);
 
-    if (category && category !== 'all') q = q.eq('category', category);
+    if (category && category !== 'all') {
+      // prod DB may store 'announcer' instead of 'announcements' — query both
+      if (category === 'announcements') {
+        q = q.in('category', ['announcements', 'announcer']);
+      } else {
+        q = q.eq('category', category);
+      }
+    }
     if (countryCode) q = q.eq('country_code', countryCode);
 
     const { data, error } = await q;
