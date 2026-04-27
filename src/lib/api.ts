@@ -829,11 +829,12 @@ export async function createLocalJob(data: {
 
 export type BadgeTier = 'newcomer' | 'regular' | 'loyal' | 'legend';
 
-/** Map visit count → badge tier. */
+/** Map visit count → badge tier.
+ *  Thresholds match the DB is_regular flag (set at 5 visits). */
 export function calcBadgeTier(visits: number): BadgeTier {
   if (visits >= 25) return 'legend';
   if (visits >= 10) return 'loyal';
-  if (visits >= 3) return 'regular';
+  if (visits >= 5)  return 'regular';
   return 'newcomer';
 }
 
@@ -952,20 +953,40 @@ export async function saveVisit(params: {
   hist.sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
   localStorage.setItem(_histKey(visitorId), JSON.stringify(hist.slice(0, 200)));
 
-  // ── Persist to DB (best-effort) ──────────────────────────────────────────────
+  // ── Persist to check_ins (triggers fn_venue_checkin_increment → updates venue metrics) ──
+  try {
+    await supabase.from('check_ins').insert({
+      venue_id:       venueId,
+      visitor_name:   visitorId,      // anon localStorage ID used as name
+      is_ghost:       false,
+      is_first_visit: newCount === 1,
+      visit_number:   newCount,
+      method,                         // column added by Phase 1 migration
+    });
+  } catch {
+    // method column may not exist in all envs — retry without it
+    try {
+      await supabase.from('check_ins').insert({
+        venue_id:       venueId,
+        visitor_name:   visitorId,
+        is_ghost:       false,
+        is_first_visit: newCount === 1,
+        visit_number:   newCount,
+      });
+    } catch { /* noop — localStorage state is source of truth */ }
+  }
+
+  // ── Legacy tables (best-effort, kept for dashboard back-compat) ──────────────
   try {
     await supabase.from('visits').insert({ venue_id: venueId, user_id: visitorId, checked_in_at: now, method });
-  } catch { /* visits table may not exist yet */ }
+  } catch { /* visits table may not exist */ }
 
   try {
     await supabase.from('regular_scores').upsert(
       { venue_id: venueId, user_id: visitorId, visit_count: newCount, last_visit: now, streak_days: streak, badge_tier: badgeTier },
       { onConflict: 'venue_id,user_id' }
     );
-  } catch { /* regular_scores table may not exist yet */ }
-
-  // Bump venue's regulars_count (existing RPC — keeps dashboard stats accurate)
-  try { await supabase.rpc('increment_regulars_count', { venue_id: venueId }); } catch {}
+  } catch { /* regular_scores table may not exist */ }
 
   return { score, alreadyCheckedIn: false };
 }

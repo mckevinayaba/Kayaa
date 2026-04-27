@@ -44,7 +44,8 @@ interface Props {
 export default function CelebrationScreen({ venue, score, onDismiss }: Props) {
   const [countdown, setCountdown] = useState(5);
 
-  const badgeUpgraded = score.badgeTier !== score.prevBadgeTier && score.visitCount > 1;
+  const badgeUpgraded  = score.badgeTier !== score.prevBadgeTier && score.visitCount > 1;
+  const justARegular   = score.visitCount === 5;   // exactly the 5-visit milestone
   const badgeColor    = BADGE_COLOR[score.badgeTier] ?? '#39D98A';
 
   const waText = encodeURIComponent(
@@ -159,6 +160,27 @@ export default function CelebrationScreen({ venue, score, onDismiss }: Props) {
             {BADGE_LABEL[score.badgeTier] ?? "You're in"}
           </h1>
         </div>
+
+        {/* "You're now a regular!" milestone banner */}
+        {justARegular && (
+          <div className="celeb-t2" style={{
+            background: 'rgba(245,166,35,0.12)',
+            border: '1px solid rgba(245,166,35,0.35)',
+            borderRadius: '14px', padding: '12px 20px',
+            marginBottom: '16px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <span style={{ fontSize: '20px' }}>💛</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F5A623' }}>
+                You're now a regular!
+              </div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>
+                {venue.name} counts you as family 🙌
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Visit count + streak */}
         <div className="celeb-t2" style={{ marginBottom: '32px' }}>
