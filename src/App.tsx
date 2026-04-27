@@ -19,6 +19,7 @@ import RegularCardPage from './pages/RegularCardPage';
 import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
+import SkillsPage from './pages/SkillsPage';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/board/:id" element={<BoardPostPage />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/checkin" element={<CheckInBrowsePage />} />
+            <Route path="/skills"  element={<SkillsPage />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
             <Route path="/countries" element={<CountriesPage />} />
             <Route

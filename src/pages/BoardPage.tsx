@@ -314,7 +314,7 @@ export default function BoardPage() {
 
       {/* Post Your Skills banner */}
       <div
-        onClick={() => navigate('/board/new?cat=services')}
+        onClick={() => navigate('/skills')}
         style={{
           margin: '14px 16px 0',
           background: 'linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(57,217,138,0.08) 100%)',
@@ -337,13 +337,26 @@ export default function BoardPage() {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '2px' }}>
-            Post Your Skills
+            Skills & Services
           </div>
           <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
             Barber, mechanic, tutor, cleaner, DJ — let your neighbourhood find you
           </div>
         </div>
-        <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>→</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+          <button
+            onClick={() => navigate('/skills')}
+            style={{ background: 'rgba(57,217,138,0.15)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Browse →
+          </button>
+          <button
+            onClick={() => navigate('/board/new?cat=services')}
+            style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Post skill
+          </button>
+        </div>
       </div>
 
       {/* Category filter strip */}
