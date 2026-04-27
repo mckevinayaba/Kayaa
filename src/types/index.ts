@@ -21,6 +21,7 @@ export interface Venue {
   // Trust signals from Phase 1 DB columns
   checkinsToday: number;
   checkinsThisWeek: number;
+  checkinsLastWeek: number;
   regularsCount: number;
   lastCheckinAt?: string;
   venueStatus: 'open' | 'busy' | 'quiet' | 'closed';

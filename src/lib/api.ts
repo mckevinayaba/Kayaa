@@ -39,9 +39,10 @@ function dbVenueToVenue(row: any): Venue {
     checkinCount: row.checkin_count ?? row.regulars_count ?? 0,
     followerCount: row.regulars_count ?? 0,
     // Trust signal columns (Phase 1 migration)
-    checkinsToday:    row.checkins_today     ?? 0,
-    checkinsThisWeek: row.checkins_this_week ?? 0,
-    regularsCount:    row.regulars_count     ?? 0,
+    checkinsToday:    row.checkins_today      ?? 0,
+    checkinsThisWeek: row.checkins_this_week  ?? 0,
+    checkinsLastWeek: row.checkins_last_week  ?? 0,
+    regularsCount:    row.regulars_count      ?? 0,
     lastCheckinAt:    row.last_checkin_at    ?? undefined,
     venueStatus:      (row.status as 'open' | 'busy' | 'quiet' | 'closed') ?? 'open',
     isOpen: (row.status ?? 'open') !== 'closed',

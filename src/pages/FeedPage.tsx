@@ -45,9 +45,18 @@ import { useCountry } from '../contexts/CountryContext';
 
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
 type ActivityFilter = 'All' | 'Open now' | 'Busy now' | 'Events today';
+type SortMode = 'for_you' | 'active_now' | 'trending' | 'most_loved' | 'new_places';
 
 const LOCAL_THRESHOLD = 3; // min local venues before defaulting to nearby
 const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Open now', 'Busy now', 'Events today'];
+
+const SORT_MODES: { key: SortMode; label: string; tagline: string }[] = [
+  { key: 'for_you',    label: '🎯 For You',    tagline: 'Places your neighbours actually rate' },
+  { key: 'active_now', label: '⚡ Active Now',  tagline: 'Where people are right now' },
+  { key: 'trending',   label: '🔥 Trending',   tagline: "What's getting popular" },
+  { key: 'most_loved', label: '💛 Most Loved', tagline: 'Places with the most regulars' },
+  { key: 'new_places', label: '🆕 New',        tagline: 'Just joined Kayaa' },
+];
 
 // Key → venue.category matcher (covers all country variants stored in DB)
 const CAT_KEY_MATCH: Record<string, (cat: string) => boolean> = {
@@ -200,6 +209,95 @@ function sortByActivity(venues: Venue[]): Venue[] {
   });
 }
 
+// ─── Trust-weighted algorithm ─────────────────────────────────────────────────
+//
+//  trust_score = (0.4 × recency) + (0.3 × regularity) + (0.2 × velocity) + (0.1 × proximity)
+//  Final score multiplied by time-of-day category weight.
+
+function getTimeWeight(category: string): number {
+  const h = new Date().getHours();
+  const day = new Date().getDay(); // 0 = Sunday
+
+  // Sunday morning: churches 3×
+  if (day === 0 && h >= 9 && h < 13 && category === 'Church') return 3.0;
+
+  if (h >= 6  && h < 11) return ({ Café: 2.0, Carwash: 1.5 }[category] ?? 1.0);
+  if (h >= 11 && h < 14) return ({ Shisanyama: 2.0, 'Spaza Shop': 1.5 }[category] ?? 1.0);
+  if (h >= 14 && h < 18) return ({ Salon: 1.8, Barbershop: 1.5, Tutoring: 1.3 }[category] ?? 1.0);
+  if (h >= 18 && h < 23) return ({ Tavern: 2.0, Shisanyama: 1.8, 'Sports Ground': 1.4 }[category] ?? 1.0);
+  return 1.0;
+}
+
+function calculateTrustScore(venue: Venue, userNeighbourhood: string): number {
+  // Recency: based on last_checkin_at
+  const hours = venue.lastCheckinAt
+    ? (Date.now() - new Date(venue.lastCheckinAt).getTime()) / 3_600_000
+    : 999;
+  const recency = hours < 24 ? 1.0 : hours < 168 ? 0.7 : hours < 720 ? 0.4 : 0.2;
+
+  // Regularity: regulars / total checkins ratio
+  const ratio = venue.regularsCount / Math.max(venue.checkinCount, 1);
+  const regularity = ratio > 0.6 ? 1.0 : ratio > 0.3 ? 0.7 : 0.4;
+
+  // Velocity: this week vs last week growth
+  const lastWeek = venue.checkinsLastWeek ?? 0;
+  const growth = venue.checkinsThisWeek / Math.max(lastWeek, 1);
+  const velocity = growth > 1.5 ? 1.0 : growth > 1.1 ? 0.8 : growth > 0.9 ? 0.6 : 0.4;
+
+  // Proximity: same neighbourhood bonus
+  const sameArea = (venue.neighborhood ?? '').toLowerCase() === (userNeighbourhood ?? '').toLowerCase();
+  const proximity = sameArea ? 1.0 : 0.5;
+
+  const base = (0.4 * recency) + (0.3 * regularity) + (0.2 * velocity) + (0.1 * proximity);
+  return base * getTimeWeight(venue.category);
+}
+
+function getVelocityLabel(venue: Venue): string | null {
+  const lastWeek = venue.checkinsLastWeek ?? 0;
+  if (venue.checkinsThisWeek < 3) return null;
+  const growth = venue.checkinsThisWeek / Math.max(lastWeek, 1);
+  if (growth > 2.0) return '🔥 On fire';
+  if (growth > 1.5) return '📈 Rising fast';
+  if (growth > 1.1) return '⬆️ Trending';
+  return null;
+}
+
+function applySortMode(venues: Venue[], mode: SortMode, userNeighbourhood: string): Venue[] {
+  const now = Date.now();
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+  const twoHoursAgo   = now -  2 * 60 * 60 * 1000;
+
+  switch (mode) {
+    case 'active_now':
+      return [...venues]
+        .filter(v => v.lastCheckinAt && new Date(v.lastCheckinAt).getTime() > twoHoursAgo)
+        .sort((a, b) => (b.checkinsToday ?? 0) - (a.checkinsToday ?? 0));
+
+    case 'trending':
+      return [...venues]
+        .filter(v => (v.checkinsThisWeek ?? 0) >= 3)
+        .sort((a, b) => {
+          const aV = (a.checkinsThisWeek ?? 0) / Math.max(a.checkinsLastWeek ?? 0, 1);
+          const bV = (b.checkinsThisWeek ?? 0) / Math.max(b.checkinsLastWeek ?? 0, 1);
+          return bV - aV;
+        });
+
+    case 'most_loved':
+      return [...venues].sort((a, b) => (b.regularsCount ?? 0) - (a.regularsCount ?? 0));
+
+    case 'new_places':
+      return [...venues]
+        .filter(v => new Date(v.createdAt).getTime() > thirtyDaysAgo)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    case 'for_you':
+    default:
+      return [...venues].sort(
+        (a, b) => calculateTrustScore(b, userNeighbourhood) - calculateTrustScore(a, userNeighbourhood)
+      );
+  }
+}
+
 function applyActivityFilter(venues: Venue[], filter: ActivityFilter, ids: Set<string>): Venue[] {
   switch (filter) {
     case 'Open now':     return venues.filter(v => v.venueStatus !== 'closed');
@@ -249,6 +347,40 @@ function ScopeSelector({ value, onChange }: { value: FeedScope; onChange: (s: Fe
             }}
           >
             {SCOPE_LABELS[s]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Sort selector ────────────────────────────────────────────────────────────
+
+function SortSelector({ value, onChange }: { value: SortMode; onChange: (m: SortMode) => void }) {
+  return (
+    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '2px', marginBottom: '12px' } as React.CSSProperties}>
+      {SORT_MODES.map(m => {
+        const active = value === m.key;
+        return (
+          <button
+            key={m.key}
+            onClick={() => onChange(m.key)}
+            style={{
+              padding: '5px 12px',
+              borderRadius: '20px',
+              border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
+              background: active ? 'rgba(57,217,138,0.15)' : 'transparent',
+              color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
+              fontSize: '12px',
+              fontWeight: 600,
+              fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              transition: 'all 0.15s',
+            }}
+          >
+            {m.label}
           </button>
         );
       })}
@@ -737,6 +869,7 @@ export default function FeedPage() {
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('for_you');
 
   // Scope: starts at 'nearby' (safe default); set to smart default after data loads.
   // manualScope tracks whether the user explicitly picked a scope this session.
@@ -972,13 +1105,16 @@ export default function FeedPage() {
       <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} chips={countryChips} />
 
       {/* Activity filter chips */}
-      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', paddingBottom: '4px', marginBottom: '20px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', paddingBottom: '4px', marginBottom: '12px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         {ACTIVITY_FILTERS.map(f => (
           <button key={f} onClick={() => setActivityFilter(f)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: '20px', border: activityFilter === f ? 'none' : '1px solid var(--color-border)', background: activityFilter === f ? 'var(--color-accent)' : 'var(--color-surface)', color: activityFilter === f ? '#000' : 'var(--color-muted)', fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
             {f}
           </button>
         ))}
       </div>
+
+      {/* Sort mode selector */}
+      <SortSelector value={sortMode} onChange={setSortMode} />
 
       {/* Trending this week — scope-filtered */}
       {trendingResult.expanded && trendingResult.venues.length > 0 && (
@@ -1034,38 +1170,70 @@ export default function FeedPage() {
         )
       ) : (
         <div>
-          {/* Section header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
-              Active places nearby
-            </h2>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
-              {filteredVenues.length} place{filteredVenues.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {sortByActivity(filteredVenues).map((venue, i) => {
-            const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
-            const moment = showActivity ? activity[activityIdx] : null;
-            if (showActivity) activityIdx++;
-            const hasActiveStory = activeStoryVenueIds.has(venue.id);
+          {/* Section header: sort label + tagline */}
+          {(() => {
+            const mode = SORT_MODES.find(m => m.key === sortMode)!;
+            const sorted = applySortMode(filteredVenues, sortMode, suburb);
+            const activeNowCount = sortMode === 'active_now' ? sorted.length : 0;
             return (
-              <div key={venue.id}>
-                <VenueCard
-                  venue={venue}
-                  headingCount={headingCounts[venue.id] ?? 0}
-                  vibeWinner={vibeWinners[venue.id] ?? null}
-                  hasActiveStory={hasActiveStory}
-                  onStoryTap={hasActiveStory ? () => {
-                    getActiveVenueStory(venue.id).then(story => {
-                      if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
-                    }).catch(() => {});
-                  } : undefined}
-                />
-                {moment && <ActivityMoment key={moment.id} text={moment.text} time={moment.time} initial={moment.initial} />}
-              </div>
+              <>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+                      {mode.label}
+                    </h2>
+                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+                      {sortMode === 'active_now' ? `${activeNowCount} active` : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`}
+                    </span>
+                  </div>
+                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: '2px 0 0' }}>
+                    {mode.tagline}
+                  </p>
+                </div>
+
+                {sorted.length === 0 && sortMode === 'active_now' && (
+                  <div style={{ textAlign: 'center', padding: '28px 0 12px' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚡</div>
+                    <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                      No check-ins in the last 2 hours nearby.
+                    </p>
+                    <button onClick={() => setSortMode('for_you')} style={{ marginTop: '10px', background: 'none', border: '1px solid rgba(57,217,138,0.25)', color: '#39D98A', borderRadius: '10px', padding: '7px 16px', fontSize: '12px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
+                      Back to For You →
+                    </button>
+                  </div>
+                )}
+
+                {sorted.map((venue, i) => {
+                  const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
+                  const moment = showActivity ? activity[activityIdx] : null;
+                  if (showActivity) activityIdx++;
+                  const hasActiveStory = activeStoryVenueIds.has(venue.id);
+                  const velLabel = sortMode === 'trending' ? getVelocityLabel(venue) : null;
+                  return (
+                    <div key={venue.id}>
+                      {velLabel && (
+                        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#F97316', marginBottom: '4px', paddingLeft: '2px' }}>
+                          {velLabel}
+                        </div>
+                      )}
+                      <VenueCard
+                        venue={venue}
+                        headingCount={headingCounts[venue.id] ?? 0}
+                        vibeWinner={vibeWinners[venue.id] ?? null}
+                        hasActiveStory={hasActiveStory}
+                        onStoryTap={hasActiveStory ? () => {
+                          getActiveVenueStory(venue.id).then(story => {
+                            if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
+                          }).catch(() => {});
+                        } : undefined}
+                      />
+                      {moment && <ActivityMoment key={moment.id} text={moment.text} time={moment.time} initial={moment.initial} />}
+                    </div>
+                  );
+                })}
+              </>
             );
-          })}
+          })()}
         </div>
       )}
 
