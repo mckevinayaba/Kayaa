@@ -191,8 +191,8 @@ function scopeFilterRail<T extends Venue>(
 
 function applyActivityFilter(venues: Venue[], filter: ActivityFilter, ids: Set<string>): Venue[] {
   switch (filter) {
-    case 'Open now':     return venues.filter(v => v.isOpen);
-    case 'Busy now':     return venues.filter(v => v.checkinCount > 1000);
+    case 'Open now':     return venues.filter(v => v.venueStatus !== 'closed');
+    case 'Busy now':     return venues.filter(v => v.venueStatus === 'busy');
     case 'Events today': return venues.filter(v => ids.has(v.id));
     default:             return venues;
   }
@@ -862,7 +862,7 @@ export default function FeedPage() {
     [rawMostLoved, scope, suburb, city, userLat, userLon],
   );
 
-  const openCount = venues.filter(v => v.isOpen).length;
+  const openCount = venues.filter(v => v.venueStatus === 'open' || v.venueStatus === 'busy').length;
   let activityIdx = 0;
 
   // Expand note for rails when auto-expanded beyond selected scope

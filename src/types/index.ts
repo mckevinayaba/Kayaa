@@ -18,6 +18,12 @@ export interface Venue {
   checkinCount: number;
   followerCount: number;
   isOpen: boolean;
+  // Trust signals from Phase 1 DB columns
+  checkinsToday: number;
+  checkinsThisWeek: number;
+  regularsCount: number;
+  lastCheckinAt?: string;
+  venueStatus: 'open' | 'busy' | 'quiet' | 'closed';
   openHours?: string;
   whatsappNumber?: string;
   isVerified?: boolean;

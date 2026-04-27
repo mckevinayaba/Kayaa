@@ -21,13 +21,24 @@ const categoryColor: Record<string, string> = {
 const VIBE_EMOJI: Record<VibeType, string> = { busy: '🔥', chilled: '😌', happening: '🎉' };
 const VIBE_LABEL: Record<VibeType, string> = { busy: 'Busy', chilled: 'Chilled', happening: 'Happening' };
 
-const HOT_THRESHOLD    = 1500;
-const ACTIVE_THRESHOLD = 300;
+function timeAgoShort(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  if (h < 48) return 'yesterday';
+  return `${Math.floor(h / 24)}d ago`;
+}
 
-function getActivityLevel(count: number): { label: string; emoji: string } | null {
-  if (count >= HOT_THRESHOLD)    return { label: 'Hot',    emoji: '🔥' };
-  if (count >= ACTIVE_THRESHOLD) return { label: 'Active', emoji: '⚡' };
-  return null;
+function statusConfig(status: string): { dot: string; label: string; color: string } {
+  switch (status) {
+    case 'busy':   return { dot: '🔥', label: 'Busy now',  color: '#F97316' };
+    case 'quiet':  return { dot: '🌙', label: 'Quiet',     color: '#6B7280' };
+    case 'closed': return { dot: '⚫', label: 'Closed',    color: '#6B7280' };
+    default:       return { dot: '✓',  label: 'Open now',  color: '#39D98A' };
+  }
 }
 
 function getHumanDetail(description: string): string {
@@ -45,10 +56,9 @@ interface VenueCardProps {
 
 export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap }: VenueCardProps) {
   const navigate = useNavigate();
-  const emoji = categoryEmoji[venue.category] ?? '📍';
-  const color = categoryColor[venue.category] ?? '#39D98A';
-  const isBusy = venue.checkinCount > 1000;
-  const activity = getActivityLevel(venue.checkinCount);
+  const emoji  = categoryEmoji[venue.category] ?? '📍';
+  const color  = categoryColor[venue.category] ?? '#39D98A';
+  const status = statusConfig(venue.venueStatus ?? (venue.isOpen ? 'open' : 'closed'));
   const [shareOpen, setShareOpen] = useState(false);
 
   return (
@@ -126,20 +136,12 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
                 {venue.category}
               </span>
-              {venue.isOpen ? (
-                <>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#39D98A', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', color: '#39D98A', fontWeight: 600 }}>{isBusy ? 'Busy now' : 'Open now'}</span>
-                </>
-              ) : (
-                <>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#6B7280', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Closed</span>
-                </>
-              )}
-              {activity && (
-                <span style={{ fontSize: '10px', fontWeight: 700, color: activity.label === 'Hot' ? '#F5A623' : '#60A5FA', background: activity.label === 'Hot' ? 'rgba(245,166,35,0.12)' : 'rgba(96,165,250,0.12)', padding: '1px 7px', borderRadius: '20px' }}>
-                  {activity.emoji} {activity.label}
+              <span style={{ fontSize: '10px', fontWeight: 700, color: status.color, background: `${status.color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
+                {status.dot} {status.label}
+              </span>
+              {(venue.checkinsToday ?? 0) > 0 && (
+                <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>
+                  📍 {venue.checkinsToday} today
                 </span>
               )}
             </div>
@@ -159,11 +161,19 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
 
         {/* Bottom row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-              <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{venue.checkinCount.toLocaleString()}</span> regulars
-            </span>
-            {/* Heading there badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {(venue.regularsCount ?? venue.checkinCount) > 50 && (
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                  💛 {(venue.regularsCount ?? venue.checkinCount).toLocaleString()}
+                </span> regulars
+              </span>
+            )}
+            {venue.lastCheckinAt && (
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                · {timeAgoShort(venue.lastCheckinAt)}
+              </span>
+            )}
             {headingCount > 0 && (
               <span style={{
                 fontSize: '11px', fontWeight: 700,
