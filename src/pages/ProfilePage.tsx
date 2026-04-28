@@ -293,7 +293,8 @@ export default function ProfilePage() {
           <SettingsRow label="Privacy Settings"  onClick={() => navigate('/settings/privacy')} />
           <SettingsRow label="Venue Dashboard"   onClick={() => navigate('/dashboard')} />
           <SettingsRow label="Explore Kayaa"     onClick={() => navigate('/explore')} />
-          <SettingsRow label="Share Kayaa"        onClick={shareKayaa} />
+          <SettingsRow label="Help & Support"    onClick={() => navigate('/help')} />
+          <SettingsRow label="Share Kayaa"       onClick={shareKayaa} />
           <SettingsRow
             label="Report an issue"
             onClick={() => {
