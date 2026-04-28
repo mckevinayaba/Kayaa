@@ -1419,33 +1419,6 @@ function ContactSection({ venue }: { venue: Venue }) {
   );
 }
 
-// ─── Report Issue Button ──────────────────────────────────────────────────────
-
-function ReportIssueButton({ venueName }: { venueName: string }) {
-  function handleReport() {
-    const subject = encodeURIComponent(`Report an issue: ${venueName} on Kayaa`);
-    const body    = encodeURIComponent(`I'd like to report an issue with "${venueName}" on Kayaa.\n\nIssue description:\n\n`);
-    window.location.href = `mailto:hello@kayaa.co.za?subject=${subject}&body=${body}`;
-  }
-
-  return (
-    <button
-      onClick={handleReport}
-      style={{
-        display: 'block', width: '100%', textAlign: 'center',
-        background: 'none', border: 'none', cursor: 'pointer',
-        fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-        color: 'rgba(255,255,255,0.25)', padding: '8px 0 20px',
-        transition: 'color 0.15s',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}
-    >
-      Report an issue with this place
-    </button>
-  );
-}
-
 // ─── Sticky check-in bar ──────────────────────────────────────────────────────
 
 function StickyCheckinBar({ venue }: { venue: Venue }) {

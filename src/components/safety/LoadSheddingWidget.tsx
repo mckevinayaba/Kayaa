@@ -53,7 +53,7 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
     }
     // Load saved alert prefs
     const prefs = getLoadSheddingPrefs();
-    if (prefs?.areaId === areaId) setAlerts(prefs.alert30min);
+    if (prefs && prefs.areaId === areaId) setAlerts(prefs.alert30min);
   }, [areaId]);
 
   if (!status) {
