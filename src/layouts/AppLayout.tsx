@@ -8,7 +8,7 @@ import { useCountry } from '../contexts/CountryContext';
 
 const navItems = [
   { to: '/feed',       emoji: '🏠', label: 'Feed'      },
-  { to: '/checkin',    emoji: '📍', label: 'Explore'   },
+  { to: '/explore',    emoji: '🗺️', label: 'Explore'   },
   { to: '/board',      emoji: '💬', label: 'Board'     },
   { to: '/onboarding', emoji: '➕', label: 'Add Place' },
   { to: '/profile',    emoji: '👤', label: 'Me'        },
