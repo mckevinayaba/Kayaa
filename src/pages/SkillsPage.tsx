@@ -257,7 +257,7 @@ export default function SkillsPage() {
               Be the first to post your skill in {suburb || city}
             </div>
             <button
-              onClick={() => navigate('/board/new?cat=services')}
+              onClick={() => navigate('/skills/new')}
               style={{
                 background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px',
                 padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700,
@@ -274,7 +274,7 @@ export default function SkillsPage() {
 
       {/* FAB — Post Your Skill */}
       <button
-        onClick={() => navigate('/board/new?cat=services')}
+        onClick={() => navigate('/skills/new')}
         title="Post your skill"
         style={{
           position: 'fixed', bottom: '80px', right: '16px', zIndex: 50,
