@@ -26,6 +26,7 @@ export interface Venue {
   lastCheckinAt?: string;
   venueStatus: 'open' | 'busy' | 'quiet' | 'closed';
   openHours?: string;
+  phoneNumber?: string;
   whatsappNumber?: string;
   isVerified?: boolean;
   tags: string[];

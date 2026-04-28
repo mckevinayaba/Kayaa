@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
+import {
+  ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X,
+  ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
+  Heart, Phone, MessageCircle, Navigation,
+} from 'lucide-react';
 import ShareModal from '../components/ShareModal';
 import StoryViewer from '../components/StoryViewer';
+import { supabase } from '../lib/supabase';
 import {
   getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
   getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
@@ -10,10 +15,12 @@ import {
   getVibeSummary, reportVibe, cancelVibeReport,
   getActiveVenueStory, getInteractiveUserId,
   getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
+  getVenueRecentCheckIns,
 } from '../lib/api';
-import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType } from '../lib/api';
+import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin } from '../lib/api';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
+import { haversineKm } from '../lib/geocode';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -30,7 +37,6 @@ const CATEGORY_COLOR: Record<string, string> = {
   'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
 };
 
-
 const AVATAR_COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
 
 const REGULARS_BY_VENUE: Record<string, string[]> = {
@@ -46,6 +52,16 @@ const REGULARS_BY_VENUE: Record<string, string[]> = {
 
 const LIVE_TIMES = ['2 min ago', '18 min ago', '1 hour ago', '3 hours ago'];
 
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 function formatEventDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' });
 }
@@ -55,39 +71,49 @@ function formatEventTime(iso: string): string {
 }
 
 function getStatus(venue: Venue): { label: string; color: string } {
-  if (!venue.isOpen) return { label: 'Closed', color: '#6B7280' };
-  if (venue.checkinCount > 1000) return { label: 'Busy now', color: '#F5A623' };
-  return { label: 'Open now', color: '#39D98A' };
+  switch (venue.venueStatus) {
+    case 'busy':   return { label: 'Busy now',  color: '#F5A623' };
+    case 'quiet':  return { label: 'Quiet now', color: '#60A5FA' };
+    case 'closed': return { label: 'Closed',    color: '#6B7280' };
+    default:       return { label: 'Open now',  color: '#39D98A' };
+  }
+}
+
+function formatWaNumber(n: string): string {
+  const digits = n.replace(/\D/g, '');
+  return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
+}
+
+// localStorage-backed likes (no auth required)
+function getLikedVenues(): Set<string> {
+  try {
+    const raw = localStorage.getItem('kayaa_liked_venues');
+    return new Set<string>(raw ? JSON.parse(raw) : []);
+  } catch { return new Set(); }
+}
+function setLikedVenues(set: Set<string>) {
+  localStorage.setItem('kayaa_liked_venues', JSON.stringify([...set]));
 }
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
 function SkeletonBlock({ w = '100%', h = 16, radius = 8, mb = 0 }: { w?: string | number; h?: number; radius?: number; mb?: number }) {
-  return (
-    <div style={{
-      width: w, height: h, borderRadius: radius,
-      background: 'var(--color-surface2)', marginBottom: mb,
-    }} />
-  );
+  return <div style={{ width: w, height: h, borderRadius: radius, background: 'var(--color-surface2)', marginBottom: mb }} />;
 }
 
 function VenueSkeleton() {
   return (
     <div>
-      <div style={{ background: 'var(--color-surface2)', height: '220px' }} />
+      <div style={{ background: 'var(--color-surface2)', height: '300px' }} />
       <div style={{ padding: '16px' }}>
-        <SkeletonBlock h={28} w="60%" mb={10} />
-        <SkeletonBlock h={14} w="40%" mb={6} />
-        <SkeletonBlock h={14} w="50%" mb={20} />
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          {[1, 2, 3].map(i => <SkeletonBlock key={i} h={60} radius={12} />)}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          {[1, 2, 3].map(i => <SkeletonBlock key={i} h={72} radius={14} />)}
         </div>
-        <SkeletonBlock h={52} radius={14} mb={24} />
-        <SkeletonBlock h={18} w="50%" mb={12} />
+        <SkeletonBlock h={48} radius={14} mb={10} />
+        <SkeletonBlock h={28} w="60%" mb={10} />
+        <SkeletonBlock h={14} w="40%" mb={20} />
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-surface2)' }} />
-          ))}
+          {[1, 2, 3, 4, 5].map(i => <div key={i} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-surface2)' }} />)}
         </div>
         <SkeletonBlock h={80} radius={12} mb={10} />
         <SkeletonBlock h={80} radius={12} mb={24} />
@@ -105,10 +131,7 @@ function VenueNotFound() {
       justifyContent: 'center', minHeight: '70vh', padding: '32px', textAlign: 'center',
     }}>
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏚️</div>
-      <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px',
-        marginBottom: '8px', color: 'var(--color-text)',
-      }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px', color: 'var(--color-text)' }}>
         This place isn't on Kayaa yet
       </h2>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '28px' }}>
@@ -128,141 +151,530 @@ function VenueNotFound() {
   );
 }
 
-// ─── Sub-sections ─────────────────────────────────────────────────────────────
+// ─── Photo Gallery Hero ───────────────────────────────────────────────────────
 
-function HeroSection({ venue, onBack, onPlayVideo }: { venue: Venue; onBack: () => void; onPlayVideo?: () => void }) {
+function PhotoGalleryHero({
+  venue,
+  distance,
+  isLiked,
+  onBack,
+  onShare,
+  onLike,
+  onPlayVideo,
+}: {
+  venue: Venue;
+  distance: number | null;
+  isLiked: boolean;
+  onBack: () => void;
+  onShare: () => void;
+  onLike: () => void;
+  onPlayVideo?: () => void;
+}) {
+  // Merge gallery + cover into one array, deduplicated
+  const allPhotos: string[] = [];
+  const seen = new Set<string>();
+  for (const url of [...(venue.galleryImages ?? []), venue.coverImage ?? '']) {
+    if (url && !seen.has(url)) { seen.add(url); allPhotos.push(url); }
+  }
+
+  const [idx, setIdx] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+
   const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
   const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
   const status = getStatus(venue);
-  const hasCover = !!venue.coverImage;
+  const hasCover = allPhotos.length > 0;
+  const isActive = venue.venueStatus !== 'closed';
+
+  function handleTouchEnd(clientX: number) {
+    if (touchStartX.current === null) return;
+    const dx = clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (dx < -40 && idx < allPhotos.length - 1) setIdx(i => i + 1);
+    if (dx > 40 && idx > 0) setIdx(i => i - 1);
+  }
+
+  const iconBtn = (onClick: () => void, children: React.ReactNode) => (
+    <button
+      onClick={onClick}
+      style={{
+        width: '36px', height: '36px', borderRadius: '50%',
+        background: 'rgba(13,17,23,0.55)', border: '1px solid rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  );
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{
-        height: '220px',
-        background: hasCover
-          ? `url(${venue.coverImage}) center/cover no-repeat`
-          : `linear-gradient(160deg, ${color}22 0%, #0D1117 100%)`,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Dark gradient overlay for text legibility */}
+    <div
+      style={{ position: 'relative', height: '300px', overflow: 'hidden', background: '#0D1117' }}
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => handleTouchEnd(e.changedTouches[0].clientX)}
+    >
+      {/* Background image or emoji placeholder */}
+      {hasCover ? (
+        <img
+          src={allPhotos[idx]}
+          alt={`${venue.name} — photo ${idx + 1}`}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
         <div style={{
-          position: 'absolute', inset: 0,
-          background: hasCover
-            ? 'linear-gradient(to bottom, rgba(13,17,23,0.3) 0%, rgba(13,17,23,0.75) 100%)'
-            : 'none',
-        }} />
+          width: '100%', height: '100%',
+          background: `linear-gradient(160deg, ${color}1A 0%, #0D1117 100%)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '80px',
+        }}>
+          {emoji}
+        </div>
+      )}
 
-        {!hasCover && (
-          <div style={{
-            position: 'absolute', top: '-40px', right: '-40px',
-            width: '180px', height: '180px', borderRadius: '50%',
-            background: `${color}18`, filter: 'blur(40px)',
-          }} />
-        )}
+      {/* Gradient overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: hasCover
+          ? 'linear-gradient(to bottom, rgba(13,17,23,0.55) 0%, transparent 35%, rgba(13,17,23,0.92) 100%)'
+          : 'none',
+        pointerEvents: 'none',
+      }} />
 
-        <button
-          onClick={onBack}
-          style={{
-            position: 'absolute', top: '16px', left: '16px', zIndex: 2,
-            width: '36px', height: '36px', borderRadius: '50%',
-            background: 'rgba(13,17,23,0.6)', border: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', backdropFilter: 'blur(8px)',
-          }}
-        >
-          <ArrowLeft size={16} color="#fff" />
-        </button>
-
-        {/* Play button overlay if intro video exists */}
-        {venue.introVideo && onPlayVideo && (
-          <button
-            onClick={onPlayVideo}
-            style={{
-              position: 'absolute', top: '50%', left: '50%', zIndex: 2,
-              transform: 'translate(-50%, -50%)',
-              width: '52px', height: '52px', borderRadius: '50%',
-              background: 'rgba(57,217,138,0.9)', border: '3px solid rgba(255,255,255,0.8)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', backdropFilter: 'blur(4px)',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-            }}
-          >
-            <Play size={20} color="#000" fill="#000" style={{ marginLeft: '2px' } as React.CSSProperties} />
-          </button>
-        )}
-
-        {!hasCover && (
-          <div style={{
-            position: 'absolute', bottom: '-28px', left: '16px', zIndex: 1,
-            width: '64px', height: '64px', borderRadius: '18px',
-            background: `${color}20`, border: `2px solid ${color}50`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-          }}>
-            {emoji}
-          </div>
-        )}
+      {/* Top bar: Back | Intro-video play | Like + Share */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0,
+        padding: '16px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        zIndex: 3,
+      }}>
+        {iconBtn(onBack, <ArrowLeft size={16} color="#fff" />)}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {venue.introVideo && onPlayVideo && (
+            iconBtn(onPlayVideo, <Play size={14} color="#fff" fill="#fff" />)
+          )}
+          {iconBtn(onLike,
+            <Heart size={15} color={isLiked ? '#EF4444' : '#fff'} fill={isLiked ? '#EF4444' : 'none'} />
+          )}
+          {iconBtn(onShare, <Share2 size={15} color="#fff" />)}
+        </div>
       </div>
 
-      <div style={{ padding: hasCover ? '16px 16px 0' : '40px 16px 0', background: 'var(--color-bg)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <span style={{
-            fontSize: '11px', fontWeight: 600, color,
-            background: `${color}18`, padding: '3px 10px', borderRadius: '20px',
-          }}>
-            {venue.category}
-          </span>
-          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: status.color, flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', fontWeight: 600, color: status.color }}>{status.label}</span>
-        </div>
+      {/* Prev / Next arrows */}
+      {idx > 0 && (
+        <button
+          onClick={() => setIdx(i => i - 1)}
+          style={{
+            position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', zIndex: 3,
+            width: '32px', height: '32px', borderRadius: '50%',
+            background: 'rgba(13,17,23,0.5)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          }}
+        >
+          <ChevronLeft size={18} color="#fff" />
+        </button>
+      )}
+      {allPhotos.length > 1 && idx < allPhotos.length - 1 && (
+        <button
+          onClick={() => setIdx(i => i + 1)}
+          style={{
+            position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', zIndex: 3,
+            width: '32px', height: '32px', borderRadius: '50%',
+            background: 'rgba(13,17,23,0.5)', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          }}
+        >
+          <ChevronRight size={18} color="#fff" />
+        </button>
+      )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-          <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
-            color: 'var(--color-text)', lineHeight: 1.15, margin: 0,
+      {/* Bottom info overlay */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', zIndex: 3 }}>
+        {/* Badges row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: '11px', fontWeight: 700, color,
+            background: `${color}22`, padding: '3px 10px', borderRadius: '20px',
+            border: `1px solid ${color}40`,
           }}>
-            {venue.name}
-          </h1>
+            {emoji} {venue.category}
+          </span>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            fontSize: '11px', fontWeight: 700, color: status.color,
+            background: `${status.color}18`, padding: '3px 10px', borderRadius: '20px',
+            border: `1px solid ${status.color}30`,
+          }}>
+            <span style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: status.color, display: 'inline-block',
+              animation: isActive ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
+            }} />
+            {status.label}
+          </span>
           {venue.isVerified && (
-            <span
-              title="This place has been confirmed by the Kayaa team"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)',
-                borderRadius: '20px', padding: '3px 8px', flexShrink: 0,
-              }}
-            >
-              <CheckCircle2 size={12} color="#39D98A" />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
-                Verified
-              </span>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              fontSize: '11px', fontWeight: 700, color: '#39D98A',
+              background: 'rgba(57,217,138,0.14)', padding: '3px 8px', borderRadius: '20px',
+            }}>
+              <CheckCircle2 size={11} color="#39D98A" />
+              Verified
             </span>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: venue.openHours ? '4px' : '12px' }}>
-          <MapPin size={13} color="var(--color-muted)" />
-          <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-            {venue.address} · {venue.neighborhood}, {venue.city}
+        {/* Venue name */}
+        <h1 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px',
+          color: '#fff', lineHeight: 1.15, margin: '0 0 5px',
+          textShadow: '0 2px 10px rgba(0,0,0,0.7)',
+        }}>
+          {venue.name}
+        </h1>
+
+        {/* Address + distance */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+            <MapPin size={12} />
+            {venue.neighborhood}, {venue.city}
           </span>
+          {distance !== null && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+              <Navigation size={12} />
+              {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`} away
+            </span>
+          )}
         </div>
 
-        {venue.openHours && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
-            <Clock size={13} color="var(--color-muted)" />
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>{venue.openHours}</span>
+        {/* Photo dots */}
+        {allPhotos.length > 1 && (
+          <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+            {allPhotos.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setIdx(i)}
+                style={{
+                  width: i === idx ? '16px' : '6px', height: '6px', borderRadius: '3px',
+                  background: i === idx ? '#39D98A' : 'rgba(255,255,255,0.4)',
+                  transition: 'width 0.2s, background 0.2s', cursor: 'pointer',
+                }}
+              />
+            ))}
           </div>
         )}
-
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.65 }}>
-          {venue.description}
-        </p>
       </div>
     </div>
   );
 }
 
+// ─── One-tap Action Grid ──────────────────────────────────────────────────────
+
+function ActionGrid({ venue, onShare }: { venue: Venue; onShare: () => void }) {
+  const [isHeading, setIsHeading]   = useState(false);
+  const [headingCount, setHeadingCount] = useState(0);
+  const [headingLoaded, setHeadingLoaded] = useState(false);
+  const [toast, setToast] = useState('');
+  const sessionKey = `kayaa_heading_${venue.id}`;
+
+  const waUrl = venue.whatsappNumber
+    ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}?text=${encodeURIComponent(`Hi! I found ${venue.name} on Kayaa and I'd like to know more.`)}`
+    : null;
+
+  useEffect(() => {
+    setIsHeading(sessionStorage.getItem(sessionKey) === '1');
+    getHeadingThereCount(venue.id).then(c => { setHeadingCount(c); setHeadingLoaded(true); });
+  }, [venue.id, sessionKey]);
+
+  async function handleSignal() {
+    if (isHeading) return;
+    setIsHeading(true);
+    setHeadingCount(c => c + 1);
+    sessionStorage.setItem(sessionKey, '1');
+    const uid = await getInteractiveUserId();
+    await signalHeadingThere(venue.id, uid);
+    setToast(`${venue.name.split(' ')[0]} can see you're on the way! 🚶`);
+    setTimeout(() => setToast(''), 3500);
+  }
+
+  async function handleCancel() {
+    setIsHeading(false);
+    setHeadingCount(c => Math.max(0, c - 1));
+    sessionStorage.removeItem(sessionKey);
+    const uid = await getInteractiveUserId();
+    await cancelHeadingThere(venue.id, uid);
+  }
+
+  // Shared button style
+  const actionBtnInner = (
+    icon: React.ReactNode,
+    label: string,
+    bg: string,
+    fg: string,
+    shadow: string,
+    disabled = false,
+  ) => (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: '5px', padding: '14px 8px', borderRadius: '14px',
+      background: disabled ? 'var(--color-surface)' : bg,
+      border: disabled ? '1px solid var(--color-border)' : 'none',
+      color: disabled ? 'rgba(255,255,255,0.25)' : fg,
+      boxShadow: disabled ? 'none' : `0 4px 14px ${shadow}`,
+      opacity: disabled ? 0.55 : 1,
+      minHeight: '72px',
+    }}>
+      {icon}
+      <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '11px', letterSpacing: '0.02em', textAlign: 'center' }}>
+        {label}
+      </span>
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      {toast && (
+        <div style={{
+          background: 'rgba(57,217,138,0.10)', border: '1px solid rgba(57,217,138,0.25)',
+          borderRadius: '10px', padding: '10px 14px', marginBottom: '10px',
+          fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif',
+        }}>
+          {toast}
+        </div>
+      )}
+
+      {/* 3-up action buttons */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '10px' }}>
+        {/* CHECK IN */}
+        <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none' }}>
+          {actionBtnInner(<CheckCircle2 size={24} />, 'CHECK IN', '#39D98A', '#000', 'rgba(57,217,138,0.4)')}
+        </Link>
+
+        {/* CALL */}
+        {venue.phoneNumber ? (
+          <a href={`tel:${venue.phoneNumber}`} style={{ textDecoration: 'none' }}>
+            {actionBtnInner(<Phone size={24} />, 'CALL', '#3B82F6', '#fff', 'rgba(59,130,246,0.4)')}
+          </a>
+        ) : (
+          actionBtnInner(<Phone size={24} />, 'CALL', '', '', '', true)
+        )}
+
+        {/* WHATSAPP */}
+        {waUrl ? (
+          <a href={waUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+            {actionBtnInner(<MessageCircle size={24} />, 'WHATSAPP', '#25D366', '#fff', 'rgba(37,211,102,0.4)')}
+          </a>
+        ) : (
+          actionBtnInner(<MessageCircle size={24} />, 'WHATSAPP', '', '', '', true)
+        )}
+      </div>
+
+      {/* Directions */}
+      {venue.latitude != null && venue.longitude != null && (
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}
+        >
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '13px', borderRadius: '14px',
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            color: 'var(--color-text)',
+          }}>
+            <Navigation size={16} color="var(--color-muted)" />
+            Get Directions
+          </div>
+        </a>
+      )}
+
+      {/* Heading There */}
+      {isHeading ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '13px 16px', marginBottom: '10px',
+          background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px',
+        }}>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>
+            On my way ✓
+          </span>
+          <button
+            onClick={handleCancel}
+            style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleSignal}
+          style={{
+            width: '100%', background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px',
+            padding: '14px 20px', color: '#fff',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            cursor: 'pointer', textAlign: 'center', marginBottom: '10px',
+          }}
+        >
+          I'm heading there 🚶
+        </button>
+      )}
+
+      {headingLoaded && headingCount > 0 && (
+        <p style={{ fontSize: '13px', color: '#39D98A', textAlign: 'center', margin: '0 0 10px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>
+          {headingCount === 1 ? '1 person is heading here' : `${headingCount} people are heading here`}
+        </p>
+      )}
+
+      {/* Share */}
+      <button
+        onClick={onShare}
+        style={{
+          width: '100%', background: 'transparent',
+          border: '1px solid rgba(57,217,138,0.3)', borderRadius: '14px',
+          padding: '13px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          color: '#39D98A', cursor: 'pointer',
+        }}
+      >
+        <Share2 size={16} color="#39D98A" />
+        Share this place
+      </button>
+    </div>
+  );
+}
+
+// ─── Opening Hours Section ────────────────────────────────────────────────────
+
+function OpeningHoursSection({ venue }: { venue: Venue }) {
+  if (!venue.openHours) return null;
+  const status = getStatus(venue);
+  const isActive = venue.venueStatus !== 'closed';
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        Opening hours
+      </h2>
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '14px', padding: '14px 16px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <span style={{
+            width: '8px', height: '8px', borderRadius: '50%',
+            background: status.color, flexShrink: 0,
+            display: 'inline-block',
+            animation: isActive ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
+          }} />
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: status.color }}>
+            {status.label}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <Clock size={14} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, margin: 0,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {venue.openHours}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Real-time Recent Activity Feed ──────────────────────────────────────────
+
+function RecentActivityFeed({ venueId }: { venueId: string }) {
+  const [checkins, setCheckins] = useState<RecentCheckin[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    getVenueRecentCheckIns(venueId, 5)
+      .then(data => { setCheckins(data); setLoaded(true); })
+      .catch(() => setLoaded(true));
+
+    const channel = supabase
+      .channel(`recent-checkins:${venueId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'check_ins', filter: `venue_id=eq.${venueId}` },
+        payload => {
+          const r = payload.new as Record<string, unknown>;
+          const entry: RecentCheckin = {
+            id: String(r.id ?? Math.random()),
+            visitorName: r.is_ghost ? 'Someone' : String(r.visitor_name ?? 'Someone'),
+            createdAt: String(r.created_at ?? new Date().toISOString()),
+          };
+          setCheckins(prev => [entry, ...prev].slice(0, 5));
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [venueId]);
+
+  if (!loaded || checkins.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+          Recent activity
+        </h2>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          fontSize: '11px', fontWeight: 700, color: '#39D98A',
+          background: 'rgba(57,217,138,0.1)', padding: '2px 10px', borderRadius: '20px',
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', animation: 'navLocPulse 1.2s ease-in-out infinite' }} />
+          Live
+        </span>
+      </div>
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '14px', overflow: 'hidden',
+      }}>
+        {checkins.map((c, i) => (
+          <div
+            key={c.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 14px',
+              borderBottom: i < checkins.length - 1 ? '1px solid var(--color-border)' : 'none',
+            }}
+          >
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+              background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
+            }}>
+              {c.visitorName === 'Someone' ? '👤' : c.visitorName[0].toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+                {c.visitorName}
+              </span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+                {' '}checked in
+              </span>
+            </div>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
+              {timeAgo(c.createdAt)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── User visit badge ─────────────────────────────────────────────────────────
 
@@ -285,20 +697,15 @@ function UserVisitBadge({ venueId }: { venueId: string }) {
 
   return (
     <div style={{
-      background: 'rgba(57,217,138,0.06)',
-      border: '1px solid rgba(57,217,138,0.16)',
-      borderRadius: '12px', padding: '12px 14px',
-      marginBottom: '12px',
+      background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.16)',
+      borderRadius: '12px', padding: '12px 14px', marginBottom: '12px',
       display: 'flex', alignItems: 'center', gap: '10px',
     }}>
       <span style={{ fontSize: '22px', flexShrink: 0 }}>
         {VISIT_BADGE_ICON[score.badgeTier] ?? '✓'}
       </span>
       <div>
-        <div style={{
-          fontSize: '13px', fontWeight: 700, color: '#fff',
-          fontFamily: 'Syne, sans-serif', marginBottom: '1px',
-        }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif', marginBottom: '1px' }}>
           You've been here {score.visitCount} {score.visitCount === 1 ? 'time' : 'times'}
         </div>
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.48)' }}>
@@ -309,22 +716,14 @@ function UserVisitBadge({ venueId }: { venueId: string }) {
   );
 }
 
-function formatWaNumber(n: string): string {
-  const digits = n.replace(/\D/g, '');
-  return digits.startsWith('0') ? '27' + digits.slice(1) : digits;
-}
-
-// ─── Quick Stats Row (spec section 2) ────────────────────────────────────────
+// ─── Quick Stats Row ──────────────────────────────────────────────────────────
 
 const VIBE_WINNER_LABEL: Record<VibeType, string> = {
   busy: '🔥 Busy right now', chilled: '😌 Chilled right now', happening: '🎉 Happening right now',
 };
 
-function QuickStatsRow({ venue, recentStats }: { venue: Venue; recentStats: VenueRecentStats }) {
+function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentStats: VenueRecentStats; distance: number | null }) {
   const [vibeWinner, setVibeWinner] = useState<VibeType | null>(null);
-  const waUrl = venue.whatsappNumber
-    ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}`
-    : null;
 
   useEffect(() => {
     getVibeSummary(venue.id).then(s => {
@@ -332,54 +731,35 @@ function QuickStatsRow({ venue, recentStats }: { venue: Venue; recentStats: Venu
     }).catch(() => {});
   }, [venue.id]);
 
+  const stats: { label: string; value: string | number; color?: string }[] = [
+    { label: 'regulars', value: venue.regularsCount.toLocaleString() },
+    { label: 'today', value: venue.checkinsToday },
+    { label: 'this week', value: recentStats.weeklyCheckins },
+  ];
+  if (distance !== null) {
+    stats.push({ label: 'away', value: distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km` });
+  }
+
   return (
-    <div style={{
-      paddingTop: '14px', paddingBottom: '14px',
-      borderBottom: '1px solid var(--color-border)',
-      marginBottom: '14px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ fontSize: '14px', color: 'var(--color-text)', fontWeight: 600 }}>
-            {venue.checkinCount.toLocaleString()}
-          </span>
-          <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}> regulars</span>
-          {recentStats.weeklyCheckins > 0 && (
-            <>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> · </span>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-                {recentStats.weeklyCheckins} check-ins this week
-              </span>
-            </>
-          )}
-          {vibeWinner && (
-            <div style={{ marginTop: '4px', fontSize: '12px', fontWeight: 700, color: '#F97316' }}>
-              {VIBE_WINNER_LABEL[vibeWinner]}
-            </div>
-          )}
-        </div>
-        {waUrl && (
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
-              borderRadius: '20px', padding: '7px 14px', textDecoration: 'none',
-              fontSize: '12px', fontWeight: 700, color: '#39D98A',
-              fontFamily: 'DM Sans, sans-serif', flexShrink: 0,
-            }}
-          >
-            💬 WhatsApp
-          </a>
-        )}
+    <div style={{ paddingTop: '14px', paddingBottom: '14px', borderBottom: '1px solid var(--color-border)', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: vibeWinner ? '8px' : '0' }}>
+        {stats.map(s => (
+          <div key={s.label}>
+            <span style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 700 }}>{s.value}</span>
+            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> {s.label}</span>
+          </div>
+        ))}
       </div>
+      {vibeWinner && (
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#F97316' }}>
+          {VIBE_WINNER_LABEL[vibeWinner]}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Top Regulars (spec section 8) ───────────────────────────────────────────
+// ─── Top Regulars ─────────────────────────────────────────────────────────────
 
 const TOP_REGULAR_NAMES = ['Thabo', 'Nomsa', 'Sipho', 'Lerato', 'Bongani'];
 const TOP_REGULAR_BADGE_ICONS: Record<string, string> = {
@@ -430,160 +810,7 @@ function TopRegularsSection({ venue }: { venue: Venue }) {
   );
 }
 
-const CHECKIN_CTA_EMOJI: Record<string, string> = {
-  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
-  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
-  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
-};
-
-// ─── Primary Actions (spec section 4) ────────────────────────────────────────
-// Merges Check-in CTA + Heading There into one section
-
-function PrimaryActions({ venue }: { venue: Venue }) {
-  const [shareOpen, setShareOpen] = useState(false);
-  const [isHeading, setIsHeading] = useState(false);
-  const [headingCount, setHeadingCount] = useState(0);
-  const [headingLoaded, setHeadingLoaded] = useState(false);
-  const [toast, setToast] = useState('');
-  const sessionKey = `kayaa_heading_${venue.id}`;
-  const waCheckinUrl = venue.whatsappNumber
-    ? `https://wa.me/${formatWaNumber(venue.whatsappNumber)}?text=${encodeURIComponent(`Hi, I'd like to check in at ${venue.name}`)}`
-    : null;
-  const emoji = CHECKIN_CTA_EMOJI[venue.category] ?? '📍';
-
-  useEffect(() => {
-    const local = sessionStorage.getItem(sessionKey) === '1';
-    setIsHeading(local);
-    getHeadingThereCount(venue.id).then(c => {
-      setHeadingCount(c);
-      setHeadingLoaded(true);
-    });
-  }, [venue.id, sessionKey]);
-
-  async function handleSignal() {
-    if (isHeading) return;
-    setIsHeading(true);
-    setHeadingCount(c => c + 1);
-    sessionStorage.setItem(sessionKey, '1');
-    const uid = await getInteractiveUserId();
-    await signalHeadingThere(venue.id, uid);
-    setToast(`${venue.name.split(' ')[0]} can see you're on the way! 🚶`);
-    setTimeout(() => setToast(''), 3500);
-  }
-
-  async function handleCancel() {
-    setIsHeading(false);
-    setHeadingCount(c => Math.max(0, c - 1));
-    sessionStorage.removeItem(sessionKey);
-    const uid = await getInteractiveUserId();
-    await cancelHeadingThere(venue.id, uid);
-  }
-
-  return (
-    <>
-      <ShareModal
-        type="place"
-        data={{
-          name: venue.name, slug: venue.slug, category: venue.category,
-          emoji, neighborhood: venue.neighborhood, city: venue.city,
-          description: venue.description, checkinCount: venue.checkinCount, isOpen: venue.isOpen,
-        }}
-        isOpen={shareOpen}
-        onClose={() => setShareOpen(false)}
-      />
-      <div style={{ marginBottom: '20px' }}>
-        {toast && (
-          <div style={{ background: 'rgba(57,217,138,0.10)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
-            {toast}
-          </div>
-        )}
-
-        {/* Check In — large primary */}
-        <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block', marginBottom: '10px' }}>
-          <div style={{
-            background: 'var(--color-accent)', color: '#000',
-            borderRadius: '14px', padding: '16px 20px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px',
-            letterSpacing: '0.01em',
-          }}>
-            CHECK IN HERE
-          </div>
-        </Link>
-
-        {/* Heading There — ghost secondary */}
-        {isHeading ? (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '13px 16px', marginBottom: '10px',
-            background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px',
-          }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>
-              On my way ✓
-            </span>
-            <button onClick={handleCancel} style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleSignal}
-            style={{
-              width: '100%', background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px',
-              padding: '14px 20px', color: '#fff',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-              cursor: 'pointer', textAlign: 'center', marginBottom: '10px',
-            }}
-          >
-            I'm heading there 🚶
-          </button>
-        )}
-
-        {/* Heading count */}
-        {headingLoaded && headingCount > 0 && (
-          <p style={{ fontSize: '13px', color: '#39D98A', textAlign: 'center', margin: '0 0 10px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>
-            {headingCount === 1 ? '1 person is heading here right now' : `${headingCount} people are heading here right now`}
-          </p>
-        )}
-
-        {/* Share */}
-        <button
-          onClick={() => setShareOpen(true)}
-          style={{
-            width: '100%', background: 'transparent',
-            border: '1px solid rgba(57,217,138,0.3)', borderRadius: '14px',
-            padding: '13px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
-            color: '#39D98A', cursor: 'pointer',
-            marginBottom: waCheckinUrl ? '10px' : '0',
-          }}
-        >
-          <Share2 size={16} color="#39D98A" />
-          Share this place
-        </button>
-
-        {/* WhatsApp check-in */}
-        {waCheckinUrl && (
-          <a href={waCheckinUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>
-            <div style={{
-              background: 'transparent', border: '1px solid var(--color-border)',
-              borderRadius: '14px', padding: '13px 20px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
-              color: 'var(--color-muted)',
-            }}>
-              <span>💬</span>
-              Can't scan? Check in on WhatsApp
-            </div>
-          </a>
-        )}
-      </div>
-    </>
-  );
-}
-
-// ─── Events Section with soft RSVP (spec section 9 + bonus) ─────────────────
+// ─── Events Section ───────────────────────────────────────────────────────────
 
 function EventsSection({ events }: { events: Event[] }) {
   const [rsvpCounts, setRsvpCounts] = useState<Record<string, number>>({});
@@ -621,24 +848,16 @@ function EventsSection({ events }: { events: Event[] }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>Upcoming events</h2>
         {events.length > 0 && (
-          <span style={{
-            fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)',
-            background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px',
-          }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)', background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px' }}>
             {events.length} upcoming
           </span>
         )}
       </div>
 
       {upcoming.length === 0 ? (
-        <div style={{
-          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          borderRadius: '14px', padding: '24px 16px', textAlign: 'center',
-        }}>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '24px 16px', textAlign: 'center' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>📅</div>
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
-            Nothing on the calendar yet. Check back soon.
-          </p>
+          <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>Nothing on the calendar yet. Check back soon.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -646,16 +865,9 @@ function EventsSection({ events }: { events: Event[] }) {
             const going = userRsvps[event.id] ?? false;
             const count = rsvpCounts[event.id] ?? 0;
             return (
-              <div key={event.id} style={{
-                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                borderRadius: '14px', padding: '14px',
-              }}>
+              <div key={event.id} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div style={{
-                    flexShrink: 0, width: '48px',
-                    background: 'var(--color-surface2)', borderRadius: '10px',
-                    padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)',
-                  }}>
+                  <div style={{ flexShrink: 0, width: '48px', background: 'var(--color-surface2)', borderRadius: '10px', padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>
                       {new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}
                     </div>
@@ -664,13 +876,9 @@ function EventsSection({ events }: { events: Event[] }) {
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
-                      {event.title}
-                    </div>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>{event.title}</div>
                     {event.description && (
-                      <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
-                        {event.description}
-                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>{event.description}</div>
                     )}
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -683,8 +891,6 @@ function EventsSection({ events }: { events: Event[] }) {
                     </div>
                   </div>
                 </div>
-
-                {/* RSVP row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
                   {count > 0 ? (
                     <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -705,11 +911,7 @@ function EventsSection({ events }: { events: Event[] }) {
                       display: 'flex', alignItems: 'center', gap: '5px',
                     }}
                   >
-                    {going ? (
-                      <>Going 👋 <span style={{ fontSize: '11px', opacity: 0.7 }}>· Cancel</span></>
-                    ) : (
-                      'I might come 👋'
-                    )}
+                    {going ? <>Going 👋 <span style={{ fontSize: '11px', opacity: 0.7 }}>· Cancel</span></> : 'I might come 👋'}
                   </button>
                 </div>
               </div>
@@ -721,9 +923,10 @@ function EventsSection({ events }: { events: Event[] }) {
   );
 }
 
+// ─── About Section ────────────────────────────────────────────────────────────
+
 function AboutSection({ venue }: { venue: Venue }) {
   const year = new Date(venue.createdAt).getFullYear();
-
   return (
     <div style={{ marginBottom: '20px' }}>
       <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>About this place</h2>
@@ -744,20 +947,46 @@ function AboutSection({ venue }: { venue: Venue }) {
             <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>On Kayaa since</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{year}</span>
           </div>
-          {venue.tags.length > 0 && (
+          {venue.address && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Address</span>
+              <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.address}</span>
+            </div>
+          )}
+          {venue.tags && venue.tags.length > 0 && (
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
               {venue.tags.map(tag => (
-                <span key={tag} style={{
-                  fontSize: '11px', color: 'var(--color-muted)',
-                  background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
-                  borderRadius: '20px', padding: '3px 10px',
-                }}>
+                <span key={tag} style={{ fontSize: '11px', color: 'var(--color-muted)', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '3px 10px' }}>
                   {tag}
                 </span>
               ))}
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Posts Section ────────────────────────────────────────────────────────────
+
+function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; venueName: string; visitCount: number }) {
+  const needed = Math.max(0, 3 - visitCount);
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', overflow: 'hidden', marginBottom: '10px', position: 'relative' }}>
+      <div style={{ padding: '14px', filter: 'blur(4px)', userSelect: 'none', opacity: 0.3, pointerEvents: 'none' }}>
+        <div style={{ height: '14px', background: 'var(--color-muted)', borderRadius: '4px', marginBottom: '8px', width: '80%' }} />
+        <div style={{ height: '12px', background: 'var(--color-muted)', borderRadius: '4px', width: '60%' }} />
+      </div>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,17,23,0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '28px' }}>🔒</span>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Regulars only</div>
+        <p style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>{venueName} shared this with their regulars.</p>
+        <p style={{ fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: 0 }}>
+          {visitCount === 0
+            ? 'Check in here to start unlocking regulars posts.'
+            : `You've been here ${visitCount} time${visitCount !== 1 ? 's' : ''}. Visit ${needed} more time${needed !== 1 ? 's' : ''} to unlock.`}
+        </p>
       </div>
     </div>
   );
@@ -805,7 +1034,7 @@ function PostsSection({ posts, venueName, venueId }: { posts: Post[]; venueName:
   );
 }
 
-// ─── Feature 2: Vibe Check ───────────────────────────────────────────────────
+// ─── Vibe Check Section ───────────────────────────────────────────────────────
 
 const VIBE_CONFIG: Record<VibeType, { emoji: string; label: string; color: string }> = {
   busy:      { emoji: '🔥', label: 'Busy',      color: '#F97316' },
@@ -827,7 +1056,6 @@ function VibeCheckSection({ venueId }: { venueId: string }) {
   async function handleVibeTap(vibe: VibeType) {
     if (!summary) return;
     const isSame = summary.userVibe === vibe;
-    // Optimistic update
     const next: VibeSummary = { ...summary };
     if (isSame) {
       next[vibe] = Math.max(0, next[vibe] - 1);
@@ -842,10 +1070,8 @@ function VibeCheckSection({ venueId }: { venueId: string }) {
     next.winning = max >= 2 ? (['busy', 'chilled', 'happening'] as VibeType[]).find(v => next[v] === max) ?? null : null;
     next.winningCount = max >= 2 ? max : 0;
     setSummary(next);
-
     if (isSame) { await cancelVibeReport(venueId, userId); }
     else { await reportVibe(venueId, userId, vibe); }
-    // Refresh from DB
     getVibeSummary(venueId, userId).then(setSummary);
   }
 
@@ -876,8 +1102,7 @@ function VibeCheckSection({ venueId }: { venueId: string }) {
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
               }}
             >
-              <span>{cfg.emoji}</span>
-              <span>{cfg.label}</span>
+              <span>{cfg.emoji}</span><span>{cfg.label}</span>
             </button>
           );
         })}
@@ -902,46 +1127,6 @@ function VibeCheckSection({ venueId }: { venueId: string }) {
   );
 }
 
-// ─── Feature 4: Locked Post Card ─────────────────────────────────────────────
-
-function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; venueName: string; visitCount: number }) {
-  const needed = Math.max(0, 3 - visitCount);
-  return (
-    <div style={{
-      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-      borderRadius: '14px', overflow: 'hidden', marginBottom: '10px',
-      position: 'relative',
-    }}>
-      {/* Blurred background placeholder */}
-      <div style={{
-        padding: '14px', filter: 'blur(4px)', userSelect: 'none', opacity: 0.3,
-        pointerEvents: 'none',
-      }}>
-        <div style={{ height: '14px', background: 'var(--color-muted)', borderRadius: '4px', marginBottom: '8px', width: '80%' }} />
-        <div style={{ height: '12px', background: 'var(--color-muted)', borderRadius: '4px', width: '60%' }} />
-      </div>
-      {/* Overlay */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(13,17,23,0.85)', backdropFilter: 'blur(8px)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '20px', textAlign: 'center', gap: '8px',
-      }}>
-        <span style={{ fontSize: '28px' }}>🔒</span>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Regulars only</div>
-        <p style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
-          {venueName} shared this with their regulars.
-        </p>
-        <p style={{ fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: 0 }}>
-          {visitCount === 0
-            ? 'Check in here to start unlocking regulars posts.'
-            : `You've been here ${visitCount} time${visitCount !== 1 ? 's' : ''}. Visit ${needed} more time${needed !== 1 ? 's' : ''} to unlock.`}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ─── Gallery Strip ────────────────────────────────────────────────────────────
 
 function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (idx: number) => void }) {
@@ -958,26 +1143,15 @@ function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (id
         overflowX: 'auto', scrollbarWidth: 'none',
         marginLeft: '-16px', paddingLeft: '16px',
         marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '4px',
-        WebkitOverflowScrolling: 'touch',
+        paddingBottom: '4px', WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
         {images.map((url, i) => (
           <div
             key={i}
             onClick={() => onImageClick(i)}
-            style={{
-              flexShrink: 0, width: '140px', height: '140px',
-              borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-            }}
+            style={{ flexShrink: 0, width: '140px', height: '140px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
           >
-            <img
-              src={url}
-              alt={`${venue.name} photo ${i + 1}`}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              loading="lazy"
-            />
+            <img src={url} alt={`${venue.name} photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
           </div>
         ))}
       </div>
@@ -987,96 +1161,37 @@ function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (id
 
 // ─── Image Lightbox ───────────────────────────────────────────────────────────
 
-function ImageLightbox({
-  images, index, onClose, onNavigate,
-}: {
-  images: string[]; index: number; onClose: () => void; onNavigate: (idx: number) => void;
-}) {
+function ImageLightbox({ images, index, onClose, onNavigate }: { images: string[]; index: number; onClose: () => void; onNavigate: (idx: number) => void }) {
   const touchStartX = useRef<number | null>(null);
-
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-
-  function handleTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) < 40) return;
-    if (dx < 0 && index < images.length - 1) onNavigate(index + 1);
-    if (dx > 0 && index > 0) onNavigate(index - 1);
-  }
 
   return (
     <div
       onClick={onClose}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.95)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => {
+        if (touchStartX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        touchStartX.current = null;
+        if (Math.abs(dx) < 40) return;
+        if (dx < 0 && index < images.length - 1) onNavigate(index + 1);
+        if (dx > 0 && index > 0) onNavigate(index - 1);
       }}
+      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute', top: '16px', right: '16px', zIndex: 201,
-          width: '36px', height: '36px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.12)', border: 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
+      <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 201, width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <X size={18} color="#fff" />
       </button>
-
-      {/* Counter */}
-      <div style={{
-        position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
-        fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'DM Sans, sans-serif',
-        background: 'rgba(0,0,0,0.4)', borderRadius: '20px', padding: '4px 12px',
-      }}>
+      <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'DM Sans, sans-serif', background: 'rgba(0,0,0,0.4)', borderRadius: '20px', padding: '4px 12px' }}>
         {index + 1} / {images.length}
       </div>
-
-      {/* Image */}
-      <img
-        src={images[index]}
-        alt={`Photo ${index + 1}`}
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '100vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '4px' }}
-      />
-
-      {/* Left nav */}
+      <img src={images[index]} alt={`Photo ${index + 1}`} onClick={e => e.stopPropagation()} style={{ maxWidth: '100vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '4px' }} />
       {index > 0 && (
-        <button
-          onClick={e => { e.stopPropagation(); onNavigate(index - 1); }}
-          style={{
-            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-            width: '36px', height: '36px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.12)', border: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
+        <button onClick={e => { e.stopPropagation(); onNavigate(index - 1); }} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <ChevronLeft size={20} color="#fff" />
         </button>
       )}
-
-      {/* Right nav */}
       {index < images.length - 1 && (
-        <button
-          onClick={e => { e.stopPropagation(); onNavigate(index + 1); }}
-          style={{
-            position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-            width: '36px', height: '36px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.12)', border: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
+        <button onClick={e => { e.stopPropagation(); onNavigate(index + 1); }} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <ChevronRight size={20} color="#fff" />
         </button>
       )}
@@ -1084,7 +1199,7 @@ function ImageLightbox({
   );
 }
 
-// ─── Video Card ───────────────────────────────────────────────────────────────
+// ─── Video components ─────────────────────────────────────────────────────────
 
 function VideoCard({ venue }: { venue: Venue }) {
   const [muted, setMuted] = useState(true);
@@ -1105,65 +1220,27 @@ function VideoCard({ venue }: { venue: Venue }) {
         Watch {venue.name} in action
       </h2>
       <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', background: '#000' }}>
-        <video
-          ref={videoRef}
-          src={venue.introVideo}
-          autoPlay muted loop playsInline
-          style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }}
-        />
-        <button
-          onClick={toggleMute}
-          style={{
-            position: 'absolute', bottom: '12px', right: '12px',
-            width: '34px', height: '34px', borderRadius: '50%',
-            background: 'rgba(13,17,23,0.7)', border: '1px solid rgba(255,255,255,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', backdropFilter: 'blur(8px)',
-          }}
-        >
-          {muted
-            ? <VolumeX size={15} color="#fff" />
-            : <Volume2 size={15} color="#fff" />
-          }
+        <video ref={videoRef} src={venue.introVideo} autoPlay muted loop playsInline style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }} />
+        <button onClick={toggleMute} style={{ position: 'absolute', bottom: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(13,17,23,0.7)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
+          {muted ? <VolumeX size={15} color="#fff" /> : <Volume2 size={15} color="#fff" />}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Video Modal ──────────────────────────────────────────────────────────────
-
 function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.97)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute', top: '16px', right: '16px',
-          width: '36px', height: '36px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.12)', border: 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.97)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <X size={18} color="#fff" />
       </button>
-      <video
-        src={src}
-        autoPlay controls playsInline
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '100vw', maxHeight: '90vh', borderRadius: '8px' }}
-      />
+      <video src={src} autoPlay controls playsInline onClick={e => e.stopPropagation()} style={{ maxWidth: '100vw', maxHeight: '90vh', borderRadius: '8px' }} />
     </div>
   );
 }
+
+// ─── Sticky check-in bar ──────────────────────────────────────────────────────
 
 function StickyCheckinBar({ venue }: { venue: Venue }) {
   return (
@@ -1192,17 +1269,22 @@ export default function VenuePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [venue, setVenue] = useState<Venue | null>(null);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [stories, setStories] = useState<Story[]>([]);
-  const [recentStats, setRecentStats] = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [activeStory, setActiveStory] = useState<VenueStory24 | null>(null);
+  const [loading,         setLoading]         = useState(true);
+  const [notFound,        setNotFound]        = useState(false);
+  const [venue,           setVenue]           = useState<Venue | null>(null);
+  const [events,          setEvents]          = useState<Event[]>([]);
+  const [posts,           setPosts]           = useState<Post[]>([]);
+  const [stories,         setStories]         = useState<Story[]>([]);
+  const [recentStats,     setRecentStats]     = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
+  const [lightboxIdx,     setLightboxIdx]     = useState<number | null>(null);
+  const [videoModalOpen,  setVideoModalOpen]  = useState(false);
+  const [activeStory,     setActiveStory]     = useState<VenueStory24 | null>(null);
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
+  const [shareOpen,       setShareOpen]       = useState(false);
+
+  // Phase 3: distance + liked
+  const [distance, setDistance] = useState<number | null>(null);
+  const [isLiked,  setIsLiked]  = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -1213,30 +1295,69 @@ export default function VenuePage() {
       if (!v) { setNotFound(true); setLoading(false); return; }
       setVenue(v);
       setLoading(false);
+      setIsLiked(getLikedVenues().has(v.id));
 
-      // Fetch events, posts, stories, recent stats, active story in parallel
+      // Load all supplementary data in parallel
       getVenueEvents(v.id).then(setEvents);
       getVenuePosts(v.id).then(setPosts);
       getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
+
+      // GPS distance calculation
+      if (v.latitude != null && v.longitude != null && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const km = haversineKm(pos.coords.latitude, pos.coords.longitude, v.latitude!, v.longitude!);
+            setDistance(km);
+          },
+          () => {/* denied — silently skip */},
+          { timeout: 6000, enableHighAccuracy: false, maximumAge: 60_000 },
+        );
+      }
     });
   }, [slug]);
+
+  function handleLike() {
+    if (!venue) return;
+    const liked = getLikedVenues();
+    if (liked.has(venue.id)) { liked.delete(venue.id); setIsLiked(false); }
+    else { liked.add(venue.id); setIsLiked(true); }
+    setLikedVenues(liked);
+  }
 
   if (loading) return <VenueSkeleton />;
   if (notFound || !venue) return <VenueNotFound />;
 
-  const galleryImages2 = venue.galleryImages ?? [];
+  const galleryImages = venue.galleryImages ?? [];
+  const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
 
   return (
     <div>
-      <HeroSection
+      {/* ── Share modal (lifted to page level, shared by hero + action grid) ── */}
+      <ShareModal
+        type="place"
+        data={{
+          name: venue.name, slug: venue.slug, category: venue.category,
+          emoji, neighborhood: venue.neighborhood, city: venue.city,
+          description: venue.description, checkinCount: venue.checkinCount, isOpen: venue.isOpen,
+        }}
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
+
+      {/* ── Photo Gallery Hero ─────────────────────────────────────────────── */}
+      <PhotoGalleryHero
         venue={venue}
+        distance={distance}
+        isLiked={isLiked}
         onBack={() => navigate(-1)}
+        onShare={() => setShareOpen(true)}
+        onLike={handleLike}
         onPlayVideo={venue.introVideo ? () => setVideoModalOpen(true) : undefined}
       />
 
-      {/* Story ring on hero — tap to open if active story */}
+      {/* ── Story ring — tap to open active story ─────────────────────────── */}
       {activeStory && (
         <div style={{ padding: '0 16px' }}>
           <button
@@ -1260,60 +1381,67 @@ export default function VenuePage() {
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
 
-        {/* 2. Quick Stats Row — regulars · check-ins · WhatsApp · vibe */}
-        <QuickStatsRow venue={venue} recentStats={recentStats} />
+        {/* ── Quick Stats (regulars · today · week · distance) ──────────────── */}
+        <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} />
 
-        {/* 3. User's Personal Status */}
+        {/* ── User's personal visit badge ───────────────────────────────────── */}
         <UserVisitBadge venueId={venue.id} />
 
-        {/* 4. Primary Actions — Check In + Heading There */}
-        <PrimaryActions venue={venue} />
+        {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
+        <ActionGrid venue={venue} onShare={() => setShareOpen(true)} />
 
-        {/* 5. Vibe Check */}
+        {/* ── Real-time recent activity ─────────────────────────────────────── */}
+        <RecentActivityFeed venueId={venue.id} />
+
+        {/* ── Vibe check ───────────────────────────────────────────────────── */}
         <VibeCheckSection venueId={venue.id} />
 
-        {/* 6. Gallery Strip — only if 2+ images */}
-        {galleryImages2.length >= 2 && (
+        {/* ── Opening hours ────────────────────────────────────────────────── */}
+        <OpeningHoursSection venue={venue} />
+
+        {/* ── Gallery strip (2+ images) ─────────────────────────────────────── */}
+        {galleryImages.length >= 2 && (
           <GalleryStrip venue={venue} onImageClick={idx => setLightboxIdx(idx)} />
         )}
 
-        {/* 7. Intro Video */}
+        {/* ── Intro video ──────────────────────────────────────────────────── */}
         {venue.introVideo && <VideoCard venue={venue} />}
 
-        {/* Text stories (legacy) */}
+        {/* ── Text stories (legacy) ────────────────────────────────────────── */}
         {stories.length > 0 && <StoriesStrip stories={stories} />}
 
-        {/* 8. Top Regulars */}
+        {/* ── Top regulars ─────────────────────────────────────────────────── */}
         <TopRegularsSection venue={venue} />
 
-        {/* 9. Upcoming Events with RSVP */}
+        {/* ── Upcoming events with RSVP ─────────────────────────────────────── */}
         <EventsSection events={events} />
 
-        {/* 10. Posts */}
+        {/* ── Community posts ──────────────────────────────────────────────── */}
         <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} />
 
-        {/* About — kept at bottom for reference */}
+        {/* ── About ────────────────────────────────────────────────────────── */}
         <AboutSection venue={venue} />
       </div>
 
+      {/* ── Sticky bottom CTA ─────────────────────────────────────────────── */}
       <StickyCheckinBar venue={venue} />
 
-      {/* Lightbox */}
-      {lightboxIdx !== null && galleryImages2.length > 0 && (
+      {/* ── Lightbox ──────────────────────────────────────────────────────── */}
+      {lightboxIdx !== null && galleryImages.length > 0 && (
         <ImageLightbox
-          images={galleryImages2}
+          images={galleryImages}
           index={lightboxIdx}
           onClose={() => setLightboxIdx(null)}
           onNavigate={setLightboxIdx}
         />
       )}
 
-      {/* Video modal */}
+      {/* ── Video modal ───────────────────────────────────────────────────── */}
       {videoModalOpen && venue.introVideo && (
         <VideoModal src={venue.introVideo} onClose={() => setVideoModalOpen(false)} />
       )}
 
-      {/* Story viewer */}
+      {/* ── Story viewer ──────────────────────────────────────────────────── */}
       {storyViewerOpen && activeStory && (
         <StoryViewer
           story={activeStory}

@@ -292,10 +292,36 @@ export default function CheckInPage() {
     );
   }
 
+  // ── Offline queue helpers ───────────────────────────────────────────────────
+  // When the device is offline, check-ins are stored in localStorage and
+  // flushed the next time the app goes online.
+
+  function queueOfflineCheckIn(v: Venue, m: typeof method) {
+    const QUEUE_KEY = 'kayaa_offline_checkins';
+    try {
+      const existing = JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]') as object[];
+      existing.push({ venueId: v.id, venueName: v.name, venueSlug: v.slug, venueType: v.category, visitorId, method: m, queuedAt: new Date().toISOString() });
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(existing));
+    } catch { /* storage full — ignore */ }
+  }
+
   // ── Save ────────────────────────────────────────────────────────────────────
 
   async function doSave(v: Venue, m: typeof method) {
     setStep('saving');
+
+    // Offline: queue locally + show celebration optimistically
+    if (!navigator.onLine) {
+      queueOfflineCheckIn(v, m);
+      const result = await saveVisit({
+        venueId: v.id, venueName: v.name, venueSlug: v.slug,
+        venueType: v.category, visitorId, method: m,
+      });
+      setScore(result.score);
+      setStep('celebration'); // always celebrate — will sync on reconnect
+      return;
+    }
+
     const result = await saveVisit({
       venueId:   v.id,
       venueName: v.name,

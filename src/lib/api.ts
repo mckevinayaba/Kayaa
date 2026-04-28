@@ -47,6 +47,7 @@ function dbVenueToVenue(row: any): Venue {
     venueStatus:      (row.status as 'open' | 'busy' | 'quiet' | 'closed') ?? 'open',
     isOpen: (row.status ?? 'open') !== 'closed',
     openHours: row.opening_hours ?? undefined,
+    phoneNumber: row.phone_number ?? undefined,
     whatsappNumber: row.whatsapp_number ?? undefined,
     isVerified: row.is_verified ?? false,
     tags: [],
@@ -669,6 +670,29 @@ export async function getVenueRecentStats(venueId: string): Promise<VenueRecentS
     monthlyCheckins: monthRes.count ?? 0,
     weeklyCheckins:  weekRes.count  ?? 0,
   };
+}
+
+// ─── Recent Check-ins ────────────────────────────────────────────────────────
+
+export interface RecentCheckin {
+  id: string;
+  visitorName: string;
+  createdAt: string;
+}
+
+export async function getVenueRecentCheckIns(venueId: string, limit = 5): Promise<RecentCheckin[]> {
+  const { data } = await supabase
+    .from('check_ins')
+    .select('id, visitor_name, created_at, is_ghost')
+    .eq('venue_id', venueId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  return (data ?? []).map((r: { id: string; visitor_name?: string; created_at: string; is_ghost?: boolean }) => ({
+    id: r.id,
+    visitorName: r.is_ghost ? 'Someone' : (r.visitor_name ?? 'Someone'),
+    createdAt: r.created_at,
+  }));
 }
 
 // ─── Visitor Regular Card ─────────────────────────────────────────────────────
