@@ -21,6 +21,7 @@ import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
 import ExplorePage from './pages/ExplorePage';
 import SkillsPage from './pages/SkillsPage';
+import SkillDetail from './pages/SkillDetail';
 import ProfilePage      from './pages/ProfilePage';
 import EditProfile      from './pages/EditProfile';
 import PrivacySettings       from './pages/PrivacySettings';
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/checkin" element={<CheckInBrowsePage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/skills"  element={<SkillsPage />} />
+            <Route path="/skills/:id" element={<SkillDetail />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
             <Route path="/countries" element={<CountriesPage />} />
             <Route path="/profile"          element={<ProfilePage />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, PenSquare } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Search, PenSquare, ChevronRight } from 'lucide-react';
 import { getBoardPosts, type BoardPost } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
 
@@ -58,70 +58,79 @@ function SkillCard({ post }: { post: BoardPost }) {
     : null;
 
   return (
-    <div style={{
-      background: '#161B22',
-      border: '1px solid #21262D',
-      borderLeft: '3px solid #39D98A',
-      borderRadius: '10px',
-      padding: '16px 20px',
-      marginBottom: '12px',
-    }}>
-      {/* Top row */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
-        <span style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '3px' }}>
-            {post.title.replace(/^[^\w]*/, '').trim()}
+    <Link
+      to={`/skills/${post.id}`}
+      style={{ display: 'block', textDecoration: 'none' }}
+    >
+      <div style={{
+        background: '#161B22',
+        border: '1px solid #21262D',
+        borderLeft: '3px solid #39D98A',
+        borderRadius: '10px',
+        padding: '16px 20px',
+        marginBottom: '12px',
+      }}>
+        {/* Top row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
+          <span style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '3px' }}>
+              {post.title.replace(/^[^\w]*/, '').trim()}
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+              📍 {post.neighbourhood}
+            </div>
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
-            📍 {post.neighbourhood}
-          </div>
+          <ChevronRight size={16} color="rgba(255,255,255,0.2)" style={{ flexShrink: 0, marginTop: '2px' }} />
+        </div>
+
+        {/* Description */}
+        {post.description && (
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(240,246,252,0.85)',
+            lineHeight: 1.6, margin: '0 0 12px', padding: 0,
+            overflow: 'hidden', display: '-webkit-box',
+            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          } as React.CSSProperties}>
+            {post.description}
+          </p>
+        )}
+
+        {/* Footer */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          {rate ? (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: '#39D98A' }}>
+              {rate}
+            </span>
+          ) : (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
+              Rate on request
+            </span>
+          )}
+          {waUrl ? (
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: '#25D366', color: '#000',
+                textDecoration: 'none', borderRadius: '6px',
+                padding: '7px 16px',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
+              }}
+            >
+              WhatsApp →
+            </a>
+          ) : (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+              View →
+            </span>
+          )}
         </div>
       </div>
-
-      {/* Description */}
-      {post.description && (
-        <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(240,246,252,0.85)',
-          lineHeight: 1.6, margin: '0 0 12px', padding: 0,
-        }}>
-          {post.description}
-        </p>
-      )}
-
-      {/* Footer */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-        {rate ? (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: '#39D98A' }}>
-            {rate}
-          </span>
-        ) : (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
-            Rate on request
-          </span>
-        )}
-        {waUrl ? (
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              background: '#25D366', color: '#000',
-              textDecoration: 'none', borderRadius: '6px',
-              padding: '7px 16px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
-              display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-            }}
-          >
-            WhatsApp →
-          </a>
-        ) : (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
-            No contact listed
-          </span>
-        )}
-      </div>
-    </div>
+    </Link>
   );
 }
 
