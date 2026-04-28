@@ -26,6 +26,8 @@ import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheck
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
 import { haversineKm } from '../lib/geocode';
+import { StockChecker } from '../components/utility/StockChecker';
+import { QueueStatus }  from '../components/utility/QueueStatus';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1637,6 +1639,20 @@ export default function VenuePage() {
 
         {/* ── Contact (phone + WhatsApp) ────────────────────────────────────── */}
         <ContactSection venue={venue} />
+
+        {/* ── Stock checker (Spaza Shops only) ─────────────────────────────── */}
+        {/spaza|duka|kiosk|provision/i.test(venue.category) && (
+          <div style={{ marginBottom: '20px' }}>
+            <StockChecker area={`${venue.neighborhood}, ${venue.city}`} />
+          </div>
+        )}
+
+        {/* ── Queue status (Clinics / service venues only) ───────────────────── */}
+        {/clinic|hospital|health|home.?affair|sassa|police|post.?office/i.test(venue.category) && (
+          <div style={{ marginBottom: '20px' }}>
+            <QueueStatus />
+          </div>
+        )}
 
         {/* ── Gallery strip (2+ images) ─────────────────────────────────────── */}
         {galleryImages.length >= 2 && (

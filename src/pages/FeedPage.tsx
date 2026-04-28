@@ -31,6 +31,8 @@ import CategoryStrip from '../components/CategoryStrip';
 import QuickActions from '../components/feed/QuickActions';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
+import { StockChecker } from '../components/utility/StockChecker';
+import { QueueStatus } from '../components/utility/QueueStatus';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -83,6 +85,55 @@ const SCOPE_LABELS: Record<FeedScope, string> = {
   city_wide: 'City-wide',
   explore_all: 'Explore',
 };
+
+// ─── Community Tools panel ────────────────────────────────────────────────────
+
+type CommunityToolKey = 'stock' | 'queue' | null;
+
+function CommunityTools({ areaLabel }: { areaLabel: string }) {
+  const [open, setOpen] = useState<CommunityToolKey>(null);
+
+  const TOOLS: { key: CommunityToolKey & string; emoji: string; title: string; sub: string }[] = [
+    { key: 'stock', emoji: '📦', title: 'Is It In Stock?', sub: 'Check nearby spazas' },
+    { key: 'queue', emoji: '⏱️', title: 'Queue Status',    sub: 'Live wait times' },
+  ];
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      {/* Tab row */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: open ? '10px' : '0' }}>
+        {TOOLS.map(t => {
+          const active = open === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setOpen(active ? null : t.key as CommunityToolKey)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                padding: '10px 12px', borderRadius: '12px', cursor: 'pointer',
+                background: active ? 'rgba(57,217,138,0.1)' : 'var(--color-surface)',
+                border: active ? '1px solid rgba(57,217,138,0.3)' : '1px solid var(--color-border)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ fontSize: '18px', marginBottom: '2px' }}>{t.emoji}</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? '#39D98A' : 'var(--color-text)', lineHeight: 1.2 }}>
+                {t.title}
+              </span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'var(--color-muted)', marginTop: '1px' }}>
+                {t.sub}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expanded panel */}
+      {open === 'stock' && <StockChecker area={areaLabel} />}
+      {open === 'queue' && <QueueStatus />}
+    </div>
+  );
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1209,6 +1260,9 @@ export default function FeedPage() {
       <div style={{ marginBottom: '16px' }}>
         <LoadSheddingWidget compact />
       </div>
+
+      {/* Community utility tools */}
+      <CommunityTools areaLabel={areaLabel} />
 
       {/* Greeting + clickable area label */}
       <div style={{ marginBottom: '10px' }}>
