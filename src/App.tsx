@@ -31,6 +31,7 @@ import PrivacySettings       from './pages/PrivacySettings';
 import NotificationSettings  from './pages/NotificationSettings';
 import Help                  from './pages/Help';
 import EmergencyContacts     from './pages/EmergencyContacts';
+import VenueDashboard        from './pages/VenueDashboard';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -82,6 +83,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/dashboard"
+              element={
+                <ProtectedRoute>
+                  <VenueDashboard />
                 </ProtectedRoute>
               }
             />

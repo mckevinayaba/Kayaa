@@ -81,7 +81,7 @@ export default function ProfilePage() {
             <Share2 size={16} color="rgba(255,255,255,0.7)" />
           </button>
           <Link
-            to="/dashboard"
+            to="/venue/dashboard"
             style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }}
           >
             <Settings size={16} color="rgba(255,255,255,0.7)" />
@@ -291,7 +291,7 @@ export default function ProfilePage() {
 
           <SettingsRow label="Edit Profile"       onClick={() => navigate('/profile/edit')} />
           <SettingsRow label="Privacy Settings"  onClick={() => navigate('/settings/privacy')} />
-          <SettingsRow label="Venue Dashboard"   onClick={() => navigate('/dashboard')} />
+          <SettingsRow label="Venue Dashboard"   onClick={() => navigate('/venue/dashboard')} />
           <SettingsRow label="Explore Kayaa"     onClick={() => navigate('/explore')} />
           <SettingsRow label="Help & Support"    onClick={() => navigate('/help')} />
           <SettingsRow label="Share Kayaa"       onClick={shareKayaa} />
