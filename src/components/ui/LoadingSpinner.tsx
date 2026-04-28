@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface LoadingSpinnerProps {
   /** Size in px (default 32) */
   size?: number;

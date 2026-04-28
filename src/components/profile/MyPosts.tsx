@@ -56,8 +56,7 @@ export function MyPosts({ visitorId }: MyPostsProps) {
       .then(({ data }) => {
         setPosts(data ?? []);
         setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
+      });
   }, [visitorId]);
 
   if (!loaded) {

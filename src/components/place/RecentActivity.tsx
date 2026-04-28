@@ -62,8 +62,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
           );
         }
         setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
+      });
 
     // Realtime: prepend new public check-ins as they arrive
     const channel = supabase

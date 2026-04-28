@@ -96,12 +96,13 @@ function ToggleRow({
 
 // ── Section header ────────────────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children, style }: { children: string; style?: React.CSSProperties }) {
   return (
     <div style={{
       fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
       color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em',
       marginBottom: '10px', marginTop: '4px',
+      ...style,
     }}>
       {children}
     </div>

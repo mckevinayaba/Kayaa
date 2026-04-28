@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Globe, Lock, Wifi, WifiOff } from 'lucide-react';
+import { X, Globe, Lock, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 

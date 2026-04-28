@@ -235,7 +235,7 @@ export default function ProfilePage() {
             label="My Posts"
             sub="Questions, stories & announcements"
             onClick={() => setTab('posts')}
-            active={tab === 'posts'}}
+            active={tab === 'posts'}
           />
 
           {/* My Skills */}

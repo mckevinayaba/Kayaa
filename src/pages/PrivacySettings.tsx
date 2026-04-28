@@ -104,7 +104,7 @@ export default function PrivacySettings() {
     {
       key:         'showCheckins',
       title:       'Show my check-ins',
-      description: 'Let neighbours see places you've visited',
+      description: "Let neighbours see places you've visited",
     },
     {
       key:         'showRegulars',
