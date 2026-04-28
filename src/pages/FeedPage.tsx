@@ -28,6 +28,7 @@ import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
+import QuickActions from '../components/feed/QuickActions';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -1198,6 +1199,9 @@ export default function FeedPage() {
 
       {/* Stories strip with "+" compose bubble */}
       <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />
+
+      {/* Quick action shortcuts */}
+      <QuickActions onCompose={() => setShowComposer(true)} />
 
       {/* Greeting + clickable area label */}
       <div style={{ marginBottom: '10px' }}>
