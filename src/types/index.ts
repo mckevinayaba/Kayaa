@@ -29,6 +29,7 @@ export interface Venue {
   phoneNumber?: string;
   whatsappNumber?: string;
   isVerified?: boolean;
+  verificationType?: 'verified' | 'recommended' | 'trusted';
   tags: string[];
   createdAt: string;
 }

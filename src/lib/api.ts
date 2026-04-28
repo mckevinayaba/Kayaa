@@ -49,7 +49,8 @@ function dbVenueToVenue(row: any): Venue {
     openHours: row.opening_hours ?? undefined,
     phoneNumber: row.phone_number ?? undefined,
     whatsappNumber: row.whatsapp_number ?? undefined,
-    isVerified: row.is_verified ?? false,
+    isVerified:       row.is_verified       ?? row.verified ?? false,
+    verificationType: row.verification_type ?? undefined,
     tags: [],
     createdAt: row.created_at ?? '',
   };

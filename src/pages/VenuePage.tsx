@@ -9,9 +9,10 @@ import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
 import { CheckInModal }    from '../components/place/CheckInModal';
-import { SafetyRating }   from '../components/safety/SafetyRating';
-import { SafetyCheckIn }  from '../components/safety/SafetyCheckIn';
-import { ReportModal }    from '../components/moderation/ReportModal';
+import { SafetyRating }        from '../components/safety/SafetyRating';
+import { SafetyCheckIn }       from '../components/safety/SafetyCheckIn';
+import { ReportModal }         from '../components/moderation/ReportModal';
+import { VerificationBadge }   from '../components/common/VerificationBadge';
 import {
   getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
   getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
@@ -318,14 +319,18 @@ function PhotoGalleryHero({
             {status.label}
           </span>
           {venue.isVerified && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              fontSize: '11px', fontWeight: 700, color: '#39D98A',
-              background: 'rgba(57,217,138,0.14)', padding: '3px 8px', borderRadius: '20px',
-            }}>
-              <CheckCircle2 size={11} color="#39D98A" />
-              Verified
-            </span>
+            venue.verificationType
+              ? <VerificationBadge type={venue.verificationType} size="sm" showLabel />
+              : (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  fontSize: '11px', fontWeight: 700, color: '#39D98A',
+                  background: 'rgba(57,217,138,0.14)', padding: '3px 8px', borderRadius: '20px',
+                }}>
+                  <CheckCircle2 size={11} color="#39D98A" />
+                  Verified
+                </span>
+              )
           )}
         </div>
 

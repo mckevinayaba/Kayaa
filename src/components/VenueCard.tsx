@@ -4,6 +4,7 @@ import { MapPin, Share2, CheckCircle2 } from 'lucide-react';
 import type { Venue } from '../types';
 import type { VibeType } from '../lib/api';
 import ShareModal from './ShareModal';
+import { VerificationBadge } from './common/VerificationBadge';
 
 const categoryEmoji: Record<string, string> = {
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
@@ -191,7 +192,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             <span style={{ fontSize: '13px', fontWeight: 700, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
               {emoji} {venue.category}
             </span>
-            {venue.isVerified && <CheckCircle2 size={14} color="#39D98A" />}
+            {venue.isVerified && !venue.verificationType && <CheckCircle2 size={14} color="#39D98A" />}
             {(venue.checkinsToday ?? 0) > 0 && (
               <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 600, marginLeft: 'auto' }}>
                 📍 {venue.checkinsToday} today
@@ -199,13 +200,18 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
-          {/* Place name */}
-          <h3 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px',
-            color: 'var(--color-text)', lineHeight: 1.2, margin: '0 0 4px',
-          }}>
-            {venue.name}
-          </h3>
+          {/* Place name + verification badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 4px', flexWrap: 'wrap' }}>
+            <h3 style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px',
+              color: 'var(--color-text)', lineHeight: 1.2, margin: 0,
+            }}>
+              {venue.name}
+            </h3>
+            {venue.isVerified && venue.verificationType && (
+              <VerificationBadge type={venue.verificationType} size="sm" showLabel />
+            )}
+          </div>
 
           {/* Location */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px' }}>
