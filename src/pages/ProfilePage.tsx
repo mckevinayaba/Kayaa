@@ -5,6 +5,7 @@ import {
   CheckCircle, Plus, ChevronRight, LogOut, Share2,
 } from 'lucide-react';
 import { getUserCheckInHistoryLocal, getVisitorId, calcBadgeTier } from '../lib/api';
+import { getLocalProfile } from './EditProfile';
 import { AchievementBadges }  from '../components/profile/AchievementBadges';
 import { MyCheckIns }         from '../components/profile/MyCheckIns';
 import { MyRegulars }         from '../components/profile/MyRegulars';
@@ -44,6 +45,7 @@ export default function ProfilePage() {
   const visitorId  = getVisitorId();
   const history    = useMemo(() => getUserCheckInHistoryLocal(visitorId), [visitorId]);
   const [tab, setTab] = useState<Tab>('checkins');
+  const localProfile = getLocalProfile();
 
   const totalVisits   = history.reduce((s, h) => s + h.visitCount, 0);
   const uniquePlaces  = history.length;
@@ -116,16 +118,32 @@ export default function ProfilePage() {
 
           {/* Info */}
           <div style={{ flex: 1, paddingTop: '4px' }}>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: '0 0 4px' }}>
-              Kayaa Member
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
-              <MapPin size={13} color="rgba(255,255,255,0.4)" />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-                Johannesburg
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
+                {localProfile.name || 'Kayaa Member'}
+              </h2>
+              <button
+                onClick={() => navigate('/profile/edit')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', opacity: 0.45, lineHeight: 1, fontSize: '14px' }}
+                title="Edit profile"
+              >
+                ✏️
+              </button>
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
+            {(localProfile.neighborhood || localProfile.city) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px', marginBottom: '4px' }}>
+                <MapPin size={13} color="rgba(255,255,255,0.4)" />
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+                  {[localProfile.neighborhood, localProfile.city].filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
+            {localProfile.bio && (
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '5px 0 0', lineHeight: 1.5 }}>
+                {localProfile.bio}
+              </p>
+            )}
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
               ID …{visitorId.slice(-6)}
             </div>
           </div>
@@ -271,6 +289,8 @@ export default function ProfilePage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
+          <SettingsRow label="Edit Profile"       onClick={() => navigate('/profile/edit')} />
+          <SettingsRow label="Privacy Settings"  onClick={() => navigate('/settings/privacy')} />
           <SettingsRow label="Venue Dashboard"   onClick={() => navigate('/dashboard')} />
           <SettingsRow label="Explore Kayaa"     onClick={() => navigate('/explore')} />
           <SettingsRow label="Share Kayaa"        onClick={shareKayaa} />
