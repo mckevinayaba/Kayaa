@@ -145,38 +145,73 @@ export default function AppLayout() {
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: '8px', paddingRight: '8px',
       }}>
-        {navItems.map(({ to, emoji, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={({ isActive }) => ({
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '3px', textDecoration: 'none',
-              color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
-              flex: 1, padding: '8px 0', minWidth: '60px',
-              transition: 'color 0.15s',
-            })}
-          >
-            {({ isActive }) => (
-              <>
-                <span style={{
-                  fontSize: '22px', lineHeight: 1,
-                  filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
-                  transition: 'filter 0.15s',
-                }}>
-                  {emoji}
-                </span>
-                <span style={{
-                  fontSize: '10px', fontWeight: isActive ? 700 : 500,
-                  fontFamily: 'DM Sans, sans-serif',
-                  letterSpacing: '0.01em',
-                }}>
-                  {label}
-                </span>
-              </>
-            )}
-          </NavLink>
-        ))}
+        {navItems.map(({ to, emoji, label }) => {
+          // Me tab: also active for /profile/* and /settings/* sub-routes
+          const isProfileTab = to === '/profile';
+          const forceActive  = isProfileTab && (
+            routerLocation.pathname.startsWith('/profile') ||
+            routerLocation.pathname.startsWith('/settings')
+          );
+
+          return isProfileTab ? (
+            <NavLink
+              key={to}
+              to={to}
+              end
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', textDecoration: 'none',
+                color: forceActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
+                flex: 1, padding: '8px 0', minWidth: '60px',
+                transition: 'color 0.15s',
+              }}
+            >
+              <span style={{
+                fontSize: '22px', lineHeight: 1,
+                filter: forceActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
+                transition: 'filter 0.15s',
+              }}>
+                {emoji}
+              </span>
+              <span style={{
+                fontSize: '10px', fontWeight: forceActive ? 700 : 500,
+                fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
+              }}>
+                {label}
+              </span>
+            </NavLink>
+          ) : (
+            <NavLink
+              key={to}
+              to={to}
+              style={({ isActive }) => ({
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', textDecoration: 'none',
+                color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
+                flex: 1, padding: '8px 0', minWidth: '60px',
+                transition: 'color 0.15s',
+              })}
+            >
+              {({ isActive }) => (
+                <>
+                  <span style={{
+                    fontSize: '22px', lineHeight: 1,
+                    filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
+                    transition: 'filter 0.15s',
+                  }}>
+                    {emoji}
+                  </span>
+                  <span style={{
+                    fontSize: '10px', fontWeight: isActive ? 700 : 500,
+                    fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
+                  }}>
+                    {label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
     </div>
   );

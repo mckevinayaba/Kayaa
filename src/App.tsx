@@ -23,7 +23,8 @@ import ExplorePage from './pages/ExplorePage';
 import SkillsPage from './pages/SkillsPage';
 import ProfilePage      from './pages/ProfilePage';
 import EditProfile      from './pages/EditProfile';
-import PrivacySettings  from './pages/PrivacySettings';
+import PrivacySettings       from './pages/PrivacySettings';
+import NotificationSettings  from './pages/NotificationSettings';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -60,7 +61,8 @@ export default function App() {
             <Route path="/countries" element={<CountriesPage />} />
             <Route path="/profile"          element={<ProfilePage />} />
             <Route path="/profile/edit"    element={<EditProfile />} />
-            <Route path="/settings/privacy" element={<PrivacySettings />} />
+            <Route path="/settings/privacy"        element={<PrivacySettings />} />
+            <Route path="/settings/notifications"  element={<NotificationSettings />} />
             <Route path="/search"          element={<Navigate to="/checkin" replace />} />
             <Route
               path="/dashboard"
