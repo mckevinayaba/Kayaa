@@ -20,9 +20,10 @@ import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
 import ExplorePage from './pages/ExplorePage';
-import SkillsPage  from './pages/SkillsPage';
-import SkillDetail  from './pages/SkillDetail';
-import PostSkill    from './pages/PostSkill';
+import SkillsPage   from './pages/SkillsPage';
+import SkillsBrowse  from './pages/SkillsBrowse';
+import SkillDetail   from './pages/SkillDetail';
+import PostSkill     from './pages/PostSkill';
 import CreatePost   from './pages/CreatePost';
 import ProfilePage      from './pages/ProfilePage';
 import EditProfile      from './pages/EditProfile';
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/checkin" element={<CheckInBrowsePage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/skills"           element={<SkillsPage />} />
+            <Route path="/skills/browse"    element={<SkillsBrowse />} />
             <Route path="/skills/new"       element={<PostSkill />} />
             <Route path="/skills/edit/:id"  element={<PostSkill />} />
             <Route path="/skills/:id"       element={<SkillDetail />} />

@@ -35,23 +35,23 @@ export default function QuickActions({ onCompose }: QuickActionsProps) {
   function handleAction(key: string) {
     switch (key) {
       case 'post':
-        onCompose ? onCompose() : navigate('/board/new?type=question');
+        onCompose ? onCompose() : navigate('/board/new?cat=ask');
         break;
       case 'photo':
-        // Open the post composer — user can attach media there
-        onCompose ? onCompose() : navigate('/board/new?type=story');
+        // Open the post composer — user can attach a photo there
+        onCompose ? onCompose() : navigate('/board/new?cat=announcements');
         break;
       case 'checkin':
         navigate('/checkin');
         break;
       case 'sell':
-        navigate('/board/new?type=announcement');
+        navigate('/board/new?cat=for_sale');
         break;
       case 'skill':
-        navigate('/skills');
+        navigate('/skills/new');
         break;
       case 'help':
-        navigate('/board/new?type=question');
+        navigate('/board/new?cat=ask');
         break;
     }
   }
