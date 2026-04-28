@@ -1494,6 +1494,8 @@ export interface BoardPost {
   status: BoardPostStatus;
   createdAt: string;
   expiresAt?: string;
+  likesCount: number;
+  commentsCount: number;
 }
 
 export function calcBoardExpiry(category: BoardCategory): string | null {
@@ -1531,6 +1533,8 @@ function dbBoardPost(row: any): BoardPost {
     status: (row.status as BoardPostStatus) ?? 'active',
     createdAt: row.created_at ?? new Date().toISOString(),
     expiresAt: row.expires_at ?? undefined,
+    likesCount:    row.likes_count    ?? 0,
+    commentsCount: row.comments_count ?? 0,
   };
 }
 
@@ -1873,4 +1877,99 @@ export async function getUserLikedPosts(userId: string, postIds: string[]): Prom
     if (error || !data) return new Set();
     return new Set(data.map((r: { post_id: string }) => r.post_id));
   } catch { return new Set(); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOARD POST COMMENTS & LIKES (anonymous, visitor_id based)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface BoardPostComment {
+  id: string;
+  postId: string;
+  visitorId: string;
+  visitorName: string | null;
+  content: string;
+  createdAt: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbBoardComment(row: any): BoardPostComment {
+  return {
+    id:          row.id,
+    postId:      row.post_id,
+    visitorId:   row.visitor_id,
+    visitorName: row.visitor_name ?? null,
+    content:     row.content,
+    createdAt:   row.created_at,
+  };
+}
+
+export async function getBoardPostComments(postId: string): Promise<BoardPostComment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('board_post_comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return data.map(dbBoardComment);
+  } catch { return []; }
+}
+
+export async function addBoardPostComment(
+  postId: string,
+  visitorId: string,
+  content: string,
+  visitorName?: string,
+): Promise<BoardPostComment | null> {
+  try {
+    const { data, error } = await supabase
+      .from('board_post_comments')
+      .insert({ post_id: postId, visitor_id: visitorId, content: content.trim(), visitor_name: visitorName ?? null })
+      .select()
+      .single();
+    if (error || !data) return null;
+    return dbBoardComment(data);
+  } catch { return null; }
+}
+
+/** Returns whether the visitor has liked this post (localStorage-first). */
+export function isBoardPostLikedLocally(postId: string): boolean {
+  try {
+    const liked: string[] = JSON.parse(localStorage.getItem('kayaa_board_liked') ?? '[]');
+    return liked.includes(postId);
+  } catch { return false; }
+}
+
+function setLikedLocally(postId: string, liked: boolean) {
+  try {
+    let arr: string[] = JSON.parse(localStorage.getItem('kayaa_board_liked') ?? '[]');
+    arr = liked ? [...new Set([...arr, postId])] : arr.filter(id => id !== postId);
+    localStorage.setItem('kayaa_board_liked', JSON.stringify(arr));
+  } catch { /* noop */ }
+}
+
+/**
+ * Toggle like on a board post.
+ * Updates localStorage immediately; syncs to DB best-effort.
+ * Returns the new liked state.
+ */
+export async function toggleBoardPostLike(postId: string, visitorId: string): Promise<boolean> {
+  const wasLiked = isBoardPostLikedLocally(postId);
+  const nowLiked = !wasLiked;
+  setLikedLocally(postId, nowLiked);
+  try {
+    if (nowLiked) {
+      await supabase
+        .from('board_post_likes')
+        .upsert({ post_id: postId, visitor_id: visitorId }, { onConflict: 'post_id,visitor_id' });
+    } else {
+      await supabase
+        .from('board_post_likes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('visitor_id', visitorId);
+    }
+  } catch { /* localStorage state is source of truth */ }
+  return nowLiked;
 }
