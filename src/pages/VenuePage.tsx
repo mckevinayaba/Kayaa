@@ -5,9 +5,10 @@ import {
   ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
   Heart, Phone, MessageCircle, Navigation,
 } from 'lucide-react';
-import ShareModal from '../components/ShareModal';
 import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
+import { PlaceShareModal } from '../components/place/ShareModal';
+import { CheckInModal }    from '../components/place/CheckInModal';
 import {
   getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
   getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
@@ -371,7 +372,7 @@ function PhotoGalleryHero({
 
 // ─── One-tap Action Grid ──────────────────────────────────────────────────────
 
-function ActionGrid({ venue, onShare }: { venue: Venue; onShare: () => void }) {
+function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () => void; onCheckIn: () => void }) {
   const [isHeading, setIsHeading]   = useState(false);
   const [headingCount, setHeadingCount] = useState(0);
   const [headingLoaded, setHeadingLoaded] = useState(false);
@@ -446,10 +447,10 @@ function ActionGrid({ venue, onShare }: { venue: Venue; onShare: () => void }) {
 
       {/* 3-up action buttons */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '10px' }}>
-        {/* CHECK IN */}
-        <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none' }}>
+        {/* CHECK IN — opens quick modal; GPS full-flow stays in sticky bar */}
+        <button onClick={onCheckIn} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}>
           {actionBtnInner(<CheckCircle2 size={24} />, 'CHECK IN', '#39D98A', '#000', 'rgba(57,217,138,0.4)')}
-        </Link>
+        </button>
 
         {/* CALL */}
         {venue.phoneNumber ? (
@@ -1240,6 +1241,203 @@ function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
   );
 }
 
+// ─── Location Section ─────────────────────────────────────────────────────────
+
+function LocationSection({ venue, distance }: { venue: Venue; distance: number | null }) {
+  if (!venue.latitude || !venue.longitude) {
+    // No coords — still show address if available
+    if (!venue.address) return null;
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+          Location
+        </h2>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
+            <div>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.55 }}>
+                {venue.address}
+              </p>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+                {venue.neighborhood}, {venue.city}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        Location
+      </h2>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
+
+        {/* Address row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
+          <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {venue.address && (
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '0 0 2px', lineHeight: 1.5 }}>
+                {venue.address}
+              </p>
+            )}
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>
+              {venue.neighborhood}, {venue.city}
+            </p>
+            {distance !== null && (
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Navigation size={12} />
+                {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} from you
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* OpenStreetMap embed — free, no token */}
+        <div style={{ borderRadius: '10px', overflow: 'hidden', height: '180px', marginBottom: '12px', border: '1px solid var(--color-border)' }}>
+          <iframe
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${venue.longitude - 0.012},${venue.latitude - 0.008},${venue.longitude + 0.012},${venue.latitude + 0.008}&layer=mapnik&marker=${venue.latitude},${venue.longitude}`}
+            style={{ width: '100%', height: '100%', border: 0, display: 'block', filter: 'invert(0.85) hue-rotate(180deg) brightness(0.9)' }}
+            title={`Map showing ${venue.name}`}
+            loading="lazy"
+          />
+        </div>
+
+        {/* Directions link */}
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '11px', borderRadius: '10px',
+            background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#39D98A', textDecoration: 'none',
+          }}
+        >
+          <Navigation size={14} />
+          Get Directions
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── Contact Section ──────────────────────────────────────────────────────────
+
+function ContactSection({ venue }: { venue: Venue }) {
+  const hasContact = !!(venue.phoneNumber || venue.whatsappNumber);
+  if (!hasContact) return null;
+
+  const waUrl = venue.whatsappNumber
+    ? `https://wa.me/${venue.whatsappNumber.replace(/\D/g, '').replace(/^0/, '27')}`
+    : null;
+
+  const contactItems: { key: string; href: string; icon: React.ReactNode; label: string; sub: string; color: string; bg: string }[] = [];
+
+  if (venue.phoneNumber) {
+    contactItems.push({
+      key: 'phone',
+      href: `tel:${venue.phoneNumber}`,
+      icon: <Phone size={18} color="#60A5FA" />,
+      label: venue.phoneNumber,
+      sub: 'Tap to call',
+      color: '#60A5FA',
+      bg: 'rgba(96,165,250,0.08)',
+    });
+  }
+
+  if (waUrl) {
+    contactItems.push({
+      key: 'whatsapp',
+      href: waUrl,
+      icon: <MessageCircle size={18} color="#25D366" />,
+      label: 'WhatsApp',
+      sub: 'Chat with the owner',
+      color: '#25D366',
+      bg: 'rgba(37,211,102,0.08)',
+    });
+  }
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        Contact
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {contactItems.map(item => (
+          <a
+            key={item.key}
+            href={item.href}
+            target={item.key === 'whatsapp' ? '_blank' : undefined}
+            rel={item.key === 'whatsapp' ? 'noopener noreferrer' : undefined}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '14px 16px', borderRadius: '14px',
+              background: item.bg,
+              border: `1px solid ${item.color}30`,
+              textDecoration: 'none',
+            }}
+          >
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+              background: `${item.color}15`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {item.icon}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)' }}>
+                {item.label}
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', marginTop: '1px' }}>
+                {item.sub}
+              </div>
+            </div>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: item.color, fontWeight: 700 }}>
+              →
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Report Issue Button ──────────────────────────────────────────────────────
+
+function ReportIssueButton({ venueName }: { venueName: string }) {
+  function handleReport() {
+    const subject = encodeURIComponent(`Report an issue: ${venueName} on Kayaa`);
+    const body    = encodeURIComponent(`I'd like to report an issue with "${venueName}" on Kayaa.\n\nIssue description:\n\n`);
+    window.location.href = `mailto:hello@kayaa.co.za?subject=${subject}&body=${body}`;
+  }
+
+  return (
+    <button
+      onClick={handleReport}
+      style={{
+        display: 'block', width: '100%', textAlign: 'center',
+        background: 'none', border: 'none', cursor: 'pointer',
+        fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+        color: 'rgba(255,255,255,0.25)', padding: '8px 0 20px',
+        transition: 'color 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}
+    >
+      Report an issue with this place
+    </button>
+  );
+}
+
 // ─── Sticky check-in bar ──────────────────────────────────────────────────────
 
 function StickyCheckinBar({ venue }: { venue: Venue }) {
@@ -1280,7 +1478,8 @@ export default function VenuePage() {
   const [videoModalOpen,  setVideoModalOpen]  = useState(false);
   const [activeStory,     setActiveStory]     = useState<VenueStory24 | null>(null);
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
-  const [shareOpen,       setShareOpen]       = useState(false);
+  const [shareOpen,         setShareOpen]         = useState(false);
+  const [showCheckInModal,  setShowCheckInModal]  = useState(false);
 
   // Phase 3: distance + liked
   const [distance, setDistance] = useState<number | null>(null);
@@ -1335,16 +1534,28 @@ export default function VenuePage() {
   return (
     <div>
       {/* ── Share modal (lifted to page level, shared by hero + action grid) ── */}
-      <ShareModal
-        type="place"
-        data={{
-          name: venue.name, slug: venue.slug, category: venue.category,
-          emoji, neighborhood: venue.neighborhood, city: venue.city,
-          description: venue.description, checkinCount: venue.checkinCount, isOpen: venue.isOpen,
-        }}
-        isOpen={shareOpen}
-        onClose={() => setShareOpen(false)}
-      />
+      {shareOpen && (
+        <PlaceShareModal
+          place={{
+            id: venue.id,
+            name: venue.name,
+            slug: venue.slug,
+            tagline: venue.description?.slice(0, 80),
+            emoji,
+            category: venue.category,
+          }}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
+
+      {/* ── Quick check-in modal ───────────────────────────────────────────── */}
+      {showCheckInModal && (
+        <CheckInModal
+          venue={{ id: venue.id, name: venue.name, slug: venue.slug, category: venue.category }}
+          onClose={() => setShowCheckInModal(false)}
+          onSuccess={() => setShowCheckInModal(false)}
+        />
+      )}
 
       {/* ── Photo Gallery Hero ─────────────────────────────────────────────── */}
       <PhotoGalleryHero
@@ -1388,7 +1599,7 @@ export default function VenuePage() {
         <UserVisitBadge venueId={venue.id} />
 
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
-        <ActionGrid venue={venue} onShare={() => setShareOpen(true)} />
+        <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
 
         {/* ── Real-time recent activity ─────────────────────────────────────── */}
         <RecentActivityFeed venueId={venue.id} />
@@ -1398,6 +1609,12 @@ export default function VenuePage() {
 
         {/* ── Opening hours ────────────────────────────────────────────────── */}
         <OpeningHoursSection venue={venue} />
+
+        {/* ── Location map + address ───────────────────────────────────────── */}
+        <LocationSection venue={venue} distance={distance} />
+
+        {/* ── Contact (phone + WhatsApp) ────────────────────────────────────── */}
+        <ContactSection venue={venue} />
 
         {/* ── Gallery strip (2+ images) ─────────────────────────────────────── */}
         {galleryImages.length >= 2 && (
@@ -1421,6 +1638,9 @@ export default function VenuePage() {
 
         {/* ── About ────────────────────────────────────────────────────────── */}
         <AboutSection venue={venue} />
+
+        {/* ── Report issue ─────────────────────────────────────────────────── */}
+        <ReportIssueButton venueName={venue.name} />
       </div>
 
       {/* ── Sticky bottom CTA ─────────────────────────────────────────────── */}
