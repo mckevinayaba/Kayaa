@@ -146,6 +146,12 @@ function PostCard({
           {post.images.length > 0 && (
             <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>
           )}
+          {post.likesCount > 0 && (
+            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· ❤️ {post.likesCount}</span>
+          )}
+          {post.commentsCount > 0 && (
+            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 💬 {post.commentsCount}</span>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
@@ -351,7 +357,7 @@ export default function BoardPage() {
             Browse →
           </button>
           <button
-            onClick={() => navigate('/board/new?cat=services')}
+            onClick={() => navigate('/skills/new')}
             style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Post skill

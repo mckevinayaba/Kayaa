@@ -60,9 +60,10 @@ export default function App() {
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/checkin" element={<CheckInBrowsePage />} />
             <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/skills"      element={<SkillsPage />} />
-            <Route path="/skills/new"  element={<PostSkill />} />
-            <Route path="/skills/:id"  element={<SkillDetail />} />
+            <Route path="/skills"           element={<SkillsPage />} />
+            <Route path="/skills/new"       element={<PostSkill />} />
+            <Route path="/skills/edit/:id"  element={<PostSkill />} />
+            <Route path="/skills/:id"       element={<SkillDetail />} />
             <Route path="/post/new"    element={<CreatePost />} />
             <Route path="/card/:name" element={<RegularCardPage />} />
             <Route path="/countries" element={<CountriesPage />} />
