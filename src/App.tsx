@@ -32,6 +32,8 @@ import NotificationSettings  from './pages/NotificationSettings';
 import Help                  from './pages/Help';
 import EmergencyContacts     from './pages/EmergencyContacts';
 import VenueDashboard        from './pages/VenueDashboard';
+import VenueHours            from './pages/VenueHours';
+import VenueQRCode           from './pages/VenueQRCode';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -91,6 +93,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <VenueDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/hours"
+              element={
+                <ProtectedRoute>
+                  <VenueHours />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/qr-code"
+              element={
+                <ProtectedRoute>
+                  <VenueQRCode />
                 </ProtectedRoute>
               }
             />

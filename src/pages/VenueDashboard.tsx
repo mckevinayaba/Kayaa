@@ -476,7 +476,7 @@ export default function VenueDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/hours"
               icon={<Clock size={20} color="#60A5FA" />}
               label="Update Hours"
               sub="Change opening times"
@@ -516,7 +516,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/qr-code"
               icon={<QrCode size={20} color="#34D399" />}
               label="Get QR Code"
               sub="Print and place at your counter"
