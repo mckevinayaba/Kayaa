@@ -29,6 +29,7 @@ import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
 import QuickActions from '../components/feed/QuickActions';
+import ActivityIndicator from '../components/feed/ActivityIndicator';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -1395,6 +1396,13 @@ export default function FeedPage() {
                             if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
                           }).catch(() => {});
                         } : undefined}
+                      />
+                      <ActivityIndicator
+                        venueId={venue.id}
+                        checkinsToday={venue.checkinsToday}
+                        checkinsThisWeek={venue.checkinsThisWeek}
+                        checkinsLastWeek={venue.checkinsLastWeek}
+                        compact
                       />
                       {moment && <ActivityMoment key={moment.id} text={moment.text} time={moment.time} initial={moment.initial} />}
                     </div>
