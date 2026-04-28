@@ -9,6 +9,9 @@ import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
 import { CheckInModal }    from '../components/place/CheckInModal';
+import { SafetyRating }   from '../components/safety/SafetyRating';
+import { SafetyCheckIn }  from '../components/safety/SafetyCheckIn';
+import { ReportModal }    from '../components/moderation/ReportModal';
 import {
   getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
   getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
@@ -1480,6 +1483,10 @@ export default function VenuePage() {
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
   const [shareOpen,         setShareOpen]         = useState(false);
   const [showCheckInModal,  setShowCheckInModal]  = useState(false);
+  const [showSafetyCheckIn, setShowSafetyCheckIn] = useState(false);
+  const [showReportModal,   setShowReportModal]   = useState(false);
+  const [safetyRating,      setSafetyRating]      = useState(0);
+  const [safetyReviews,     setSafetyReviews]     = useState(0);
 
   // Phase 3: distance + liked
   const [distance, setDistance] = useState<number | null>(null);
@@ -1502,6 +1509,19 @@ export default function VenuePage() {
       getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
+
+      // Safety rating from place_safety_summary view
+      supabase
+        .from('place_safety_summary')
+        .select('avg_score, review_count')
+        .eq('place_id', v.id)
+        .maybeSingle()
+        .then(({ data: sr }) => {
+          if (sr) {
+            setSafetyRating(Number(sr.avg_score));
+            setSafetyReviews(Number(sr.review_count));
+          }
+        });
 
       // GPS distance calculation
       if (v.latitude != null && v.longitude != null && navigator.geolocation) {
@@ -1610,6 +1630,30 @@ export default function VenuePage() {
         {/* ── Opening hours ────────────────────────────────────────────────── */}
         <OpeningHoursSection venue={venue} />
 
+        {/* ── Safety rating + check-in ─────────────────────────────────────── */}
+        <div style={{ padding: '0 16px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <SafetyRating
+            placeId={venue.id}
+            rating={safetyRating}
+            totalReviews={safetyReviews}
+            showDetails
+          />
+          <button
+            onClick={() => setShowSafetyCheckIn(true)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              padding: '13px',
+              background: 'rgba(57,217,138,0.08)',
+              border: '1px solid rgba(57,217,138,0.2)',
+              borderRadius: '14px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+              color: '#39D98A', cursor: 'pointer',
+            }}
+          >
+            🛡️ Safety Check-in — let family know I'm here
+          </button>
+        </div>
+
         {/* ── Location map + address ───────────────────────────────────────── */}
         <LocationSection venue={venue} distance={distance} />
 
@@ -1640,7 +1684,20 @@ export default function VenuePage() {
         <AboutSection venue={venue} />
 
         {/* ── Report issue ─────────────────────────────────────────────────── */}
-        <ReportIssueButton venueName={venue.name} />
+        <button
+          onClick={() => setShowReportModal(true)}
+          style={{
+            display: 'block', width: '100%', textAlign: 'center',
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.25)', padding: '8px 0 20px',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}
+        >
+          Report an issue with this place
+        </button>
       </div>
 
       {/* ── Sticky bottom CTA ─────────────────────────────────────────────── */}
@@ -1668,6 +1725,24 @@ export default function VenuePage() {
           venueName={venue.name}
           venueCategory={venue.category}
           onClose={() => setStoryViewerOpen(false)}
+        />
+      )}
+
+      {/* ── Safety check-in modal ─────────────────────────────────────────── */}
+      {showSafetyCheckIn && (
+        <SafetyCheckIn
+          placeId={venue.id}
+          placeName={venue.name}
+          onClose={() => setShowSafetyCheckIn(false)}
+        />
+      )}
+
+      {/* ── Report modal ──────────────────────────────────────────────────── */}
+      {showReportModal && (
+        <ReportModal
+          contentType="place"
+          contentId={venue.id}
+          onClose={() => setShowReportModal(false)}
         />
       )}
     </div>

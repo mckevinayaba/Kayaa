@@ -67,3 +67,28 @@ SELECT
   COUNT(*)                      AS review_count
 FROM place_safety_ratings
 GROUP BY place_id;
+
+-- ── 4. Safety check-ins (anonymous "let family know I'm here") ────────────────
+
+CREATE TABLE IF NOT EXISTS safety_checkins (
+  id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  visitor_id    TEXT        NOT NULL,
+  place_id      TEXT        NOT NULL,
+  place_name    TEXT        NOT NULL,
+  contact_count INTEGER     NOT NULL DEFAULT 1,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS safety_checkins_visitor_id_idx ON safety_checkins(visitor_id);
+CREATE INDEX IF NOT EXISTS safety_checkins_place_id_idx   ON safety_checkins(place_id);
+CREATE INDEX IF NOT EXISTS safety_checkins_created_at_idx ON safety_checkins(created_at DESC);
+
+ALTER TABLE safety_checkins ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE POLICY "sc_select" ON safety_checkins FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "sc_insert" ON safety_checkins FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
