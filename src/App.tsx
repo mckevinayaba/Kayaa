@@ -30,6 +30,7 @@ import EditProfile      from './pages/EditProfile';
 import PrivacySettings       from './pages/PrivacySettings';
 import NotificationSettings  from './pages/NotificationSettings';
 import Help                  from './pages/Help';
+import EmergencyContacts     from './pages/EmergencyContacts';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -72,8 +73,9 @@ export default function App() {
             <Route path="/profile"          element={<ProfilePage />} />
             <Route path="/profile/edit"    element={<EditProfile />} />
             <Route path="/settings/privacy"        element={<PrivacySettings />} />
-            <Route path="/settings/notifications"  element={<NotificationSettings />} />
-            <Route path="/help"                    element={<Help />} />
+            <Route path="/settings/notifications"         element={<NotificationSettings />} />
+            <Route path="/settings/emergency-contacts"  element={<EmergencyContacts />} />
+            <Route path="/help"                         element={<Help />} />
             <Route path="/search"          element={<Navigate to="/checkin" replace />} />
             <Route
               path="/dashboard"

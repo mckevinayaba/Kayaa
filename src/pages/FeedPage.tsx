@@ -30,6 +30,7 @@ import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
 import QuickActions from '../components/feed/QuickActions';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
+import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -1203,6 +1204,11 @@ export default function FeedPage() {
 
       {/* Quick action shortcuts */}
       <QuickActions onCompose={() => setShowComposer(true)} />
+
+      {/* Load shedding status */}
+      <div style={{ marginBottom: '16px' }}>
+        <LoadSheddingWidget compact />
+      </div>
 
       {/* Greeting + clickable area label */}
       <div style={{ marginBottom: '10px' }}>
