@@ -997,6 +997,14 @@ export default function FeedPage() {
 
   const areaLabel = suburb || city || 'Your area';
 
+  // Personal greeting
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = user
+    ? ((user.user_metadata?.full_name || user.user_metadata?.name || '') as string)
+        .split(' ')[0] || user.email?.split('@')[0] || ''
+    : '';
+
   // Reset manual scope override when user changes area so smart default re-applies
   useEffect(() => {
     setManualScope(null);
@@ -1289,6 +1297,27 @@ export default function FeedPage() {
                 : 'No cached data available. Connect to the internet to load places.'}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Personal greeting ─────────────────────────────────────────────── */}
+      {user && (
+        <div style={{ marginBottom: '20px' }}>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: '22px', color: '#F0F6FC',
+            margin: '0 0 4px', lineHeight: 1.2,
+          }}>
+            {greeting}{firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            color: 'rgba(255,255,255,0.4)', margin: 0,
+          }}>
+            {(suburb && !needsConfirmation)
+              ? `Here's what's happening in ${suburb}`
+              : 'Set your area to see what\'s nearby'}
+          </p>
         </div>
       )}
 

@@ -1,40 +1,77 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useLocation as useRouterLocation } from 'react-router-dom';
+import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import useLocation from '../hooks/useLocation';
 import AreaSelector from '../components/AreaSelector';
-import CountrySelector from '../components/CountrySelector';
-import { useCountry } from '../contexts/CountryContext';
+import { useAuth } from '../contexts/AuthContext';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Extract a first name from the Supabase user object. */
+function getFirstName(user: ReturnType<typeof useAuth>['user']): string {
+  if (!user) return '';
+  const full =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    '';
+  if (full) return full.split(' ')[0];
+  // Fall back to the part of the email before @
+  return user.email?.split('@')[0] ?? '';
+}
+
+/** Get a Google/OAuth profile photo URL. */
+function getAvatarUrl(user: ReturnType<typeof useAuth>['user']): string {
+  if (!user) return '';
+  return user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+}
+
+// ── Nav items ─────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: '/feed',       emoji: '🏠', label: 'Feed'      },
-  { to: '/explore',    emoji: '🗺️', label: 'Explore'   },
-  { to: '/board',      emoji: '💬', label: 'Board'     },
-  { to: '/onboarding', emoji: '➕', label: 'Add Place' },
-  { to: '/profile',    emoji: '👤', label: 'Me'        },
+  { to: '/feed',       emoji: '🏠', label: 'Home'    },
+  { to: '/explore',    emoji: '🗺️', label: 'Explore' },
+  { to: '/board',      emoji: '💬', label: 'Board'   },
+  { to: '/onboarding', emoji: '➕', label: 'Add'     },
+  { to: '/profile',    emoji: '👤', label: 'Profile' },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function AppLayout() {
-  const routerLocation = useRouterLocation();
-  const { suburb, loading, error, setManualSuburb, confirm, refresh } = useLocation();
-  const { selectedCountry } = useCountry();
+  const routerLocation  = useRouterLocation();
+  const navigate        = useNavigate();
+  const { user, signOut } = useAuth();
+  const { suburb, loading, error, needsConfirmation, setManualSuburb, confirm, refresh } = useLocation();
   const [areaOpen,    setAreaOpen]    = useState(false);
-  const [countryOpen, setCountryOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const isVenuePage = routerLocation.pathname.startsWith('/venue');
+
+  // Only show a suburb name when it has been explicitly confirmed.
+  // Unconfirmed or IP-based readings (Honeydew / Randburg) show the neutral label.
   const locationLabel = isVenuePage
     ? 'Place'
     : loading
       ? '…'
-      : suburb || 'Set your area';
+      : (suburb && !needsConfirmation) ? suburb : 'Set your area';
 
-  // Show area selector when: error (GPS failed/low-accuracy) and no confirmed suburb
   const needsArea = error && !suburb;
+
+  const firstName  = getFirstName(user);
+  const avatarUrl  = getAvatarUrl(user);
+  const initial    = (firstName[0] || '?').toUpperCase();
+
+  async function handleSignOut() {
+    setProfileOpen(false);
+    await signOut();
+    localStorage.removeItem('kayaa_setup_done');
+    window.location.href = '/welcome';
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
-      {/* Skip link — visible on keyboard focus, hidden otherwise */}
+      {/* Skip link */}
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {/* AreaSelector */}
@@ -56,18 +93,79 @@ export default function AppLayout() {
         />
       )}
 
-      {/* CountrySelector modal */}
-      {countryOpen && (
-        <CountrySelector onClose={() => setCountryOpen(false)} />
+      {/* Profile dropdown backdrop */}
+      {profileOpen && (
+        <div
+          onClick={() => setProfileOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 49 }}
+        />
       )}
 
-      {/* Top nav */}
+      {/* Profile dropdown panel */}
+      {profileOpen && user && (
+        <div style={{
+          position: 'fixed', top: '60px', right: '16px', zIndex: 51,
+          background: '#161B22',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '16px',
+          minWidth: '220px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+        }}>
+          {/* User identity */}
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
+              {firstName || 'Kayaa member'}
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+              {user.email}
+            </div>
+          </div>
+
+          {/* Menu items */}
+          {[
+            { label: '👤  View profile',        action: () => { navigate('/profile');       setProfileOpen(false); } },
+            { label: '✏️  Edit profile',         action: () => { navigate('/profile/edit');  setProfileOpen(false); } },
+            { label: '📍  Home neighbourhood',   action: () => { setAreaOpen(true);           setProfileOpen(false); } },
+            { label: '⚙️  Settings',             action: () => { navigate('/settings/privacy'); setProfileOpen(false); } },
+          ].map(item => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center',
+                padding: '12px 16px', background: 'transparent', border: 'none',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                color: 'rgba(255,255,255,0.75)', cursor: 'pointer', textAlign: 'left',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          {/* Sign out */}
+          <button
+            onClick={handleSignOut}
+            style={{
+              width: '100%', padding: '12px 16px', background: 'transparent', border: 'none',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+              color: '#F87171', cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            🚪  Sign out
+          </button>
+        </div>
+      )}
+
+      {/* ── Top nav ──────────────────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
         background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
         padding: '0 16px', height: '56px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
+        {/* Logo */}
         <NavLink to="/feed" style={{ textDecoration: 'none' }}>
           <span style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700,
@@ -77,61 +175,88 @@ export default function AppLayout() {
           </span>
         </NavLink>
 
-        {/* Right side: [flag code] | [📍 suburb] */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-
-          {/* Country flag trigger */}
-          <button
-            onClick={() => setCountryOpen(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              background: 'transparent', border: 'none',
-              cursor: 'pointer',
-              padding: '6px 8px', borderRadius: '8px',
-            }}
-          >
-            <span style={{ fontSize: '16px', lineHeight: 1 }}>{selectedCountry.flag}</span>
-            <span style={{
-              fontSize: '12px', fontWeight: 700,
-              color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif',
-            }}>
-              {selectedCountry.code}
-            </span>
-          </button>
-
-          {/* Divider */}
-          <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+        {/* Right: location chip + user avatar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 
           {/* Neighbourhood trigger */}
           <button
             onClick={() => !isVenuePage && setAreaOpen(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              background: 'transparent', border: 'none',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '20px',
               cursor: isVenuePage ? 'default' : 'pointer',
-              padding: '6px 8px', borderRadius: '8px',
+              padding: '5px 10px',
             }}
           >
             {loading ? (
-              <>
-                <div style={{
-                  width: '7px', height: '7px', borderRadius: '50%',
-                  background: '#39D98A', opacity: 0.6,
-                  animation: 'navLocPulse 1.2s ease-in-out infinite',
-                }} />
-                <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
-              </>
+              <div style={{
+                width: '7px', height: '7px', borderRadius: '50%',
+                background: '#39D98A', opacity: 0.6,
+                animation: 'navLocPulse 1.2s ease-in-out infinite',
+              }} />
             ) : (
-              <MapPin size={14} color="var(--color-muted)" />
+              <MapPin size={12} color="#39D98A" />
             )}
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            <span style={{
+              fontSize: '12px', fontWeight: 600,
+              color: (suburb && !needsConfirmation) ? 'var(--color-text)' : 'var(--color-muted)',
+              fontFamily: 'DM Sans, sans-serif',
+            }}>
               {locationLabel}
             </span>
+            <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
           </button>
+
+          {/* User avatar / join button */}
+          {user ? (
+            <button
+              onClick={() => setProfileOpen(p => !p)}
+              style={{
+                width: '34px', height: '34px', borderRadius: '50%',
+                background: avatarUrl ? 'transparent' : 'rgba(57,217,138,0.15)',
+                border: `2px solid ${profileOpen ? '#39D98A' : 'rgba(57,217,138,0.3)'}`,
+                cursor: 'pointer', padding: 0, overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'border-color 0.15s',
+                flexShrink: 0,
+              }}
+              title={`${firstName || 'Profile'} — click to open menu`}
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={firstName}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span style={{
+                  fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                  fontSize: '13px', color: '#39D98A',
+                }}>
+                  {initial}
+                </span>
+              )}
+            </button>
+          ) : (
+            <NavLink
+              to="/welcome"
+              style={{
+                padding: '6px 14px', borderRadius: '20px',
+                background: '#39D98A', color: '#0D1117',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+                textDecoration: 'none',
+              }}
+            >
+              Join
+            </NavLink>
+          )}
         </div>
       </header>
 
-      {/* Main content — paddingBottom clears the fixed bottom nav (64px) + safe-area */}
+      {/* Main content */}
       <main id="main-content" style={{
         flex: 1,
         paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
@@ -153,7 +278,7 @@ export default function AppLayout() {
         paddingLeft: '8px', paddingRight: '8px',
       }}>
         {navItems.map(({ to, emoji, label }) => {
-          // Me tab: active for /profile/*, /settings/*, /dashboard, /venue/dashboard
+          // Profile tab: active for /profile/*, /settings/*, /dashboard, /venue/*
           const isProfileTab = to === '/profile';
           const forceActive  = isProfileTab && (
             routerLocation.pathname.startsWith('/profile') ||
