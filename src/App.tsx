@@ -108,6 +108,9 @@ export default function App() {
           {/* Landing page — outside AppLayout, has its own nav */}
           <Route path="/" element={<RootRoute />} />
 
+          {/* ── Landing page — standalone, has its own Nav (no AppLayout chrome) ── */}
+          <Route path="/about" element={<LandingPage />} />
+
           {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
           <Route element={<AuthLayout />}>
             <Route path="/waitlist" element={<WaitlistPage />} />
@@ -119,8 +122,6 @@ export default function App() {
 
           {/* ── App routes — AppLayout with top/bottom nav ── */}
           <Route element={<AppLayout />}>
-            {/* Marketing/about page — accessible but not the front door */}
-            <Route path="/about" element={<LandingPage />} />
             <Route path="/feed" element={
               <FeedGuard><FeedPage /></FeedGuard>
             } />

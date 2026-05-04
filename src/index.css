@@ -42,7 +42,8 @@ body {
   width: 100%;
   max-width: 100%;
   min-height: 100svh;
-  overflow-x: hidden;
+  /* NOTE: do NOT add overflow-x here — it breaks position:fixed children
+     (the landing page Nav) in WebKit/Blink. html+body overflow-x:hidden is enough. */
 }
 
 /* ── Scroll-reveal animations ────────────────────────────────────────────── */
