@@ -3,8 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X,
   ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
-  Heart, Phone, MessageCircle, Navigation,
+  Heart, Phone, MessageCircle, Navigation, Store,
 } from 'lucide-react';
+import type { OwnerHours } from '../types';
 import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
@@ -77,13 +78,30 @@ function formatEventTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
 }
 
-function getStatus(venue: Venue): { label: string; color: string } {
-  switch (venue.venueStatus) {
-    case 'busy':   return { label: 'Busy now',  color: '#F5A623' };
-    case 'quiet':  return { label: 'Quiet now', color: '#60A5FA' };
-    case 'closed': return { label: 'Closed',    color: '#6B7280' };
-    default:       return { label: 'Open now',  color: '#39D98A' };
-  }
+// ─── Owner-hours open/closed calculator ──────────────────────────────────────
+// Returns null when no owner hours are set (don't show a status badge at all)
+// Returns true/false only when the owner has set their hours
+function isOpenBySAST(ownerHours: OwnerHours): boolean {
+  const now = new Date();
+  // SAST = UTC+2
+  const sast = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const days = ['sun','mon','tue','wed','thu','fri','sat'] as const;
+  const dayKey = days[sast.getUTCDay()];
+  const dayHours = ownerHours[dayKey];
+  if (!dayHours || dayHours.closed) return false;
+  const mins = sast.getUTCHours() * 60 + sast.getUTCMinutes();
+  const [openH, openM] = (dayHours.open ?? '00:00').split(':').map(Number);
+  const [closeH, closeM] = (dayHours.close ?? '00:00').split(':').map(Number);
+  return mins >= openH * 60 + openM && mins < closeH * 60 + closeM;
+}
+
+// Only returns a badge when owner has claimed + set hours — never guesses
+function getOwnerStatus(venue: Venue): { label: string; color: string } | null {
+  if (!venue.ownerClaimed || !venue.ownerHours) return null;
+  const open = isOpenBySAST(venue.ownerHours);
+  return open
+    ? { label: 'Open',   color: '#39D98A' }
+    : { label: 'Closed', color: '#6B7280' };
 }
 
 function formatWaNumber(n: string): string {
@@ -189,9 +207,9 @@ function PhotoGalleryHero({
 
   const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
   const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
-  const status = getStatus(venue);
+  const ownerStatus = getOwnerStatus(venue); // null = no badge; only shows when owner set hours
   const hasCover = allPhotos.length > 0;
-  const isActive = venue.venueStatus !== 'closed';
+  const todayCount = venue.checkinsToday ?? 0;
 
   function handleTouchEnd(clientX: number) {
     if (touchStartX.current === null) return;
@@ -307,19 +325,48 @@ function PhotoGalleryHero({
           }}>
             {emoji} {venue.category}
           </span>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '5px',
-            fontSize: '11px', fontWeight: 700, color: status.color,
-            background: `${status.color}18`, padding: '3px 10px', borderRadius: '20px',
-            border: `1px solid ${status.color}30`,
-          }}>
+
+          {/* Owner-set status — ONLY shown when owner has claimed + set hours */}
+          {ownerStatus && (
             <span style={{
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: status.color, display: 'inline-block',
-              animation: isActive ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
-            }} />
-            {status.label}
-          </span>
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              fontSize: '11px', fontWeight: 700, color: ownerStatus.color,
+              background: `${ownerStatus.color}18`, padding: '3px 10px', borderRadius: '20px',
+              border: `1px solid ${ownerStatus.color}30`,
+            }}>
+              <span style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: ownerStatus.color, display: 'inline-block',
+                animation: ownerStatus.label === 'Open' ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
+              }} />
+              {ownerStatus.label}
+            </span>
+          )}
+
+          {/* Community activity — always shown alongside or instead of owner status */}
+          {todayCount >= 3 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              fontSize: '11px', fontWeight: 700, color: '#39D98A',
+              background: 'rgba(57,217,138,0.14)', padding: '3px 10px', borderRadius: '20px',
+              border: '1px solid rgba(57,217,138,0.3)',
+            }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', animation: 'navLocPulse 1.2s ease-in-out infinite' }} />
+              {todayCount} here today
+            </span>
+          )}
+          {todayCount === 1 || todayCount === 2 ? (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              fontSize: '11px', fontWeight: 700, color: '#FBBF24',
+              background: 'rgba(251,191,36,0.12)', padding: '3px 10px', borderRadius: '20px',
+              border: '1px solid rgba(251,191,36,0.28)',
+            }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#FBBF24', display: 'inline-block' }} />
+              Someone was here today
+            </span>
+          ) : null}
+
           {venue.isVerified && (
             venue.verificationType
               ? <VerificationBadge type={venue.verificationType} size="sm" showLabel />
@@ -562,8 +609,8 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
 
 function OpeningHoursSection({ venue }: { venue: Venue }) {
   if (!venue.openHours) return null;
-  const status = getStatus(venue);
-  const isActive = venue.venueStatus !== 'closed';
+  // Only show owner-verified status dot when owner has claimed + set structured hours
+  const ownerStatus = getOwnerStatus(venue);
 
   return (
     <div style={{ marginBottom: '20px' }}>
@@ -574,17 +621,22 @@ function OpeningHoursSection({ venue }: { venue: Venue }) {
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '14px', padding: '14px 16px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-          <span style={{
-            width: '8px', height: '8px', borderRadius: '50%',
-            background: status.color, flexShrink: 0,
-            display: 'inline-block',
-            animation: isActive ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
-          }} />
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: status.color }}>
-            {status.label}
-          </span>
-        </div>
+        {ownerStatus && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <span style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              background: ownerStatus.color, flexShrink: 0,
+              display: 'inline-block',
+              animation: ownerStatus.label === 'Open' ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
+            }} />
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: ownerStatus.color }}>
+              {ownerStatus.label}
+            </span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif' }}>
+              · set by owner
+            </span>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Clock size={14} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
           <p style={{
@@ -931,6 +983,169 @@ function EventsSection({ events }: { events: Event[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Claim This Place ─────────────────────────────────────────────────────────
+
+function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', confirmed: false });
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.confirmed) return;
+    setStatus('submitting');
+    try {
+      const { error } = await supabase.from('claimed_requests').insert({
+        venue_id:           venue.id,
+        venue_name:         venue.name,
+        name:               form.name.trim(),
+        email:              form.email.trim().toLowerCase(),
+        phone:              form.phone.trim() || null,
+        is_owner_confirmed: form.confirmed,
+      });
+      if (error) throw error;
+      setStatus('done');
+    } catch {
+      setStatus('error');
+    }
+  }
+
+  const inp = (placeholder: string, value: string, onChange: (v: string) => void, type = 'text') => (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      required
+      style={{
+        width: '100%', boxSizing: 'border-box',
+        background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
+        borderRadius: '10px', padding: '12px 14px',
+        fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--color-text)',
+        outline: 'none',
+      }}
+    />
+  );
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+    >
+      <div style={{
+        width: '100%', maxWidth: '480px',
+        background: 'var(--color-surface)', borderRadius: '20px 20px 0 0',
+        padding: '24px 20px 40px', boxSizing: 'border-box',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', margin: 0 }}>
+              Claim {venue.name}
+            </h2>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '4px 0 0' }}>
+              Once approved, you can set your hours and post updates.
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+            <X size={20} color="var(--color-muted)" />
+          </button>
+        </div>
+
+        {status === 'done' ? (
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
+              Request sent
+            </h3>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
+              We'll review your claim and get back to you within 24 hours.
+            </p>
+            <button
+              onClick={onClose}
+              style={{ marginTop: '20px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '10px 28px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {inp('Your full name', form.name, v => setForm(f => ({ ...f, name: v })))}
+            {inp('Email address', form.email, v => setForm(f => ({ ...f, email: v })), 'email')}
+            {inp('Phone number (optional)', form.phone, v => setForm(f => ({ ...f, phone: v })), 'tel')}
+
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', borderRadius: '10px' }}>
+              <input
+                type="checkbox"
+                checked={form.confirmed}
+                onChange={e => setForm(f => ({ ...f, confirmed: e.target.checked }))}
+                style={{ marginTop: '2px', accentColor: '#39D98A', flexShrink: 0 }}
+              />
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                I am the owner or authorised representative of {venue.name} and I confirm this information is accurate.
+              </span>
+            </label>
+
+            {status === 'error' && (
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#EF4444', margin: 0 }}>
+                Something went wrong. Please try again.
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={!form.confirmed || status === 'submitting' || !form.name || !form.email}
+              style={{
+                background: form.confirmed && form.name && form.email ? 'var(--color-accent)' : 'rgba(57,217,138,0.25)',
+                color: form.confirmed && form.name && form.email ? '#000' : 'rgba(255,255,255,0.3)',
+                border: 'none', borderRadius: '20px', padding: '14px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+                cursor: form.confirmed ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+              }}
+            >
+              {status === 'submitting' ? 'Sending…' : 'Send claim request'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClaimCTA({ venue }: { venue: Venue }) {
+  const [open, setOpen] = useState(false);
+  // Don't show if already claimed
+  if (venue.ownerClaimed) return null;
+
+  return (
+    <>
+      <div
+        onClick={() => setOpen(true)}
+        style={{
+          marginBottom: '20px', cursor: 'pointer',
+          background: 'rgba(57,217,138,0.05)',
+          border: '1px dashed rgba(57,217,138,0.3)',
+          borderRadius: '14px', padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+        }}
+      >
+        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(57,217,138,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Store size={18} color="#39D98A" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: '0 0 2px' }}>
+            Is this your place?
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+            Claim it to set your hours and post updates →
+          </p>
+        </div>
+      </div>
+      {open && <ClaimModal venue={venue} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
@@ -1676,6 +1891,9 @@ export default function VenuePage() {
 
         {/* ── About ────────────────────────────────────────────────────────── */}
         <AboutSection venue={venue} />
+
+        {/* ── Claim this place — shown when unclaimed ───────────────────────── */}
+        <ClaimCTA venue={venue} />
 
         {/* ── Report issue ─────────────────────────────────────────────────── */}
         <button

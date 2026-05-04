@@ -1,3 +1,11 @@
+// Owner hours structure stored as JSONB in DB
+export interface DayHours {
+  open: string;   // "HH:MM" 24h
+  close: string;  // "HH:MM" 24h
+  closed?: boolean;
+}
+export type OwnerHours = Partial<Record<'mon'|'tue'|'wed'|'thu'|'fri'|'sat'|'sun', DayHours>>;
+
 export interface Venue {
   id: string;
   slug: string;
@@ -25,7 +33,10 @@ export interface Venue {
   regularsCount: number;
   lastCheckinAt?: string;
   venueStatus: 'open' | 'busy' | 'quiet' | 'closed';
-  openHours?: string;
+  openHours?: string;         // human-readable text e.g. "Mon–Fri 8am–5pm"
+  ownerHours?: OwnerHours;    // structured hours set by owner (JSONB)
+  ownerClaimed: boolean;      // true only when owner has verified claim
+  ownerUserId?: string;
   phoneNumber?: string;
   whatsappNumber?: string;
   isVerified?: boolean;

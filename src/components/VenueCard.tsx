@@ -55,7 +55,10 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
   const emoji  = categoryEmoji[venue.category] ?? '📍';
   const color  = categoryColor[venue.category] ?? '#39D98A';
   const [shareOpen, setShareOpen] = useState(false);
-  const activeToday = (venue.checkinsToday ?? 0) >= 3;
+  const todayCount = venue.checkinsToday ?? 0;
+  // Three activity states — never based on hardcoded status field
+  const activitySignal: 'active' | 'someone' | 'quiet' =
+    todayCount >= 3 ? 'active' : todayCount >= 1 ? 'someone' : 'quiet';
 
   // Lazy-load: only fetch the cover image once the card scrolls into view
   const cardRef   = useRef<HTMLDivElement>(null);
@@ -131,8 +134,9 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             </div>
           )}
 
-          {/* "Active today" badge — community-verified, only shown when ≥3 check-ins today */}
-          {activeToday && (
+          {/* ── Community activity signal — top-left overlay ── */}
+          {/* Derived entirely from real check-in counts. Never from status field. */}
+          {activitySignal === 'active' && (
             <div style={{
               position: 'absolute', top: '10px', left: '10px',
               background: 'rgba(57,217,138,0.18)', backdropFilter: 'blur(6px)',
@@ -140,10 +144,32 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               borderRadius: '20px', padding: '4px 10px',
               display: 'flex', alignItems: 'center', gap: '5px',
             }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', animation: 'headingPulse 2s ease-in-out infinite' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', flexShrink: 0, animation: 'headingPulse 2s ease-in-out infinite' }} />
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
-                Active today
+                {todayCount} {todayCount === 1 ? 'person' : 'people'} here today
               </span>
+            </div>
+          )}
+          {activitySignal === 'someone' && (
+            <div style={{
+              position: 'absolute', top: '10px', left: '10px',
+              background: 'rgba(251,191,36,0.14)', backdropFilter: 'blur(6px)',
+              border: '1px solid rgba(251,191,36,0.35)',
+              borderRadius: '20px', padding: '4px 10px',
+              display: 'flex', alignItems: 'center', gap: '5px',
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FBBF24', flexShrink: 0 }} />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FBBF24', fontFamily: 'DM Sans, sans-serif' }}>
+                Someone was here today
+              </span>
+            </div>
+          )}
+          {activitySignal === 'quiet' && (
+            <div style={{
+              position: 'absolute', top: '10px', left: '10px',
+              display: 'flex', alignItems: 'center',
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.12)' }} />
             </div>
           )}
 
@@ -190,11 +216,6 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               {emoji} {venue.category}
             </span>
             {venue.isVerified && !venue.verificationType && <CheckCircle2 size={14} color="#39D98A" />}
-            {(venue.checkinsToday ?? 0) > 0 && (
-              <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 600, marginLeft: 'auto' }}>
-                📍 {venue.checkinsToday} today
-              </span>
-            )}
           </div>
 
           {/* Place name + verification badge */}
