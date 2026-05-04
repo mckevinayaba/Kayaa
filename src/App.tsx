@@ -42,6 +42,7 @@ import VenueAnalytics        from './pages/VenueAnalytics';
 import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
+import WaitlistPage          from './pages/WaitlistPage';
 
 // ── Root: authenticated → feed/setup, anonymous → welcome (product front door) ─
 // CLAUDE.md: "The first screen a user sees must be a working product interface.
@@ -65,18 +66,22 @@ function RootRoute() {
     }
     return <Navigate to="/setup" replace />;
   }
-  // Unauthenticated → WelcomePage is the product front door
-  return <Navigate to="/welcome" replace />;
+  // Unauthenticated → Waitlist is the front door
+  return <Navigate to="/waitlist" replace />;
 }
 
-// ── Post-auth guard: new users who land on /feed get redirected to /setup ─────
+// ── Post-auth guard: redirects unauthenticated → /waitlist, new users → /setup ─
 // Handles the case where Google OAuth or magic link drops a new user straight on /feed.
 function FeedGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
+    if (loading) return;
+    if (!user) {
+      navigate('/waitlist', { replace: true });
+      return;
+    }
     const setupDone = localStorage.getItem('kayaa_setup_done');
     if (setupDone) return;
     const hasLocation = !!(
@@ -89,7 +94,7 @@ function FeedGuard({ children }: { children: React.ReactNode }) {
       return;
     }
     navigate('/setup', { replace: true });
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   return <>{children}</>;
 }
@@ -105,10 +110,11 @@ export default function App() {
 
           {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
           <Route element={<AuthLayout />}>
-            <Route path="/welcome" element={<WelcomePage />} />
-            <Route path="/setup"   element={<SetupPage />} />
+            <Route path="/waitlist" element={<WaitlistPage />} />
+            <Route path="/welcome"  element={<WelcomePage />} />
+            <Route path="/setup"    element={<SetupPage />} />
             {/* Legacy /login URL → welcome page */}
-            <Route path="/login"   element={<Navigate to="/welcome" replace />} />
+            <Route path="/login"    element={<Navigate to="/welcome" replace />} />
           </Route>
 
           {/* ── App routes — AppLayout with top/bottom nav ── */}

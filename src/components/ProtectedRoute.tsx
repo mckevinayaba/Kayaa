@@ -12,8 +12,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return () => clearTimeout(t);
   }, [loading]);
 
-  // Loading took too long — give up and send to login
-  if (loading && timedOut) return <Navigate to="/login" replace />;
+  // Loading took too long — give up and send to waitlist
+  if (loading && timedOut) return <Navigate to="/waitlist" replace />;
 
   if (loading) {
     return (
@@ -36,6 +36,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/waitlist" replace />;
   return <>{children}</>;
 }
