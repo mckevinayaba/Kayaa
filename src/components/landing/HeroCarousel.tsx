@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
+import { openWaitlist } from "../../lib/waitlist-store";
 
 type Slide = {
   photo: string;
@@ -62,10 +63,10 @@ export function HeroCarousel() {
     {
       photo: "/landing/01-made-in-soweto.jpg",
       alt: "Made in Soweto — township street life",
-      brightness: 0.75,
-      contrast: 1.1,
+      brightness: 0.65,
+      contrast: 1.08,
       overlay:
-        "linear-gradient(135deg, rgba(13,17,23,0.88) 0%, rgba(13,17,23,0.5) 50%, rgba(13,17,23,0.2) 100%)",
+        "linear-gradient(to right, rgba(13,17,23,0.82) 0%, rgba(13,17,23,0.55) 55%, rgba(13,17,23,0.1) 100%)",
       render: () => (
         <div
           style={{
@@ -73,25 +74,105 @@ export function HeroCarousel() {
             left: 0,
             right: 0,
             bottom: 0,
-            padding: "0 6% 10%",
+            padding: "0 6% 9%",
             zIndex: 10,
-            maxWidth: 900,
           }}
         >
-          <p style={{ ...labelStyle, marginBottom: 18 }}>kayaa · South Africa</p>
-          <h1 style={headlineStyle()}>
-            We say
+          <p style={{ ...labelStyle, marginBottom: 20 }}>kayaa · South Africa</p>
+          <h1 style={headlineStyle({ fontSize: "clamp(38px, 5.6vw, 74px)", maxWidth: 820 })}>
+            We say support local.
             <br />
-            support local.
-            <br />
-            <span style={{ color: "#39D98A" }}>But we cannot</span>
-            <br />
-            <span style={{ color: "#39D98A" }}>even find local.</span>
+            But we{" "}
+            <span style={{ color: "#39D98A" }}>cannot even find</span>{" "}
+            local.
           </h1>
-          <p data-secondary="true" style={supportStyle({ marginTop: 24, maxWidth: 520 })}>
-            The places that hold our neighbourhoods together are still
-            invisible online.
-          </p>
+
+          {/* CTA buttons — visible on first slide like kayaa.app */}
+          <div
+            data-secondary="true"
+            style={{ display: "flex", gap: 12, marginTop: 36, flexWrap: "wrap" }}
+          >
+            <button
+              type="button"
+              onClick={() => openWaitlist()}
+              className="kayaa-hero-nominate"
+              style={{
+                background: "#39D98A", color: "#0D1117",
+                fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 16,
+                padding: "15px 30px", borderRadius: 999,
+                border: "none", cursor: "pointer", transition: "all 0.2s",
+                boxShadow: "0 0 40px rgba(57,217,138,0.3)",
+              }}
+            >
+              Nominate a place
+            </button>
+            <button
+              type="button"
+              onClick={() => openWaitlist()}
+              className="kayaa-hero-waitlist"
+              style={{
+                background: "rgba(13,17,23,0.6)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                color: "#FFFFFF",
+                fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 16,
+                padding: "15px 30px", borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.3)",
+                cursor: "pointer", transition: "all 0.2s",
+              }}
+            >
+              Join the neighbourhood waitlist
+            </button>
+          </div>
+
+          {/* Share row */}
+          <div
+            data-secondary="true"
+            style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: "kayaa", text: "The neighbourhood app for South Africa", url: window.location.origin });
+                } else {
+                  navigator.clipboard.writeText(window.location.origin);
+                }
+              }}
+              className="kayaa-hero-share"
+              style={{
+                background: "rgba(13,17,23,0.5)", backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                color: "rgba(255,255,255,0.7)",
+                fontFamily: "var(--font-body)", fontSize: 13,
+                padding: "9px 18px", borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.15)",
+                cursor: "pointer", transition: "all 0.2s",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <span>↗</span> Share this with your street
+            </button>
+            <a
+              href="https://wa.me/27663365296"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="kayaa-hero-whatsapp"
+              style={{
+                background: "rgba(37,211,102,0.15)", backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                color: "#25D366",
+                fontFamily: "var(--font-body)", fontSize: 13,
+                padding: "9px 18px", borderRadius: 999,
+                border: "1px solid rgba(37,211,102,0.3)",
+                cursor: "pointer", transition: "all 0.2s",
+                textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <span>💬</span> WhatsApp
+            </a>
+          </div>
         </div>
       ),
     },
@@ -607,6 +688,10 @@ export function HeroCarousel() {
         .kayaa-cta-explore:hover { filter: brightness(1.1); transform: scale(1.02); }
         .kayaa-cta-add:hover { background: rgba(255,255,255,0.08) !important; border-color: #FFFFFF !important; }
         .kayaa-arrow:hover { background: rgba(13,17,23,0.9) !important; border-color: rgba(57,217,138,0.5) !important; }
+        .kayaa-hero-nominate:hover { filter: brightness(1.12); transform: translateY(-1px); }
+        .kayaa-hero-waitlist:hover { background: rgba(255,255,255,0.12) !important; border-color: rgba(255,255,255,0.5) !important; }
+        .kayaa-hero-share:hover { background: rgba(255,255,255,0.1) !important; color: #FFFFFF !important; }
+        .kayaa-hero-whatsapp:hover { background: rgba(37,211,102,0.25) !important; }
         .kayaa-dot { transition: all 0.3s ease; }
         .kayaa-progress-fill { animation: kayaaProgress 5s linear forwards; }
         .kayaa-progress-fill.kayaa-paused { animation-play-state: paused; }
