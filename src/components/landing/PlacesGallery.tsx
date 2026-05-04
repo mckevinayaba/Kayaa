@@ -61,9 +61,10 @@ export function PlacesGallery() {
       <style>{`
         .kayaa-gallery-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 16px;
           max-width: 1200px;
+          width: 100%;
           margin: 0 auto;
         }
         .kayaa-gallery-tile {

@@ -60,12 +60,13 @@ export function NeighbourhoodFeed() {
         borderTop: "1px solid var(--border-kayaa)",
         position: "relative",
         overflow: "hidden",
+        maxWidth: "100%",
       }}
     >
       <style>{`
         .nf-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 16px;
           max-width: 1200px;
           margin: 0 auto;

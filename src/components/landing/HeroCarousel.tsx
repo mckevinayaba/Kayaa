@@ -677,7 +677,7 @@ export function HeroCarousel() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       style={{
-        width: "100vw",
+        width: "100%",
         height: "100dvh",
         position: "relative",
         overflow: "hidden",

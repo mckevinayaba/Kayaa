@@ -16,12 +16,13 @@ export function WhyMatters() {
         background: "var(--midnight)",
         padding: "100px 6%",
         borderTop: "1px solid var(--border-kayaa)",
+        overflow: "hidden",
       }}
     >
       <style>{`
         .wm-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 16px;
           max-width: 1200px;
           margin: 0 auto;

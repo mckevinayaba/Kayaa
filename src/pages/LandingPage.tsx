@@ -17,7 +17,7 @@ import { StickyMobileCTA } from "../components/landing/StickyMobileCTA";
 export default function LandingPage() {
   useScrollReveal();
   return (
-    <div style={{ background: "var(--midnight)", minHeight: "100dvh", color: "var(--warm-white)" }}>
+    <div style={{ background: "var(--midnight)", minHeight: "100dvh", color: "var(--warm-white)", overflowX: "hidden", width: "100%" }}>
       <Nav />
       <HeroCarousel />
       <TruthSection />

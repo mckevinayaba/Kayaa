@@ -41,12 +41,13 @@ export function NeighbourhoodSignals() {
         borderTop: "1px solid var(--border-kayaa)",
         position: "relative",
         overflow: "hidden",
+        maxWidth: "100%",
       }}
     >
       <style>{`
         .ns-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 16px;
           max-width: 1100px;
           margin: 0 auto;
