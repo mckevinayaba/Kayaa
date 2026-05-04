@@ -90,6 +90,7 @@ export function HeroCarousel() {
           {/* CTA buttons — visible on first slide like kayaa.app */}
           <div
             data-secondary="true"
+            className="kayaa-hero-cta-row"
             style={{ display: "flex", gap: 12, marginTop: 36, flexWrap: "wrap" }}
           >
             <button
@@ -128,6 +129,7 @@ export function HeroCarousel() {
           {/* Share row */}
           <div
             data-secondary="true"
+            className="kayaa-hero-share-row"
             style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}
           >
             <button
@@ -197,6 +199,7 @@ export function HeroCarousel() {
             }}
           />
           <div
+            className="kayaa-hero-right-content"
             style={{
               position: "absolute",
               right: "6%",
@@ -235,6 +238,7 @@ export function HeroCarousel() {
       render: () => (
         <>
           <div
+            className="kayaa-hero-stamp"
             style={{
               position: "absolute",
               top: "30%",
@@ -332,6 +336,7 @@ export function HeroCarousel() {
             </p>
           </div>
           <div
+            className="kayaa-hero-stamp"
             style={{
               position: "absolute",
               bottom: "12%",
@@ -457,6 +462,7 @@ export function HeroCarousel() {
         "linear-gradient(to top left, rgba(13,17,23,0.95) 0%, rgba(13,17,23,0.5) 50%, rgba(13,17,23,0.1) 100%)",
       render: () => (
         <div
+          className="kayaa-hero-right-content"
           style={{
             position: "absolute",
             right: "6%",
@@ -693,6 +699,18 @@ export function HeroCarousel() {
         .kayaa-hero-share:hover { background: rgba(255,255,255,0.1) !important; color: #FFFFFF !important; }
         .kayaa-hero-whatsapp:hover { background: rgba(37,211,102,0.25) !important; }
         .kayaa-dot { transition: all 0.3s ease; }
+        @media (max-width: 500px) {
+          .kayaa-hero-cta-row { flex-direction: column !important; }
+          .kayaa-hero-nominate, .kayaa-hero-waitlist {
+            width: 100%; text-align: center; justify-content: center;
+            font-size: 15px !important; padding: 14px 20px !important;
+          }
+          .kayaa-hero-share-row { flex-direction: column !important; }
+          .kayaa-hero-share, .kayaa-hero-whatsapp {
+            width: 100%; justify-content: center; text-align: center;
+          }
+          .kayaa-hero-stamp { display: none !important; }
+        }
         .kayaa-progress-fill { animation: kayaaProgress 5s linear forwards; }
         .kayaa-progress-fill.kayaa-paused { animation-play-state: paused; }
         @keyframes kayaaProgress {
@@ -701,6 +719,13 @@ export function HeroCarousel() {
         }
         @media (max-width: 768px) {
           .kayaa-arrow { display: none !important; }
+          /* Right-aligned slide content — switch to left-bottom on mobile */
+          .kayaa-hero-right-content {
+            right: 6% !important; left: 6% !important;
+            top: auto !important; bottom: 10% !important;
+            transform: none !important; text-align: left !important;
+            max-width: 100% !important;
+          }
         }
         @media (max-height: 760px) {
           .kayaa-hero h1, .kayaa-hero h2 {

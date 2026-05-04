@@ -30,9 +30,10 @@ export function Nav() {
         }
       `}</style>
 
-      {/* Logo */}
+      {/* Logo — click scrolls to top if already on page */}
       <Link
         to="/about"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         style={{
           fontFamily: "var(--font-display)", fontWeight: 700,
           fontSize: "22px", color: "#39D98A",

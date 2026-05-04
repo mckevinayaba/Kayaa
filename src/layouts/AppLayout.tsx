@@ -165,8 +165,12 @@ export default function AppLayout() {
         padding: '0 16px', height: '56px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Logo */}
-        <NavLink to="/feed" style={{ textDecoration: 'none' }}>
+        {/* Logo — tap always scrolls to top of feed */}
+        <NavLink
+          to="/feed"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ textDecoration: 'none' }}
+        >
           <span style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700,
             fontSize: '20px', color: '#39D98A', letterSpacing: '-0.5px',
