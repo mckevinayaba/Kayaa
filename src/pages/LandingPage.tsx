@@ -1,37 +1,37 @@
 import { useScrollReveal } from "../hooks/use-scroll-reveal";
 import { Nav } from "../components/landing/Nav";
 import { HeroCarousel } from "../components/landing/HeroCarousel";
-import { CheckInCTA } from "../components/landing/CheckInCTA";
 import { TruthSection } from "../components/landing/TruthSection";
-import { EditorialPhotoBreak } from "../components/landing/EditorialPhotoBreak";
+import { WhyMatters } from "../components/landing/WhyMatters";
+import { NeighbourhoodSignals } from "../components/landing/NeighbourhoodSignals";
 import { HowItWorks } from "../components/landing/HowItWorks";
-import { AppProof } from "../components/landing/AppProof";
 import { PlacesGallery } from "../components/landing/PlacesGallery";
-import { ValueStack } from "../components/landing/ValueStack";
-import { ForOwners } from "../components/landing/ForOwners";
-import { ResearchBrief } from "../components/landing/ResearchBrief";
-import { SocialProof } from "../components/landing/SocialProof";
+import { NominationAsk } from "../components/landing/NominationAsk";
+import { NeighbourhoodFeed } from "../components/landing/NeighbourhoodFeed";
+import { NeighbourhoodListener } from "../components/landing/NeighbourhoodListener";
 import { CityWaitlist } from "../components/landing/CityWaitlist";
 import { Footer } from "../components/landing/Footer";
+import { WaitlistModal } from "../components/landing/WaitlistModal";
+import { StickyMobileCTA } from "../components/landing/StickyMobileCTA";
 
 export default function LandingPage() {
   useScrollReveal();
   return (
-    <div style={{ background: "#0D1117", minHeight: "100dvh", color: "#F0F6FC" }}>
+    <div style={{ background: "var(--midnight)", minHeight: "100dvh", color: "var(--warm-white)" }}>
       <Nav />
       <HeroCarousel />
-      <CheckInCTA />
       <TruthSection />
-      <EditorialPhotoBreak />
+      <WhyMatters />
+      <NeighbourhoodSignals />
       <HowItWorks />
-      <AppProof />
       <PlacesGallery />
-      <ValueStack />
-      <ForOwners />
-      <ResearchBrief />
-      <SocialProof />
+      <NominationAsk />
+      <NeighbourhoodFeed />
+      <NeighbourhoodListener />
       <CityWaitlist />
       <Footer />
+      <WaitlistModal />
+      <StickyMobileCTA />
     </div>
   );
 }

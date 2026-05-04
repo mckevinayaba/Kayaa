@@ -66,8 +66,8 @@ function RootRoute() {
     }
     return <Navigate to="/setup" replace />;
   }
-  // Unauthenticated → Waitlist is the front door
-  return <Navigate to="/waitlist" replace />;
+  // Unauthenticated → Landing page is the front door
+  return <Navigate to="/about" replace />;
 }
 
 // ── Post-auth guard: redirects unauthenticated → /waitlist, new users → /setup ─

@@ -37,7 +37,10 @@
       "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1)",
       "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1 | Select-String -NotMatch \"Warning|PLUGIN|rolldown|tailwind|chunk\")",
       "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; npm.cmd run build 2>&1 | Select-String -Pattern \"error TS|✓ built|Error\")",
-      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; git add src/lib/areaGroups.ts src/pages/FeedPage.tsx; git status)"
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;\" + $env:PATH; Set-Location \"C:\\\\Users\\\\asus\\\\Downloads\\\\Kayaa App\"; git add src/lib/areaGroups.ts src/pages/FeedPage.tsx; git status)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
