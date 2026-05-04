@@ -43,7 +43,10 @@ import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 
-// ── Root: authenticated → check setup → feed, anonymous → landing ─────────────
+// ── Root: authenticated → feed/setup, anonymous → welcome (product front door) ─
+// CLAUDE.md: "The first screen a user sees must be a working product interface.
+// No investor hero sections, no narrative blocks."
+// LandingPage is at /about for those who want to read about Kayaa first.
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -62,7 +65,8 @@ function RootRoute() {
     }
     return <Navigate to="/setup" replace />;
   }
-  return <LandingPage />;
+  // Unauthenticated → WelcomePage is the product front door
+  return <Navigate to="/welcome" replace />;
 }
 
 // ── Post-auth guard: new users who land on /feed get redirected to /setup ─────
@@ -109,6 +113,8 @@ export default function App() {
 
           {/* ── App routes — AppLayout with top/bottom nav ── */}
           <Route element={<AppLayout />}>
+            {/* Marketing/about page — accessible but not the front door */}
+            <Route path="/about" element={<LandingPage />} />
             <Route path="/feed" element={
               <FeedGuard><FeedPage /></FeedGuard>
             } />
