@@ -110,7 +110,6 @@ export function WhatKayaaIs() {
   const whatRefs   = useRef<(HTMLElement | null)[]>([]);
   const helpsRefs  = useRef<(HTMLElement | null)[]>([]);
   const notRefs    = useRef<(HTMLElement | null)[]>([]);
-  const noteRefs   = useRef<(HTMLElement | null)[]>([]);
 
   useReveal(topRefs,   0.12);
   useReveal(storyRefs, 0.10);
@@ -118,7 +117,6 @@ export function WhatKayaaIs() {
   useReveal(whatRefs,  0.12);
   useReveal(helpsRefs, 0.12);
   useReveal(notRefs,   0.08);
-  useReveal(noteRefs,  0.12);
 
   return (
     <section
@@ -250,31 +248,10 @@ export function WhatKayaaIs() {
           border-radius: 14px;
           padding: 24px;
         }
-        .wki-note-box {
-          background: rgba(57,217,138,0.03);
-          border: 1px solid rgba(57,217,138,0.14);
-          border-radius: 16px;
-          padding: 40px 44px;
-          margin-top: 72px;
-          position: relative;
-          overflow: hidden;
-        }
-        .wki-note-deco {
-          position: absolute;
-          top: 16px; right: 28px;
-          font-family: var(--font-display);
-          font-size: 110px;
-          color: rgba(57,217,138,0.05);
-          line-height: 1;
-          font-weight: 900;
-          user-select: none;
-          pointer-events: none;
-        }
         @media (max-width: 640px) {
           .wki-inner { padding: 72px 6%; }
           .wki-helps-cols { grid-template-columns: 1fr; }
           .wki-what-box { padding: 24px 20px; }
-          .wki-note-box { padding: 28px 24px; }
           .wki-cost-box { padding: 20px 20px; }
         }
       `}</style>
@@ -488,63 +465,6 @@ export function WhatKayaaIs() {
           ))}
         </div>
 
-        {/* ── A note from us ─────────────────────────────────────────────── */}
-        <div
-          ref={(el) => { noteRefs.current[0] = el; }}
-          className="wki-note-box"
-        >
-          <span className="wki-note-deco" aria-hidden>"</span>
-
-          <p style={LABEL}>A note from us</p>
-          <p style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            fontSize: "clamp(18px, 2vw, 22px)",
-            color: "#FFFFFF",
-            lineHeight: 1.4,
-            margin: "0 0 20px",
-            maxWidth: 580,
-          }}>
-            We are South Africans building this for South African neighbourhoods.
-          </p>
-          <p style={{ ...BODY, fontSize: 15, maxWidth: 600, margin: "0 0 16px" }}>
-            We are doing it slowly, on purpose, one neighbourhood at a time
-            — because the places we are building for deserve to be done right,
-            not done fast.
-          </p>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 32 }}>
-            <a
-              href="/welcome"
-              style={{
-                display: "inline-block",
-                background: "#39D98A", color: "#0D1117",
-                fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14,
-                padding: "12px 28px", borderRadius: "999px",
-                textDecoration: "none", transition: "filter 0.2s",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.filter = "brightness(1.1)")}
-              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.filter = "none")}
-            >
-              Get started free →
-            </a>
-            <a
-              href="#"
-              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              style={{
-                fontFamily: "var(--font-body)", fontSize: 14, fontWeight: 500,
-                color: "rgba(255,255,255,0.45)", textDecoration: "none",
-                display: "inline-flex", alignItems: "center",
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.8)")}
-              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.45)")}
-            >
-              ← Back to the home page
-            </a>
-          </div>
-        </div>
 
       </div>
     </section>
