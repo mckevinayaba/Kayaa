@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, MapPin, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
+import { useLocationContext } from '../contexts/LocationContext';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier, tierScore } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
@@ -933,6 +934,7 @@ export default function FeedPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
+  const { movedTo, acceptMove, dismissMove, isBrowsing, clearBrowsing, current, activeLabel } = useLocationContext();
   const { selectedCountry, categoryLabels } = useCountry();
 
   // Raw data from API (unfiltered beyond isCleanVenue)
@@ -1279,6 +1281,55 @@ export default function FeedPage() {
                 : 'No cached data available. Connect to the internet to load places.'}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Move-detection banner — appears when GPS detects you've moved to a new area */}
+      {movedTo && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)',
+          borderRadius: '12px', padding: '10px 14px', marginBottom: '12px',
+        }}>
+          <span style={{ fontSize: '16px', flexShrink: 0 }}>📍</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.85)', lineHeight: 1.4 }}>
+              You're now near <strong style={{ color: '#39D98A' }}>{movedTo.suburb || movedTo.city}</strong>
+            </span>
+          </div>
+          <button
+            onClick={() => { acceptMove(); setRefreshKey(k => k + 1); }}
+            style={{ background: '#39D98A', border: 'none', borderRadius: '8px', padding: '6px 12px', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000', cursor: 'pointer', flexShrink: 0 }}
+          >
+            Switch
+          </button>
+          <button
+            onClick={dismissMove}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Browsing indicator — when user is viewing a different area than their current location */}
+      {isBrowsing && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
+          borderRadius: '10px', padding: '8px 12px', marginBottom: '12px',
+        }}>
+          <span style={{ fontSize: '13px' }}>🔍</span>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>
+            Browsing <strong>{activeLabel}</strong>
+            {current && ` · Currently in ${current.suburb || current.city}`}
+          </span>
+          <button
+            onClick={() => { clearBrowsing(); setRefreshKey(k => k + 1); }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}
+          >
+            Back home
+          </button>
         </div>
       )}
 

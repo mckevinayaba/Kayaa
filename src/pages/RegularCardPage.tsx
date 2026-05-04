@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { getVisitorCheckIns, type VisitorVenueCheckin } from '../lib/api';
+import useLocation from '../hooks/useLocation';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
@@ -25,7 +26,8 @@ export default function RegularCardPage() {
   const { name: rawName } = useParams<{ name: string }>();
   const navigate = useNavigate();
   const visitorName = decodeURIComponent(rawName ?? '');
-  const neighbourhood = localStorage.getItem('kayaa_city') ?? 'Johannesburg';
+  const { suburb, city } = useLocation();
+  const neighbourhood = suburb || city;
 
   const [checkins, setCheckins] = useState<VisitorVenueCheckin[]>([]);
   const [loading, setLoading] = useState(true);

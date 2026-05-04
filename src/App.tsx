@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
+import { LocationProvider } from './contexts/LocationContext';
 import AppLayout from './layouts/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
@@ -50,6 +51,7 @@ function RootRoute() {
 export default function App() {
   return (
     <AuthProvider>
+      <LocationProvider>
       <BrowserRouter>
         <Routes>
           {/* Landing page — outside AppLayout, has its own nav */}
@@ -151,6 +153,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </LocationProvider>
     </AuthProvider>
   );
 }

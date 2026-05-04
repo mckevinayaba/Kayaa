@@ -9,6 +9,7 @@ import {
 import { getInteractiveUserId } from '../lib/api';
 import { BOARD_CATEGORIES } from './BoardPage';
 import { useCountry } from '../contexts/CountryContext';
+import useLocation from '../hooks/useLocation';
 
 // ─── Step 1: Category picker ──────────────────────────────────────────────────
 
@@ -117,7 +118,8 @@ function DetailsForm({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const suburb = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'your area';
+  const { suburb: s, city: c } = useLocation();
+  const suburb = s || c || 'your area';
 
   const isSafety = category === 'safety';
   const showPrice = category === 'for_sale';
@@ -417,7 +419,8 @@ function PreviewStep({
   submitting: boolean;
 }) {
   const cat = BOARD_CATEGORIES.find(c => c.key === category)!;
-  const suburb = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'your area';
+  const { suburb: s, city: c } = useLocation();
+  const suburb = s || c || 'your area';
   const isSafety = category === 'safety';
 
   return (
@@ -537,7 +540,8 @@ export default function BoardNewPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const suburb = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'your area';
+  const { suburb: s, city: c } = useLocation();
+  const suburb = s || c || 'your area';
 
   async function handleSubmit() {
     setSubmitting(true);

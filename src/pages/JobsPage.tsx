@@ -3,6 +3,7 @@ import { Briefcase, Share2, Sparkles } from 'lucide-react';
 import { getLocalJobs, createLocalJob, type LocalJob } from '../lib/api';
 import ShareModal from '../components/ShareModal';
 import { sampleJobs } from '../data/sampleJobs';
+import useLocation from '../hooks/useLocation';
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   full_time: 'Full time',
@@ -196,7 +197,8 @@ function SkillCard({ job, onShare }: { job: LocalJob; onShare: (j: LocalJob) => 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function JobsPage() {
-  const neighbourhood = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'Johannesburg';
+  const { suburb, city } = useLocation();
+  const neighbourhood = suburb || city || 'Johannesburg';
 
   const [jobs, setJobs] = useState<LocalJob[]>([]);
   const [loading, setLoading] = useState(true);

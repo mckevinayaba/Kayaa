@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin } from 'lucide-react';
 import { getBoardPosts, type BoardPost } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
+import useLocation from '../hooks/useLocation';
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -166,9 +167,7 @@ function SkillSkeleton() {
 export default function SkillsBrowse() {
   const navigate = useNavigate();
   const { selectedCountry } = useCountry();
-
-  const suburb = localStorage.getItem('kayaa_suburb') ?? '';
-  const city   = localStorage.getItem('kayaa_city')   ?? 'Johannesburg';
+  const { suburb, city } = useLocation();
 
   const [posts,    setPosts]    = useState<BoardPost[]>([]);
   const [loading,  setLoading]  = useState(true);

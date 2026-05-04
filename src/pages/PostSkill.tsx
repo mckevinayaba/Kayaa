@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, X, CheckCircle } from 'lucide-react';
 import { createBoardPost, uploadBoardImage, getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
+import useLocation from '../hooks/useLocation';
 
 // ── Skill-specific categories ─────────────────────────────────────────────────
 
@@ -59,8 +60,8 @@ export default function PostSkill() {
   const navigate = useNavigate();
   const { selectedCountry } = useCountry();
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const suburb = localStorage.getItem('kayaa_suburb') ?? localStorage.getItem('kayaa_city') ?? 'your area';
+  const { suburb: detectedSuburb, city: detectedCity } = useLocation();
+  const suburb = detectedSuburb || detectedCity || 'your area';
 
   const [skillCat,  setSkillCat]  = useState('');
   const [title,     setTitle]     = useState('');

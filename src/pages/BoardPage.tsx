@@ -9,6 +9,7 @@ import {
 } from '../lib/api';
 import { getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
+import useLocation from '../hooks/useLocation';
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -215,8 +216,7 @@ function PostCard({
 
 export default function BoardPage() {
   const navigate = useNavigate();
-  const suburb  = localStorage.getItem('kayaa_suburb') ?? '';
-  const city    = localStorage.getItem('kayaa_city')   ?? 'Johannesburg';
+  const { suburb, city } = useLocation();
   const display = suburb || city;
   const { selectedCountry } = useCountry();
 
