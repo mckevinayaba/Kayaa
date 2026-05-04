@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; // still used by the logo
 import { openWaitlist } from "../../lib/waitlist-store";
 
 export function Nav() {
@@ -47,29 +47,18 @@ export function Nav() {
       <div className="kayaa-nav-links" style={{ display: "flex", gap: "28px", alignItems: "center" }}>
         {[
           { label: "How it works", href: "#how" },
-          { label: "For places", href: "#features" },
-          { label: "About", to: "/about" },
-        ].map((item) =>
-          item.to ? (
-            <Link
-              key={item.label}
-              to={item.to}
-              className="kayaa-nav-link"
-              style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.55)", textDecoration: "none" }}
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <a
-              key={item.label}
-              href={item.href}
-              className="kayaa-nav-link"
-              style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.55)", textDecoration: "none" }}
-            >
-              {item.label}
-            </a>
-          )
-        )}
+          { label: "For places",   href: "#features" },
+          { label: "About",        href: "#about" },
+        ].map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            className="kayaa-nav-link"
+            style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "rgba(255,255,255,0.55)", textDecoration: "none" }}
+          >
+            {item.label}
+          </a>
+        ))}
       </div>
 
       {/* Right buttons */}
