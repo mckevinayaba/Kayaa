@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const inputBase: React.CSSProperties = {
@@ -15,7 +16,10 @@ const inputBase: React.CSSProperties = {
 };
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
+
+  // Already signed in — go straight to the feed
+  if (user) return <Navigate to="/feed" replace />;
   const [step,    setStep]    = useState<'email' | 'sent'>('email');
   const [email,   setEmail]   = useState(() => localStorage.getItem('kayaa_pending_email') ?? '');
   const [loading, setLoading] = useState(false);

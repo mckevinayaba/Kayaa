@@ -130,8 +130,14 @@ export default function AppLayout() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main id="main-content" style={{ flex: 1, paddingBottom: '72px', maxWidth: '640px', width: '100%', margin: '0 auto' }}>
+      {/* Main content — paddingBottom clears the fixed bottom nav (64px) + safe-area */}
+      <main id="main-content" style={{
+        flex: 1,
+        paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+        maxWidth: '640px',
+        width: '100%',
+        margin: '0 auto',
+      }}>
         <Outlet />
       </main>
 
@@ -146,11 +152,19 @@ export default function AppLayout() {
         paddingLeft: '8px', paddingRight: '8px',
       }}>
         {navItems.map(({ to, emoji, label }) => {
-          // Me tab: also active for /profile/* and /settings/* sub-routes
+          // Me tab: active for /profile/*, /settings/*, /dashboard, /venue/dashboard
           const isProfileTab = to === '/profile';
           const forceActive  = isProfileTab && (
             routerLocation.pathname.startsWith('/profile') ||
-            routerLocation.pathname.startsWith('/settings')
+            routerLocation.pathname.startsWith('/settings') ||
+            routerLocation.pathname === '/dashboard' ||
+            routerLocation.pathname.startsWith('/venue/dashboard') ||
+            routerLocation.pathname.startsWith('/venue/analytics') ||
+            routerLocation.pathname.startsWith('/venue/updates') ||
+            routerLocation.pathname.startsWith('/venue/photos') ||
+            routerLocation.pathname.startsWith('/venue/events') ||
+            routerLocation.pathname.startsWith('/venue/hours') ||
+            routerLocation.pathname.startsWith('/venue/qr-code')
           );
 
           return isProfileTab ? (

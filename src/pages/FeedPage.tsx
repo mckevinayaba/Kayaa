@@ -1233,7 +1233,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div style={{ padding: '16px' }}>
+    <div style={{ padding: '16px', paddingBottom: '140px' }}>
 
       {/* Accessible live region — announces load/refresh state to screen readers */}
       <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">

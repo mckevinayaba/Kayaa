@@ -256,7 +256,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div style={{ paddingBottom: '100px', minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div style={{ paddingBottom: '140px', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
       {/* Safety banner */}
       {showSafetyBanner && (

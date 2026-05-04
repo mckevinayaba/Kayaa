@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { MapPin, ExternalLink, Search, Plus, Download, Share2, Printer, Camera, Video, X as XIcon } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../contexts/AuthContext';
@@ -1584,7 +1584,9 @@ export default function DashboardPage() {
     </div>
   );
 
-  if (!venue || !venueId) return <NoVenueState />;
+  // Non-owners who land on /dashboard are redirected to their profile.
+  // The Passport/regular-score view lives under the Me → Profile tab.
+  if (!venue || !venueId) return <Navigate to="/profile" replace />;
 
   const firstName = ownerName.split(' ')[0] || 'there';
 

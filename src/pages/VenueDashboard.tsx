@@ -318,7 +318,7 @@ export default function VenueDashboard() {
             <RefreshCw size={16} color="rgba(255,255,255,0.4)"
               style={refresh ? { animation: 'spin 1s linear infinite' } : {}} />
           </button>
-          <Link to="/dashboard" style={{ padding: '6px', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Link to="/feed" style={{ padding: '6px', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <Settings size={18} color="rgba(255,255,255,0.5)" />
           </Link>
         </div>
@@ -378,7 +378,7 @@ export default function VenueDashboard() {
                 Send a WhatsApp nudge from the Studio tab
               </div>
             </div>
-            <Link to="/dashboard" style={{ textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px', color: '#F5A623', flexShrink: 0 }}>
+            <Link to="/feed" style={{ textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px', color: '#F5A623', flexShrink: 0 }}>
               Studio →
             </Link>
           </div>
@@ -524,7 +524,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/feed"
               emoji="👑"
               label="Boost Your Place"
               sub="Appear at the top of the Feed"
@@ -536,7 +536,7 @@ export default function VenueDashboard() {
 
         {/* ── Studio deep-link ─────────────────────────────────────────────── */}
         <Link
-          to="/dashboard"
+          to="/feed"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             marginTop: '20px', padding: '14px',

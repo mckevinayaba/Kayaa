@@ -643,11 +643,11 @@ export default function OnboardingPage() {
             <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
               <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: '0 0 6px' }}>
-                Check your email to access your dashboard
+                Check your email to sign in to Kayaa
               </p>
               <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.6 }}>
                 We sent a sign-in link to <strong style={{ color: 'var(--color-text)' }}>{form.ownerEmail}</strong>.
-                Tap the link in that email to sign in.
+                Tap it to open Kayaa and manage your venue.
               </p>
             </div>
             <a
