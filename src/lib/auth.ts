@@ -5,7 +5,18 @@ export async function signInWithEmail(email: string) {
     email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: 'https://kayaa.co.za/dashboard',
+      // After tapping the magic link, land on /feed — not /dashboard
+      emailRedirectTo: `${window.location.origin}/feed`,
+    },
+  });
+}
+
+export async function signInWithGoogle() {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      // After Google auth, land on /feed
+      redirectTo: `${window.location.origin}/feed`,
     },
   });
 }

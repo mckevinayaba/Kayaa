@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
 import AppLayout from './layouts/AppLayout';
+import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import FeedPage from './pages/FeedPage';
@@ -10,7 +12,8 @@ import VenuePage from './pages/VenuePage';
 import CheckInPage from './pages/CheckInPage';
 import DashboardPage from './pages/DashboardPage';
 import OnboardingPage from './pages/OnboardingPage';
-import LoginPage from './pages/LoginPage';
+import WelcomePage from './pages/WelcomePage';
+import SetupPage from './pages/SetupPage';
 import BoardPage from './pages/BoardPage';
 import BoardPostPage from './pages/BoardPostPage';
 import BoardNewPage from './pages/BoardNewPage';
@@ -40,12 +43,51 @@ import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 
-// Root: authenticated → /feed, anonymous → landing page
+// ── Root: authenticated → check setup → feed, anonymous → landing ─────────────
 function RootRoute() {
   const { user, loading } = useAuth();
-  if (loading) return null; // wait for session check
-  if (user) return <Navigate to="/feed" replace />;
+  if (loading) return null;
+  if (user) {
+    const setupDone = localStorage.getItem('kayaa_setup_done');
+    if (setupDone) return <Navigate to="/feed" replace />;
+    // Returning users who have existing location data are already "set up"
+    const hasLocation = !!(
+      localStorage.getItem('kayaa_suburb') ||
+      localStorage.getItem('kayaa_city') ||
+      localStorage.getItem('kayaa_location_current')
+    );
+    if (hasLocation) {
+      localStorage.setItem('kayaa_setup_done', 'true');
+      return <Navigate to="/feed" replace />;
+    }
+    return <Navigate to="/setup" replace />;
+  }
   return <LandingPage />;
+}
+
+// ── Post-auth guard: new users who land on /feed get redirected to /setup ─────
+// Handles the case where Google OAuth or magic link drops a new user straight on /feed.
+function FeedGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    const setupDone = localStorage.getItem('kayaa_setup_done');
+    if (setupDone) return;
+    const hasLocation = !!(
+      localStorage.getItem('kayaa_suburb') ||
+      localStorage.getItem('kayaa_city') ||
+      localStorage.getItem('kayaa_location_current')
+    );
+    if (hasLocation) {
+      localStorage.setItem('kayaa_setup_done', 'true');
+      return;
+    }
+    navigate('/setup', { replace: true });
+  }, [user, navigate]);
+
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -57,12 +99,22 @@ export default function App() {
           {/* Landing page — outside AppLayout, has its own nav */}
           <Route path="/" element={<RootRoute />} />
 
+          {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
+          <Route element={<AuthLayout />}>
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/setup"   element={<SetupPage />} />
+            {/* Legacy /login URL → welcome page */}
+            <Route path="/login"   element={<Navigate to="/welcome" replace />} />
+          </Route>
+
+          {/* ── App routes — AppLayout with top/bottom nav ── */}
           <Route element={<AppLayout />}>
-            <Route path="/feed" element={<FeedPage />} />
+            <Route path="/feed" element={
+              <FeedGuard><FeedPage /></FeedGuard>
+            } />
             <Route path="/venue/:slug" element={<VenuePage />} />
             <Route path="/venue/:slug/checkin" element={<CheckInPage />} />
             <Route path="/checkin/:venueId" element={<QRCheckInPage />} />
-            <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/board" element={<BoardPage />} />
             <Route path="/board/mine" element={<BoardMinePage />} />
@@ -82,10 +134,10 @@ export default function App() {
             <Route path="/profile"          element={<ProfilePage />} />
             <Route path="/profile/edit"    element={<EditProfile />} />
             <Route path="/settings/privacy"        element={<PrivacySettings />} />
-            <Route path="/settings/notifications"         element={<NotificationSettings />} />
-            <Route path="/settings/emergency-contacts"  element={<EmergencyContacts />} />
-            <Route path="/help"                         element={<Help />} />
-            <Route path="/search"          element={<Navigate to="/checkin" replace />} />
+            <Route path="/settings/notifications"  element={<NotificationSettings />} />
+            <Route path="/settings/emergency-contacts" element={<EmergencyContacts />} />
+            <Route path="/help"                    element={<Help />} />
+            <Route path="/search" element={<Navigate to="/checkin" replace />} />
             <Route
               path="/dashboard"
               element={
