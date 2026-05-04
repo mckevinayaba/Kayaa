@@ -1,37 +1,73 @@
-const SIGNALS = [
+import { useEffect, useRef } from "react";
+
+const FEATURES = [
   {
     emoji: "🏠",
     title: "Neighbourhood feed",
-    body: "See live activity from places near you. Check-ins, updates, photos — tied to exact locations.",
+    body: "See live activity from places near you. Check-ins, updates, photos — tied to exact locations, not just a generic timeline.",
   },
   {
     emoji: "📍",
     title: "Check-ins",
-    body: "One tap says you were there. No friction. Builds visible loyalty for the places you love.",
+    body: "One tap says you were there. No booking, no payment, no friction. Builds visible loyalty for the places you love.",
   },
   {
-    emoji: "📸",
+    emoji: "📷",
     title: "Place-based posts",
-    body: "Photos and videos pinned to the place they came from. Not a timeline — a living neighbourhood.",
+    body: "Photos and videos pinned to the place they came from. Not a social feed — a living record of your neighbourhood.",
   },
   {
-    emoji: "🔔",
-    title: "Neighbourhood alerts",
-    body: "Events, specials, closures. Know what's happening on your street before you leave the house.",
+    emoji: "🔥",
+    title: "Trending",
+    body: "See what's hot near you right now. Which places are packed, which events are happening, what people keep going back to.",
   },
   {
-    emoji: "👥",
-    title: "Regulars",
-    body: "Repeat check-ins make loyalty visible. Places can see who keeps coming back and say thank you.",
+    emoji: "📦",
+    title: "In Stock?",
+    body: "Check which spazas and local stores have what you need before you leave. Real-time stock updates from places near you.",
   },
   {
-    emoji: "📊",
-    title: "Place dashboard",
-    body: "No marketing budget needed. Understand your community, see who's checking in, post an update.",
+    emoji: "⚡",
+    title: "Load shedding alerts",
+    body: "Know your area's power status instantly. See which local places have generators so you're never caught off guard.",
   },
 ] as const;
 
 export function NeighbourhoodSignals() {
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const headingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const els = [
+      headingRef.current,
+      ...cardRefs.current,
+    ].filter(Boolean) as HTMLElement[];
+
+    if (!els.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).style.opacity = "1";
+            (entry.target as HTMLElement).style.transform = "translateY(0)";
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    els.forEach((el, i) => {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(28px)";
+      el.style.transition = `opacity 0.6s ease ${i * 0.1}s, transform 0.6s ease ${i * 0.1}s`;
+      io.observe(el);
+    });
+
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section
       id="features"
@@ -57,19 +93,19 @@ export function NeighbourhoodSignals() {
           border: 1px solid var(--border-kayaa);
           border-radius: 16px;
           padding: 28px 24px;
-          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+          transition: border-color 0.25s ease, box-shadow 0.25s ease;
+          will-change: opacity, transform;
         }
         .ns-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 40px rgba(57,217,138,0.08);
-          border-color: rgba(57,217,138,0.25);
+          border-color: rgba(57,217,138,0.35);
+          box-shadow: 0 8px 40px rgba(57,217,138,0.07);
         }
-        @media (max-width: 900px)  { .ns-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 540px)  { .ns-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px)  { .ns-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 480px)  { .ns-grid { grid-template-columns: 1fr; } }
       `}</style>
 
       {/* ambient glow */}
-      <div style={{
+      <div aria-hidden style={{
         position: "absolute", top: "30%", left: "50%",
         transform: "translate(-50%, -50%)",
         width: 600, height: 300,
@@ -77,22 +113,25 @@ export function NeighbourhoodSignals() {
         pointerEvents: "none",
       }} />
 
-      <div style={{ maxWidth: 720, margin: "0 auto 60px", textAlign: "center", position: "relative" }}>
-        <p className="reveal" style={{
-          fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--green)",
+      <div
+        ref={headingRef}
+        style={{ maxWidth: 720, margin: "0 auto 60px", textAlign: "center", position: "relative" }}
+      >
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: 11, color: "#39D98A",
           textTransform: "uppercase", letterSpacing: "0.16em", margin: "0 0 18px",
         }}>
           What kayaa actually does
         </p>
-        <h2 className="reveal" style={{
+        <h2 style={{
           fontFamily: "var(--font-display)", fontWeight: 800,
           fontSize: "clamp(28px, 3.6vw, 46px)", color: "#FFFFFF",
           lineHeight: 1.12, margin: 0,
         }}>
           See it. Discover it.{" "}
-          <span style={{ color: "var(--green)" }}>Help places grow from it.</span>
+          <span style={{ color: "#39D98A" }}>Help places grow from it.</span>
         </h2>
-        <p className="reveal" style={{
+        <p style={{
           fontFamily: "var(--font-body)", fontSize: 16,
           color: "rgba(240,246,252,0.55)", margin: "20px auto 0",
           maxWidth: 540, lineHeight: 1.6,
@@ -103,20 +142,24 @@ export function NeighbourhoodSignals() {
       </div>
 
       <div className="ns-grid">
-        {SIGNALS.map((s, i) => (
-          <div key={s.title} className="ns-card reveal" style={{ transitionDelay: `${(i % 3) * 0.1}s` }}>
-            <div style={{ fontSize: 28, marginBottom: 16, lineHeight: 1 }}>{s.emoji}</div>
+        {FEATURES.map((f, i) => (
+          <div
+            key={f.title}
+            ref={(el) => { cardRefs.current[i] = el; }}
+            className="ns-card"
+          >
+            <div style={{ fontSize: 30, marginBottom: 16, lineHeight: 1 }}>{f.emoji}</div>
             <h3 style={{
               fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18,
               color: "#F0F6FC", margin: "0 0 10px",
             }}>
-              {s.title}
+              {f.title}
             </h3>
             <p style={{
               fontFamily: "var(--font-body)", fontSize: 14,
               color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: 0,
             }}>
-              {s.body}
+              {f.body}
             </p>
           </div>
         ))}

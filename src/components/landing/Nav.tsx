@@ -35,7 +35,7 @@ export function Nav() {
         to="/about"
         style={{
           fontFamily: "var(--font-display)", fontWeight: 700,
-          fontSize: "22px", color: "var(--green)",
+          fontSize: "22px", color: "#39D98A",
           textDecoration: "none",
         }}
       >

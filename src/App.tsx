@@ -108,12 +108,12 @@ export default function App() {
           {/* Landing page — outside AppLayout, has its own nav */}
           <Route path="/" element={<RootRoute />} />
 
-          {/* ── Landing page — standalone, has its own Nav (no AppLayout chrome) ── */}
-          <Route path="/about" element={<LandingPage />} />
+          {/* ── Standalone pages — own layout, no AppLayout/AuthLayout chrome ── */}
+          <Route path="/about"    element={<LandingPage />} />
+          <Route path="/waitlist" element={<WaitlistPage />} />
 
           {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
           <Route element={<AuthLayout />}>
-            <Route path="/waitlist" element={<WaitlistPage />} />
             <Route path="/welcome"  element={<WelcomePage />} />
             <Route path="/setup"    element={<SetupPage />} />
             {/* Legacy /login URL → welcome page */}

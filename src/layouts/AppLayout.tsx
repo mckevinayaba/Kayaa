@@ -169,7 +169,7 @@ export default function AppLayout() {
         <NavLink to="/feed" style={{ textDecoration: 'none' }}>
           <span style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: '20px', color: 'var(--color-accent)', letterSpacing: '-0.5px',
+            fontSize: '20px', color: '#39D98A', letterSpacing: '-0.5px',
           }}>
             kayaa
           </span>

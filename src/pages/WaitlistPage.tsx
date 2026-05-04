@@ -95,7 +95,7 @@ export default function WaitlistPage() {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#0D1117' }}>
 
       {/* ── Minimal header ───────────────────────────────────────────────────── */}
       <header style={{
