@@ -1,17 +1,26 @@
 /**
  * LocationContext — singleton neighbourhood detection for Kayaa.
  *
+ * Source-of-truth priority (highest → lowest):
+ *   1. Supabase profiles.home_suburb  (authenticated user, cross-device)
+ *   2. GPS detection                  (high-accuracy only, ≤ 5 km radius)
+ *   3. Manual picker                  (user explicitly chose)
+ *   4. "Set your area"                (neutral fallback — never a hardcoded suburb)
+ *
  * Three-state model:
  *   current   = GPS-detected suburb (auto, refreshed every 30 min)
  *   home      = user's saved base area (explicit, persists forever)
  *   browsing  = manual override (expires after 2 h, cleared on GPS change)
- *
  *   active    = browsing ?? current ?? home ?? empty
  *
  * Move detection:
  *   If new GPS coords are >5 km from stored coords AND suburb differs,
- *   we set `movedTo` and ask the user whether to switch instead of
- *   silently swapping their area underneath them.
+ *   we set `movedTo` and ask the user whether to switch.
+ *
+ * Desktop / IP-geolocation defence:
+ *   If coords.accuracy > GPS_ACCURACY_MAX (5 km), the reading is IP-based
+ *   and unreliable at suburb level. We reject it and set error=true so the
+ *   manual picker is shown instead of a wrong suburb like Honeydew.
  */
 
 import {
@@ -19,15 +28,24 @@ import {
   useCallback, useRef, type ReactNode,
 } from 'react';
 import { haversineKm } from '../lib/geocode';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LS_CURRENT  = 'kayaa_location';
 const LS_HOME     = 'kayaa_home';
 const LS_BROWSE   = 'kayaa_browsing';
-const STALE_MS    = 30 * 60 * 1000;   // 30 min before background refresh
-const BROWSE_TTL  = 2 * 60 * 60 * 1000; // browsing overlay expires after 2 h
-const MOVE_KM     = 5;                // significant-move threshold
+const STALE_MS    = 30 * 60 * 1000;       // 30 min before background refresh
+const BROWSE_TTL  = 2 * 60 * 60 * 1000;  // browsing overlay expires after 2 h
+const MOVE_KM     = 5;                    // significant-move threshold
+
+/**
+ * GPS accuracy gate: readings worse than this are IP/cell-tower based
+ * and are NOT suburb-accurate. 5000 m = 5 km.
+ * A real phone GPS is typically 5–50 m; WiFi ~100 m; cell ~1000 m.
+ */
+const GPS_ACCURACY_MAX = 5000;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,45 +56,38 @@ export interface NeighbourhoodInfo {
   lon?: number;
   savedAt?: number;
   confirmedAt?: number;
-  source?: 'gps' | 'manual' | 'home' | 'legacy';
+  source?: 'gps' | 'manual' | 'home' | 'legacy' | 'profile';
 }
 
 export interface LocationContextValue {
   /** The neighbourhood used for ALL queries — browsing ?? current ?? home */
   active:      NeighbourhoodInfo;
-  activeLabel: string;   // human-readable: "Tembisa" | "Your area"
-  isBrowsing:  boolean;  // user is looking at a different area from their GPS
+  activeLabel: string;
+  isBrowsing:  boolean;
 
-  /** Individual states */
   current:  NeighbourhoodInfo | null;
   home:     NeighbourhoodInfo | null;
   browsing: NeighbourhoodInfo | null;
 
-  /** Detection status */
   loading: boolean;
   error:   boolean;
 
   /** First-run gate: user hasn't confirmed their area yet */
   needsConfirmation: boolean;
 
-  /**
-   * Move detection: if GPS shows a new area >5 km away.
-   * Cleared once user accepts or dismisses.
-   */
   movedTo:     NeighbourhoodInfo | null;
   dismissMove: () => void;
   acceptMove:  () => void;
 
-  /** Actions */
-  detectNow:      () => void;
-  confirm:        () => void;
-  setManualSuburb:(suburb: string, city?: string) => void; // ← backward compat
-  setBrowsing:    (suburb: string, city?: string) => void;
-  clearBrowsing:  () => void;
-  setHome:        (suburb: string, city?: string) => void;
-  refresh:        () => void; // alias for detectNow
+  detectNow:       () => void;
+  confirm:         () => void;
+  setManualSuburb: (suburb: string, city?: string) => void;
+  setBrowsing:     (suburb: string, city?: string) => void;
+  clearBrowsing:   () => void;
+  setHome:         (suburb: string, city?: string) => void;
+  refresh:         () => void;
 
-  /** Flat accessors — backward compat for pages that destructure directly */
+  /** Flat accessors — backward compat */
   suburb: string;
   city:   string;
   lat:    number | undefined;
@@ -107,13 +118,13 @@ async function reverseGeocode(lat: number, lon: number): Promise<NeighbourhoodIn
   const data = await res.json();
   const addr = data.address ?? {};
   const suburb =
-    addr.suburb       ??
+    addr.suburb        ??
     addr.neighbourhood ??
     addr.quarter       ??
     addr.city_district ??
     addr.town          ??
     addr.city          ??
-    'Your area';
+    '';
   const city = addr.city ?? addr.town ?? addr.county ?? suburb;
   return { suburb, city, lat, lon, savedAt: Date.now(), source: 'gps' };
 }
@@ -131,14 +142,16 @@ const LocationCtx = createContext<LocationContextValue | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function LocationProvider({ children }: { children: ReactNode }) {
-  // ── Read persisted state once ───────────────────────────────────────────
+  const { user } = useAuth();
+
+  // ── Read persisted state once ─────────────────────────────────────────────
   const [current, setCurrent] = useState<NeighbourhoodInfo | null>(() => {
     const stored = readLS<NeighbourhoodInfo>(LS_CURRENT);
     if (stored?.suburb) return stored;
-    // Legacy fallback: pre-context code stored raw strings
-    const legacyCity = localStorage.getItem('kayaa_city') ?? '';
-    if (legacyCity) return { suburb: legacyCity, city: legacyCity, source: 'legacy' };
     return null;
+    // NOTE: No legacy fallback here on purpose.
+    // Legacy kayaa_city/kayaa_suburb may have been set by IP-based geocoding
+    // (Honeydew / Randburg). We no longer trust them silently.
   });
 
   const [home, setHomeState] = useState<NeighbourhoodInfo | null>(() =>
@@ -147,7 +160,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const [browsing, setBrowsingState] = useState<NeighbourhoodInfo | null>(() => {
     const b = readLS<NeighbourhoodInfo>(LS_BROWSE);
-    // Browsing is session-scoped: expire after BROWSE_TTL
     if (b && b.savedAt && Date.now() - b.savedAt > BROWSE_TTL) {
       localStorage.removeItem(LS_BROWSE);
       return null;
@@ -157,12 +169,8 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const [confirmed, setConfirmed] = useState<boolean>(() => {
     const stored = readLS<NeighbourhoodInfo>(LS_CURRENT);
-    if (stored?.confirmedAt) return true;
-    // Treat users who had the old code (kayaa_city/kayaa_suburb in localStorage)
-    // as already confirmed — they've used the app before, no need to ask again.
-    const legacyCity   = localStorage.getItem('kayaa_city');
-    const legacySuburb = localStorage.getItem('kayaa_suburb');
-    if (legacyCity || legacySuburb) return true;
+    // Only treat as confirmed if it was explicitly confirmed (not auto-detected from IP)
+    if (stored?.confirmedAt && stored?.suburb) return true;
     return false;
   });
 
@@ -170,21 +178,77 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [error,   setError]   = useState(false);
   const [movedTo, setMovedTo] = useState<NeighbourhoodInfo | null>(null);
 
-  // Use a ref for `current` inside the detect callback so we never stale-close
-  const currentRef = useRef(current);
-  useEffect(() => { currentRef.current = current; }, [current]);
+  const currentRef   = useRef(current);
   const confirmedRef = useRef(confirmed);
+  useEffect(() => { currentRef.current   = current;   }, [current]);
   useEffect(() => { confirmedRef.current = confirmed; }, [confirmed]);
 
-  // ── Computed active ─────────────────────────────────────────────────────
+  // ── Supabase helpers ──────────────────────────────────────────────────────
+
+  /** Save a confirmed location to the user's Supabase profile. */
+  async function persistToProfile(loc: NeighbourhoodInfo) {
+    if (!user) return;
+    try {
+      await supabase.from('profiles').upsert({
+        id:                    user.id,
+        home_suburb:           loc.suburb,
+        home_city:             loc.city,
+        latitude:              loc.lat  ?? null,
+        longitude:             loc.lon  ?? null,
+        location_source:       loc.source === 'gps' ? 'gps' : 'manual',
+        location_confirmed_at: new Date().toISOString(),
+        updated_at:            new Date().toISOString(),
+      });
+    } catch {
+      // Non-fatal — localStorage still works
+    }
+  }
+
+  // ── Load profile from Supabase on login ───────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+
+    async function loadProfile() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('home_suburb, home_city, latitude, longitude, location_source, location_confirmed_at')
+        .eq('id', user!.id)
+        .single();
+
+      if (data?.home_suburb) {
+        const loc: NeighbourhoodInfo = {
+          suburb:      data.home_suburb,
+          city:        data.home_city ?? data.home_suburb,
+          lat:         data.latitude  ?? undefined,
+          lon:         data.longitude ?? undefined,
+          savedAt:     data.location_confirmed_at
+                         ? new Date(data.location_confirmed_at).getTime()
+                         : Date.now(),
+          confirmedAt: data.location_confirmed_at
+                         ? new Date(data.location_confirmed_at).getTime()
+                         : Date.now(),
+          source: 'profile',
+        };
+        // Profile always wins — it's the user's intentional home suburb
+        setCurrent(loc);
+        setConfirmed(true);
+        writeLS(LS_CURRENT, loc);
+        syncLegacy(loc);
+      }
+    }
+
+    loadProfile();
+  }, [user?.id]); // re-run only when the logged-in user changes
+
+  // ── Computed active ───────────────────────────────────────────────────────
   const active = browsing ?? current ?? home ?? EMPTY;
-  const activeLabel = active.suburb || active.city || 'Your area';
+  const activeLabel = active.suburb || active.city || '';
   const isBrowsing =
     !!browsing &&
     !!current &&
     browsing.suburb.toLowerCase() !== current.suburb.toLowerCase();
 
-  // ── GPS detection ───────────────────────────────────────────────────────
+  // ── GPS detection ─────────────────────────────────────────────────────────
   const detect = useCallback(() => {
     if (!navigator.geolocation) { setError(true); return; }
     setLoading(true);
@@ -193,14 +257,33 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
+          // ── Accuracy gate ─────────────────────────────────────────────────
+          // coords.accuracy is in metres. Readings worse than GPS_ACCURACY_MAX
+          // are IP-based or cell-tower-based and are NOT suburb-accurate.
+          // They cause the "Honeydew / Randburg" problem on desktop browsers.
+          if (coords.accuracy > GPS_ACCURACY_MAX) {
+            // Don't silently show a wrong suburb — surface the manual picker.
+            setLoading(false);
+            setError(true);
+            return;
+          }
+
           const loc = await reverseGeocode(coords.latitude, coords.longitude);
+
+          // If geocoding couldn't resolve a suburb, surface the picker
+          if (!loc.suburb) {
+            setLoading(false);
+            setError(true);
+            return;
+          }
+
           const prev = currentRef.current;
 
-          // Move detection: suburb changed AND distance > MOVE_KM
+          // Move detection
           if (prev?.lat && prev?.lon && prev.suburb && loc.suburb !== prev.suburb) {
             const km = haversineKm(prev.lat, prev.lon, coords.latitude, coords.longitude);
             if (km >= MOVE_KM) {
-              setMovedTo(loc);   // prompt user — don't swap automatically
+              setMovedTo(loc);
               setLoading(false);
               return;
             }
@@ -220,14 +303,24 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         }
       },
       () => { setLoading(false); setError(true); },
-      { timeout: 8000, maximumAge: 60_000 },
+      {
+        timeout: 10000,
+        maximumAge: 60_000,
+        // Request high-accuracy GPS — prevents the browser falling back to
+        // IP-based geolocation which gives wrong city-level locations.
+        enableHighAccuracy: true,
+      },
     );
-  }, []); // stable — uses refs for mutable values
+  }, []);
 
-  // ── Auto-detect on mount ─────────────────────────────────────────────────
+  // ── Auto-detect on mount ──────────────────────────────────────────────────
   useEffect(() => {
+    // If we already have a confirmed location (from Supabase or manual), don't
+    // fire GPS immediately — let the profile load effect run first.
+    const stored = readLS<NeighbourhoodInfo>(LS_CURRENT);
+    if (stored?.confirmedAt && stored?.suburb) return;
+
     if (!current?.suburb) {
-      // First visit: detect immediately
       detect();
       return;
     }
@@ -236,6 +329,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     if (age > STALE_MS && current.lat && current.lon) {
       reverseGeocode(current.lat, current.lon)
         .then(loc => {
+          if (!loc.suburb) return;
           const prev = currentRef.current;
           if (prev?.lat && prev?.lon && loc.suburb !== prev.suburb) {
             const km = haversineKm(prev.lat, prev.lon, loc.lat!, loc.lon!);
@@ -253,7 +347,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentionally run once on mount
 
-  // ── Actions ──────────────────────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   const confirm = useCallback(() => {
     setConfirmed(true);
@@ -261,16 +355,17 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       if (!prev) return prev;
       const updated: NeighbourhoodInfo = { ...prev, confirmedAt: Date.now() };
       writeLS(LS_CURRENT, updated);
+      persistToProfile(updated);
       return updated;
     });
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
-  /** Backward-compat: sets as the GPS/current area (used in first-run gate). */
   const setManualSuburb = useCallback((suburb: string, city?: string) => {
     const loc: NeighbourhoodInfo = {
       suburb,
       city: city ?? suburb,
-      savedAt: Date.now(),
+      savedAt:     Date.now(),
       confirmedAt: Date.now(),
       source: 'manual',
     };
@@ -279,12 +374,12 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     setError(false);
     writeLS(LS_CURRENT, loc);
     syncLegacy(loc);
-    // Clear browsing when user explicitly sets a new area
     setBrowsingState(null);
     localStorage.removeItem(LS_BROWSE);
-  }, []);
+    persistToProfile(loc);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
-  /** Browse a different area without changing the GPS/home state. */
   const setBrowsingFn = useCallback((suburb: string, city?: string) => {
     const loc: NeighbourhoodInfo = {
       suburb,
@@ -305,12 +400,15 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     const loc: NeighbourhoodInfo = {
       suburb,
       city: city ?? suburb,
-      savedAt: Date.now(),
+      savedAt:     Date.now(),
+      confirmedAt: Date.now(),
       source: 'home',
     };
     setHomeState(loc);
     writeLS(LS_HOME, loc);
-  }, []);
+    persistToProfile(loc);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const dismissMove = useCallback(() => setMovedTo(null), []);
 
@@ -321,13 +419,14 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     setConfirmed(true);
     writeLS(LS_CURRENT, toWrite);
     syncLegacy(movedTo);
-    // Clear browsing (new location is now active)
     setBrowsingState(null);
     localStorage.removeItem(LS_BROWSE);
     setMovedTo(null);
-  }, [movedTo]);
+    persistToProfile(toWrite);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movedTo, user?.id]);
 
-  // ── Context value ────────────────────────────────────────────────────────
+  // ── Context value ─────────────────────────────────────────────────────────
   const value: LocationContextValue = {
     active,
     activeLabel,
@@ -353,7 +452,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     setHome,
     refresh: detect,
 
-    // Flat compat: always reflects the active neighbourhood
     suburb: active.suburb,
     city:   active.city,
     lat:    active.lat,
@@ -365,7 +463,6 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-/** Full context — use when you need the three-state model or move detection. */
 export function useLocationContext(): LocationContextValue {
   const ctx = useContext(LocationCtx);
   if (!ctx) throw new Error('useLocationContext must be used inside <LocationProvider>');

@@ -26,8 +26,9 @@ export default function AppLayout() {
     ? 'Place'
     : loading
       ? '…'
-      : suburb || 'Set area';
+      : suburb || 'Set your area';
 
+  // Show area selector when: error (GPS failed/low-accuracy) and no confirmed suburb
   const needsArea = error && !suburb;
 
   return (
