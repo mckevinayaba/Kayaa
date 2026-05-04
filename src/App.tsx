@@ -62,8 +62,8 @@ function RootRoute() {
     }
     return <Navigate to="/setup" replace />;
   }
-  // Unauthenticated → sign in / sign up (the product front door)
-  return <Navigate to="/welcome" replace />;
+  // Unauthenticated → landing page (the product front door)
+  return <Navigate to="/about" replace />;
 }
 
 // ── Post-auth guard: redirects unauthenticated → /welcome, new users → /setup ─
