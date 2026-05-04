@@ -157,7 +157,13 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const [confirmed, setConfirmed] = useState<boolean>(() => {
     const stored = readLS<NeighbourhoodInfo>(LS_CURRENT);
-    return !!stored?.confirmedAt;
+    if (stored?.confirmedAt) return true;
+    // Treat users who had the old code (kayaa_city/kayaa_suburb in localStorage)
+    // as already confirmed — they've used the app before, no need to ask again.
+    const legacyCity   = localStorage.getItem('kayaa_city');
+    const legacySuburb = localStorage.getItem('kayaa_suburb');
+    if (legacyCity || legacySuburb) return true;
+    return false;
   });
 
   const [loading, setLoading] = useState(false);

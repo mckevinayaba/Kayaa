@@ -985,7 +985,15 @@ export default function FeedPage() {
   const [scope, setScope] = useState<FeedScope>('nearby');
   const [manualScope, setManualScope] = useState<FeedScope | null>(null);
 
-  const [showAreaGate, setShowAreaGate] = useState(needsConfirmation);
+  // Only show the gate when there is truly no location data yet (brand new user).
+  // Legacy users (kayaa_city in localStorage) are pre-confirmed in LocationContext.
+  const hasAnyLocation = !!(suburb || city);
+  const [showAreaGate, setShowAreaGate] = useState(needsConfirmation && !hasAnyLocation);
+
+  // If context resolves location after mount, close the gate automatically.
+  useEffect(() => {
+    if (!needsConfirmation || suburb || city) setShowAreaGate(false);
+  }, [needsConfirmation, suburb, city]);
 
   const areaLabel = suburb || city || 'Your area';
 
