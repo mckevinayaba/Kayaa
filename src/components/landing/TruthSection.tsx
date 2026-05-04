@@ -33,7 +33,7 @@ const ITALIC_LINES = [
 const divider = {
   height: "1px",
   background: "var(--border-kayaa)",
-  margin: "72px 0",
+  margin: "clamp(40px, 6vw, 72px) 0",
 } as const;
 
 export function TruthSection() {
@@ -41,7 +41,7 @@ export function TruthSection() {
     <section
       style={{
         background: "var(--midnight)",
-        padding: "120px 24px",
+        padding: "clamp(64px, 10vw, 120px) 6%",
         textAlign: "center",
       }}
     >
@@ -50,6 +50,10 @@ export function TruthSection() {
         .kayaa-pill:hover {
           border-color: var(--green) !important;
           color: var(--green) !important;
+        }
+        .kayaa-pill { padding: 9px 16px; font-size: 13px; }
+        @media (max-width: 480px) {
+          .kayaa-pill { padding: 8px 14px; font-size: 13px; }
         }
       `}</style>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>

@@ -12,10 +12,10 @@ const LABEL: React.CSSProperties = {
 
 const BODY: React.CSSProperties = {
   fontFamily: "var(--font-body)",
-  fontSize: 17,
+  fontSize: "clamp(15px, 2vw, 17px)" as unknown as number,
   color: "rgba(240,246,252,0.68)",
-  lineHeight: 1.85,
-  margin: "0 0 22px",
+  lineHeight: 1.8,
+  margin: "0 0 20px",
 };
 
 const PLACE_STORIES = [
@@ -136,7 +136,7 @@ export function WhatKayaaIs() {
         .wki-divider {
           border: none;
           border-top: 1px solid rgba(255,255,255,0.07);
-          margin: 72px 0;
+          margin: clamp(48px, 7vw, 72px) 0;
         }
         .wki-pull {
           font-family: var(--font-display);

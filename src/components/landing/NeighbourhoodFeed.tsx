@@ -54,7 +54,7 @@ export function NeighbourhoodFeed() {
     <section
       style={{
         background: "#080C12",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid var(--border-kayaa)",
         position: "relative",
         overflow: "hidden",
@@ -98,7 +98,7 @@ export function NeighbourhoodFeed() {
         pointerEvents: "none",
       }} />
 
-      <div style={{ maxWidth: 720, margin: "0 auto 60px", textAlign: "center", position: "relative" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto clamp(36px,5vw,60px)", textAlign: "center", position: "relative" }}>
         <p className="reveal" style={{
           fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--green)",
           textTransform: "uppercase", letterSpacing: "0.16em", margin: "0 0 18px",

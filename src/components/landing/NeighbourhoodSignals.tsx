@@ -73,7 +73,7 @@ export function NeighbourhoodSignals() {
       id="features"
       style={{
         background: "var(--midnight)",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid var(--border-kayaa)",
         position: "relative",
         overflow: "hidden",
@@ -101,7 +101,8 @@ export function NeighbourhoodSignals() {
           box-shadow: 0 8px 40px rgba(57,217,138,0.07);
         }
         @media (max-width: 900px)  { .ns-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (max-width: 480px)  { .ns-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 480px)  { .ns-grid { grid-template-columns: 1fr; gap: 12px; } }
+        @media (max-width: 480px)  { .ns-card { padding: 22px 18px; } }
       `}</style>
 
       {/* ambient glow */}
@@ -115,7 +116,7 @@ export function NeighbourhoodSignals() {
 
       <div
         ref={headingRef}
-        style={{ maxWidth: 720, margin: "0 auto 60px", textAlign: "center", position: "relative" }}
+        style={{ maxWidth: 720, margin: "0 auto clamp(36px,5vw,60px)", textAlign: "center", position: "relative" }}
       >
         <p style={{
           fontFamily: "var(--font-mono)", fontSize: 11, color: "#39D98A",

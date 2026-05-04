@@ -73,7 +73,7 @@ export function HeroCarousel() {
             left: 0,
             right: 0,
             bottom: 0,
-            padding: "0 6% 9%",
+            padding: "0 6% max(9%, env(safe-area-inset-bottom, 0px) + 24px)",
             zIndex: 10,
           }}
         >
@@ -728,15 +728,19 @@ export function HeroCarousel() {
         }
         @media (max-height: 760px) {
           .kayaa-hero h1, .kayaa-hero h2 {
-            font-size: clamp(28px, 4.2vw, 52px) !important;
+            font-size: clamp(26px, 4.2vw, 52px) !important;
             line-height: 1.05 !important;
           }
-          .kayaa-hero p[data-secondary="true"] { display: none !important; }
+          .kayaa-hero p[data-secondary="true"],
+          div[data-secondary="true"] { display: none !important; }
         }
         @media (max-height: 620px) {
           .kayaa-hero h1, .kayaa-hero h2 {
-            font-size: clamp(24px, 3.8vw, 40px) !important;
+            font-size: clamp(22px, 3.8vw, 38px) !important;
           }
+        }
+        @media (max-width: 480px) {
+          .kayaa-hero h1 { font-size: clamp(30px, 7.5vw, 44px) !important; }
         }
       `}</style>
 

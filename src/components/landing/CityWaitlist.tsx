@@ -4,11 +4,17 @@ export function CityWaitlist() {
       style={{
         background: "#0D1117",
         borderTop: "1px solid #21262D",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      <style>{`
+        @media (max-width: 480px) {
+          .cw-cta-row { flex-direction: column !important; }
+          .cw-cta-row a { width: 100%; text-align: center; box-sizing: border-box; }
+        }
+      `}</style>
       {/* Ambient glow */}
       <div aria-hidden style={{
         position: "absolute", inset: 0,
@@ -58,7 +64,7 @@ export function CityWaitlist() {
           Add the ones that don't have a page yet.
         </p>
 
-        <div className="reveal" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+        <div className="reveal cw-cta-row" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a
             href="/welcome"
             style={{

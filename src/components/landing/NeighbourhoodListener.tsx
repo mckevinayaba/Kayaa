@@ -21,7 +21,7 @@ export function NeighbourhoodListener() {
     <section
       style={{
         background: "var(--midnight)",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid var(--border-kayaa)",
         position: "relative",
         overflow: "hidden",
@@ -40,7 +40,7 @@ export function NeighbourhoodListener() {
       }} />
 
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto 60px", textAlign: "center" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto clamp(36px,5vw,60px)", textAlign: "center" }}>
           <p className="reveal" style={{
             fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--green)",
             textTransform: "uppercase", letterSpacing: "0.16em", margin: "0 0 18px",

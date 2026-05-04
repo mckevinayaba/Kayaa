@@ -54,7 +54,7 @@ export function PlacesGallery() {
     <section
       style={{
         background: "#0A0E14",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid #21262D",
       }}
     >
@@ -86,10 +86,13 @@ export function PlacesGallery() {
         }
         .kayaa-gallery-tile:hover img { filter: contrast(1.1) brightness(1.05); transform: scale(1.05); }
         @media (max-width: 1000px) { .kayaa-gallery-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 520px) { .kayaa-gallery-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 520px) {
+          .kayaa-gallery-grid { grid-template-columns: 1fr; gap: 12px; }
+          .kayaa-gallery-tile { aspect-ratio: 16/9; }
+        }
       `}</style>
 
-      <div style={{ textAlign: "center", marginBottom: 56 }}>
+      <div style={{ textAlign: "center", marginBottom: "clamp(36px,5vw,56px)" }}>
         <p
           className="reveal"
           style={{

@@ -14,7 +14,7 @@ export function Footer() {
       style={{
         background: "var(--card-kayaa)",
         borderTop: "1px solid var(--border-kayaa)",
-        padding: "40px 24px 32px",
+        padding: "clamp(32px,5vw,40px) 6% clamp(28px,4vw,32px)",
       }}
     >
       <style>{`

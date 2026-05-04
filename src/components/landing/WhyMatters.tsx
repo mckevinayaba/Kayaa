@@ -14,7 +14,7 @@ export function WhyMatters() {
     <section
       style={{
         background: "var(--midnight)",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid var(--border-kayaa)",
         overflow: "hidden",
       }}
@@ -46,10 +46,13 @@ export function WhyMatters() {
         }
         .wm-card:hover img { filter: contrast(1.12) brightness(0.95); transform: scale(1.04); }
         @media (max-width: 1000px) { .wm-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 540px)  { .wm-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 540px)  {
+          .wm-grid { grid-template-columns: 1fr; gap: 12px; }
+          .wm-card { aspect-ratio: 16/9; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: 720, margin: "0 auto 60px", textAlign: "center" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto clamp(36px,5vw,60px)", textAlign: "center" }}>
         <p className="reveal" style={{
           fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--green)",
           textTransform: "uppercase", letterSpacing: "0.16em", margin: "0 0 18px",

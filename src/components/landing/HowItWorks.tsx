@@ -80,7 +80,7 @@ export function HowItWorks() {
       id="how"
       style={{
         background: "#0D1117",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid #21262D",
       }}
     >
@@ -98,11 +98,12 @@ export function HowItWorks() {
           margin: 0 auto;
         }
         @media (max-width: 768px) {
-          .kayaa-hiw-grid { grid-template-columns: 1fr; }
+          .kayaa-hiw-grid { grid-template-columns: 1fr; gap: 14px; }
+          .kayaa-hiw-card { padding: 28px 22px !important; }
         }
       `}</style>
 
-      <div ref={headingRef} style={{ textAlign: "center", marginBottom: 64 }}>
+      <div ref={headingRef} style={{ textAlign: "center", marginBottom: "clamp(40px,6vw,64px)" }}>
         <p style={{
           fontFamily: "var(--font-mono)", fontSize: 11,
           color: "#39D98A", textTransform: "uppercase",

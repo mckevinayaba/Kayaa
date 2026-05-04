@@ -3,7 +3,7 @@ export function NominationAsk() {
     <section
       style={{
         background: "var(--midnight)",
-        padding: "100px 6%",
+        padding: "clamp(64px, 10vw, 100px) 6%",
         borderTop: "1px solid var(--border-kayaa)",
         textAlign: "center",
         position: "relative",
@@ -13,6 +13,12 @@ export function NominationAsk() {
       <style>{`
         .na-primary:hover { filter: brightness(1.12); transform: translateY(-2px); }
         .na-secondary:hover { background: rgba(255,255,255,0.06) !important; }
+        @media (max-width: 480px) {
+          .na-primary, .na-secondary {
+            width: 100%; text-align: center; display: block !important;
+            padding: 15px 20px !important; font-size: 15px !important;
+          }
+        }
       `}</style>
 
       {/* glow */}
