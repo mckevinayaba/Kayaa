@@ -22,7 +22,7 @@ INSERT INTO venues (
   '264 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2013, 28.0681,
-  'busy', 'Tue–Sun 10am – 6pm · Sunday Market 10am – 3pm',
+  'closed', 'Tue–Sun 10am – 6pm · Sunday Market 10am – 3pm',
   true, 'ZA',
   498, 119, 21, 82, 75,
   true, now() - interval '85 days'
@@ -36,7 +36,7 @@ INSERT INTO venues (
   'Main Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2031, 28.0674,
-  'open', 'Saturday–Sunday 9am – 3pm',
+  'closed', 'Saturday–Sunday 9am – 3pm',
   true, 'ZA',
   213, 57, 7, 29, 25,
   false, now() - interval '42 days'
@@ -52,7 +52,7 @@ INSERT INTO venues (
   '286 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2017, 28.0678,
-  'open', 'Screenings vary — check programme',
+  'closed', 'Screenings vary — check programme',
   true, 'ZA',
   342, 94, 8, 33, 29,
   true, now() - interval '76 days'
@@ -68,7 +68,7 @@ INSERT INTO venues (
   '228 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2009, 28.0684,
-  'open', 'Wed–Sat 6pm – late',
+  'closed', 'Wed–Sat 6pm – late',
   true, 'ZA',
   287, 79, 4, 19, 22,
   true, now() - interval '68 days'
@@ -82,7 +82,7 @@ INSERT INTO venues (
   '249 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2022, 28.0677,
-  'open', 'Tue–Sat 10am – late · Sun 10am – 6pm',
+  'closed', 'Tue–Sat 10am – late · Sun 10am – 6pm',
   true, 'ZA',
   261, 71, 9, 36, 32,
   true, now() - interval '58 days'
@@ -96,7 +96,7 @@ INSERT INTO venues (
   'Main Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2035, 28.0671,
-  'open', 'Mon–Sun 11am – late',
+  'closed', 'Mon–Sun 11am – late',
   true, 'ZA',
   234, 66, 10, 39, 35,
   false, now() - interval '51 days'
@@ -112,7 +112,7 @@ INSERT INTO venues (
   'Arts on Main, 264 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2015, 28.0680,
-  'busy', 'Tue–Sun 11am – 7pm',
+  'closed', 'Tue–Sun 11am – 7pm',
   true, 'ZA',
   318, 88, 14, 53, 48,
   true, now() - interval '63 days'
@@ -126,7 +126,7 @@ INSERT INTO venues (
   '264 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2014, 28.0682,
-  'open', 'Tue–Sun 8am – 5pm',
+  'closed', 'Tue–Sun 8am – 5pm',
   true, 'ZA',
   176, 49, 7, 27, 23,
   false, now() - interval '37 days'
@@ -142,7 +142,7 @@ INSERT INTO venues (
   'Main Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2028, 28.0675,
-  'open', 'Tue–Sat 10am – 7pm',
+  'closed', 'Tue–Sat 10am – 7pm',
   true, 'ZA',
   143, 39, 3, 13, 11,
   false, now() - interval '29 days'
@@ -158,7 +158,7 @@ INSERT INTO venues (
   'Main Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2033, 28.0668,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   167, 51, 8, 31, 28,
   false, now() - interval '16 days'
@@ -174,7 +174,7 @@ INSERT INTO venues (
   'Hallmark House, 20 Selby Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2021, 28.0669,
-  'open', 'Fri–Sun evenings and event nights',
+  'closed', 'Fri–Sun evenings and event nights',
   true, 'ZA',
   192, 53, 5, 22, 19,
   true, now() - interval '54 days'
@@ -188,7 +188,7 @@ INSERT INTO venues (
   'Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2019, 28.0686,
-  'open', 'Mon–Sat 9am – 8pm',
+  'closed', 'Mon–Sat 9am – 8pm',
   true, 'ZA',
   89, 28, 2, 9, 8,
   false, now() - interval '23 days'
@@ -204,7 +204,7 @@ INSERT INTO venues (
   'Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2025, 28.0683,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   121, 37, 4, 17, 14,
   false, now() - interval '11 days'
@@ -220,7 +220,7 @@ INSERT INTO venues (
   '264 Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2012, 28.0679,
-  'open', 'Saturday–Sunday 12pm – 6pm',
+  'closed', 'Saturday–Sunday 12pm – 6pm',
   true, 'ZA',
   204, 62, 11, 43, 39,
   false, now() - interval '32 days'
@@ -236,7 +236,7 @@ INSERT INTO venues (
   'Corner Main Street & Fox Street, Maboneng',
   'Maboneng, Johannesburg',
   -26.2029, 28.0672,
-  'open', 'Mon–Sun 7am – 10pm',
+  'closed', 'Mon–Sun 7am – 10pm',
   true, 'ZA',
   158, 46, 9, 35, 32,
   false, now() - interval '9 days'

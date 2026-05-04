@@ -22,7 +22,7 @@ INSERT INTO venues (
   '618 Makhalamele Street, Dube, Soweto',
   'Dube, Soweto',
   -26.2481, 27.8562,
-  'busy', 'Mon–Sun 8am – 10pm',
+  'closed', 'Mon–Sun 8am – 10pm',
   true, 'ZA',
   398, 97, 15, 51, 47,
   true, now() - interval '88 days'
@@ -36,7 +36,7 @@ INSERT INTO venues (
   '6980 Vilakazi Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2506, 27.8539,
-  'busy', 'Mon–Sun 9am – 10pm',
+  'closed', 'Mon–Sun 9am – 10pm',
   true, 'ZA',
   382, 91, 14, 48, 44,
   true, now() - interval '82 days'
@@ -50,7 +50,7 @@ INSERT INTO venues (
   'Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2498, 27.8547,
-  'open', 'Tue–Sun 10am – 9pm',
+  'closed', 'Tue–Sun 10am – 9pm',
   true, 'ZA',
   213, 58, 6, 23, 20,
   true, now() - interval '60 days'
@@ -64,7 +64,7 @@ INSERT INTO venues (
   'Nasrec Road, near FNB Stadium, Soweto',
   'Nasrec, Soweto',
   -26.2370, 27.9083,
-  'open', 'Thu–Sun 11am – late',
+  'closed', 'Thu–Sun 11am – late',
   true, 'ZA',
   317, 84, 10, 37, 32,
   true, now() - interval '70 days'
@@ -78,7 +78,7 @@ INSERT INTO venues (
   'Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2511, 27.8531,
-  'open', 'Wed–Sun 12pm – 9pm',
+  'closed', 'Wed–Sun 12pm – 9pm',
   true, 'ZA',
   178, 51, 5, 22, 18,
   false, now() - interval '45 days'
@@ -94,7 +94,7 @@ INSERT INTO venues (
   'Vilakazi Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2502, 27.8543,
-  'open', 'Wed–Sun 12pm – 10pm',
+  'closed', 'Wed–Sun 12pm – 10pm',
   true, 'ZA',
   256, 72, 8, 30, 27,
   true, now() - interval '65 days'
@@ -110,7 +110,7 @@ INSERT INTO venues (
   'Khumalo Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2508, 27.8537,
-  'open', 'Tue–Sun 9am – 5pm',
+  'closed', 'Tue–Sun 9am – 5pm',
   true, 'ZA',
   167, 44, 4, 16, 14,
   true, now() - interval '55 days'
@@ -126,7 +126,7 @@ INSERT INTO venues (
   'Vilakazi Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2514, 27.8526,
-  'open', 'Mon–Sun 2pm – 1am',
+  'closed', 'Mon–Sun 2pm – 1am',
   true, 'ZA',
   194, 55, 7, 28, 25,
   false, now() - interval '48 days'
@@ -140,7 +140,7 @@ INSERT INTO venues (
   'Orlando East, Soweto',
   'Orlando East, Soweto',
   -26.2458, 27.8601,
-  'busy', 'Sat–Sun 10am – late · Fri from 3pm',
+  'closed', 'Sat–Sun 10am – late · Fri from 3pm',
   true, 'ZA',
   341, 88, 12, 43, 39,
   true, now() - interval '78 days'
@@ -156,7 +156,7 @@ INSERT INTO venues (
   '1149 Khumalo Street, Rockville, Soweto',
   'Rockville, Soweto',
   -26.2437, 27.8714,
-  'open', 'Sunday Mass 7am · 9am · 11am · 5pm',
+  'closed', 'Sunday Mass 7am · 9am · 11am · 5pm',
   true, 'ZA',
   278, 89, 2, 10, 12,
   true, now() - interval '90 days'
@@ -172,7 +172,7 @@ INSERT INTO venues (
   'Vilakazi Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2503, 27.8541,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   182, 53, 9, 32, 28,
   false, now() - interval '35 days'
@@ -186,7 +186,7 @@ INSERT INTO venues (
   'Dube, Soweto',
   'Dube, Soweto',
   -26.2476, 27.8571,
-  'open', 'Tue–Sun 8:30am – 7pm',
+  'closed', 'Tue–Sun 8:30am – 7pm',
   true, 'ZA',
   136, 39, 6, 22, 19,
   false, now() - interval '21 days'
@@ -202,7 +202,7 @@ INSERT INTO venues (
   'Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2496, 27.8552,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   148, 43, 5, 19, 16,
   false, now() - interval '29 days'
@@ -218,7 +218,7 @@ INSERT INTO venues (
   'Makhalamele Street, Dube, Soweto',
   'Dube, Soweto',
   -26.2479, 27.8565,
-  'open', 'Mon–Sun 6am – 10pm',
+  'closed', 'Mon–Sun 6am – 10pm',
   true, 'ZA',
   219, 62, 14, 47, 43,
   false, now() - interval '57 days'
@@ -232,7 +232,7 @@ INSERT INTO venues (
   'Vilakazi Street, Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2507, 27.8534,
-  'open', 'Mon–Sun 7am – 9pm',
+  'closed', 'Mon–Sun 7am – 9pm',
   true, 'ZA',
   173, 48, 11, 39, 35,
   false, now() - interval '41 days'
@@ -248,7 +248,7 @@ INSERT INTO venues (
   'Chris Hani Road, Klipspruit, Soweto',
   'Klipspruit, Soweto',
   -26.2539, 27.8716,
-  'busy', 'Mon–Sat 8am – 6pm · Sun 9am – 4pm',
+  'closed', 'Mon–Sat 8am – 6pm · Sun 9am – 4pm',
   true, 'ZA',
   246, 67, 13, 45, 41,
   false, now() - interval '52 days'
@@ -264,7 +264,7 @@ INSERT INTO venues (
   'Orlando West, Soweto',
   'Orlando West, Soweto',
   -26.2516, 27.8527,
-  'open', 'Mon–Sat 7:30am – 5:30pm',
+  'closed', 'Mon–Sat 7:30am – 5:30pm',
   true, 'ZA',
   102, 27, 4, 14, 11,
   false, now() - interval '16 days'
@@ -280,7 +280,7 @@ INSERT INTO venues (
   'Dube, Soweto',
   'Dube, Soweto',
   -26.2471, 27.8574,
-  'open', 'Mon–Fri 7:30am – 5pm · Sat 8am – 12pm',
+  'closed', 'Mon–Fri 7:30am – 5pm · Sat 8am – 12pm',
   true, 'ZA',
   97, 33, 2, 9, 8,
   false, now() - interval '9 days'
@@ -296,7 +296,7 @@ INSERT INTO venues (
   'Orlando, Soweto',
   'Orlando, Soweto',
   -26.2463, 27.8589,
-  'open', 'Mon–Fri 5:30am – 9pm · Sat–Sun 7am – 5pm',
+  'closed', 'Mon–Fri 5:30am – 9pm · Sat–Sun 7am – 5pm',
   true, 'ZA',
   211, 69, 10, 37, 33,
   false, now() - interval '37 days'
@@ -312,7 +312,7 @@ INSERT INTO venues (
   'Bolani Road, Jabulani, Soweto',
   'Jabulani, Soweto',
   -26.2553, 27.8608,
-  'open', 'Tue–Sun 9am – 9pm',
+  'closed', 'Tue–Sun 9am – 9pm',
   true, 'ZA',
   158, 46, 3, 13, 11,
   true, now() - interval '66 days'

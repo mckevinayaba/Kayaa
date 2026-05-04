@@ -22,7 +22,7 @@ INSERT INTO venues (
   'Montecasino Boulevard, Fourways',
   'Fourways, Johannesburg',
   -26.0221, 28.0128,
-  'busy', 'Open daily 24 hours',
+  'closed', 'Open daily 24 hours',
   true, 'ZA',
   498, 120, 22, 85, 79,
   true, now() - interval '90 days'
@@ -38,7 +38,7 @@ INSERT INTO venues (
   'Montecasino, Montecasino Boulevard, Fourways',
   'Fourways, Johannesburg',
   -26.0218, 28.0132,
-  'busy', 'Mon–Sun 7am – 10pm',
+  'closed', 'Mon–Sun 7am – 10pm',
   true, 'ZA',
   443, 107, 18, 67, 62,
   true, now() - interval '71 days'
@@ -52,7 +52,7 @@ INSERT INTO venues (
   'Cranberry Street, Olivedale, Fourways',
   'Fourways, Johannesburg',
   -26.0192, 28.0111,
-  'open', 'Mon–Sun 12pm – 10pm',
+  'closed', 'Mon–Sun 12pm – 10pm',
   true, 'ZA',
   367, 92, 14, 54, 49,
   true, now() - interval '59 days'
@@ -66,7 +66,7 @@ INSERT INTO venues (
   'Fourways Mall, Witkoppen Road, Fourways',
   'Fourways, Johannesburg',
   -26.0171, 28.0149,
-  'busy', 'Mon–Sun 11am – 10pm',
+  'closed', 'Mon–Sun 11am – 10pm',
   true, 'ZA',
   389, 95, 16, 61, 57,
   true, now() - interval '78 days'
@@ -80,7 +80,7 @@ INSERT INTO venues (
   'Fourways Mall, Witkoppen Road, Fourways',
   'Fourways, Johannesburg',
   -26.0169, 28.0151,
-  'open', 'Mon–Sun 7am – 9pm',
+  'closed', 'Mon–Sun 7am – 9pm',
   true, 'ZA',
   314, 83, 12, 46, 41,
   true, now() - interval '66 days'
@@ -96,7 +96,7 @@ INSERT INTO venues (
   'Montecasino, Fourways',
   'Fourways, Johannesburg',
   -26.0224, 28.0121,
-  'open', 'Mon–Sun 11am – late',
+  'closed', 'Mon–Sun 11am – late',
   true, 'ZA',
   356, 98, 13, 50, 46,
   true, now() - interval '55 days'
@@ -112,7 +112,7 @@ INSERT INTO venues (
   'Fourways Mall, Witkoppen Road, Fourways',
   'Fourways, Johannesburg',
   -26.0173, 28.0147,
-  'open', 'Mon–Sun 8am – 8pm',
+  'closed', 'Mon–Sun 8am – 8pm',
   true, 'ZA',
   278, 71, 11, 42, 38,
   true, now() - interval '48 days'
@@ -128,7 +128,7 @@ INSERT INTO venues (
   'William Nicol Drive, Fourways',
   'Fourways, Johannesburg',
   -26.0198, 28.0105,
-  'open', 'Mon–Fri 5:30am – 10pm · Sat–Sun 7am – 6pm',
+  'closed', 'Mon–Fri 5:30am – 10pm · Sat–Sun 7am – 6pm',
   true, 'ZA',
   412, 118, 17, 65, 60,
   true, now() - interval '83 days'
@@ -144,7 +144,7 @@ INSERT INTO venues (
   'Witkoppen Road, Fourways',
   'Fourways, Johannesburg',
   -26.0181, 28.0162,
-  'open', 'Sunday services 7am · 9am · 11am · Wed evening 6:30pm',
+  'closed', 'Sunday services 7am · 9am · 11am · Wed evening 6:30pm',
   true, 'ZA',
   287, 114, 0, 6, 9,
   true, now() - interval '87 days'
@@ -160,7 +160,7 @@ INSERT INTO venues (
   'Cnr Uranium & Nickel Streets, Lonehill, Fourways',
   'Fourways, Johannesburg',
   -26.0163, 28.0178,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   189, 57, 8, 31, 27,
   false, now() - interval '27 days'
@@ -176,7 +176,7 @@ INSERT INTO venues (
   'Fourways, Johannesburg',
   'Fourways, Johannesburg',
   -26.0189, 28.0139,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   156, 48, 6, 23, 20,
   false, now() - interval '24 days'
@@ -192,7 +192,7 @@ INSERT INTO venues (
   'Witkoppen Road, Fourways',
   'Fourways, Johannesburg',
   -26.0177, 28.0155,
-  'open', 'Mon–Sat 7:30am – 5:30pm',
+  'closed', 'Mon–Sat 7:30am – 5:30pm',
   true, 'ZA',
   134, 42, 5, 20, 17,
   false, now() - interval '18 days'
@@ -208,7 +208,7 @@ INSERT INTO venues (
   'William Nicol Drive, Fourways',
   'Fourways, Johannesburg',
   -26.0204, 28.0098,
-  'open', 'Mon–Fri 7:30am – 5:30pm · Sat 8am – 1pm',
+  'closed', 'Mon–Fri 7:30am – 5:30pm · Sat 8am – 1pm',
   true, 'ZA',
   112, 38, 3, 12, 10,
   false, now() - interval '15 days'
@@ -224,7 +224,7 @@ INSERT INTO venues (
   'Lonehill, Fourways',
   'Fourways, Johannesburg',
   -26.0158, 28.0183,
-  'open', 'Mon–Sun 7am – 9pm',
+  'closed', 'Mon–Sun 7am – 9pm',
   true, 'ZA',
   143, 44, 7, 27, 24,
   false, now() - interval '12 days'
@@ -240,7 +240,7 @@ INSERT INTO venues (
   'Fourways, Johannesburg',
   'Fourways, Johannesburg',
   -26.0185, 28.0141,
-  'open', 'Mon–Fri 2pm – 7pm · Sat 8am – 1pm',
+  'closed', 'Mon–Fri 2pm – 7pm · Sat 8am – 1pm',
   true, 'ZA',
   97, 34, 4, 16, 13,
   false, now() - interval '7 days'

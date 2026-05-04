@@ -53,11 +53,12 @@ import { useCountry } from '../contexts/CountryContext';
 // ─────────────────────────────────────────────────────────────────────────────
 
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
-type ActivityFilter = 'All' | 'Open now' | 'Busy now' | 'Events today';
+type ActivityFilter = 'All' | 'Active today' | 'Events today';
 type SortMode = 'for_you' | 'active_now' | 'trending' | 'most_loved' | 'new_places';
 
 const LOCAL_THRESHOLD = 3; // min local venues before defaulting to nearby
-const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Open now', 'Busy now', 'Events today'];
+// 'Active today' = ≥3 check-ins today (community-verified, never hardcoded)
+const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Active today', 'Events today'];
 
 const SORT_MODES: { key: SortMode; label: string; tagline: string }[] = [
   { key: 'for_you',    label: '🎯 For You',    tagline: 'Places your neighbours actually rate' },
@@ -347,9 +348,9 @@ function getRecommendationReason(venue: Venue, userNeighbourhood: string): strin
   const isSameArea = (venue.neighborhood ?? '').toLowerCase() === (userNeighbourhood ?? '').toLowerCase();
 
   if (growth > 1.5 && venue.checkinsThisWeek >= 3) return '🔥 Trending in your area';
-  if (venue.checkinsToday > 10) return '⚡ Busy right now';
+  if (venue.checkinsToday >= 3) return '⚡ Active today';
   if (venue.regularsCount > 200) return '💛 Community favourite';
-  if (isSameArea && venue.venueStatus !== 'closed') return '📍 In your neighbourhood';
+  if (isSameArea) return '📍 In your neighbourhood';
   if (isNew) return '✨ New on Kayaa';
   if (isGem) return '💎 Hidden gem';
   return null;
@@ -393,8 +394,7 @@ function applySortMode(venues: Venue[], mode: SortMode, userNeighbourhood: strin
 
 function applyActivityFilter(venues: Venue[], filter: ActivityFilter, ids: Set<string>): Venue[] {
   switch (filter) {
-    case 'Open now':     return venues.filter(v => v.venueStatus !== 'closed');
-    case 'Busy now':     return venues.filter(v => v.venueStatus === 'busy');
+    case 'Active today': return venues.filter(v => (v.checkinsToday ?? 0) >= 3);
     case 'Events today': return venues.filter(v => ids.has(v.id));
     default:             return venues;
   }
@@ -735,93 +735,8 @@ const CAT_EMOJI_MAP: Record<string, string> = {
   Mechanic: '🔧', Gym: '💪', default: '📍',
 };
 
-function OpenNowSection({ venues }: { venues: Venue[] }) {
-  const navigate = useNavigate();
-  const open = venues.filter(v => v.venueStatus === 'open' || v.venueStatus === 'busy');
-  if (open.length === 0) return null;
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '8px', height: '8px', borderRadius: '50%',
-            background: '#39D98A',
-            boxShadow: '0 0 6px #39D98A',
-            animation: 'pulse 2s ease-in-out infinite',
-          }} />
-          <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: '15px', color: '#F0F6FC', margin: 0,
-          }}>
-            Open right now
-          </h2>
-        </div>
-        <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-          color: '#39D98A', fontWeight: 600,
-        }}>
-          {open.length} place{open.length !== 1 ? 's' : ''}
-        </span>
-      </div>
-
-      <div style={{
-        display: 'flex', gap: '10px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '4px',
-        WebkitOverflowScrolling: 'touch',
-      } as React.CSSProperties}>
-        {open.slice(0, 8).map(venue => {
-          const emoji = CAT_EMOJI_MAP[venue.category] ?? CAT_EMOJI_MAP.default;
-          const isBusy = venue.venueStatus === 'busy';
-          return (
-            <div
-              key={venue.id}
-              onClick={() => navigate(`/venue/${venue.slug}`)}
-              style={{
-                flexShrink: 0, width: '130px', cursor: 'pointer',
-                background: '#161B22',
-                border: isBusy ? '1px solid rgba(249,115,22,0.35)' : '1px solid rgba(57,217,138,0.2)',
-                borderRadius: '14px', padding: '12px 10px',
-              }}
-            >
-              <div style={{ fontSize: '24px', marginBottom: '8px', lineHeight: 1 }}>{emoji}</div>
-              <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
-                fontSize: '12px', color: '#F0F6FC',
-                marginBottom: '4px',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {venue.name}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <div style={{
-                  width: '5px', height: '5px', borderRadius: '50%',
-                  background: isBusy ? '#F97316' : '#39D98A', flexShrink: 0,
-                }} />
-                <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 600,
-                  color: isBusy ? '#F97316' : '#39D98A',
-                }}>
-                  {isBusy ? 'Busy now' : 'Open'}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(0.85); }
-        }
-      `}</style>
-    </div>
-  );
-}
+// OpenNowSection removed — hardcoded status is inaccurate and damages trust.
+// Community check-ins are the real signal. See "Active today" badge on VenueCard.
 
 // ─── New This Week section ────────────────────────────────────────────────────
 
@@ -1600,7 +1515,7 @@ export default function FeedPage() {
     [rawMostLoved, scope, suburb, city, userLat, userLon],
   );
 
-  const openCount = venues.filter(v => v.venueStatus === 'open' || v.venueStatus === 'busy').length;
+  const activeCount = venues.filter(v => (v.checkinsToday ?? 0) >= 3).length;
   let activityIdx = 0;
 
   // Expand note for rails when auto-expanded beyond selected scope
@@ -1787,7 +1702,7 @@ export default function FeedPage() {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <div style={{ background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span style={{ fontSize: '11px', color: '#39D98A' }}>🏪</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>{openCount} active</span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>{activeCount} active today</span>
             </div>
             {userPosts.length > 0 && (
               <div style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1850,9 +1765,6 @@ export default function FeedPage() {
         setSortMode(mode);
         localStorage.setItem('kayaa_feed_sort', mode);
       }} />
-
-      {/* Open right now — daily pull */}
-      <OpenNowSection venues={venues} />
 
       {/* New this week — places added in last 7 days */}
       {!loading && <NewThisWeekSection venues={venues} areaLabel={suburb || areaLabel} />}

@@ -33,14 +33,8 @@ function timeAgoShort(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function statusConfig(status: string): { dot: string; label: string; color: string } {
-  switch (status) {
-    case 'busy':   return { dot: '🔥', label: 'Busy now',  color: '#F97316' };
-    case 'quiet':  return { dot: '🌙', label: 'Quiet',     color: '#6B7280' };
-    case 'closed': return { dot: '⚫', label: 'Closed',    color: '#6B7280' };
-    default:       return { dot: '✓',  label: 'Open now',  color: '#39D98A' };
-  }
-}
+// Status config kept only for reference — no longer rendered on cards
+// Open/closed is community-verified through check-ins, not hardcoded
 
 function getHumanDetail(description: string): string {
   const sentence = description.split('.')[0];
@@ -60,8 +54,8 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
   const navigate = useNavigate();
   const emoji  = categoryEmoji[venue.category] ?? '📍';
   const color  = categoryColor[venue.category] ?? '#39D98A';
-  const status = statusConfig(venue.venueStatus ?? (venue.isOpen ? 'open' : 'closed'));
   const [shareOpen, setShareOpen] = useState(false);
+  const activeToday = (venue.checkinsToday ?? 0) >= 3;
 
   // Lazy-load: only fetch the cover image once the card scrolls into view
   const cardRef   = useRef<HTMLDivElement>(null);
@@ -137,18 +131,21 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             </div>
           )}
 
-          {/* Status badge overlay — top-left */}
-          <div style={{
-            position: 'absolute', top: '10px', left: '10px',
-            background: `${status.color}dd`, backdropFilter: 'blur(6px)',
-            borderRadius: '20px', padding: '4px 10px',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}>
-            <span style={{ fontSize: '12px' }}>{status.dot}</span>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
-              {status.label}
-            </span>
-          </div>
+          {/* "Active today" badge — community-verified, only shown when ≥3 check-ins today */}
+          {activeToday && (
+            <div style={{
+              position: 'absolute', top: '10px', left: '10px',
+              background: 'rgba(57,217,138,0.18)', backdropFilter: 'blur(6px)',
+              border: '1px solid rgba(57,217,138,0.4)',
+              borderRadius: '20px', padding: '4px 10px',
+              display: 'flex', alignItems: 'center', gap: '5px',
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', animation: 'headingPulse 2s ease-in-out infinite' }} />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
+                Active today
+              </span>
+            </div>
+          )}
 
           {/* Vibe badge — top-right */}
           {vibeWinner && (

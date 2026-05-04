@@ -22,7 +22,7 @@ INSERT INTO venues (
   '73 Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1958, 28.0451,
-  'open', 'Saturday 9am – 3pm',
+  'closed', 'Saturday 9am – 3pm',
   true, 'ZA',
   312, 87, 4, 18, 14,
   true, now() - interval '60 days'
@@ -38,7 +38,7 @@ INSERT INTO venues (
   'Neighbourgoods Square, Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1952, 28.0453,
-  'open', 'Mon–Fri 7am – 5pm · Sat 8am – 3pm',
+  'closed', 'Mon–Fri 7am – 5pm · Sat 8am – 3pm',
   true, 'ZA',
   189, 54, 6, 22, 19,
   false, now() - interval '45 days'
@@ -52,7 +52,7 @@ INSERT INTO venues (
   '48 Hoofd Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1935, 28.0462,
-  'open', 'Mon–Fri 7am – 4pm · Sat 8am – 2pm',
+  'closed', 'Mon–Fri 7am – 4pm · Sat 8am – 2pm',
   true, 'ZA',
   143, 41, 5, 17, 12,
   false, now() - interval '30 days'
@@ -66,7 +66,7 @@ INSERT INTO venues (
   'De Korte Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1942, 28.0455,
-  'open', 'Mon–Sat 8am – 5pm',
+  'closed', 'Mon–Sat 8am – 5pm',
   true, 'ZA',
   98, 29, 3, 11, 9,
   false, now() - interval '20 days'
@@ -82,7 +82,7 @@ INSERT INTO venues (
   'Corner De Beer & Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1945, 28.0447,
-  'open', 'Tue–Sun 12pm – late',
+  'closed', 'Tue–Sun 12pm – late',
   true, 'ZA',
   267, 73, 8, 31, 27,
   true, now() - interval '55 days'
@@ -96,7 +96,7 @@ INSERT INTO venues (
   '81 De Korte Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1948, 28.0439,
-  'open', 'Thu–Sun from 8pm',
+  'closed', 'Thu–Sun from 8pm',
   true, 'ZA',
   201, 68, 2, 9, 12,
   true, now() - interval '40 days'
@@ -110,7 +110,7 @@ INSERT INTO venues (
   'Goud Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1963, 28.0444,
-  'open', 'Fri–Sat from 9pm',
+  'closed', 'Fri–Sat from 9pm',
   true, 'ZA',
   178, 52, 0, 6, 8,
   false, now() - interval '35 days'
@@ -126,7 +126,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1953, 28.0458,
-  'busy', 'Mon–Sun 10am – 10pm',
+  'closed', 'Mon–Sun 10am – 10pm',
   true, 'ZA',
   224, 61, 12, 44, 38,
   false, now() - interval '25 days'
@@ -140,7 +140,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1956, 28.0460,
-  'open', 'Mon–Sun 11am – 10pm',
+  'closed', 'Mon–Sun 11am – 10pm',
   true, 'ZA',
   331, 89, 14, 51, 47,
   false, now() - interval '50 days'
@@ -156,7 +156,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1950, 28.0465,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   156, 48, 7, 28, 24,
   false, now() - interval '18 days'
@@ -170,7 +170,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1951, 28.0467,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   112, 34, 4, 16, 13,
   false, now() - interval '15 days'
@@ -186,7 +186,7 @@ INSERT INTO venues (
   '36 Gerard Sekoto Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1937, 28.0461,
-  'open', 'Open daily',
+  'closed', 'Open daily',
   true, 'ZA',
   134, 37, 3, 14, 11,
   true, now() - interval '42 days'
@@ -200,7 +200,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1940, 28.0452,
-  'open', 'Mon–Fri 9am – 6pm',
+  'closed', 'Mon–Fri 9am – 6pm',
   true, 'ZA',
   89, 27, 2, 9, 7,
   false, now() - interval '12 days'
@@ -216,7 +216,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1955, 28.0449,
-  'open', 'Mon–Sat 10am – 6pm',
+  'closed', 'Mon–Sat 10am – 6pm',
   true, 'ZA',
   96, 28, 2, 10, 8,
   false, now() - interval '22 days'
@@ -230,7 +230,7 @@ INSERT INTO venues (
   'Yale Road, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1928, 28.0453,
-  'open', 'Mon–Sat 7am – 9pm · Sun 8am – 6pm',
+  'closed', 'Mon–Sat 7am – 9pm · Sun 8am – 6pm',
   true, 'ZA',
   178, 52, 9, 34, 31,
   false, now() - interval '8 days'
@@ -246,7 +246,7 @@ INSERT INTO venues (
   'Juta Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1957, 28.0443,
-  'open', 'Mon–Sat 8am – 6pm',
+  'closed', 'Mon–Sat 8am – 6pm',
   true, 'ZA',
   87, 24, 3, 12, 10,
   false, now() - interval '10 days'
@@ -262,7 +262,7 @@ INSERT INTO venues (
   'Corner Smal & Wolf Street, Johannesburg CBD',
   'Braamfontein, Johannesburg',
   -26.2039, 28.0437,
-  'open', 'Sunday services 7am · 9am · 11am',
+  'closed', 'Sunday services 7am · 9am · 11am',
   true, 'ZA',
   145, 67, 0, 3, 5,
   true, now() - interval '70 days'
@@ -278,7 +278,7 @@ INSERT INTO venues (
   'De Korte Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1933, 28.0470,
-  'open', 'Mon–Fri 5:30am – 10pm · Sat–Sun 7am – 6pm',
+  'closed', 'Mon–Fri 5:30am – 10pm · Sat–Sun 7am – 6pm',
   true, 'ZA',
   203, 71, 11, 43, 39,
   false, now() - interval '28 days'
@@ -294,7 +294,7 @@ INSERT INTO venues (
   'Wits University Campus, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1927, 28.0304,
-  'open', 'Mon–Fri 8am – 5pm',
+  'closed', 'Mon–Fri 8am – 5pm',
   true, 'ZA',
   76, 22, 2, 8, 6,
   false, now() - interval '14 days'
@@ -310,7 +310,7 @@ INSERT INTO venues (
   'De Beer Street, Braamfontein',
   'Braamfontein, Johannesburg',
   -26.1944, 28.0441,
-  'open', 'Mon–Fri 7:30am – 5:30pm · Sat 8am – 1pm',
+  'closed', 'Mon–Fri 7:30am – 5:30pm · Sat 8am – 1pm',
   true, 'ZA',
   91, 31, 2, 8, 7,
   false, now() - interval '6 days'

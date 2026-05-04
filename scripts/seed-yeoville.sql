@@ -22,7 +22,7 @@ INSERT INTO venues (
   '31 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1842, 28.0661,
-  'busy', 'Mon–Sun 10am – 10pm',
+  'closed', 'Mon–Sun 10am – 10pm',
   true, 'ZA',
   287, 81, 11, 38, 33,
   true, now() - interval '75 days'
@@ -36,7 +36,7 @@ INSERT INTO venues (
   '18 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1847, 28.0655,
-  'open', 'Tue–Sun 11am – 9pm',
+  'closed', 'Tue–Sun 11am – 9pm',
   true, 'ZA',
   198, 57, 7, 24, 21,
   false, now() - interval '50 days'
@@ -50,7 +50,7 @@ INSERT INTO venues (
   '44 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1838, 28.0668,
-  'open', 'Mon–Sun 11am – 10pm',
+  'closed', 'Mon–Sun 11am – 10pm',
   true, 'ZA',
   174, 49, 5, 19, 17,
   false, now() - interval '38 days'
@@ -66,7 +66,7 @@ INSERT INTO venues (
   '7 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1851, 28.0648,
-  'open', 'Mon–Sun 11am – 1am',
+  'closed', 'Mon–Sun 11am – 1am',
   true, 'ZA',
   231, 64, 9, 33, 29,
   false, now() - interval '62 days'
@@ -80,7 +80,7 @@ INSERT INTO venues (
   '22 Rockey Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1844, 28.0672,
-  'open', 'Wed–Sun 3pm – 2am',
+  'closed', 'Wed–Sun 3pm – 2am',
   true, 'ZA',
   189, 53, 6, 27, 24,
   false, now() - interval '44 days'
@@ -96,7 +96,7 @@ INSERT INTO venues (
   'Raleigh Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1859, 28.0653,
-  'open', 'Fri–Sun 12pm – 10pm',
+  'closed', 'Fri–Sun 12pm – 10pm',
   true, 'ZA',
   143, 38, 4, 18, 15,
   false, now() - interval '28 days'
@@ -112,7 +112,7 @@ INSERT INTO venues (
   '11 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1849, 28.0659,
-  'open', 'Mon–Sat 8am – 7pm',
+  'closed', 'Mon–Sat 8am – 7pm',
   true, 'ZA',
   167, 47, 8, 29, 26,
   false, now() - interval '19 days'
@@ -126,7 +126,7 @@ INSERT INTO venues (
   'Cavendish Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1856, 28.0641,
-  'open', 'Tue–Sun 9am – 6pm',
+  'closed', 'Tue–Sun 9am – 6pm',
   true, 'ZA',
   118, 36, 5, 20, 17,
   false, now() - interval '14 days'
@@ -142,7 +142,7 @@ INSERT INTO venues (
   'Raleigh Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1861, 28.0649,
-  'open', 'Mon–Sat 8am – 8pm',
+  'closed', 'Mon–Sat 8am – 8pm',
   true, 'ZA',
   134, 41, 6, 23, 20,
   false, now() - interval '22 days'
@@ -158,7 +158,7 @@ INSERT INTO venues (
   'Corner Rockey & Fortesque Streets, Yeoville',
   'Yeoville, Johannesburg',
   -26.1853, 28.0663,
-  'open', 'Mon–Sun 6am – 11pm',
+  'closed', 'Mon–Sun 6am – 11pm',
   true, 'ZA',
   201, 58, 13, 44, 40,
   false, now() - interval '55 days'
@@ -172,7 +172,7 @@ INSERT INTO venues (
   'Cavendish Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1858, 28.0644,
-  'open', 'Mon–Sun 7am – 10pm',
+  'closed', 'Mon–Sun 7am – 10pm',
   true, 'ZA',
   156, 45, 10, 35, 31,
   false, now() - interval '33 days'
@@ -188,7 +188,7 @@ INSERT INTO venues (
   'Raleigh Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1863, 28.0651,
-  'open', 'Mon–Sat 8am – 5pm',
+  'closed', 'Mon–Sat 8am – 5pm',
   true, 'ZA',
   88, 22, 3, 12, 10,
   false, now() - interval '11 days'
@@ -204,7 +204,7 @@ INSERT INTO venues (
   'Hunter Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1833, 28.0658,
-  'open', 'Sunday Mass 8am · 10am · 6pm',
+  'closed', 'Sunday Mass 8am · 10am · 6pm',
   true, 'ZA',
   112, 54, 0, 4, 5,
   true, now() - interval '80 days'
@@ -220,7 +220,7 @@ INSERT INTO venues (
   'Rockey Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1845, 28.0657,
-  'open', 'Mon–Fri 9am – 5pm · Sat 9am – 1pm',
+  'closed', 'Mon–Fri 9am – 5pm · Sat 9am – 1pm',
   true, 'ZA',
   96, 31, 2, 9, 7,
   false, now() - interval '40 days'
@@ -236,7 +236,7 @@ INSERT INTO venues (
   '9 Rocky Street, Yeoville',
   'Yeoville, Johannesburg',
   -26.1850, 28.0650,
-  'open', 'Fri–Sat from 8pm',
+  'closed', 'Fri–Sat from 8pm',
   true, 'ZA',
   122, 40, 0, 7, 9,
   false, now() - interval '17 days'
