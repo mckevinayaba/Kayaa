@@ -228,10 +228,27 @@ export default function WelcomePage() {
       padding: '0 24px',
     }}>
 
+      {/* Back to landing */}
+      <div style={{ paddingTop: '20px' }}>
+        <Link
+          to="/about"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+        >
+          ← Back to home
+        </Link>
+      </div>
+
       {/* Top — logo + headline */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        paddingTop: '72px', paddingBottom: '48px', textAlign: 'center',
+        paddingTop: '48px', paddingBottom: '48px', textAlign: 'center',
       }}>
         {/* Wordmark */}
         <div style={{
