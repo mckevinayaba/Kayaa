@@ -45,16 +45,15 @@ import VenueEvents           from './pages/VenueEvents';
 import WaitlistPage          from './pages/WaitlistPage';
 
 // ── Root: authenticated → feed/setup, anonymous → welcome (product front door) ─
-// CLAUDE.md: "The first screen a user sees must be a working product interface.
-// No investor hero sections, no narrative blocks."
-// LandingPage is at /about for those who want to read about Kayaa first.
+// CLAUDE.md: "The first screen a user sees must be a working product interface."
+// kayaa.co.za IS the product. /welcome is sign-in/sign-up.
+// /about and /waitlist remain accessible but are NOT in the product flow.
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) {
     const setupDone = localStorage.getItem('kayaa_setup_done');
     if (setupDone) return <Navigate to="/feed" replace />;
-    // Returning users who have existing location data are already "set up"
     const hasLocation = !!(
       localStorage.getItem('kayaa_suburb') ||
       localStorage.getItem('kayaa_city') ||
@@ -66,8 +65,8 @@ function RootRoute() {
     }
     return <Navigate to="/setup" replace />;
   }
-  // Unauthenticated → Landing page is the front door
-  return <Navigate to="/about" replace />;
+  // Unauthenticated → sign in / sign up (the product front door)
+  return <Navigate to="/welcome" replace />;
 }
 
 // ── Post-auth guard: redirects unauthenticated → /waitlist, new users → /setup ─
@@ -79,7 +78,7 @@ function FeedGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate('/waitlist', { replace: true });
+      navigate('/welcome', { replace: true });
       return;
     }
     const setupDone = localStorage.getItem('kayaa_setup_done');

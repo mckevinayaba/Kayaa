@@ -117,7 +117,7 @@ export default function WaitlistPage() {
             textDecoration: 'none',
           }}
         >
-          Already have access? Sign in →
+          Sign in →
         </Link>
       </header>
 
@@ -178,7 +178,7 @@ export default function WaitlistPage() {
                   color: 'rgba(255,255,255,0.35)', textDecoration: 'none',
                 }}
               >
-                Sign in to explore Kayaa now →
+                Sign in to kayaa →
               </Link>
             </div>
 
