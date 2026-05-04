@@ -529,8 +529,15 @@ function EmptyState({ neighbourhood, onCompose, onAddPlace }: {
   onCompose: () => void;
   onAddPlace: () => void;
 }) {
+  function handleWhatsApp() {
+    const msg = encodeURIComponent(
+      `Hey! I'm building the neighbourhood feed for ${neighbourhood} on Kayaa — the app for places that matter locally. Come add places and posts 👉 https://kayaa.co.za`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
   function handleShare() {
-    const url = window.location.href;
+    const url = 'https://kayaa.co.za';
     const text = `Come join ${neighbourhood} on kayaa — the neighbourhood app for places that matter.`;
     if (navigator.share) {
       navigator.share({ title: `${neighbourhood} on kayaa`, text, url }).catch(() => {});
@@ -566,25 +573,39 @@ function EmptyState({ neighbourhood, onCompose, onAddPlace }: {
         }}>
           No places listed here yet.{'\n'}Be the first to put {neighbourhood} on the map.
         </p>
-        <button
-          onClick={handleShare}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: '#39D98A', color: '#0D1117',
-            border: 'none', borderRadius: '10px',
-            padding: '10px 20px', cursor: 'pointer',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-          }}
-        >
-          📲 Tell people about {neighbourhood}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleShare}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: '#39D98A', color: '#0D1117',
+              border: 'none', borderRadius: '10px',
+              padding: '10px 20px', cursor: 'pointer',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            }}
+          >
+            📲 Tell people about {neighbourhood}
+          </button>
+          <button
+            onClick={handleWhatsApp}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(37,211,102,0.12)', color: '#25D366',
+              border: '1px solid rgba(37,211,102,0.3)', borderRadius: '10px',
+              padding: '10px 16px', cursor: 'pointer',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            }}
+          >
+            WhatsApp neighbours →
+          </button>
+        </div>
       </div>
 
       {/* Action cards */}
       <p style={{
         fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
         color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
-        letterSpacing: '0.1em', margin: '0 0 10px 2px',
+        letterSpacing: '0.1em', margin: '16px 0 10px 2px',
       }}>
         What you can do right now
       </p>
@@ -796,6 +817,170 @@ function OpenNowSection({ venues }: { venues: Venue[] }) {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(0.85); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── New This Week section ────────────────────────────────────────────────────
+
+function NewThisWeekSection({ venues, areaLabel }: { venues: Venue[]; areaLabel: string }) {
+  const navigate = useNavigate();
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const newVenues = venues
+    .filter(v => new Date(v.createdAt).getTime() > sevenDaysAgo)
+    .slice(0, 8);
+
+  if (newVenues.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: 0 }}>
+          Just added in {areaLabel}
+        </h2>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          this week
+        </span>
+      </div>
+      <div style={{
+        display: 'flex', gap: '10px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        paddingBottom: '4px', WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        {newVenues.map(venue => {
+          const emoji = CAT_EMOJI_MAP[venue.category] ?? CAT_EMOJI_MAP.default;
+          return (
+            <div
+              key={venue.id}
+              onClick={() => navigate(`/venue/${venue.slug}`)}
+              style={{
+                flexShrink: 0, width: '140px', cursor: 'pointer',
+                background: '#161B22',
+                border: '1px solid rgba(57,217,138,0.25)',
+                borderRadius: '14px', padding: '12px 10px',
+                position: 'relative',
+              }}
+            >
+              {/* NEW badge */}
+              <div style={{
+                position: 'absolute', top: '8px', right: '8px',
+                background: '#39D98A', color: '#0D1117',
+                fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                fontSize: '9px', letterSpacing: '0.08em',
+                padding: '2px 6px', borderRadius: '20px',
+              }}>
+                NEW
+              </div>
+              <div style={{ fontSize: '24px', marginBottom: '8px', lineHeight: 1 }}>{emoji}</div>
+              <div style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontSize: '12px', color: '#F0F6FC', marginBottom: '3px',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                paddingRight: '8px',
+              }}>
+                {venue.name}
+              </div>
+              <div style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+                color: 'rgba(255,255,255,0.4)',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {venue.category}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── New place in-app banner ──────────────────────────────────────────────────
+
+function NewPlaceBanner({ venues, areaLabel }: { venues: Venue[]; areaLabel: string }) {
+  const navigate = useNavigate();
+  const [dismissed, setDismissed] = useState(false);
+  const [shown, setShown] = useState<Venue | null>(null);
+
+  useEffect(() => {
+    if (venues.length === 0 || dismissed) return;
+    const dismissKey = 'kayaa_new_place_banner_seen';
+    const lastSeen = localStorage.getItem(dismissKey);
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+
+    // Find the most recently added venue (within last 24h)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const brand_new = venues
+      .filter(v => new Date(v.createdAt).getTime() > oneDayAgo)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+    if (!brand_new) return;
+    // Don't show same banner more than once per hour
+    if (lastSeen && parseInt(lastSeen) > oneHourAgo) return;
+
+    // Show after a short delay so feed loads first
+    const t = setTimeout(() => {
+      setShown(brand_new);
+      localStorage.setItem(dismissKey, String(Date.now()));
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [venues, dismissed]);
+
+  if (!shown || dismissed) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed', bottom: '72px', left: '12px', right: '12px',
+        zIndex: 60,
+        background: '#161B22',
+        border: '1px solid rgba(57,217,138,0.35)',
+        borderRadius: '14px', padding: '12px 14px',
+        display: 'flex', alignItems: 'center', gap: '12px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+        animation: 'slideUp 0.3s ease',
+      }}
+    >
+      <div style={{
+        width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+        background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.25)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+      }}>
+        {CAT_EMOJI_MAP[shown.category] ?? '📍'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', fontWeight: 700, marginBottom: '1px' }}>
+          New place in {areaLabel}
+        </div>
+        <div
+          style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#F0F6FC', cursor: 'pointer',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}
+          onClick={() => { navigate(`/venue/${shown.slug}`); setDismissed(true); }}
+        >
+          {shown.name} →
+        </div>
+      </div>
+      <button
+        onClick={() => setDismissed(true)}
+        style={{
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          color: 'rgba(255,255,255,0.3)', fontSize: '18px', lineHeight: 1,
+          padding: '0', flexShrink: 0,
+        }}
+      >
+        ×
+      </button>
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
         }
       `}</style>
     </div>
@@ -1669,6 +1854,9 @@ export default function FeedPage() {
       {/* Open right now — daily pull */}
       <OpenNowSection venues={venues} />
 
+      {/* New this week — places added in last 7 days */}
+      {!loading && <NewThisWeekSection venues={venues} areaLabel={suburb || areaLabel} />}
+
       {/* Trending this week — scope-filtered */}
       {trendingResult.expanded && trendingResult.venues.length > 0 && (
         <ScopeNote>{expandNote(trendingResult as RailResult<Venue>)}</ScopeNote>
@@ -1944,6 +2132,9 @@ export default function FeedPage() {
       {/* Jobs teaser removed — Jobs lives under Board categories */}
 
       <InstallBanner />
+
+      {/* In-app banner: new place just joined neighbourhood */}
+      {!loading && <NewPlaceBanner venues={venues} areaLabel={suburb || areaLabel} />}
 
       {/* Neighbourhood gate — first run or manual area change */}
       {showAreaGate && (
