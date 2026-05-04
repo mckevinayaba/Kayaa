@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { getUserCheckInHistoryLocal, getVisitorId, calcBadgeTier } from '../lib/api';
 import { getLocalProfile } from './EditProfile';
+import { useAuth } from '../contexts/AuthContext';
 import { AchievementBadges }  from '../components/profile/AchievementBadges';
 import { MyCheckIns }         from '../components/profile/MyCheckIns';
 import { MyRegulars }         from '../components/profile/MyRegulars';
@@ -42,6 +43,7 @@ function shareKayaa() {
 
 export default function ProfilePage() {
   const navigate   = useNavigate();
+  const { user, signOut } = useAuth();
   const visitorId  = getVisitorId();
   const history    = useMemo(() => getUserCheckInHistoryLocal(visitorId), [visitorId]);
   const [tab, setTab] = useState<Tab>('checkins');
@@ -302,24 +304,39 @@ export default function ProfilePage() {
             }}
           />
 
-          {/* Sign out (clears localStorage — anonymous only) */}
-          <button
-            onClick={() => {
-              if (!confirm('Clear your local check-in history? This cannot be undone.')) return;
-              localStorage.clear();
-              window.location.href = '/feed';
-            }}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              padding: '14px', borderRadius: '14px',
-              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
-              color: '#EF4444', cursor: 'pointer',
-            }}
-          >
-            <LogOut size={16} />
-            Clear local data
-          </button>
+          {/* Sign out */}
+          {user ? (
+            <button
+              onClick={async () => {
+                await signOut();
+                localStorage.removeItem('kayaa_setup_done');
+                window.location.href = '/welcome';
+              }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: '14px', borderRadius: '14px',
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+                color: '#EF4444', cursor: 'pointer',
+              }}
+            >
+              <LogOut size={16} />
+              Sign out
+            </button>
+          ) : (
+            <button
+              onClick={() => { window.location.href = '/welcome'; }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: '14px', borderRadius: '14px',
+                background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+                color: '#39D98A', cursor: 'pointer',
+              }}
+            >
+              Sign in
+            </button>
+          )}
         </div>
       </div>
     </div>
