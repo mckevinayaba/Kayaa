@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom"; // still used by the logo
-import { openWaitlist } from "../../lib/waitlist-store";
+import { Link } from "react-router-dom";
 
 export function Nav() {
   return (
@@ -63,9 +62,8 @@ export function Nav() {
 
       {/* Right buttons */}
       <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-        <button
-          type="button"
-          onClick={() => openWaitlist()}
+        <Link
+          to="/welcome"
           className="kayaa-nav-nominate"
           style={{
             background: "transparent",
@@ -73,24 +71,24 @@ export function Nav() {
             color: "rgba(255,255,255,0.65)",
             fontFamily: "var(--font-body)", fontWeight: 500, fontSize: "13px",
             padding: "8px 18px", borderRadius: "999px",
-            cursor: "pointer", transition: "all 0.2s",
+            textDecoration: "none", transition: "all 0.2s",
           }}
         >
-          Nominate a place
-        </button>
-        <button
-          type="button"
-          onClick={() => openWaitlist()}
+          Sign in
+        </Link>
+        <Link
+          to="/welcome"
           className="kayaa-nav-join"
           style={{
-            background: "var(--green)", color: "#0D1117",
+            background: "#39D98A", color: "#0D1117",
             fontFamily: "var(--font-body)", fontWeight: 700, fontSize: "13px",
             padding: "9px 20px", borderRadius: "999px",
-            border: "none", cursor: "pointer", transition: "all 0.2s",
+            textDecoration: "none", transition: "all 0.2s",
+            display: "inline-block",
           }}
         >
-          Join the waitlist →
-        </button>
+          Get started →
+        </Link>
       </div>
     </nav>
   );

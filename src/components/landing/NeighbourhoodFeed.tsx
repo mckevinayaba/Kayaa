@@ -1,5 +1,3 @@
-import { openWaitlist } from "../../lib/waitlist-store";
-
 const FEED_CARDS = [
   {
     name: "Bhuti's Barber",
@@ -177,26 +175,26 @@ export function NeighbourhoodFeed() {
       </div>
 
       <div style={{ textAlign: "center", marginTop: 48, position: "relative" }}>
-        <button
-          type="button"
-          onClick={() => openWaitlist()}
+        <a
+          href="/welcome"
           style={{
+            display: "inline-block",
             background: "transparent",
             border: "1px solid rgba(57,217,138,0.4)",
             color: "var(--green)",
             fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 14,
-            padding: "14px 32px", borderRadius: 10, cursor: "pointer",
-            transition: "all 0.2s",
+            padding: "14px 32px", borderRadius: 10,
+            textDecoration: "none", transition: "all 0.2s",
           }}
           onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = "rgba(57,217,138,0.08)";
+            (e.currentTarget as HTMLAnchorElement).style.background = "rgba(57,217,138,0.08)";
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+            (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
           }}
         >
-          Nominate the first place on your street →
-        </button>
+          Add the first place on your street →
+        </a>
       </div>
     </section>
   );

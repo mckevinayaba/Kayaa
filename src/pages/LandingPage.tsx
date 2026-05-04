@@ -12,7 +12,6 @@ import { NeighbourhoodListener } from "../components/landing/NeighbourhoodListen
 import { WhatKayaaIs } from "../components/landing/WhatKayaaIs";
 import { CityWaitlist } from "../components/landing/CityWaitlist";
 import { Footer } from "../components/landing/Footer";
-import { WaitlistModal } from "../components/landing/WaitlistModal";
 import { StickyMobileCTA } from "../components/landing/StickyMobileCTA";
 
 export default function LandingPage() {
@@ -32,7 +31,6 @@ export default function LandingPage() {
       <WhatKayaaIs />
       <CityWaitlist />
       <Footer />
-      <WaitlistModal />
       <StickyMobileCTA />
     </div>
   );

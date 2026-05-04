@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { openWaitlist } from "../../lib/waitlist-store";
 
 // ── Shared text styles ────────────────────────────────────────────────────────
 const LABEL: React.CSSProperties = {
@@ -515,21 +514,21 @@ export function WhatKayaaIs() {
           </p>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 32 }}>
-            <button
-              type="button"
-              onClick={() => openWaitlist()}
+            <a
+              href="/welcome"
               style={{
+                display: "inline-block",
                 background: "#39D98A", color: "#0D1117",
                 fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14,
                 padding: "12px 28px", borderRadius: "999px",
-                border: "none", cursor: "pointer", transition: "filter 0.2s",
+                textDecoration: "none", transition: "filter 0.2s",
                 whiteSpace: "nowrap",
               }}
-              onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.1)")}
-              onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.filter = "brightness(1.1)")}
+              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.filter = "none")}
             >
-              Join the neighbourhood waitlist →
-            </button>
+              Get started free →
+            </a>
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}

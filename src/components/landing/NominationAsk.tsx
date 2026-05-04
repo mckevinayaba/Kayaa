@@ -1,5 +1,3 @@
-import { openWaitlist } from "../../lib/waitlist-store";
-
 export function NominationAsk() {
   return (
     <section
@@ -45,13 +43,12 @@ export function NominationAsk() {
           color: "rgba(255,255,255,0.5)", lineHeight: 1.65,
           margin: "0 0 36px",
         }}>
-          One minute. No account needed. Just one place that deserves to be seen.
+          Sign up and add a place in under a minute. No paperwork, no fees.
         </p>
 
         <div className="reveal" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => openWaitlist(2)}
+          <a
+            href="/welcome"
             className="na-primary"
             style={{
               background: "var(--green)", color: "#0D1117",
@@ -59,13 +56,13 @@ export function NominationAsk() {
               padding: "16px 36px", borderRadius: 10, border: "none",
               cursor: "pointer", transition: "all 0.2s",
               boxShadow: "0 0 50px rgba(57,217,138,0.2)",
+              textDecoration: "none", display: "inline-block",
             }}
           >
-            Nominate a place →
-          </button>
-          <button
-            type="button"
-            onClick={() => openWaitlist(1)}
+            Add a place →
+          </a>
+          <a
+            href="/welcome"
             className="na-secondary"
             style={{
               background: "transparent",
@@ -74,10 +71,11 @@ export function NominationAsk() {
               fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 16,
               padding: "16px 36px", borderRadius: 10,
               cursor: "pointer", transition: "all 0.2s",
+              textDecoration: "none", display: "inline-block",
             }}
           >
-            Join the neighbourhood waitlist
-          </button>
+            Sign up free
+          </a>
         </div>
       </div>
     </section>

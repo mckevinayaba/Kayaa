@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { openWaitlist } from "../../lib/waitlist-store";
 
 type Slide = {
   photo: string;
@@ -93,25 +92,25 @@ export function HeroCarousel() {
             className="kayaa-hero-cta-row"
             style={{ display: "flex", gap: 12, marginTop: 36, flexWrap: "wrap" }}
           >
-            <button
-              type="button"
-              onClick={() => openWaitlist()}
+            <a
+              href="/welcome"
               className="kayaa-hero-nominate"
               style={{
+                display: "inline-block",
                 background: "#39D98A", color: "#0D1117",
                 fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 16,
                 padding: "15px 30px", borderRadius: 999,
-                border: "none", cursor: "pointer", transition: "all 0.2s",
+                textDecoration: "none", transition: "all 0.2s",
                 boxShadow: "0 0 40px rgba(57,217,138,0.3)",
               }}
             >
-              Nominate a place
-            </button>
-            <button
-              type="button"
-              onClick={() => openWaitlist()}
+              Get started free
+            </a>
+            <a
+              href="/welcome"
               className="kayaa-hero-waitlist"
               style={{
+                display: "inline-block",
                 background: "rgba(13,17,23,0.6)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
@@ -119,11 +118,11 @@ export function HeroCarousel() {
                 fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 16,
                 padding: "15px 30px", borderRadius: 999,
                 border: "1px solid rgba(255,255,255,0.3)",
-                cursor: "pointer", transition: "all 0.2s",
+                textDecoration: "none", transition: "all 0.2s",
               }}
             >
-              Join the neighbourhood waitlist
-            </button>
+              Sign in
+            </a>
           </div>
 
           {/* Share row */}

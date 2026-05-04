@@ -42,12 +42,9 @@ import VenueAnalytics        from './pages/VenueAnalytics';
 import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
-import WaitlistPage          from './pages/WaitlistPage';
 
 // ── Root: authenticated → feed/setup, anonymous → welcome (product front door) ─
-// CLAUDE.md: "The first screen a user sees must be a working product interface."
-// kayaa.co.za IS the product. /welcome is sign-in/sign-up.
-// /about and /waitlist remain accessible but are NOT in the product flow.
+// kayaa.co.za IS the product. /welcome is sign-in/sign-up. No waitlist.
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -69,7 +66,7 @@ function RootRoute() {
   return <Navigate to="/welcome" replace />;
 }
 
-// ── Post-auth guard: redirects unauthenticated → /waitlist, new users → /setup ─
+// ── Post-auth guard: redirects unauthenticated → /welcome, new users → /setup ─
 // Handles the case where Google OAuth or magic link drops a new user straight on /feed.
 function FeedGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -109,7 +106,8 @@ export default function App() {
 
           {/* ── Standalone pages — own layout, no AppLayout/AuthLayout chrome ── */}
           <Route path="/about"    element={<LandingPage />} />
-          <Route path="/waitlist" element={<WaitlistPage />} />
+          {/* /waitlist no longer exists — redirect to the product */}
+          <Route path="/waitlist" element={<Navigate to="/welcome" replace />} />
 
           {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
           <Route element={<AuthLayout />}>

@@ -1,5 +1,3 @@
-import { openWaitlist } from "../../lib/waitlist-store";
-
 const STEPS = [
   {
     n: "01",
@@ -109,27 +107,27 @@ export function NeighbourhoodListener() {
         </div>
 
         <div className="reveal" style={{ textAlign: "center" }}>
-          <button
-            type="button"
-            onClick={() => openWaitlist()}
+          <a
+            href="/welcome"
             style={{
+              display: "inline-block",
               background: "var(--green)", color: "#0D1117",
               fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 16,
-              padding: "16px 36px", borderRadius: 10, border: "none",
-              cursor: "pointer", transition: "all 0.2s",
+              padding: "16px 36px", borderRadius: 10,
+              textDecoration: "none", transition: "all 0.2s",
               boxShadow: "0 0 50px rgba(57,217,138,0.2)",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.12)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.filter = "brightness(1.12)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.filter = "none"; }}
           >
-            Nominate a place →
-          </button>
+            Add a place →
+          </a>
           <p style={{
             fontFamily: "var(--font-mono)", fontSize: 11,
             color: "rgba(255,255,255,0.3)", letterSpacing: "0.16em",
             marginTop: 14,
           }}>
-            ONE MINUTE · NO ACCOUNT · JUST YOUR NOMINATION
+            FREE TO JOIN · NO CARD NEEDED · JUST YOUR NEIGHBOURHOOD
           </p>
         </div>
       </div>

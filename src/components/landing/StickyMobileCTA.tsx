@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { openWaitlist } from "../../lib/waitlist-store";
 
 export function StickyMobileCTA() {
   const [visible, setVisible] = useState(false);
@@ -36,11 +35,11 @@ export function StickyMobileCTA() {
       `}</style>
 
       <div className={`kayaa-sticky-cta${visible ? " visible" : ""}`}>
-        <button
-          type="button"
-          onClick={() => openWaitlist()}
+        <a
+          href="/welcome"
           className="kayaa-sticky-btn"
           style={{
+            display: "block",
             width: "100%",
             background: "#39D98A",
             color: "#0D1117",
@@ -53,10 +52,13 @@ export function StickyMobileCTA() {
             cursor: "pointer",
             transition: "filter 0.2s",
             boxShadow: "0 0 40px rgba(57,217,138,0.25)",
+            textDecoration: "none",
+            textAlign: "center",
+            boxSizing: "border-box",
           }}
         >
-          Join the waitlist →
-        </button>
+          Get started →
+        </a>
       </div>
     </>
   );
