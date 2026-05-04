@@ -524,38 +524,114 @@ function ScopeNote({ children }: { children: React.ReactNode }) {
 
 // ─── Empty states ─────────────────────────────────────────────────────────────
 
-function EmptyState({ onCompose, onCheckin, onAddPlace }: {
+function EmptyState({ neighbourhood, onCompose, onAddPlace }: {
+  neighbourhood: string;
   onCompose: () => void;
-  onCheckin: () => void;
   onAddPlace: () => void;
 }) {
+  function handleShare() {
+    const url = window.location.href;
+    const text = `Come join ${neighbourhood} on kayaa — the neighbourhood app for places that matter.`;
+    if (navigator.share) {
+      navigator.share({ title: `${neighbourhood} on kayaa`, text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+        alert('Link copied — share it with your neighbours!');
+      });
+    }
+  }
+
   return (
-    <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-      <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
-        Your neighbourhood is quiet right now.
-      </h3>
-      <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '28px', lineHeight: 1.5 }}>
-        Be the first to share something.
+    <div style={{ padding: '8px 0 32px' }}>
+      {/* Neighbourhood identity block */}
+      <div style={{
+        background: 'rgba(57,217,138,0.04)',
+        border: '1px solid rgba(57,217,138,0.12)',
+        borderRadius: '16px',
+        padding: '24px 20px',
+        marginBottom: '16px',
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>📍</div>
+        <h3 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontSize: '22px', color: '#F0F6FC',
+          margin: '0 0 6px', lineHeight: 1.2,
+        }}>
+          {neighbourhood}
+        </h3>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.4)', margin: '0 0 16px', lineHeight: 1.5,
+        }}>
+          No places listed here yet.{'\n'}Be the first to put {neighbourhood} on the map.
+        </p>
+        <button
+          onClick={handleShare}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            background: '#39D98A', color: '#0D1117',
+            border: 'none', borderRadius: '10px',
+            padding: '10px 20px', cursor: 'pointer',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+          }}
+        >
+          📲 Tell people about {neighbourhood}
+        </button>
+      </div>
+
+      {/* Action cards */}
+      <p style={{
+        fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
+        letterSpacing: '0.1em', margin: '0 0 10px 2px',
+      }}>
+        What you can do right now
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {[
-          { emoji: '📝', label: 'Share something you know', action: onCompose },
-          { emoji: '📍', label: 'Check in somewhere nearby', action: onCheckin },
-          { emoji: '➕', label: 'Add a place to kayaa', action: onAddPlace },
-        ].map(({ emoji, label, action }) => (
+          {
+            emoji: '➕',
+            title: 'Add a place',
+            sub: 'The barber, spaza, salon — any place that matters here',
+            action: onAddPlace,
+            accent: '#39D98A',
+          },
+          {
+            emoji: '📝',
+            title: 'Post something',
+            sub: 'Share what you know about this neighbourhood',
+            action: onCompose,
+            accent: '#60A5FA',
+          },
+        ].map(({ emoji, title, sub, action, accent }) => (
           <button
-            key={label}
+            key={title}
             onClick={action}
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
-              background: '#161B22', border: '1px solid #21262D',
+              background: '#161B22', border: `1px solid rgba(255,255,255,0.07)`,
               borderRadius: '14px', padding: '14px 16px', cursor: 'pointer',
               textAlign: 'left', width: '100%',
             }}
           >
-            <span style={{ fontSize: '24px' }}>{emoji}</span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#F0F6FC', fontWeight: 500 }}>{label}</span>
-            <span style={{ marginLeft: 'auto', color: '#39D98A', fontSize: '16px' }}>→</span>
+            <div style={{
+              width: '42px', height: '42px', borderRadius: '12px', flexShrink: 0,
+              background: `${accent}12`, border: `1px solid ${accent}25`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '20px',
+            }}>
+              {emoji}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
+                {title}
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+                {sub}
+              </div>
+            </div>
+            <span style={{ color: accent, fontSize: '16px', flexShrink: 0 }}>→</span>
           </button>
         ))}
       </div>
@@ -563,40 +639,165 @@ function EmptyState({ onCompose, onCheckin, onAddPlace }: {
   );
 }
 
-function LocalEmptyState({ scope, areaLabel, onExpand }: {
+function LocalEmptyState({ scope, areaLabel, onExpand, onAddPlace }: {
   scope: FeedScope;
   areaLabel: string;
   onExpand: (s: FeedScope) => void;
+  onAddPlace: () => void;
 }) {
   const nextScope: FeedScope = scope === 'this_neighbourhood' ? 'nearby'
     : scope === 'nearby' ? 'city_wide' : 'explore_all';
-
   const nextLabel = SCOPE_LABELS[nextScope];
 
   return (
-    <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-      <div style={{ fontSize: '36px', marginBottom: '12px' }}>📍</div>
-      <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '8px' }}>
-        {scope === 'this_neighbourhood' ? 'No places in your neighbourhood yet' : 'No places found in this area'}
-      </h3>
-      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5, marginBottom: '20px' }}>
-        {scope === 'this_neighbourhood'
-          ? `No places are registered near ${areaLabel} yet.`
-          : `Nothing found at this scope for ${areaLabel}.`}
-      </p>
-      {scope !== 'explore_all' && (
-        <button
-          onClick={() => onExpand(nextScope)}
-          style={{
-            background: 'rgba(57,217,138,0.1)', color: '#39D98A',
-            border: '1px solid rgba(57,217,138,0.25)', borderRadius: '12px',
-            padding: '10px 22px', fontFamily: 'DM Sans, sans-serif',
-            fontWeight: 600, fontSize: '13px', cursor: 'pointer',
-          }}
-        >
-          Show {nextLabel} →
-        </button>
-      )}
+    <div style={{ padding: '8px 0 24px' }}>
+      {/* Neighbourhood name — always visible */}
+      <div style={{
+        background: 'rgba(57,217,138,0.04)',
+        border: '1px solid rgba(57,217,138,0.12)',
+        borderRadius: '16px', padding: '20px',
+        marginBottom: '12px', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '28px', marginBottom: '10px' }}>📍</div>
+        <h3 style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontSize: '20px', color: '#F0F6FC', margin: '0 0 6px',
+        }}>
+          {areaLabel}
+        </h3>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.4)', margin: '0 0 14px', lineHeight: 1.5,
+        }}>
+          {scope === 'this_neighbourhood'
+            ? 'No places added here yet. You could be the first.'
+            : 'Nothing found at this range yet.'}
+        </p>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={onAddPlace}
+            style={{
+              background: '#39D98A', color: '#0D1117',
+              border: 'none', borderRadius: '10px',
+              padding: '9px 18px', cursor: 'pointer',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            }}
+          >
+            Add a place →
+          </button>
+          {scope !== 'explore_all' && (
+            <button
+              onClick={() => onExpand(nextScope)}
+              style={{
+                background: 'transparent', color: 'rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px',
+                padding: '9px 18px', cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '13px',
+              }}
+            >
+              Show {nextLabel}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Open Now section ─────────────────────────────────────────────────────────
+
+const CAT_EMOJI_MAP: Record<string, string> = {
+  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
+  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
+  'Live Music Venue': '🎵', 'Community Space': '🤝', Market: '🛒',
+  Mechanic: '🔧', Gym: '💪', default: '📍',
+};
+
+function OpenNowSection({ venues }: { venues: Venue[] }) {
+  const navigate = useNavigate();
+  const open = venues.filter(v => v.venueStatus === 'open' || v.venueStatus === 'busy');
+  if (open.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{
+            width: '8px', height: '8px', borderRadius: '50%',
+            background: '#39D98A',
+            boxShadow: '0 0 6px #39D98A',
+            animation: 'pulse 2s ease-in-out infinite',
+          }} />
+          <h2 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '15px', color: '#F0F6FC', margin: 0,
+          }}>
+            Open right now
+          </h2>
+        </div>
+        <span style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          color: '#39D98A', fontWeight: 600,
+        }}>
+          {open.length} place{open.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      <div style={{
+        display: 'flex', gap: '10px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        paddingBottom: '4px',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        {open.slice(0, 8).map(venue => {
+          const emoji = CAT_EMOJI_MAP[venue.category] ?? CAT_EMOJI_MAP.default;
+          const isBusy = venue.venueStatus === 'busy';
+          return (
+            <div
+              key={venue.id}
+              onClick={() => navigate(`/venue/${venue.slug}`)}
+              style={{
+                flexShrink: 0, width: '130px', cursor: 'pointer',
+                background: '#161B22',
+                border: isBusy ? '1px solid rgba(249,115,22,0.35)' : '1px solid rgba(57,217,138,0.2)',
+                borderRadius: '14px', padding: '12px 10px',
+              }}
+            >
+              <div style={{ fontSize: '24px', marginBottom: '8px', lineHeight: 1 }}>{emoji}</div>
+              <div style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontSize: '12px', color: '#F0F6FC',
+                marginBottom: '4px',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {venue.name}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{
+                  width: '5px', height: '5px', borderRadius: '50%',
+                  background: isBusy ? '#F97316' : '#39D98A', flexShrink: 0,
+                }} />
+                <span style={{
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 600,
+                  color: isBusy ? '#F97316' : '#39D98A',
+                }}>
+                  {isBusy ? 'Busy now' : 'Open'}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(0.85); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -1465,6 +1666,9 @@ export default function FeedPage() {
         localStorage.setItem('kayaa_feed_sort', mode);
       }} />
 
+      {/* Open right now — daily pull */}
+      <OpenNowSection venues={venues} />
+
       {/* Trending this week — scope-filtered */}
       {trendingResult.expanded && trendingResult.venues.length > 0 && (
         <ScopeNote>{expandNote(trendingResult as RailResult<Venue>)}</ScopeNote>
@@ -1513,9 +1717,9 @@ export default function FeedPage() {
             )}
           </div>
         ) : userPosts.length > 0 ? (
-          <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} />
+          <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} onAddPlace={() => navigate('/onboarding')} />
         ) : (
-          <EmptyState onCompose={() => setShowComposer(true)} onCheckin={() => navigate('/checkin')} onAddPlace={() => navigate('/onboarding')} />
+          <EmptyState neighbourhood={areaLabel} onCompose={() => setShowComposer(true)} onAddPlace={() => navigate('/onboarding')} />
         )
       ) : (
         <div>
