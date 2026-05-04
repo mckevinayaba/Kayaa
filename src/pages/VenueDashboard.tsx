@@ -484,7 +484,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/updates"
               icon={<MessageSquarePlus size={20} color="#39D98A" />}
               label="Post an Update"
               sub="Share a special or news with regulars"
@@ -492,7 +492,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/photos"
               icon={<Camera size={20} color="#A78BFA" />}
               label="Manage Photos"
               sub="Upload new images of your place"
@@ -500,7 +500,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/analytics"
               icon={<BarChart3 size={20} color="#FB923C" />}
               label="Full Analytics"
               sub="Detailed check-in insights and regulars"
@@ -508,7 +508,7 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/dashboard"
+              to="/venue/events"
               icon={<Share2 size={20} color="#F472B6" />}
               label="Create an Event"
               sub="Gig, braai, church service, stokvel…"

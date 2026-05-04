@@ -34,6 +34,10 @@ import EmergencyContacts     from './pages/EmergencyContacts';
 import VenueDashboard        from './pages/VenueDashboard';
 import VenueHours            from './pages/VenueHours';
 import VenueQRCode           from './pages/VenueQRCode';
+import VenueAnalytics        from './pages/VenueAnalytics';
+import VenueUpdates          from './pages/VenueUpdates';
+import VenuePhotos           from './pages/VenuePhotos';
+import VenueEvents           from './pages/VenueEvents';
 
 // Root: authenticated → /feed, anonymous → landing page
 function RootRoute() {
@@ -109,6 +113,38 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <VenueQRCode />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/analytics"
+              element={
+                <ProtectedRoute>
+                  <VenueAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/updates"
+              element={
+                <ProtectedRoute>
+                  <VenueUpdates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/photos"
+              element={
+                <ProtectedRoute>
+                  <VenuePhotos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/venue/events"
+              element={
+                <ProtectedRoute>
+                  <VenueEvents />
                 </ProtectedRoute>
               }
             />
