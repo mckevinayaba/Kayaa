@@ -9,6 +9,7 @@ import { PlacesGallery } from "../components/landing/PlacesGallery";
 import { NominationAsk } from "../components/landing/NominationAsk";
 import { NeighbourhoodFeed } from "../components/landing/NeighbourhoodFeed";
 import { NeighbourhoodListener } from "../components/landing/NeighbourhoodListener";
+import { WhatKayaaIs } from "../components/landing/WhatKayaaIs";
 import { CityWaitlist } from "../components/landing/CityWaitlist";
 import { Footer } from "../components/landing/Footer";
 import { WaitlistModal } from "../components/landing/WaitlistModal";
@@ -28,6 +29,7 @@ export default function LandingPage() {
       <NominationAsk />
       <NeighbourhoodFeed />
       <NeighbourhoodListener />
+      <WhatKayaaIs />
       <CityWaitlist />
       <Footer />
       <WaitlistModal />
