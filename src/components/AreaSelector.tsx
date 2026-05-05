@@ -1,35 +1,192 @@
-import { useState } from 'react';
-import { X, MapPin, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, MapPin, Search, ChevronRight, Plus } from 'lucide-react';
+import {
+  searchCommunities, getFeaturedCommunities, groupByMetro,
+  inferLocation, COMMUNITY_TYPE_LABEL,
+  type Community,
+} from '../lib/communities';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
-const QUICK_AREAS = [
-  { suburb: 'Soweto',          city: 'Johannesburg' },
-  { suburb: 'Alexandra',       city: 'Johannesburg' },
-  { suburb: 'Tembisa',         city: 'Ekurhuleni'   },
-  { suburb: 'Sandton',         city: 'Johannesburg' },
-  { suburb: 'Rosebank',        city: 'Johannesburg' },
-  { suburb: 'Maboneng',        city: 'Johannesburg' },
-  { suburb: 'Randburg',        city: 'Johannesburg' },
-  { suburb: 'Germiston',       city: 'Ekurhuleni'   },
-  { suburb: 'Midrand',         city: 'Johannesburg' },
-  { suburb: "Mitchell's Plain", city: 'Cape Town'   },
-  { suburb: 'Khayelitsha',     city: 'Cape Town'    },
-  { suburb: 'Bellville',       city: 'Cape Town'    },
-  { suburb: 'Durban CBD',      city: 'Durban'       },
-  { suburb: 'Umlazi',          city: 'Durban'       },
-  { suburb: 'Pinetown',        city: 'Durban'       },
-  { suburb: 'Cape Town CBD',   city: 'Cape Town'    },
-  { suburb: 'Observatory',     city: 'Cape Town'    },
-  { suburb: 'Wynberg',         city: 'Cape Town'    },
-];
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface AreaSelectorProps {
   currentSuburb: string;
-  onSelect: (suburb: string, city: string) => void;
-  onClose: () => void;
-  /** Show geolocation denied message */
+  onSelect:  (suburb: string, city: string) => void;
+  onClose:   () => void;
   showDeniedMessage?: boolean;
-  onRequestDetect?: () => void;
+  onRequestDetect?:  () => void;
 }
+
+// ─── Community type badge ──────────────────────────────────────────────────────
+
+const TYPE_COLOR: Record<Community['type'], string> = {
+  cbd:                 'rgba(57,217,138,0.15)',
+  precinct:            'rgba(167,139,250,0.15)',
+  suburb:              'rgba(96,165,250,0.10)',
+  township:            'rgba(245,158,11,0.12)',
+  village:             'rgba(52,211,153,0.12)',
+  informal_settlement: 'rgba(248,113,113,0.12)',
+};
+const TYPE_TEXT: Record<Community['type'], string> = {
+  cbd:                 '#39D98A',
+  precinct:            '#A78BFA',
+  suburb:              '#60A5FA',
+  township:            '#F59E0B',
+  village:             '#34D399',
+  informal_settlement: '#F87171',
+};
+
+function TypeBadge({ type }: { type: Community['type'] }) {
+  return (
+    <span style={{
+      fontSize: '10px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
+      padding: '2px 7px', borderRadius: '10px',
+      background: TYPE_COLOR[type], color: TYPE_TEXT[type],
+      whiteSpace: 'nowrap', flexShrink: 0,
+    }}>
+      {COMMUNITY_TYPE_LABEL[type]}
+    </span>
+  );
+}
+
+// ─── Request form ──────────────────────────────────────────────────────────────
+
+function RequestForm({
+  query,
+  onSubmitted,
+  onCancel,
+}: {
+  query: string;
+  onSubmitted: () => void;
+  onCancel: () => void;
+}) {
+  const { user } = useAuth();
+  const [name,     setName]     = useState(query);
+  const [province, setProvince] = useState('');
+  const [metro,    setMetro]    = useState('');
+  const [sending,  setSending]  = useState(false);
+  const [sent,     setSent]     = useState(false);
+
+  // Try to infer province/metro from the name
+  useEffect(() => {
+    const inferred = inferLocation(query);
+    if (inferred.province) setProvince(inferred.province);
+    if (inferred.metro)    setMetro(inferred.metro);
+  }, [query]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSending(true);
+    try {
+      await supabase.from('community_requests').insert({
+        community_name:    name.trim(),
+        province:          province || null,
+        metro_or_city:     metro    || null,
+        community_type:    'suburb',
+        status:            'requested',
+        search_count:      1,
+        requested_by_user: true,
+        user_id:           user?.id ?? null,
+        last_requested_at: new Date().toISOString(),
+      });
+    } catch {
+      // Non-fatal — request saved as best-effort
+    } finally {
+      setSending(false);
+      setSent(true);
+      setTimeout(onSubmitted, 1800);
+    }
+  }
+
+  if (sent) {
+    return (
+      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ fontSize: '32px', marginBottom: '10px' }}>✅</div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px' }}>
+          Request sent
+        </div>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+          We'll add <strong style={{ color: '#39D98A' }}>{name}</strong> when we expand to your area.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{ paddingTop: '4px' }}>
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+        Request a community
+      </div>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
+        We'll review it and add it when we expand to your area. Missing-community searches help us prioritise.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Community name"
+          required
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          value={province}
+          onChange={e => setProvince(e.target.value)}
+          placeholder="Province (optional)"
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          value={metro}
+          onChange={e => setMetro(e.target.value)}
+          placeholder="City / metro (optional)"
+          style={inputStyle}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          type="submit"
+          disabled={sending || !name.trim()}
+          style={{
+            flex: 1, padding: '10px', borderRadius: '10px',
+            background: sending ? 'rgba(57,217,138,0.5)' : '#39D98A',
+            border: 'none', fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            fontSize: '13px', color: '#000', cursor: sending ? 'default' : 'pointer',
+          }}
+        >
+          {sending ? 'Sending…' : 'Submit request'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            padding: '10px 16px', borderRadius: '10px',
+            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+          }}
+        >
+          Back
+        </button>
+      </div>
+    </form>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', background: 'var(--color-bg)',
+  border: '1px solid var(--color-border)', borderRadius: '10px',
+  padding: '9px 12px', color: 'var(--color-text)',
+  fontSize: '13px', fontFamily: 'DM Sans, sans-serif',
+  outline: 'none', boxSizing: 'border-box',
+};
+
+// ─── Main component ────────────────────────────────────────────────────────────
 
 export default function AreaSelector({
   currentSuburb,
@@ -38,106 +195,289 @@ export default function AreaSelector({
   showDeniedMessage = false,
   onRequestDetect,
 }: AreaSelectorProps) {
-  const [query, setQuery] = useState('');
+  const [query,          setQuery]          = useState('');
+  const [showRequest,    setShowRequest]    = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = query.trim()
-    ? QUICK_AREAS.filter(a =>
-        a.suburb.toLowerCase().includes(query.toLowerCase()) ||
-        a.city.toLowerCase().includes(query.toLowerCase())
-      )
-    : QUICK_AREAS;
+  useEffect(() => {
+    // slight delay so the sheet animation settles before keyboard appears
+    const t = setTimeout(() => inputRef.current?.focus(), 120);
+    return () => clearTimeout(t);
+  }, []);
 
-  function handleCustomSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    const match = QUICK_AREAS.find(a => a.suburb.toLowerCase() === trimmed.toLowerCase());
-    onSelect(match?.suburb ?? trimmed, match?.city ?? trimmed);
+  const results   = searchCommunities(query);
+  const featured  = getFeaturedCommunities();
+  const grouped   = query.trim() ? groupByMetro(results) : [];
+  const noResults = query.trim().length > 1 && results.length === 0;
+
+  function pick(c: Community) {
+    onSelect(c.name, c.metro);
     onClose();
   }
 
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)' }} />
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+        }}
+      />
 
-      {/* Sheet */}
+      {/* Bottom sheet */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
-        background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)',
-        borderRadius: '20px 20px 0 0', padding: '20px 20px 40px',
-        maxWidth: '480px', margin: '0 auto', maxHeight: '80vh',
+        background: '#161B22',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '20px 20px 0 0',
+        padding: '20px 20px 44px',
+        maxWidth: '560px', margin: '0 auto',
+        maxHeight: '88vh',
         display: 'flex', flexDirection: 'column',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
       }}>
-        {/* Header */}
+
+        {/* ── Header ──────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>
-            Choose your area
-          </span>
-          <button onClick={onClose} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <X size={16} color="var(--color-muted)" />
+          <div>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC' }}>
+              {showRequest ? 'Request a community' : 'Choose your area'}
+            </span>
+            {currentSuburb && !showRequest && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
+                <MapPin size={11} color="#39D98A" />
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', fontWeight: 600 }}>
+                  Currently: {currentSuburb}
+                </span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            }}
+          >
+            <X size={15} color="rgba(255,255,255,0.5)" />
           </button>
         </div>
 
-        {/* Geolocation denied message */}
-        {showDeniedMessage && (
-          <div style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.2)', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5, flexShrink: 0 }}>
-            Choose your area to see what is happening nearby.
+        {/* ── Denied message ───────────────────────────────────────────────── */}
+        {showDeniedMessage && !showRequest && (
+          <div style={{
+            background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)',
+            borderRadius: '10px', padding: '10px 14px', marginBottom: '14px',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, flexShrink: 0,
+          }}>
+            Choose your area to see what's happening nearby.
             {onRequestDetect && (
-              <button onClick={onRequestDetect} style={{ background: 'none', border: 'none', color: '#39D98A', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: 0, marginLeft: '6px' }}>
-                Detect location →
+              <button
+                onClick={onRequestDetect}
+                style={{ background: 'none', border: 'none', color: '#39D98A', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: 0, marginLeft: '6px' }}
+              >
+                Use GPS →
               </button>
             )}
           </div>
         )}
 
-        {/* Current location */}
-        {currentSuburb && !showDeniedMessage && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px', flexShrink: 0 }}>
-            <MapPin size={13} color="#39D98A" />
-            <span style={{ fontSize: '13px', color: '#39D98A', fontWeight: 600 }}>Currently: {currentSuburb}</span>
+        {/* ── Request form (replaces everything when active) ───────────────── */}
+        {showRequest ? (
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            <RequestForm
+              query={query}
+              onSubmitted={onClose}
+              onCancel={() => setShowRequest(false)}
+            />
           </div>
-        )}
-
-        {/* Search */}
-        <form onSubmit={handleCustomSubmit} style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
-          <Search size={14} color="var(--color-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search for your suburb or area"
-            autoFocus
-            style={{
-              width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-              borderRadius: '12px', padding: '10px 12px 10px 34px',
-              color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
-              outline: 'none', boxSizing: 'border-box',
-            }}
-          />
-        </form>
-
-        {/* Quick select chips */}
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {filtered.map(area => (
-              <button
-                key={area.suburb}
-                onClick={() => { onSelect(area.suburb, area.city); onClose(); }}
+        ) : (
+          <>
+            {/* ── Search input ────────────────────────────────────────────── */}
+            <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
+              <Search
+                size={14} color="rgba(255,255,255,0.3)"
+                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search suburbs, townships, cities…"
                 style={{
-                  padding: '7px 14px', borderRadius: '20px',
-                  background: area.suburb === currentSuburb ? 'rgba(57,217,138,0.12)' : 'var(--color-bg)',
-                  border: `1px solid ${area.suburb === currentSuburb ? 'rgba(57,217,138,0.4)' : 'var(--color-border)'}`,
-                  color: area.suburb === currentSuburb ? '#39D98A' : 'var(--color-text)',
-                  fontSize: '13px', fontWeight: area.suburb === currentSuburb ? 600 : 400,
-                  fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap',
+                  width: '100%', background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
+                  padding: '11px 12px 11px 34px', color: '#F0F6FC',
+                  fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+                  outline: 'none', boxSizing: 'border-box',
                 }}
-              >
-                {area.suburb}
-              </button>
-            ))}
-          </div>
-        </div>
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  style={{
+                    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                    display: 'flex', alignItems: 'center',
+                  }}
+                >
+                  <X size={13} color="rgba(255,255,255,0.3)" />
+                </button>
+              )}
+            </div>
+
+            {/* ── Scrollable content ──────────────────────────────────────── */}
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '2px' }}>
+
+              {/* No query: show featured communities grouped by metro */}
+              {!query.trim() && (
+                <>
+                  <div style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+                    color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em',
+                    textTransform: 'uppercase', marginBottom: '12px',
+                  }}>
+                    Popular areas
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+                    {featured.map(c => (
+                      <button
+                        key={c.slug}
+                        onClick={() => pick(c)}
+                        style={{
+                          padding: '7px 14px', borderRadius: '20px', cursor: 'pointer',
+                          background: c.name === currentSuburb
+                            ? 'rgba(57,217,138,0.12)'
+                            : 'rgba(255,255,255,0.05)',
+                          border: `1px solid ${c.name === currentSuburb ? 'rgba(57,217,138,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 500,
+                          color: c.name === currentSuburb ? '#39D98A' : 'rgba(255,255,255,0.75)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Request CTA when no query */}
+                  <button
+                    onClick={() => setShowRequest(true)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '12px 14px', borderRadius: '12px', cursor: 'pointer',
+                      background: 'rgba(57,217,138,0.05)', border: '1px dashed rgba(57,217,138,0.2)',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <Plus size={16} color="#39D98A" />
+                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                      Can't find your community? <span style={{ color: '#39D98A', fontWeight: 600 }}>Request it</span>
+                    </span>
+                  </button>
+                </>
+              )}
+
+              {/* Grouped search results */}
+              {query.trim() && !noResults && grouped.map(group => (
+                <div key={group.metro} style={{ marginBottom: '18px' }}>
+                  {/* Metro header */}
+                  <div style={{
+                    display: 'flex', alignItems: 'baseline', gap: '6px',
+                    marginBottom: '8px', paddingBottom: '6px',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  }}>
+                    <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                      {group.metro}
+                    </span>
+                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+                      {group.province}
+                    </span>
+                  </div>
+
+                  {/* Community rows */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    {group.communities.map(c => (
+                      <button
+                        key={c.slug}
+                        onClick={() => pick(c)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
+                          background: c.name === currentSuburb
+                            ? 'rgba(57,217,138,0.08)'
+                            : 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${c.name === currentSuburb ? 'rgba(57,217,138,0.2)' : 'transparent'}`,
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = c.name === currentSuburb ? 'rgba(57,217,138,0.08)' : 'rgba(255,255,255,0.02)')}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                          <MapPin size={13} color={c.name === currentSuburb ? '#39D98A' : 'rgba(255,255,255,0.25)'} style={{ flexShrink: 0 }} />
+                          <span style={{
+                            fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 500,
+                            color: c.name === currentSuburb ? '#39D98A' : '#F0F6FC',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {c.name}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <TypeBadge type={c.type} />
+                          <ChevronRight size={14} color="rgba(255,255,255,0.2)" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* No results state */}
+              {noResults && (
+                <div style={{ paddingTop: '8px' }}>
+                  <div style={{
+                    textAlign: 'center', padding: '20px 0 16px',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                    color: 'rgba(255,255,255,0.35)', lineHeight: 1.6,
+                  }}>
+                    No communities found for <strong style={{ color: 'rgba(255,255,255,0.6)' }}>"{query}"</strong>
+                  </div>
+
+                  {/* Request missing community */}
+                  <div style={{
+                    background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)',
+                    borderRadius: '14px', padding: '16px',
+                  }}>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+                      "{query}" isn't on Kayaa yet
+                    </div>
+                    <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 14px', lineHeight: 1.55 }}>
+                      Request it and we'll add it when we expand to your area. Every request helps us prioritise.
+                    </p>
+                    <button
+                      onClick={() => setShowRequest(true)}
+                      style={{
+                        width: '100%', padding: '10px', borderRadius: '10px',
+                        background: '#39D98A', border: 'none',
+                        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                        color: '#000', cursor: 'pointer',
+                      }}
+                    >
+                      Request "{query}"
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </>
+        )}
       </div>
     </>
   );
