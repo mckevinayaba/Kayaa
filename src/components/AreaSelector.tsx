@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MapPin, Search, ChevronRight, Plus } from 'lucide-react';
+import { X, MapPin, Search, ChevronRight, Plus, Navigation, Loader } from 'lucide-react';
 import {
   searchCommunities, getFeaturedCommunities, groupByMetro,
   inferLocation, COMMUNITY_TYPE_LABEL,
@@ -7,15 +7,17 @@ import {
 } from '../lib/communities';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useGPSLocation } from '../hooks/useGPSLocation';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface AreaSelectorProps {
-  currentSuburb: string;
-  onSelect:  (suburb: string, city: string) => void;
-  onClose:   () => void;
-  showDeniedMessage?: boolean;
-  onRequestDetect?:  () => void;
+  currentSuburb:     string;
+  onSelect:          (suburb: string, city: string) => void;
+  onClose:           () => void;
+  /** Pre-detected suburb from LocationContext GPS (show confirm card at top) */
+  suggestedSuburb?:  string;
+  suggestedCity?:    string;
 }
 
 // ─── Community type badge ──────────────────────────────────────────────────────
@@ -50,6 +52,178 @@ function TypeBadge({ type }: { type: Community['type'] }) {
   );
 }
 
+// ─── GPS button + detected suburb panel ───────────────────────────────────────
+
+function GPSPanel({
+  suggestedSuburb,
+  suggestedCity,
+  onConfirm,
+}: {
+  suggestedSuburb?: string;
+  suggestedCity?:   string;
+  onConfirm: (suburb: string, city: string) => void;
+}) {
+  const gps = useGPSLocation();
+
+  // If LocationContext already detected a suburb before the sheet opened,
+  // show that as a suggestion without triggering GPS again.
+  const effectiveSuburb = gps.state === 'success' ? gps.suburb : (suggestedSuburb ?? '');
+  const effectiveCity   = gps.state === 'success' ? gps.city   : (suggestedCity   ?? '');
+
+  // Success card (either from hook or from passed suggestion)
+  if (effectiveSuburb && (gps.state === 'success' || (gps.state === 'idle' && suggestedSuburb))) {
+    return (
+      <div style={{
+        background: 'rgba(57,217,138,0.07)',
+        border: '1px solid rgba(57,217,138,0.25)',
+        borderRadius: '12px',
+        padding: '12px 14px',
+        marginBottom: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '10px',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+            background: 'rgba(57,217,138,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Navigation size={14} color="#39D98A" />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '1px' }}>
+              Detected location
+            </div>
+            <div style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {effectiveSuburb}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => onConfirm(effectiveSuburb, effectiveCity)}
+          style={{
+            padding: '8px 16px', borderRadius: '20px', flexShrink: 0,
+            background: '#39D98A', border: 'none',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#000', cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          That's me
+        </button>
+      </div>
+    );
+  }
+
+  // In-progress states
+  if (gps.state === 'requesting' || gps.state === 'geocoding') {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '11px 14px', borderRadius: '12px', marginBottom: '14px',
+        background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)',
+        flexShrink: 0,
+      }}>
+        <Loader size={14} color="#39D98A" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+          {gps.state === 'requesting' ? 'Waiting for permission…' : 'Finding your suburb…'}
+        </span>
+      </div>
+    );
+  }
+
+  // Error states
+  if (gps.state === 'denied') {
+    return (
+      <div style={{
+        padding: '10px 14px', borderRadius: '12px', marginBottom: '14px',
+        background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)',
+        flexShrink: 0,
+      }}>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+          <strong style={{ color: '#F59E0B' }}>Location access denied.</strong>{' '}
+          To enable it: tap the lock icon in your browser's address bar → Allow Location.
+          Or search for your suburb below.
+        </div>
+      </div>
+    );
+  }
+
+  if (gps.state === 'inaccurate') {
+    return (
+      <div style={{
+        padding: '10px 14px', borderRadius: '12px', marginBottom: '14px',
+        background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.15)',
+        flexShrink: 0,
+      }}>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+          <strong style={{ color: '#60A5FA' }}>Can't detect suburb on this device.</strong>{' '}
+          Desktop browsers use IP-based location which isn't accurate enough.
+          Search for your suburb below — it takes 5 seconds.
+        </div>
+      </div>
+    );
+  }
+
+  if (gps.state === 'failed' || gps.state === 'unavailable') {
+    return (
+      <button
+        onClick={gps.trigger}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '11px 14px', borderRadius: '12px', cursor: 'pointer',
+          background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.12)',
+          marginBottom: '14px', flexShrink: 0, textAlign: 'left',
+        }}
+      >
+        <Navigation size={14} color="rgba(255,255,255,0.3)" />
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+          Location detection failed — <span style={{ color: '#39D98A' }}>try again</span>
+        </span>
+      </button>
+    );
+  }
+
+  // Idle — show the "Use my location" button
+  return (
+    <button
+      onClick={gps.trigger}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '11px 14px', borderRadius: '12px', cursor: 'pointer',
+        background: 'rgba(57,217,138,0.05)',
+        border: '1px solid rgba(57,217,138,0.2)',
+        marginBottom: '14px', flexShrink: 0, textAlign: 'left',
+        transition: 'background 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(57,217,138,0.10)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(57,217,138,0.05)')}
+    >
+      <div style={{
+        width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
+        background: 'rgba(57,217,138,0.12)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Navigation size={14} color="#39D98A" />
+      </div>
+      <div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+          Use my location
+        </div>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+          Detect your suburb automatically
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ─── Request form ──────────────────────────────────────────────────────────────
 
 function RequestForm({
@@ -68,7 +242,6 @@ function RequestForm({
   const [sending,  setSending]  = useState(false);
   const [sent,     setSent]     = useState(false);
 
-  // Try to infer province/metro from the name
   useEffect(() => {
     const inferred = inferLocation(query);
     if (inferred.province) setProvince(inferred.province);
@@ -92,7 +265,7 @@ function RequestForm({
         last_requested_at: new Date().toISOString(),
       });
     } catch {
-      // Non-fatal — request saved as best-effort
+      // Non-fatal
     } finally {
       setSending(false);
       setSent(true);
@@ -124,28 +297,9 @@ function RequestForm({
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Community name"
-          required
-          style={inputStyle}
-        />
-        <input
-          type="text"
-          value={province}
-          onChange={e => setProvince(e.target.value)}
-          placeholder="Province (optional)"
-          style={inputStyle}
-        />
-        <input
-          type="text"
-          value={metro}
-          onChange={e => setMetro(e.target.value)}
-          placeholder="City / metro (optional)"
-          style={inputStyle}
-        />
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Community name" required style={inputStyle} />
+        <input type="text" value={province} onChange={e => setProvince(e.target.value)} placeholder="Province (optional)" style={inputStyle} />
+        <input type="text" value={metro} onChange={e => setMetro(e.target.value)} placeholder="City / metro (optional)" style={inputStyle} />
       </div>
 
       <div style={{ display: 'flex', gap: '8px' }}>
@@ -162,8 +316,7 @@ function RequestForm({
           {sending ? 'Sending…' : 'Submit request'}
         </button>
         <button
-          type="button"
-          onClick={onCancel}
+          type="button" onClick={onCancel}
           style={{
             padding: '10px 16px', borderRadius: '10px',
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
@@ -192,26 +345,30 @@ export default function AreaSelector({
   currentSuburb,
   onSelect,
   onClose,
-  showDeniedMessage = false,
-  onRequestDetect,
+  suggestedSuburb,
+  suggestedCity,
 }: AreaSelectorProps) {
-  const [query,          setQuery]          = useState('');
-  const [showRequest,    setShowRequest]    = useState(false);
+  const [query,       setQuery]       = useState('');
+  const [showRequest, setShowRequest] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // slight delay so the sheet animation settles before keyboard appears
     const t = setTimeout(() => inputRef.current?.focus(), 120);
     return () => clearTimeout(t);
   }, []);
 
-  const results   = searchCommunities(query);
-  const featured  = getFeaturedCommunities();
-  const grouped   = query.trim() ? groupByMetro(results) : [];
+  const results  = searchCommunities(query);
+  const featured = getFeaturedCommunities();
+  const grouped  = query.trim() ? groupByMetro(results) : [];
   const noResults = query.trim().length > 1 && results.length === 0;
 
   function pick(c: Community) {
     onSelect(c.name, c.metro);
+    onClose();
+  }
+
+  function confirmDetected(suburb: string, city: string) {
+    onSelect(suburb, city);
     onClose();
   }
 
@@ -266,26 +423,6 @@ export default function AreaSelector({
           </button>
         </div>
 
-        {/* ── Denied message ───────────────────────────────────────────────── */}
-        {showDeniedMessage && !showRequest && (
-          <div style={{
-            background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)',
-            borderRadius: '10px', padding: '10px 14px', marginBottom: '14px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-            color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, flexShrink: 0,
-          }}>
-            Choose your area to see what's happening nearby.
-            {onRequestDetect && (
-              <button
-                onClick={onRequestDetect}
-                style={{ background: 'none', border: 'none', color: '#39D98A', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: 0, marginLeft: '6px' }}
-              >
-                Use GPS →
-              </button>
-            )}
-          </div>
-        )}
-
         {/* ── Request form (replaces everything when active) ───────────────── */}
         {showRequest ? (
           <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -297,6 +434,25 @@ export default function AreaSelector({
           </div>
         ) : (
           <>
+            {/* ── GPS Panel ───────────────────────────────────────────────── */}
+            <GPSPanel
+              suggestedSuburb={suggestedSuburb}
+              suggestedCity={suggestedCity}
+              onConfirm={confirmDetected}
+            />
+
+            {/* ── Divider ─────────────────────────────────────────────────── */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              marginBottom: '14px', flexShrink: 0,
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
+                or search
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+            </div>
+
             {/* ── Search input ────────────────────────────────────────────── */}
             <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
               <Search
@@ -334,7 +490,7 @@ export default function AreaSelector({
             {/* ── Scrollable content ──────────────────────────────────────── */}
             <div style={{ overflowY: 'auto', flex: 1, paddingRight: '2px' }}>
 
-              {/* No query: show featured communities grouped by metro */}
+              {/* No query: featured chips */}
               {!query.trim() && (
                 <>
                   <div style={{
@@ -351,9 +507,7 @@ export default function AreaSelector({
                         onClick={() => pick(c)}
                         style={{
                           padding: '7px 14px', borderRadius: '20px', cursor: 'pointer',
-                          background: c.name === currentSuburb
-                            ? 'rgba(57,217,138,0.12)'
-                            : 'rgba(255,255,255,0.05)',
+                          background: c.name === currentSuburb ? 'rgba(57,217,138,0.12)' : 'rgba(255,255,255,0.05)',
                           border: `1px solid ${c.name === currentSuburb ? 'rgba(57,217,138,0.35)' : 'rgba(255,255,255,0.08)'}`,
                           fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 500,
                           color: c.name === currentSuburb ? '#39D98A' : 'rgba(255,255,255,0.75)',
@@ -365,7 +519,6 @@ export default function AreaSelector({
                     ))}
                   </div>
 
-                  {/* Request CTA when no query */}
                   <button
                     onClick={() => setShowRequest(true)}
                     style={{
@@ -377,7 +530,8 @@ export default function AreaSelector({
                   >
                     <Plus size={16} color="#39D98A" />
                     <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
-                      Can't find your community? <span style={{ color: '#39D98A', fontWeight: 600 }}>Request it</span>
+                      Can't find your community?{' '}
+                      <span style={{ color: '#39D98A', fontWeight: 600 }}>Request it</span>
                     </span>
                   </button>
                 </>
@@ -386,7 +540,6 @@ export default function AreaSelector({
               {/* Grouped search results */}
               {query.trim() && !noResults && grouped.map(group => (
                 <div key={group.metro} style={{ marginBottom: '18px' }}>
-                  {/* Metro header */}
                   <div style={{
                     display: 'flex', alignItems: 'baseline', gap: '6px',
                     marginBottom: '8px', paddingBottom: '6px',
@@ -400,7 +553,6 @@ export default function AreaSelector({
                     </span>
                   </div>
 
-                  {/* Community rows */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     {group.communities.map(c => (
                       <button
@@ -409,9 +561,7 @@ export default function AreaSelector({
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
-                          background: c.name === currentSuburb
-                            ? 'rgba(57,217,138,0.08)'
-                            : 'rgba(255,255,255,0.02)',
+                          background: c.name === currentSuburb ? 'rgba(57,217,138,0.08)' : 'rgba(255,255,255,0.02)',
                           border: `1px solid ${c.name === currentSuburb ? 'rgba(57,217,138,0.2)' : 'transparent'}`,
                           textAlign: 'left',
                         }}
@@ -438,7 +588,7 @@ export default function AreaSelector({
                 </div>
               ))}
 
-              {/* No results state */}
+              {/* No results */}
               {noResults && (
                 <div style={{ paddingTop: '8px' }}>
                   <div style={{
@@ -446,10 +596,10 @@ export default function AreaSelector({
                     fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
                     color: 'rgba(255,255,255,0.35)', lineHeight: 1.6,
                   }}>
-                    No communities found for <strong style={{ color: 'rgba(255,255,255,0.6)' }}>"{query}"</strong>
+                    No communities found for{' '}
+                    <strong style={{ color: 'rgba(255,255,255,0.6)' }}>"{query}"</strong>
                   </div>
 
-                  {/* Request missing community */}
                   <div style={{
                     background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)',
                     borderRadius: '14px', padding: '16px',
@@ -479,6 +629,11 @@ export default function AreaSelector({
           </>
         )}
       </div>
+
+      {/* Spinner keyframe */}
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </>
   );
 }

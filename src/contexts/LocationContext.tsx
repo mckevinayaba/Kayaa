@@ -27,7 +27,7 @@ import {
   createContext, useContext, useState, useEffect,
   useCallback, useRef, type ReactNode,
 } from 'react';
-import { haversineKm } from '../lib/geocode';
+import { haversineKm, reverseGeocodeCoords } from '../lib/geocode';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -117,24 +117,18 @@ function writeLS(key: string, value: unknown) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* quota */ }
 }
 
-/** Reverse-geocode via Nominatim (OSM). */
-async function reverseGeocode(lat: number, lon: number): Promise<NeighbourhoodInfo> {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-    { headers: { 'User-Agent': 'kayaa-app/1.0', 'Accept-Language': 'en' } },
-  );
-  const data = await res.json();
-  const addr = data.address ?? {};
-  const suburb =
-    addr.suburb        ??
-    addr.neighbourhood ??
-    addr.quarter       ??
-    addr.city_district ??
-    addr.town          ??
-    addr.city          ??
-    '';
-  const city = addr.city ?? addr.town ?? addr.county ?? suburb;
-  return { suburb, city, lat, lon, savedAt: Date.now(), source: 'gps' };
+/** Thin wrapper — converts shared ReverseGeocodeResult to NeighbourhoodInfo. */
+async function reverseGeocode(lat: number, lon: number, accuracy?: number): Promise<NeighbourhoodInfo> {
+  const result = await reverseGeocodeCoords(lat, lon, accuracy);
+  if (!result) return { suburb: '', city: '', lat, lon, savedAt: Date.now(), source: 'gps' };
+  return {
+    suburb:  result.suburb,
+    city:    result.city,
+    lat:     result.lat,
+    lon:     result.lon,
+    savedAt: Date.now(),
+    source:  'gps',
+  };
 }
 
 /** Sync legacy keys so old code paths still work. */
@@ -295,7 +289,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          const loc = await reverseGeocode(coords.latitude, coords.longitude);
+          const loc = await reverseGeocode(coords.latitude, coords.longitude, coords.accuracy);
 
           // If geocoding couldn't resolve a suburb, surface the picker
           if (!loc.suburb) {

@@ -4,6 +4,69 @@ export interface GeocodedLocation {
   displayName?: string;
 }
 
+// ─── Reverse geocode result ───────────────────────────────────────────────────
+
+export interface ReverseGeocodeResult {
+  suburb: string;
+  city:   string;
+  lat:    number;
+  lon:    number;
+  /**
+   * confidence reflects GPS accuracy:
+   *   high   = real GPS hardware (< 100 m)
+   *   medium = WiFi triangulation (~100–1000 m)
+   *   low    = cell tower / IP-based (> 1 km) — suburb name unreliable
+   */
+  confidence: 'high' | 'medium' | 'low';
+  raw: Record<string, string>;
+}
+
+/**
+ * Reverse geocode GPS coordinates to a suburb name via Nominatim (OSM).
+ * Free, no API key. Rate-limited to ~1 req/s — use sparingly.
+ * Returns null on network failure or when no suburb can be resolved.
+ */
+export async function reverseGeocodeCoords(
+  lat: number,
+  lon: number,
+  accuracyMetres?: number,
+): Promise<ReverseGeocodeResult | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+      { headers: { 'User-Agent': 'kayaa-app/1.0', 'Accept-Language': 'en' } },
+    );
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const addr: Record<string, string> = data.address ?? {};
+
+    // Prefer the most specific address component available
+    const suburb =
+      addr.suburb        ??
+      addr.neighbourhood ??
+      addr.quarter       ??
+      addr.city_district ??
+      addr.town          ??
+      addr.city          ??
+      '';
+
+    if (!suburb) return null;
+
+    const city = addr.city ?? addr.town ?? addr.county ?? suburb;
+
+    const confidence: ReverseGeocodeResult['confidence'] =
+      accuracyMetres == null  ? 'high'
+      : accuracyMetres <= 100  ? 'high'
+      : accuracyMetres <= 1000 ? 'medium'
+      : 'low';
+
+    return { suburb, city, lat, lon, confidence, raw: addr };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Nominatim (OpenStreetMap) reverse geocoder.
  * Free, no API key. Rate-limited to 1 req/s.

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
-import useLocation from '../hooks/useLocation';
+import { useLocationContext } from '../contexts/LocationContext';
 import AreaSelector from '../components/AreaSelector';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -41,7 +41,7 @@ export default function AppLayout() {
   const routerLocation  = useRouterLocation();
   const navigate        = useNavigate();
   const { user, signOut } = useAuth();
-  const { suburb, loading, error, needsConfirmation, setManualSuburb, confirm, refresh } = useLocation();
+  const { suburb, current, loading, error, needsConfirmation, setManualSuburb, confirm } = useLocationContext();
   const [areaOpen,    setAreaOpen]    = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -78,10 +78,10 @@ export default function AppLayout() {
       {needsArea && (
         <AreaSelector
           currentSuburb={suburb}
+          suggestedSuburb={current?.source === 'gps' ? current.suburb : undefined}
+          suggestedCity={current?.source === 'gps' ? current.city : undefined}
           onSelect={(s, c) => { setManualSuburb(s, c); confirm(); }}
           onClose={() => {}}
-          showDeniedMessage
-          onRequestDetect={refresh}
         />
       )}
       {areaOpen && !needsArea && (
@@ -89,7 +89,6 @@ export default function AppLayout() {
           currentSuburb={suburb}
           onSelect={(s, c) => { setManualSuburb(s, c); confirm(); setAreaOpen(false); }}
           onClose={() => setAreaOpen(false)}
-          onRequestDetect={refresh}
         />
       )}
 

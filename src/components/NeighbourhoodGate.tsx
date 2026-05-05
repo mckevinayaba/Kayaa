@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MapPin } from 'lucide-react';
-import useLocation from '../hooks/useLocation';
+import { useLocationContext } from '../contexts/LocationContext';
 import AreaSelector from './AreaSelector';
 
 interface Props {
@@ -8,12 +8,21 @@ interface Props {
 }
 
 export default function NeighbourhoodGate({ onDone }: Props) {
-  const { suburb, city, loading, confirm, setManualSuburb, refresh } = useLocation();
+  const {
+    suburb, city, loading,
+    current,
+    confirm, setManualSuburb, refresh,
+  } = useLocationContext();
+
   const [showSelector, setShowSelector] = useState(false);
 
   const displayArea = suburb
     ? (city && city !== suburb ? `${suburb}, ${city}` : suburb)
     : city || null;
+
+  // GPS detected a suburb but user hasn't confirmed yet — pass to AreaSelector
+  const gpsSuggestion  = current?.source === 'gps' ? current.suburb : undefined;
+  const gpsSuggestCity = current?.source === 'gps' ? current.city   : undefined;
 
   function handleConfirm() {
     confirm();
@@ -91,20 +100,14 @@ export default function NeighbourhoodGate({ onDone }: Props) {
           }}>
             <MapPin size={18} color="#39D98A" />
           </div>
-          <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: '17px', color: '#fff',
-          }}>
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: '#fff' }}>
             Your neighbourhood
           </span>
         </div>
 
         {loading ? (
           <>
-            <p style={{
-              fontSize: '14px', color: 'rgba(255,255,255,0.52)',
-              lineHeight: 1.6, marginBottom: '24px',
-            }}>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.52)', lineHeight: 1.6, marginBottom: '24px' }}>
               Detecting your location…
             </p>
             <button onClick={refresh} style={secondaryBtn}>
@@ -134,23 +137,21 @@ export default function NeighbourhoodGate({ onDone }: Props) {
               </button>
             )}
 
-            <button
-              onClick={() => setShowSelector(true)}
-              style={secondaryBtn}
-            >
+            <button onClick={() => setShowSelector(true)} style={secondaryBtn}>
               {displayArea ? 'Change area' : 'Choose area'}
             </button>
           </>
         )}
       </div>
 
-      {/* Area selector overlay — rendered on top of the gate */}
+      {/* Area selector — opened when user taps "Choose area" */}
       {showSelector && (
         <AreaSelector
           currentSuburb={suburb}
+          suggestedSuburb={gpsSuggestion}
+          suggestedCity={gpsSuggestCity}
           onSelect={handleSelect}
           onClose={() => setShowSelector(false)}
-          onRequestDetect={refresh}
         />
       )}
     </>
