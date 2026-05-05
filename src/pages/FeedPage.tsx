@@ -31,6 +31,7 @@ import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
 import QuickActions from '../components/feed/QuickActions';
+import QuickAddPlace from '../components/QuickAddPlace';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { StockChecker }    from '../components/utility/StockChecker';
@@ -1257,8 +1258,9 @@ export default function FeedPage() {
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
-  const [showComposer,   setShowComposer]   = useState(false);
-  const [areaPickerOpen, setAreaPickerOpen] = useState(false);
+  const [showComposer,    setShowComposer]    = useState(false);
+  const [areaPickerOpen,  setAreaPickerOpen]  = useState(false);
+  const [quickAddOpen,    setQuickAddOpen]    = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [cacheDate, setCacheDate] = useState<string | null>(null);
@@ -1608,7 +1610,7 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── Personal greeting ─────────────────────────────────────────────── */}
+      {/* ── Personal greeting + neighbourhood pulse ──────────────────────── */}
       {user && (
         <div style={{ marginBottom: '20px' }}>
           <h1 style={{
@@ -1620,13 +1622,61 @@ export default function FeedPage() {
           </h1>
           <p style={{
             fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-            color: 'rgba(255,255,255,0.4)', margin: 0,
+            color: 'rgba(255,255,255,0.4)', margin: '0 0 10px',
           }}>
             {(suburb && !needsConfirmation)
               ? `Here's what's happening in ${suburb}`
               : 'Set your area to see what\'s nearby'}
           </p>
+
+          {/* Neighbourhood pulse — real aggregate stats */}
+          {suburb && !needsConfirmation && !loading && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {(() => {
+                const totalCheckins = rawVenues.reduce((s, v) => s + (v.checkinsToday ?? 0), 0);
+                const activePlaces  = rawVenues.filter(v => (v.checkinsToday ?? 0) >= 1).length;
+                const totalPlaces   = rawVenues.length;
+                const pills = [];
+
+                if (totalPlaces > 0)
+                  pills.push({ label: `${totalPlaces} place${totalPlaces !== 1 ? 's' : ''}`, emoji: '🏠', color: '#39D98A' });
+                if (activePlaces > 0)
+                  pills.push({ label: `${activePlaces} active today`, emoji: '⚡', color: '#F59E0B' });
+                if (totalCheckins > 0)
+                  pills.push({ label: `${totalCheckins} check-in${totalCheckins !== 1 ? 's' : ''}`, emoji: '📍', color: '#60A5FA' });
+
+                if (pills.length === 0 && totalPlaces === 0)
+                  pills.push({ label: 'No places yet — add one →', emoji: '➕', color: '#39D98A' });
+
+                return pills.map(p => (
+                  <button
+                    key={p.label}
+                    onClick={p.label.includes('add one') ? () => setQuickAddOpen(true) : undefined}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      padding: '4px 10px', borderRadius: '20px',
+                      background: `${p.color}12`, border: `1px solid ${p.color}25`,
+                      fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+                      color: p.color, cursor: p.label.includes('add one') ? 'pointer' : 'default',
+                    }}
+                  >
+                    <span>{p.emoji}</span>{p.label}
+                  </button>
+                ));
+              })()}
+            </div>
+          )}
         </div>
+      )}
+
+      {/* QuickAddPlace sheet */}
+      {quickAddOpen && (
+        <QuickAddPlace
+          defaultSuburb={suburb}
+          defaultCity={city}
+          onAdded={() => { setTimeout(() => setRefreshKey(k => k + 1), 800); }}
+          onClose={() => setQuickAddOpen(false)}
+        />
       )}
 
       {/* Area picker — opened when user taps "Change area" in the reconfirm banner */}
@@ -1764,7 +1814,7 @@ export default function FeedPage() {
       <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />
 
       {/* Quick action shortcuts */}
-      <QuickActions onCompose={() => setShowComposer(true)} />
+      <QuickActions onCompose={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
 
       {/* Load shedding status */}
       <div style={{ marginBottom: '16px' }}>
@@ -1906,9 +1956,9 @@ export default function FeedPage() {
             )}
           </div>
         ) : userPosts.length > 0 ? (
-          <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} onAddPlace={() => navigate('/onboarding')} />
+          <LocalEmptyState scope={scope} areaLabel={areaLabel} onExpand={handleScopeChange} onAddPlace={() => setQuickAddOpen(true)} />
         ) : (
-          <EmptyState neighbourhood={areaLabel} onCompose={() => setShowComposer(true)} onAddPlace={() => navigate('/onboarding')} />
+          <EmptyState neighbourhood={areaLabel} onCompose={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
         )
       ) : (
         <div>

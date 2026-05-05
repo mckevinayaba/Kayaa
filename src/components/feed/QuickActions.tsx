@@ -25,12 +25,13 @@ const ACTIONS: Action[] = [
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface QuickActionsProps {
-  onCompose?: () => void; // kept for backward compat — no longer used here
+  onCompose?:  () => void; // kept for backward compat
+  onAddPlace?: () => void; // opens QuickAddPlace sheet (30-second form)
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function QuickActions({ onCompose: _onCompose }: QuickActionsProps) {
+export default function QuickActions({ onCompose: _onCompose, onAddPlace }: QuickActionsProps) {
   const navigate = useNavigate();
 
   function handleAction(key: string) {
@@ -40,7 +41,10 @@ export default function QuickActions({ onCompose: _onCompose }: QuickActionsProp
       case 'ask':      navigate('/board/new?cat=ask');            break;
       case 'skill':    navigate('/skills/new');                   break;
       case 'safety':   navigate('/board/new?cat=safety');         break;
-      case 'addplace': navigate('/onboarding');                   break;
+      case 'addplace':
+        // Use QuickAddPlace sheet if provided, otherwise fall back to full onboarding
+        if (onAddPlace) { onAddPlace(); } else { navigate('/onboarding'); }
+        break;
     }
   }
 
