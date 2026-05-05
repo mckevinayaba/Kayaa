@@ -1218,10 +1218,54 @@ function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; ve
   );
 }
 
-function PostsSection({ posts, venueName, venueId }: { posts: Post[]; venueName: string; venueId: string }) {
-  if (posts.length === 0) return null;
+function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[]; venueName: string; venueId: string; venueSlug: string }) {
+  const navigate = useNavigate();
   const score = getUserVenueScoreLocal(venueId, getVisitorId());
   const visitCount = score?.visitCount ?? 0;
+
+  if (posts.length === 0) {
+    return (
+      <div style={{
+        marginBottom: '20px',
+        border: '1.5px dashed rgba(255,255,255,0.10)',
+        borderRadius: '16px',
+        padding: '28px 20px',
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '32px', marginBottom: '10px' }}>💬</div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+          No posts yet
+        </div>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 18px' }}>
+          Be the first to share something about {venueName}. A tip, a question, a recommendation — anything helps.
+        </p>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <button
+            onClick={() => navigate(`/venue/${venueSlug}/checkin`)}
+            style={{
+              padding: '9px 18px', borderRadius: '10px',
+              background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              color: '#39D98A', cursor: 'pointer',
+            }}
+          >
+            Check in
+          </button>
+          <button
+            onClick={() => navigate('/board/new')}
+            style={{
+              padding: '9px 18px', borderRadius: '10px',
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+            }}
+          >
+            Post something
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginBottom: '20px' }}>
@@ -1887,7 +1931,7 @@ export default function VenuePage() {
         <EventsSection events={events} />
 
         {/* ── Community posts ──────────────────────────────────────────────── */}
-        <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} />
+        <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} venueSlug={venue.slug} />
 
         {/* ── About ────────────────────────────────────────────────────────── */}
         <AboutSection venue={venue} />

@@ -1622,31 +1622,51 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Move-detection banner — appears when GPS detects you've moved to a new area */}
+      {/* Move-detection card — appears when GPS detects you've moved to a new area */}
       {movedTo && (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '10px',
-          background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)',
-          borderRadius: '12px', padding: '10px 14px', marginBottom: '12px',
+          background: 'rgba(57,217,138,0.06)',
+          border: '1px solid rgba(57,217,138,0.22)',
+          borderRadius: '14px',
+          padding: '14px 16px',
+          marginBottom: '14px',
         }}>
-          <span style={{ fontSize: '16px', flexShrink: 0 }}>📍</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.85)', lineHeight: 1.4 }}>
-              You're now near <strong style={{ color: '#39D98A' }}>{movedTo.suburb || movedTo.city}</strong>
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '18px' }}>📍</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+                You're in a different area
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
+                GPS shows you're near <strong style={{ color: '#39D98A' }}>{movedTo.suburb || movedTo.city}</strong>,
+                {' '}but your saved area is <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{current?.suburb || suburb}</strong>
+              </div>
+            </div>
           </div>
-          <button
-            onClick={() => { acceptMove(); setRefreshKey(k => k + 1); }}
-            style={{ background: '#39D98A', border: 'none', borderRadius: '8px', padding: '6px 12px', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000', cursor: 'pointer', flexShrink: 0 }}
-          >
-            Switch
-          </button>
-          <button
-            onClick={dismissMove}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <X size={14} />
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => { acceptMove(); setRefreshKey(k => k + 1); }}
+              style={{
+                flex: 1, padding: '9px 12px', borderRadius: '10px',
+                background: '#39D98A', border: 'none',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: '#000', cursor: 'pointer',
+              }}
+            >
+              Switch to {movedTo.suburb || movedTo.city}
+            </button>
+            <button
+              onClick={dismissMove}
+              style={{
+                flex: 1, padding: '9px 12px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+                color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+              }}
+            >
+              Stay in {current?.suburb || suburb}
+            </button>
+          </div>
         </div>
       )}
 

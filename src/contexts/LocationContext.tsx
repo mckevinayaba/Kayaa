@@ -229,15 +229,24 @@ export function LocationProvider({ children }: { children: ReactNode }) {
                          : Date.now(),
           source: 'profile',
         };
-        // Profile always wins — it's the user's intentional home suburb
+        // Set the profile suburb as the active location
         setCurrent(loc);
         setConfirmed(true);
         writeLS(LS_CURRENT, loc);
         syncLegacy(loc);
+
+        // After restoring the saved suburb, silently check current GPS.
+        // If the user has physically moved (>5 km) since they last confirmed,
+        // detect() will set movedTo and the Feed will show a "Switch?" banner.
+        // This is what makes sign-in location-honest: we never silently keep
+        // yesterday's neighbourhood when the user is physically elsewhere today.
+        detect();
       }
     }
 
     loadProfile();
+  // detect is a stable useCallback ref with [] deps — safe to include
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]); // re-run only when the logged-in user changes
 
   // ── Computed active ───────────────────────────────────────────────────────
