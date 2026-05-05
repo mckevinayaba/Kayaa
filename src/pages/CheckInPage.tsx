@@ -19,6 +19,7 @@ import type { UserVenueScore } from '../lib/api';
 import type { Venue } from '../types';
 import { haversineKm } from '../lib/geocode';
 import CelebrationScreen from '../components/CelebrationScreen';
+import { useAuth } from '../contexts/AuthContext';
 
 // ── Category maps ─────────────────────────────────────────────────────────────
 
@@ -227,6 +228,7 @@ function QRScanner({ onDetect, onClose }: QRScannerProps) {
 export default function CheckInPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate  = useNavigate();
+  const { user }  = useAuth();
 
   const [venue, setVenue]       = useState<Venue | null>(null);
   const [step, setStep]         = useState<Step>('loading_venue');
@@ -235,6 +237,13 @@ export default function CheckInPage() {
   const [method, setMethod]     = useState<'gps' | 'qr' | 'qr_link' | 'manual'>('gps');
 
   const visitorId = getVisitorId();
+
+  // Derive display name from authenticated user's profile
+  const userName = user
+    ? (user.user_metadata?.full_name as string | undefined)
+      ?? (user.user_metadata?.name as string | undefined)
+      ?? user.email?.split('@')[0]
+    : undefined;
 
   // ── On mount: load venue then start GPS ─────────────────────────────────────
 
@@ -316,6 +325,8 @@ export default function CheckInPage() {
       const result = await saveVisit({
         venueId: v.id, venueName: v.name, venueSlug: v.slug,
         venueType: v.category, visitorId, method: m,
+        userId:   user?.id,
+        userName,
       });
       setScore(result.score);
       setStep('celebration'); // always celebrate — will sync on reconnect
@@ -329,6 +340,8 @@ export default function CheckInPage() {
       venueType: v.category,
       visitorId,
       method:    m,
+      userId:    user?.id,
+      userName,
     });
     setScore(result.score);
     setStep(result.alreadyCheckedIn ? 'duplicate' : 'celebration');
@@ -354,6 +367,7 @@ export default function CheckInPage() {
       <CelebrationScreen
         venue={venue}
         score={score}
+        userName={userName}
         onDismiss={() => navigate(`/venue/${venue.slug}`)}
       />
     );

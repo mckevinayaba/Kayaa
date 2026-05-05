@@ -932,14 +932,18 @@ export async function isRecentDuplicate(venueId: string, visitorId: string): Pro
  * 4. Bump venue regulars_count via existing RPC
  */
 export async function saveVisit(params: {
-  venueId: string;
+  venueId:   string;
   venueName: string;
   venueSlug: string;
   venueType: string;
   visitorId: string;
-  method: 'gps' | 'qr' | 'qr_link' | 'manual';
+  method:    'gps' | 'qr' | 'qr_link' | 'manual';
+  /** Authenticated user's Supabase UUID — undefined for anonymous visitors */
+  userId?:   string;
+  /** Human-readable name to show in Regulars — first name from Google profile */
+  userName?: string;
 }): Promise<{ score: UserVenueScore; alreadyCheckedIn: boolean }> {
-  const { venueId, venueName, venueSlug, venueType, visitorId, method } = params;
+  const { venueId, venueName, venueSlug, venueType, visitorId, method, userId, userName } = params;
 
   // ── Duplicate guard ──────────────────────────────────────────────────────────
   if (await isRecentDuplicate(venueId, visitorId)) {
@@ -982,27 +986,32 @@ export async function saveVisit(params: {
   hist.sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
   localStorage.setItem(_histKey(visitorId), JSON.stringify(hist.slice(0, 200)));
 
-  // ── Persist to check_ins (triggers fn_venue_checkin_increment → updates venue metrics) ──
+  // ── Persist to check_ins ─────────────────────────────────────────────────────
+  // When the user is authenticated, save their real name + user_id.
+  // Anonymous visitors still work — user_id is null, visitor_name is the UUID.
+  const displayName = userName ?? null;
   try {
     await supabase.from('check_ins').insert({
       venue_id:       venueId,
-      visitor_name:   visitorId,      // anon localStorage ID used as name
+      visitor_name:   userId   ? (userName ?? visitorId) : visitorId,
+      display_name:   displayName,
+      user_id:        userId   ?? null,
       is_ghost:       false,
       is_first_visit: newCount === 1,
       visit_number:   newCount,
-      method,                         // column added by Phase 1 migration
+      method,
     });
   } catch {
-    // method column may not exist in all envs — retry without it
+    // Fallback: some columns may not exist in older DB — retry with minimal fields
     try {
       await supabase.from('check_ins').insert({
         venue_id:       venueId,
-        visitor_name:   visitorId,
+        visitor_name:   userId ? (userName ?? visitorId) : visitorId,
         is_ghost:       false,
         is_first_visit: newCount === 1,
         visit_number:   newCount,
       });
-    } catch { /* noop — localStorage state is source of truth */ }
+    } catch { /* noop — localStorage is source of truth */ }
   }
 
   // ── Legacy tables (best-effort, kept for dashboard back-compat) ──────────────

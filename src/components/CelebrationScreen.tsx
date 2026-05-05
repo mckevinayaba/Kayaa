@@ -39,14 +39,19 @@ interface Props {
   venue: Venue;
   score: UserVenueScore;
   onDismiss: () => void;
+  /** First name of the authenticated user — personalises the greeting */
+  userName?: string;
 }
 
-export default function CelebrationScreen({ venue, score, onDismiss }: Props) {
+export default function CelebrationScreen({ venue, score, onDismiss, userName }: Props) {
   const [countdown, setCountdown] = useState(5);
 
   const badgeUpgraded  = score.badgeTier !== score.prevBadgeTier && score.visitCount > 1;
   const justARegular   = score.visitCount === 5;   // exactly the 5-visit milestone
   const badgeColor    = BADGE_COLOR[score.badgeTier] ?? '#39D98A';
+
+  // Show only first name for greeting (e.g. "Thabo" not "Thabo Mokoena")
+  const firstName = userName?.split(' ')[0];
 
   const waText = encodeURIComponent(
     `Just checked in at ${venue.name} on Kayaa\nVisit #${score.visitCount} · ${score.badgeTier} status 💪\nhttps://kayaa.co.za`
@@ -152,6 +157,14 @@ export default function CelebrationScreen({ venue, score, onDismiss }: Props) {
             }}>
               🎉 Badge upgrade!
             </div>
+          )}
+          {firstName && (
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+              color: 'rgba(255,255,255,0.55)', margin: '0 0 6px',
+            }}>
+              Nice one, {firstName} 👋
+            </p>
           )}
           <h1 style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 800,

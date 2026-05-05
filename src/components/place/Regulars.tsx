@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface RegularEntry {
+  name: string;
   initial: string;
   count: number;
 }
@@ -27,29 +28,41 @@ export function Regulars({ venueId, count }: RegularsProps) {
   useEffect(() => {
     if (count === 0) return;
 
-    // Derive top regulars from check_ins — group by visitor_name, pick top 10
+    // Derive top regulars from check_ins.
+    // Prefer display_name (real name from auth) over visitor_name (may be a UUID).
     supabase
       .from('check_ins')
-      .select('visitor_name')
+      .select('display_name, visitor_name')
       .eq('venue_id', venueId)
       .eq('is_ghost', false)
-      .not('visitor_name', 'is', null)
       .then(({ data }) => {
         if (!data) return;
 
-        // Tally visits per name
+        // Tally visits per resolved name, skipping UUID-looking visitor_names
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         const tally: Record<string, number> = {};
+
         for (const row of data) {
-          if (row.visitor_name) {
-            tally[row.visitor_name] = (tally[row.visitor_name] ?? 0) + 1;
-          }
+          // Use display_name if present, otherwise fall back to visitor_name
+          // but only if it doesn't look like a UUID
+          const rawName = row.display_name as string | null
+            ?? (row.visitor_name && !UUID_RE.test(row.visitor_name) ? row.visitor_name : null);
+          if (!rawName) continue;
+
+          // Use only first name for privacy
+          const name = rawName.split(' ')[0];
+          tally[name] = (tally[name] ?? 0) + 1;
         }
 
         // Sort descending, keep top 10
         const sorted = Object.entries(tally)
           .sort(([, a], [, b]) => b - a)
           .slice(0, 10)
-          .map(([name, c]) => ({ initial: name[0]?.toUpperCase() ?? '?', count: c }));
+          .map(([name, c]) => ({
+            name,
+            initial: name[0]?.toUpperCase() ?? '?',
+            count:   c,
+          }));
 
         setRegulars(sorted);
       });
@@ -83,7 +96,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
               return (
                 <div
                   key={i}
-                  title={`Regular visitor`}
+                  title={r.name}
                   style={{
                     width: '44px', height: '44px', borderRadius: '50%',
                     border: '2px solid #161B22',

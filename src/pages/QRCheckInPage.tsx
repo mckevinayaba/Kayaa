@@ -17,6 +17,7 @@ import { getVenueById, saveVisit, getVisitorId } from '../lib/api';
 import type { UserVenueScore } from '../lib/api';
 import type { Venue } from '../types';
 import CelebrationScreen from '../components/CelebrationScreen';
+import { useAuth } from '../contexts/AuthContext';
 
 // ── Category maps ─────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ const CAT_COLOR: Record<string, string> = {
 export default function QRCheckInPage() {
   const { venueId } = useParams<{ venueId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [venue, setVenue]       = useState<Venue | null>(null);
   const [loading, setLoading]   = useState(true);
@@ -47,6 +49,13 @@ export default function QRCheckInPage() {
   const [done, setDone]         = useState(false);
 
   const visitorId = getVisitorId();
+
+  // Derive display name from authenticated user's profile
+  const userName = user
+    ? (user.user_metadata?.full_name as string | undefined)
+      ?? (user.user_metadata?.name as string | undefined)
+      ?? user.email?.split('@')[0]
+    : undefined;
 
   useEffect(() => {
     if (!venueId) return;
@@ -66,6 +75,8 @@ export default function QRCheckInPage() {
       venueType: venue.category,
       visitorId,
       method:    'qr_link',
+      userId:    user?.id,
+      userName,
     });
     setSaving(false);
     setScore(result.score);
@@ -80,6 +91,7 @@ export default function QRCheckInPage() {
       <CelebrationScreen
         venue={venue}
         score={score}
+        userName={userName}
         onDismiss={() => navigate(`/venue/${venue.slug}`)}
       />
     );
