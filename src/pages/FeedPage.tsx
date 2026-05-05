@@ -1689,7 +1689,6 @@ export default function FeedPage() {
             setRefreshKey(k => k + 1);
           }}
           onClose={() => setAreaPickerOpen(false)}
-          onRequestDetect={() => {}}
         />
       )}
 
