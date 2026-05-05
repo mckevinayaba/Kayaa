@@ -4,20 +4,20 @@
  * Batch script — generates AI descriptions for all seeded venues
  * that still have thin/placeholder descriptions.
  *
- * Uses Google Gemini Flash (FREE — no credit card needed).
- * Get a free key at: https://aistudio.google.com/app/apikey
+ * Uses Groq (FREE — no credit card needed, works from South Africa).
+ * Get a free key at: https://console.groq.com
  *
  * Run:
  *   npx tsx scripts/enrich-venues.ts
  *
- * Requires GEMINI_API_KEY in your .env file.
+ * Requires GROQ_API_KEY in your .env file.
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createClient }        from '@supabase/supabase-js';
-import * as fs                 from 'fs';
-import * as path               from 'path';
-import * as url                from 'url';
+import Groq                from 'groq-sdk';
+import { createClient }    from '@supabase/supabase-js';
+import * as fs             from 'fs';
+import * as path           from 'path';
+import * as url            from 'url';
 
 // ─── Load .env ────────────────────────────────────────────────────────────────
 
@@ -41,24 +41,23 @@ if (fs.existsSync(envPath)) {
 
 const SUPABASE_URL      = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
-const GEMINI_API_KEY    = process.env.GEMINI_API_KEY;
+const GROQ_API_KEY      = process.env.GROQ_API_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('❌  Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env');
   process.exit(1);
 }
-if (!GEMINI_API_KEY) {
-  console.error('❌  Missing GEMINI_API_KEY in .env');
-  console.error('    Get a free key at: https://aistudio.google.com/app/apikey');
-  console.error('    Then add to .env:  GEMINI_API_KEY=AIza...');
+if (!GROQ_API_KEY) {
+  console.error('❌  Missing GROQ_API_KEY in .env');
+  console.error('    Get a free key at: https://console.groq.com');
+  console.error('    Then add to .env:  GROQ_API_KEY=gsk_...');
   process.exit(1);
 }
 
 // ─── Clients ──────────────────────────────────────────────────────────────────
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model    = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const groq     = new Groq({ apiKey: GROQ_API_KEY });
 
 // ─── Category labels ──────────────────────────────────────────────────────────
 
@@ -139,8 +138,20 @@ async function main() {
     process.stdout.write(`  → ${venue.name} (${venue.location})… `);
 
     try {
-      const result      = await model.generateContent(buildPrompt(venue.name, venue.type ?? 'other', venue.location ?? ''));
-      const description = result.response.text().trim();
+      const chat = await groq.chat.completions.create({
+        model:      'llama-3.1-8b-instant',
+        messages:   [{ role: 'user', content: buildPrompt(venue.name, venue.type ?? 'other', venue.location ?? '') }],
+        max_tokens: 80,
+        temperature: 0.7,
+      });
+
+      const description = chat.choices[0]?.message?.content?.trim() ?? '';
+
+      if (!description) {
+        console.log('❌  empty response');
+        failed++;
+        continue;
+      }
 
       const { error: updateErr } = await supabase
         .from('venues')
@@ -160,8 +171,8 @@ async function main() {
       failed++;
     }
 
-    // Gemini free tier: 15 RPM — stay safely under with 1 req/4s
-    await sleep(4100);
+    // Groq free tier: 30 RPM — stay safe with 1 req/2s
+    await sleep(2100);
   }
 
   console.log(`─────────────────────────────────`);

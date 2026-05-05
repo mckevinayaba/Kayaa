@@ -2,12 +2,12 @@
  * /api/generate-description
  *
  * Vercel serverless function — generates an AI description for a Kayaa venue.
- * Uses Google Gemini Flash (free tier: 1,500 req/day, no credit card needed).
+ * Uses Groq (free tier: 14,400 req/day, no credit card needed).
  *
- * Get a free API key at: https://aistudio.google.com/app/apikey
+ * Get a free API key at: https://console.groq.com
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 // ─── Category labels ──────────────────────────────────────────────────────────
 
@@ -64,16 +64,25 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'name, type, and location are required' });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    const result = await model.generateContent(buildPrompt(name, type, location));
-    const description = result.response.text().trim();
+    const chat = await groq.chat.completions.create({
+      model:       'llama-3.1-8b-instant',
+      messages:    [{ role: 'user', content: buildPrompt(name, type, location) }],
+      max_tokens:  80,
+      temperature: 0.7,
+    });
+
+    const description = chat.choices[0]?.message?.content?.trim() ?? '';
+
+    if (!description) {
+      return res.status(500).json({ error: 'Empty response from AI' });
+    }
 
     return res.status(200).json({ description });
   } catch (err) {
