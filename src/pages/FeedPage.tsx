@@ -3,6 +3,7 @@ import { Search, X, MapPin, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLocation from '../hooks/useLocation';
 import { useLocationContext } from '../contexts/LocationContext';
+import AreaSelector from '../components/AreaSelector';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier, tierScore } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
@@ -1235,7 +1236,12 @@ export default function FeedPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
-  const { movedTo, acceptMove, dismissMove, isBrowsing, clearBrowsing, current, activeLabel } = useLocationContext();
+  const {
+    movedTo, acceptMove, dismissMove,
+    isBrowsing, clearBrowsing, current, activeLabel,
+    reconfirmNeeded, dismissReconfirm,
+    confirm: confirmLocation, setManualSuburb,
+  } = useLocationContext();
   const { selectedCountry, categoryLabels } = useCountry();
 
   // Raw data from API (unfiltered beyond isCleanVenue)
@@ -1251,7 +1257,8 @@ export default function FeedPage() {
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
-  const [showComposer, setShowComposer] = useState(false);
+  const [showComposer,   setShowComposer]   = useState(false);
+  const [areaPickerOpen, setAreaPickerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [cacheDate, setCacheDate] = useState<string | null>(null);
@@ -1619,6 +1626,68 @@ export default function FeedPage() {
               ? `Here's what's happening in ${suburb}`
               : 'Set your area to see what\'s nearby'}
           </p>
+        </div>
+      )}
+
+      {/* Area picker — opened when user taps "Change area" in the reconfirm banner */}
+      {areaPickerOpen && (
+        <AreaSelector
+          currentSuburb={current?.suburb ?? ''}
+          onSelect={(s, c) => {
+            setManualSuburb(s, c);
+            setAreaPickerOpen(false);
+            setRefreshKey(k => k + 1);
+          }}
+          onClose={() => setAreaPickerOpen(false)}
+          onRequestDetect={() => {}}
+        />
+      )}
+
+      {/* Reconfirm banner — shown on sign-in when saved suburb is >6 h stale.
+          Never silently assume yesterday's neighbourhood. User decides. */}
+      {reconfirmNeeded && !movedTo && (
+        <div style={{
+          background: 'rgba(245,158,11,0.07)',
+          border: '1px solid rgba(245,158,11,0.25)',
+          borderRadius: '14px',
+          padding: '14px 16px',
+          marginBottom: '14px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '18px' }}>📍</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+                Still in {current?.suburb || suburb}?
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
+                Your saved area was last confirmed a while ago
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => { confirmLocation(); setRefreshKey(k => k + 1); }}
+              style={{
+                flex: 1, padding: '9px 12px', borderRadius: '10px',
+                background: '#39D98A', border: 'none',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: '#000', cursor: 'pointer',
+              }}
+            >
+              Yes, I'm in {current?.suburb || suburb}
+            </button>
+            <button
+              onClick={() => { dismissReconfirm(); setAreaPickerOpen(true); }}
+              style={{
+                flex: 1, padding: '9px 12px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+              }}
+            >
+              Change area
+            </button>
+          </div>
         </div>
       )}
 

@@ -33,12 +33,13 @@ import { useAuth } from './AuthContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LS_CURRENT  = 'kayaa_location';
-const LS_HOME     = 'kayaa_home';
-const LS_BROWSE   = 'kayaa_browsing';
-const STALE_MS    = 30 * 60 * 1000;       // 30 min before background refresh
-const BROWSE_TTL  = 2 * 60 * 60 * 1000;  // browsing overlay expires after 2 h
-const MOVE_KM     = 5;                    // significant-move threshold
+const LS_CURRENT    = 'kayaa_location';
+const LS_HOME       = 'kayaa_home';
+const LS_BROWSE     = 'kayaa_browsing';
+const STALE_MS      = 30 * 60 * 1000;       // 30 min before background refresh
+const BROWSE_TTL    = 2 * 60 * 60 * 1000;  // browsing overlay expires after 2 h
+const MOVE_KM       = 5;                    // significant-move threshold
+const RECONFIRM_MS  = 6 * 60 * 60 * 1000;  // ask "still in X?" after 6 h of inactivity
 
 /**
  * GPS accuracy gate: readings worse than this are IP/cell-tower based
@@ -74,6 +75,13 @@ export interface LocationContextValue {
 
   /** First-run gate: user hasn't confirmed their area yet */
   needsConfirmation: boolean;
+
+  /**
+   * true when the user signed in and their saved suburb is >6 h stale.
+   * Show a "Still in X?" prompt — never silently assume the old area.
+   */
+  reconfirmNeeded: boolean;
+  dismissReconfirm: () => void;
 
   movedTo:     NeighbourhoodInfo | null;
   dismissMove: () => void;
@@ -174,9 +182,10 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     return false;
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(false);
-  const [movedTo, setMovedTo] = useState<NeighbourhoodInfo | null>(null);
+  const [loading,          setLoading]          = useState(false);
+  const [error,            setError]            = useState(false);
+  const [movedTo,          setMovedTo]          = useState<NeighbourhoodInfo | null>(null);
+  const [reconfirmNeeded,  setReconfirmNeeded]  = useState(false);
 
   const currentRef   = useRef(current);
   const confirmedRef = useRef(confirmed);
@@ -205,6 +214,16 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   }
 
   // ── Load profile from Supabase on login ───────────────────────────────────
+  //
+  // Intent-first approach:
+  //   1. Restore the saved suburb instantly — no GPS attempt on sign-in.
+  //      GPS is unreliable on desktop, slow on mobile, and permission-gated.
+  //   2. If the saved suburb is stale (>6 h old), set reconfirmNeeded = true.
+  //      The Feed then shows "Still in Maboneng?" with two explicit buttons.
+  //      The user decides — we never silently assume yesterday's area.
+  //   3. If the suburb was confirmed recently (<6 h), restore it silently.
+  //      The user is almost certainly still there.
+  //
   useEffect(() => {
     if (!user) return;
 
@@ -216,38 +235,37 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (data?.home_suburb) {
+        const confirmedAt = data.location_confirmed_at
+          ? new Date(data.location_confirmed_at).getTime()
+          : 0;
+
         const loc: NeighbourhoodInfo = {
           suburb:      data.home_suburb,
           city:        data.home_city ?? data.home_suburb,
           lat:         data.latitude  ?? undefined,
           lon:         data.longitude ?? undefined,
-          savedAt:     data.location_confirmed_at
-                         ? new Date(data.location_confirmed_at).getTime()
-                         : Date.now(),
-          confirmedAt: data.location_confirmed_at
-                         ? new Date(data.location_confirmed_at).getTime()
-                         : Date.now(),
-          source: 'profile',
+          savedAt:     confirmedAt || Date.now(),
+          confirmedAt: confirmedAt || Date.now(),
+          source:      'profile',
         };
-        // Set the profile suburb as the active location
+
         setCurrent(loc);
         setConfirmed(true);
         writeLS(LS_CURRENT, loc);
         syncLegacy(loc);
 
-        // After restoring the saved suburb, silently check current GPS.
-        // If the user has physically moved (>5 km) since they last confirmed,
-        // detect() will set movedTo and the Feed will show a "Switch?" banner.
-        // This is what makes sign-in location-honest: we never silently keep
-        // yesterday's neighbourhood when the user is physically elsewhere today.
-        detect();
+        // If the saved suburb is older than RECONFIRM_MS (6 h), ask the
+        // user to confirm they're still there. This replaces the failed
+        // GPS-on-sign-in approach which doesn't work on desktop at all.
+        const ageMs = Date.now() - (confirmedAt || 0);
+        if (ageMs > RECONFIRM_MS) {
+          setReconfirmNeeded(true);
+        }
       }
     }
 
     loadProfile();
-  // detect is a stable useCallback ref with [] deps — safe to include
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // re-run only when the logged-in user changes
+  }, [user?.id]);
 
   // ── Computed active ───────────────────────────────────────────────────────
   const active = browsing ?? current ?? home ?? EMPTY;
@@ -360,6 +378,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback(() => {
     setConfirmed(true);
+    setReconfirmNeeded(false); // clear the "still in X?" prompt on explicit confirm
     setCurrent(prev => {
       if (!prev) return prev;
       const updated: NeighbourhoodInfo = { ...prev, confirmedAt: Date.now() };
@@ -380,6 +399,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     };
     setCurrent(loc);
     setConfirmed(true);
+    setReconfirmNeeded(false); // picking a new area answers "still in X?"
     setError(false);
     writeLS(LS_CURRENT, loc);
     syncLegacy(loc);
@@ -419,7 +439,8 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const dismissMove = useCallback(() => setMovedTo(null), []);
+  const dismissMove      = useCallback(() => setMovedTo(null), []);
+  const dismissReconfirm = useCallback(() => setReconfirmNeeded(false), []);
 
   const acceptMove = useCallback(() => {
     if (!movedTo) return;
@@ -448,6 +469,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     loading,
     error,
     needsConfirmation: !confirmed,
+
+    reconfirmNeeded,
+    dismissReconfirm,
 
     movedTo,
     dismissMove,
