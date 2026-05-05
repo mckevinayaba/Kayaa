@@ -1118,7 +1118,7 @@ function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
 function ClaimCTA({ venue }: { venue: Venue }) {
   const [open, setOpen] = useState(false);
   // Don't show if already claimed
-  if (venue.ownerClaimed) return null;
+  if (venue.ownerClaimed === true) return null;
 
   return (
     <>
