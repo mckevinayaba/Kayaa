@@ -2063,10 +2063,10 @@ export default function FeedPage() {
         />
       )}
 
-      {/* Floating compose button */}
+      {/* Floating Post button — the ONE main post action in Home */}
       <button
         onClick={() => setShowComposer(true)}
-        title="Share something with your neighbourhood"
+        title="Post to your neighbourhood"
         style={{
           position: 'fixed', bottom: '80px', right: '16px', zIndex: 50,
           width: '52px', height: '52px', borderRadius: '50%',

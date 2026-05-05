@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Settings, MapPin, Heart, MessageSquare, Briefcase,
-  CheckCircle, Plus, ChevronRight, LogOut, Share2,
+  CheckCircle, Plus, ChevronRight, LogOut, PenSquare,
 } from 'lucide-react';
 import { getUserCheckInHistoryLocal, getVisitorId, calcBadgeTier } from '../lib/api';
 import { getLocalProfile } from './EditProfile';
@@ -77,10 +77,11 @@ export default function ProfilePage() {
         </h1>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={shareKayaa}
-            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            onClick={() => navigate('/board/new')}
+            title="Post to the neighbourhood"
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
-            <Share2 size={16} color="rgba(255,255,255,0.7)" />
+            <PenSquare size={16} color="#39D98A" />
           </button>
           <Link
             to="/venue/dashboard"
@@ -294,7 +295,7 @@ export default function ProfilePage() {
           <SettingsRow label="Edit Profile"       onClick={() => navigate('/profile/edit')} />
           <SettingsRow label="Privacy Settings"  onClick={() => navigate('/settings/privacy')} />
           <SettingsRow label="Venue Dashboard"   onClick={() => navigate('/venue/dashboard')} />
-          <SettingsRow label="Explore Kayaa"     onClick={() => navigate('/explore')} />
+          <SettingsRow label="Discover"           onClick={() => navigate('/explore')} />
           <SettingsRow label="Help & Support"    onClick={() => navigate('/help')} />
           <SettingsRow label="Share Kayaa"       onClick={shareKayaa} />
           <SettingsRow

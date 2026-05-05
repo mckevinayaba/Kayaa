@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Camera, MapPin, Zap, HelpCircle, Package } from 'lucide-react';
+import { HelpCircle, MapPin, Package, Users, Zap, PlusCircle } from 'lucide-react';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
+// Each shortcut navigates to a specific destination — no duplicate compose entry.
+// The green FAB in Home is the ONE main "Post" action.
 
 interface Action {
   icon: React.ElementType;
@@ -12,47 +14,33 @@ interface Action {
 }
 
 const ACTIONS: Action[] = [
-  { icon: MessageSquare, label: 'Ask',      color: '#60A5FA', bg: 'rgba(96,165,250,0.12)',   key: 'post'    },
-  { icon: Camera,        label: 'Photo',    color: '#A78BFA', bg: 'rgba(167,139,250,0.12)',  key: 'photo'   },
-  { icon: MapPin,        label: 'Check in', color: '#39D98A', bg: 'rgba(57,217,138,0.12)',   key: 'checkin' },
-  { icon: Package,       label: 'Sell',     color: '#F97316', bg: 'rgba(249,115,22,0.12)',   key: 'sell'    },
-  { icon: Zap,           label: 'Skill',    color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',   key: 'skill'   },
-  { icon: HelpCircle,    label: 'Help',     color: '#F472B6', bg: 'rgba(244,114,182,0.12)',  key: 'help'    },
+  { icon: MapPin,      label: 'Check In', color: '#39D98A', bg: 'rgba(57,217,138,0.12)',   key: 'checkin'  },
+  { icon: Package,     label: 'Sell',     color: '#F97316', bg: 'rgba(249,115,22,0.12)',   key: 'sell'     },
+  { icon: HelpCircle,  label: 'Ask',      color: '#60A5FA', bg: 'rgba(96,165,250,0.12)',   key: 'ask'      },
+  { icon: Zap,         label: 'Skill',    color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',   key: 'skill'    },
+  { icon: Users,       label: 'Safety',   color: '#EF4444', bg: 'rgba(239,68,68,0.10)',    key: 'safety'   },
+  { icon: PlusCircle,  label: 'Add Place',color: '#A78BFA', bg: 'rgba(167,139,250,0.12)',  key: 'addplace' },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface QuickActionsProps {
-  /** Opens the post-composer modal instead of navigating away */
-  onCompose?: () => void;
+  onCompose?: () => void; // kept for backward compat — no longer used here
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function QuickActions({ onCompose }: QuickActionsProps) {
+export default function QuickActions({ onCompose: _onCompose }: QuickActionsProps) {
   const navigate = useNavigate();
 
   function handleAction(key: string) {
     switch (key) {
-      case 'post':
-        onCompose ? onCompose() : navigate('/board/new?cat=ask');
-        break;
-      case 'photo':
-        // Open the post composer — user can attach a photo there
-        onCompose ? onCompose() : navigate('/board/new?cat=announcements');
-        break;
-      case 'checkin':
-        navigate('/checkin');
-        break;
-      case 'sell':
-        navigate('/board/new?cat=for_sale');
-        break;
-      case 'skill':
-        navigate('/skills/new');
-        break;
-      case 'help':
-        navigate('/board/new?cat=ask');
-        break;
+      case 'checkin':  navigate('/checkin');                      break;
+      case 'sell':     navigate('/board/new?cat=for_sale');       break;
+      case 'ask':      navigate('/board/new?cat=ask');            break;
+      case 'skill':    navigate('/skills/new');                   break;
+      case 'safety':   navigate('/board/new?cat=safety');         break;
+      case 'addplace': navigate('/onboarding');                   break;
     }
   }
 

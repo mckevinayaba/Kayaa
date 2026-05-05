@@ -26,7 +26,7 @@ const CAT_COLOR: Record<string, string> = {
 };
 
 const DISTANCE_OPTIONS = ['500m', '1 km', '2 km', '5 km', 'Any'];
-const STATUS_OPTIONS    = ['Open now', 'Busy now', 'Any status'];
+const STATUS_OPTIONS    = ['Active today', 'Any'];  // community-verified only
 const VERIFIED_OPTIONS  = ['Verified only', 'All places'];
 
 // ─── Skeleton row ─────────────────────────────────────────────────────────────
@@ -56,9 +56,10 @@ function VenueRow({ venue, userLat, userLon }: { venue: Venue; userLat?: number;
   const navigate = useNavigate();
   const emoji = CAT_EMOJI[venue.category] ?? '📍';
   const color = CAT_COLOR[venue.category] ?? '#39D98A';
-  const st    = venue.venueStatus ?? (venue.isOpen ? 'open' : 'closed');
-  const stColor = st === 'busy' ? '#F97316' : st === 'open' ? '#39D98A' : st === 'quiet' ? '#60A5FA' : '#4B5563';
-  const stLabel = st === 'busy' ? 'Busy' : st === 'open' ? 'Open' : st === 'quiet' ? 'Quiet' : 'Closed';
+  // Activity signal — community check-ins, never hardcoded status
+  const todayCount = venue.checkinsToday ?? 0;
+  const stColor = todayCount >= 3 ? '#39D98A' : todayCount >= 1 ? '#FBBF24' : '#4B5563';
+  const stLabel = todayCount >= 3 ? `${todayCount} here today` : todayCount >= 1 ? 'Someone here today' : '';
   const dist =
     userLat != null && userLon != null && venue.latitude != null && venue.longitude != null
       ? haversineKm(userLat, userLon, venue.latitude, venue.longitude)
@@ -145,7 +146,7 @@ export default function ExplorePage() {
   // ── Filter pills ─────────────────────────────────────────────────────────────
 
   const filterPills = useMemo((): FilterPill[] => {
-    const active  = venues.filter(v => v.venueStatus === 'busy' || (v.checkinsToday ?? 0) > 0);
+    const active  = venues.filter(v => (v.checkinsToday ?? 0) >= 1);
     const now     = Date.now();
     const newCutoff = now - 30 * 24 * 60 * 60 * 1000;
     const newPlaces = venues.filter(v => new Date(v.createdAt).getTime() > newCutoff);
@@ -165,7 +166,7 @@ export default function ExplorePage() {
 
     // Category pill filter
     switch (filterCat) {
-      case 'active':  list = list.filter(v => v.venueStatus === 'busy' || (v.checkinsToday ?? 0) > 0); break;
+      case 'active':  list = list.filter(v => (v.checkinsToday ?? 0) >= 1); break;
       case 'new': {
         const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
         list = list.filter(v => new Date(v.createdAt).getTime() > cutoff);
@@ -175,8 +176,7 @@ export default function ExplorePage() {
     }
 
     // Status filter
-    if (statusFilter === 'Open now')  list = list.filter(v => v.venueStatus !== 'closed');
-    if (statusFilter === 'Busy now')  list = list.filter(v => v.venueStatus === 'busy');
+    if (statusFilter === 'Active today') list = list.filter(v => (v.checkinsToday ?? 0) >= 1);
 
     // Verified filter
     if (verifiedOnly) list = list.filter(v => v.isVerified);
@@ -195,7 +195,7 @@ export default function ExplorePage() {
   }, [venues, filterCat, statusFilter, verifiedOnly, distFilter, userLat, userLon]);
 
   const activeNowCount = useMemo(
-    () => venues.filter(v => v.venueStatus === 'busy' || (v.checkinsToday ?? 0) > 0).length,
+    () => venues.filter(v => (v.checkinsToday ?? 0) >= 1).length,
     [venues],
   );
 
@@ -215,7 +215,7 @@ export default function ExplorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div>
             <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0, lineHeight: 1.2 }}>
-              Explore
+              Discover
             </h1>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
               {loading ? '…' : `${filtered.length} places near ${areaLabel}`}

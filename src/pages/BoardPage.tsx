@@ -285,37 +285,45 @@ export default function BoardPage() {
       )}
 
       {/* Header */}
-      <div style={{ padding: '16px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
+      <div style={{ padding: '16px 16px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
           <h1 style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 800,
             fontSize: '22px', color: 'var(--color-text)', margin: 0,
           }}>
-            The Board
+            Board
           </h1>
-          <p style={{
-            fontSize: '13px', color: 'var(--color-muted)',
-            margin: '3px 0 0', fontFamily: 'DM Sans, sans-serif',
-          }}>
-            {display} · {loading ? '…' : `${posts.length} active posts`}
+          <button
+            onClick={() => navigate('/board/mine')}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: '20px', padding: '6px 12px',
+              fontSize: '12px', fontWeight: 600,
+              color: 'var(--color-muted)', cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif',
+            }}
+          >
+            My posts
+          </button>
+        </div>
+
+        {/* What is the Board — shown always, explains the page in one line */}
+        <div style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: '12px', padding: '12px 14px', marginBottom: '14px',
+        }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
+            Your neighbourhood noticeboard. Buy and sell, find services, share safety alerts, ask questions and post what's happening nearby.
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: '6px 0 0' }}>
+            {display} · {loading ? '…' : `${posts.length} active post${posts.length !== 1 ? 's' : ''}`}
             {expanded && !loading && (
-              <span style={{ color: '#F5A623', marginLeft: '6px' }}>· expanded area</span>
+              <span style={{ color: '#F5A623' }}> · showing nearby area</span>
             )}
           </p>
         </div>
-        <button
-          onClick={() => navigate('/board/mine')}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px', padding: '6px 12px',
-            fontSize: '12px', fontWeight: 600,
-            color: 'var(--color-muted)', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif',
-          }}
-        >
-          My posts
-        </button>
       </div>
 
       {/* Post Your Skills banner */}

@@ -28,11 +28,11 @@ function getAvatarUrl(user: ReturnType<typeof useAuth>['user']): string {
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: '/feed',       emoji: '🏠', label: 'Home'    },
-  { to: '/explore',    emoji: '🗺️', label: 'Explore' },
-  { to: '/board',      emoji: '💬', label: 'Board'   },
-  { to: '/onboarding', emoji: '➕', label: 'Add'     },
-  { to: '/profile',    emoji: '👤', label: 'Profile' },
+  { to: '/feed',       emoji: '🏠', label: 'Home'     },
+  { to: '/explore',    emoji: '🔍', label: 'Discover' },
+  { to: '/board',      emoji: '📋', label: 'Board'    },
+  { to: '/onboarding', emoji: '➕', label: 'Add Place'},
+  { to: '/profile',    emoji: '👤', label: 'Profile'  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -226,7 +226,7 @@ export default function AppLayout() {
                 transition: 'border-color 0.15s',
                 flexShrink: 0,
               }}
-              title={`${firstName || 'Profile'} — click to open menu`}
+              title={`${firstName || 'Account'} — quick menu`}
             >
               {avatarUrl ? (
                 <img
