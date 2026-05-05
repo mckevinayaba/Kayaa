@@ -2,14 +2,12 @@
  * /api/generate-description
  *
  * Vercel serverless function — generates an AI description for a Kayaa venue.
- * Called by QuickAddPlace after a venue is saved, and by the batch enrichment
- * script for the initial seed data.
+ * Uses Google Gemini Flash (free tier: 1,500 req/day, no credit card needed).
  *
- * Uses claude-haiku for speed and cost (fractions of a cent per description).
- * Falls back gracefully if the API key is missing or the call fails.
+ * Get a free API key at: https://aistudio.google.com/app/apikey
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ─── Category labels ──────────────────────────────────────────────────────────
 
@@ -53,7 +51,6 @@ Return ONLY the description text. Nothing else.`;
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export default async function handler(req: any, res: any) {
-  // CORS — allow calls from kayaa.co.za and localhost
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -67,20 +64,16 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'name, type, and location are required' });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const message = await client.messages.create({
-      model:      'claude-haiku-4-5',
-      max_tokens: 120,
-      messages:   [{ role: 'user', content: buildPrompt(name, type, location) }],
-    });
-
-    const description = (message.content[0] as { text: string }).text.trim();
+    const result = await model.generateContent(buildPrompt(name, type, location));
+    const description = result.response.text().trim();
 
     return res.status(200).json({ description });
   } catch (err) {

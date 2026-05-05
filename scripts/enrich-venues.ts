@@ -1,33 +1,25 @@
 /**
  * enrich-venues.ts
  *
- * One-time batch script — generates AI descriptions for all seeded venues
+ * Batch script — generates AI descriptions for all seeded venues
  * that still have thin/placeholder descriptions.
  *
- * Run from the project root:
+ * Uses Google Gemini Flash (FREE — no credit card needed).
+ * Get a free key at: https://aistudio.google.com/app/apikey
+ *
+ * Run:
  *   npx tsx scripts/enrich-venues.ts
  *
- * Requires ANTHROPIC_API_KEY in your .env file.
- *
- * What it does:
- *   1. Fetches all venues from Supabase
- *   2. Filters to those with thin descriptions (< 60 chars, or still the
- *      placeholder format "X in Y.")
- *   3. Calls Claude Haiku for each venue to generate a real description
- *   4. Updates the venue record in Supabase
- *   5. Prints a summary of what was updated
- *
- * Safe to re-run — already-enriched venues are skipped.
- * Rate-limited to 1 req/s to respect Nominatim / Anthropic limits.
+ * Requires GEMINI_API_KEY in your .env file.
  */
 
-import Anthropic   from '@anthropic-ai/sdk';
-import { createClient } from '@supabase/supabase-js';
-import * as fs     from 'fs';
-import * as path   from 'path';
-import * as url    from 'url';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient }        from '@supabase/supabase-js';
+import * as fs                 from 'fs';
+import * as path               from 'path';
+import * as url                from 'url';
 
-// ─── Load .env manually (no dotenv dependency needed) ─────────────────────────
+// ─── Load .env ────────────────────────────────────────────────────────────────
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const envPath   = path.join(__dirname, '..', '.env');
@@ -45,27 +37,28 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-// ─── Validate env vars ────────────────────────────────────────────────────────
+// ─── Validate ─────────────────────────────────────────────────────────────────
 
 const SUPABASE_URL      = process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const GEMINI_API_KEY    = process.env.GEMINI_API_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('❌  Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env');
   process.exit(1);
 }
-
-if (!ANTHROPIC_API_KEY) {
-  console.error('❌  Missing ANTHROPIC_API_KEY in .env');
-  console.error('    Add it:  ANTHROPIC_API_KEY=sk-ant-...');
+if (!GEMINI_API_KEY) {
+  console.error('❌  Missing GEMINI_API_KEY in .env');
+  console.error('    Get a free key at: https://aistudio.google.com/app/apikey');
+  console.error('    Then add to .env:  GEMINI_API_KEY=AIza...');
   process.exit(1);
 }
 
 // ─── Clients ──────────────────────────────────────────────────────────────────
 
-const supabase   = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const anthropic  = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model    = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 // ─── Category labels ──────────────────────────────────────────────────────────
 
@@ -80,8 +73,6 @@ const TYPE_LABEL: Record<string, string> = {
   mechanic:   'auto mechanic',
   market:     'fresh produce market',
   gym:        'gym',
-  clinic:     'community clinic',
-  school:     'school',
   other:      'local business',
 };
 
@@ -89,7 +80,6 @@ const TYPE_LABEL: Record<string, string> = {
 
 function isThinDescription(desc: string): boolean {
   if (!desc || desc.length < 60) return true;
-  // Matches our old placeholder format: "Barbershop in Berea." or "Place in X."
   if (/^[A-Za-z\s]+in [A-Za-z\s]+\.$/.test(desc.trim())) return true;
   return false;
 }
@@ -120,7 +110,7 @@ function sleep(ms: number) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🔍  Fetching venues from Supabase…');
+  console.log('🔍  Fetching venues from Supabase…\n');
 
   const { data: venues, error } = await supabase
     .from('venues')
@@ -134,7 +124,7 @@ async function main() {
 
   const toEnrich = (venues ?? []).filter(v => isThinDescription(v.description ?? ''));
 
-  console.log(`📍  Found ${venues?.length ?? 0} total venues`);
+  console.log(`📍  ${venues?.length ?? 0} total venues`);
   console.log(`✨  ${toEnrich.length} need AI descriptions\n`);
 
   if (toEnrich.length === 0) {
@@ -149,16 +139,8 @@ async function main() {
     process.stdout.write(`  → ${venue.name} (${venue.location})… `);
 
     try {
-      const message = await anthropic.messages.create({
-        model:      'claude-haiku-4-5',
-        max_tokens: 120,
-        messages: [{
-          role:    'user',
-          content: buildPrompt(venue.name, venue.type ?? 'other', venue.location ?? ''),
-        }],
-      });
-
-      const description = (message.content[0] as { text: string }).text.trim();
+      const result      = await model.generateContent(buildPrompt(venue.name, venue.type ?? 'other', venue.location ?? ''));
+      const description = result.response.text().trim();
 
       const { error: updateErr } = await supabase
         .from('venues')
@@ -166,29 +148,29 @@ async function main() {
         .eq('slug', venue.slug);
 
       if (updateErr) {
-        console.log(`❌  update failed: ${updateErr.message}`);
+        console.log(`❌  ${updateErr.message}`);
         failed++;
       } else {
         console.log(`✅`);
-        console.log(`     "${description}"`);
+        console.log(`     "${description}"\n`);
         updated++;
       }
     } catch (err: any) {
-      console.log(`❌  AI error: ${err?.message ?? 'unknown'}`);
+      console.log(`❌  ${err?.message ?? 'unknown error'}`);
       failed++;
     }
 
-    // Rate limit: 1 request per second to stay within Anthropic free tier limits
-    await sleep(1100);
+    // Gemini free tier: 15 RPM — stay safely under with 1 req/4s
+    await sleep(4100);
   }
 
-  console.log(`\n─────────────────────────────────`);
+  console.log(`─────────────────────────────────`);
   console.log(`✅  Updated: ${updated}`);
-  console.log(`❌  Failed:  ${failed}`);
+  if (failed > 0) console.log(`❌  Failed:  ${failed}`);
   console.log(`─────────────────────────────────`);
 }
 
 main().catch(err => {
-  console.error('Fatal error:', err);
+  console.error('Fatal:', err);
   process.exit(1);
 });
