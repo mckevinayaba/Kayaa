@@ -230,14 +230,25 @@ export async function createVenueOwner(data: {
 export async function getVenueOwnerByUserId(
   userId: string
 ): Promise<{ venueId: string; ownerName: string } | null> {
+  // 1) Check venue_owners table (older path — user_id may not always be set)
   const { data, error } = await supabase
     .from('venue_owners')
     .select('venue_id, name')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (error || !data) return null;
-  return { venueId: data.venue_id, ownerName: data.name };
+  if (!error && data) return { venueId: data.venue_id, ownerName: data.name };
+
+  // 2) Fallback: venues.owner_user_id (set by onboarding flow)
+  const { data: vRow, error: vErr } = await supabase
+    .from('venues')
+    .select('id, name')
+    .eq('owner_user_id', userId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (vErr || !vRow) return null;
+  return { venueId: vRow.id, ownerName: vRow.name };
 }
 
 export async function getVenueById(id: string): Promise<Venue | null> {

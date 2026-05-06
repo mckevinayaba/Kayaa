@@ -9,16 +9,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   getVenueOwnerByUserId, getVenueById,
-  getDashboardStats, getWeeklyRhythm,
+  getDashboardStats, getWeeklyRhythm, getRecentCheckIns,
 } from '../lib/api';
 import type { Venue } from '../types';
-import type { WeeklyBar } from '../lib/api';
+import type { WeeklyBar, DashboardCheckIn } from '../lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface DashStats {
   todayCheckins:  number;
   weekCheckins:   number;
+  totalCheckins:  number;
   weekViews:      number;
   regularsCount:  number;
   safetyRating:   number;
@@ -211,6 +212,7 @@ export default function VenueDashboard() {
   const [venue,    setVenue]    = useState<Venue | null>(null);
   const [stats,    setStats]    = useState<DashStats | null>(null);
   const [bars,     setBars]     = useState<WeeklyBar[]>([]);
+  const [recent,   setRecent]   = useState<DashboardCheckIn[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [refresh,  setRefresh]  = useState(false);
 
@@ -229,22 +231,30 @@ export default function VenueDashboard() {
       if (!v) { setLoading(false); setRefresh(false); return; }
       setVenue(v);
 
-      // Load stats + weekly rhythm in parallel
-      const [studioStats, weeklyBars, viewsRes, regularsRes, safetyRes] = await Promise.all([
+      // Load all stats in parallel
+      const [studioStats, weeklyBars, recentCIs, viewsRes, totalRes, regularsRes, safetyRes] = await Promise.all([
         getDashboardStats(v.id),
         getWeeklyRhythm(v.id),
-        // weekly views from venue_views table
+        getRecentCheckIns(v.id, 15),
+        // weekly profile views
         supabase
           .from('venue_views')
           .select('id', { count: 'exact', head: true })
           .eq('venue_id', v.id)
           .gte('viewed_at', new Date(Date.now() - 7 * 86_400_000).toISOString()),
-        // regulars count
+        // all-time total check-ins
         supabase
-          .from('regular_scores')
+          .from('check_ins')
           .select('id', { count: 'exact', head: true })
           .eq('venue_id', v.id),
-        // safety rating
+        // regulars from check_ins (more reliable than regular_scores)
+        supabase
+          .from('check_ins')
+          .select('visitor_name')
+          .eq('venue_id', v.id)
+          .eq('is_ghost', false)
+          .not('visitor_name', 'is', null),
+        // safety rating (optional table)
         supabase
           .from('place_safety_summary')
           .select('avg_score')
@@ -252,12 +262,22 @@ export default function VenueDashboard() {
           .maybeSingle(),
       ]);
 
+      // Count unique regulars (visited 5+ times) from check_ins
+      const nameCounts: Record<string, number> = {};
+      for (const row of regularsRes.data ?? []) {
+        const n = row.visitor_name as string;
+        if (n) nameCounts[n] = (nameCounts[n] ?? 0) + 1;
+      }
+      const trueRegularsCount = Object.values(nameCounts).filter(c => c >= 5).length;
+
       setBars(weeklyBars);
+      setRecent(recentCIs);
       setStats({
         todayCheckins:  studioStats.todayCount,
         weekCheckins:   studioStats.weekCount,
+        totalCheckins:  totalRes.count ?? v.checkinCount ?? 0,
         weekViews:      viewsRes.count ?? 0,
-        regularsCount:  regularsRes.count ?? v.regularsCount,
+        regularsCount:  trueRegularsCount || v.regularsCount,
         safetyRating:   Number(safetyRes.data?.avg_score ?? 0),
         dailyAvg:       studioStats.dailyAvg,
         lapsedCount:    studioStats.lapsedCount,
@@ -418,8 +438,8 @@ export default function VenueDashboard() {
             icon={<Users size={18} color="rgba(167,139,250,0.6)" />}
           />
           <StatTile
-            value={stats?.safetyRating ? stats.safetyRating.toFixed(1) : '—'}
-            label="Safety rating"
+            value={stats?.totalCheckins ?? 0}
+            label="All-time"
             accent="#FBBF24"
             icon={<Star size={18} color="rgba(251,191,36,0.6)" />}
           />
@@ -466,6 +486,89 @@ export default function VenueDashboard() {
               <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> daily avg</span>
             </div>
           </div>
+        </div>
+
+        {/* ── Recent visitors ─────────────────────────────────────────────── */}
+        <div style={{
+          background: '#161B22', border: '1px solid #21262D',
+          borderRadius: '16px', padding: '16px', marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '1px' }}>
+                Recent visitors
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                Last {recent.length} check-ins
+              </div>
+            </div>
+            <CheckSquare size={16} color="rgba(57,217,138,0.5)" />
+          </div>
+
+          {recent.length === 0 ? (
+            <div style={{
+              padding: '20px 0', textAlign: 'center',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)',
+            }}>
+              No check-ins yet — share your QR code to get started
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {recent.map((ci, i) => {
+                const name = ci.isGhost ? 'Anonymous' : ci.visitorName;
+                const initial = ci.isGhost ? '?' : (name[0]?.toUpperCase() ?? '?');
+                const COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
+                const color = ci.isGhost ? 'rgba(255,255,255,0.3)' : COLORS[i % COLORS.length];
+                const isFirstTime = ci.isFirstVisit;
+                return (
+                  <div key={ci.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {/* Avatar */}
+                    <div style={{
+                      width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+                      background: `${color}18`, border: `1.5px solid ${color}35`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color,
+                    }}>
+                      {initial}
+                    </div>
+                    {/* Name + meta */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F0F6FC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {name}
+                        </span>
+                        {isFirstTime && (
+                          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px', color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                            NEW
+                          </span>
+                        )}
+                        {ci.visitNumber >= 5 && !ci.isGhost && (
+                          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px', color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                            REGULAR
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+                        visit #{ci.visitNumber}
+                      </div>
+                    </div>
+                    {/* Time */}
+                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
+                      {(() => {
+                        const diff = Date.now() - new Date(ci.createdAt).getTime();
+                        const mins = Math.floor(diff / 60000);
+                        if (mins < 1) return 'just now';
+                        if (mins < 60) return `${mins}m ago`;
+                        const hrs = Math.floor(mins / 60);
+                        if (hrs < 24) return `${hrs}h ago`;
+                        return new Date(ci.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
+                      })()}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Quick actions ────────────────────────────────────────────────── */}
