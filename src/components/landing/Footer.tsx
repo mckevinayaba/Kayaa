@@ -122,6 +122,14 @@ export function Footer() {
             >
               WhatsApp
             </a>
+            <a
+              href="https://web.facebook.com/profile.php?id=61572162167106"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Facebook"
+            >
+              Facebook
+            </a>
             <a href="mailto:hello@kayaa.co.za">Email</a>
           </div>
           <div
