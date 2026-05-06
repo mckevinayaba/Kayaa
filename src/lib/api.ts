@@ -1041,6 +1041,57 @@ export function getUserCheckInHistoryLocal(visitorId: string): CheckInHistoryIte
   return raw ? JSON.parse(raw) : [];
 }
 
+/**
+ * Fetch an authenticated user's full check-in history from the DB.
+ * Aggregates by venue so each entry shows total visit count + last visit date.
+ * Falls back to [] on any error — callers should use localStorage as backup.
+ */
+export async function getUserCheckInsFromDB(userId: string): Promise<CheckInHistoryItem[]> {
+  const { data, error } = await supabase
+    .from('check_ins')
+    .select('venue_id, created_at, venues(name, slug, type)')
+    .eq('user_id', userId)
+    .eq('is_ghost', false)
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) return [];
+
+  // Aggregate rows by venue_id
+  const groups: Record<string, {
+    venueName: string; venueSlug: string; venueType: string;
+    count: number; lastVisit: string;
+  }> = {};
+
+  for (const row of data) {
+    const vid = row.venue_id as string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const venue = (row as any).venues as { name?: string; slug?: string; type?: string } | null;
+    if (!groups[vid]) {
+      groups[vid] = {
+        venueName: venue?.name ?? '',
+        venueSlug: venue?.slug ?? '',
+        venueType: venue?.type ?? '',
+        count: 0,
+        lastVisit: row.created_at,
+      };
+    }
+    groups[vid].count++;
+    if (row.created_at > groups[vid].lastVisit) groups[vid].lastVisit = row.created_at;
+  }
+
+  return Object.entries(groups)
+    .map(([venueId, d]) => ({
+      venueId,
+      venueName: d.venueName,
+      venueSlug: d.venueSlug,
+      venueType: d.venueType,
+      visitCount: d.count,
+      lastVisit:  d.lastVisit,
+      badgeTier:  calcBadgeTier(d.count),
+    }))
+    .sort((a, b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
+}
+
 // ─── Studio Dashboard API ─────────────────────────────────────────────────────
 
 export interface StudioStats {

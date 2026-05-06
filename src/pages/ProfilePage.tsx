@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Settings, MapPin, Heart, MessageSquare, Briefcase,
   CheckCircle, Plus, ChevronRight, LogOut, PenSquare,
 } from 'lucide-react';
-import { getUserCheckInHistoryLocal, getVisitorId, calcBadgeTier } from '../lib/api';
+import {
+  getUserCheckInHistoryLocal, getUserCheckInsFromDB,
+  getVisitorId, calcBadgeTier, type CheckInHistoryItem,
+} from '../lib/api';
 import { getLocalProfile } from './EditProfile';
 import { useAuth } from '../contexts/AuthContext';
 import { AchievementBadges }  from '../components/profile/AchievementBadges';
@@ -45,7 +48,24 @@ export default function ProfilePage() {
   const navigate   = useNavigate();
   const { user, signOut } = useAuth();
   const visitorId  = getVisitorId();
-  const history    = useMemo(() => getUserCheckInHistoryLocal(visitorId), [visitorId]);
+
+  // DB history for authenticated users; falls back to localStorage for anonymous
+  const [dbHistory, setDbHistory]   = useState<CheckInHistoryItem[] | null>(null);
+  const [histLoading, setHistLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) { setDbHistory(null); return; }
+    setHistLoading(true);
+    getUserCheckInsFromDB(user.id)
+      .then(rows => setDbHistory(rows))
+      .catch(() => setDbHistory(null))
+      .finally(() => setHistLoading(false));
+  }, [user?.id]);
+
+  // Prefer DB data for logged-in users; anonymous falls back to localStorage
+  const localHistory = useMemo(() => getUserCheckInHistoryLocal(visitorId), [visitorId]);
+  const history = user ? (dbHistory ?? localHistory) : localHistory;
+
   const [tab, setTab] = useState<Tab>('checkins');
   const localProfile = getLocalProfile();
 
@@ -123,7 +143,11 @@ export default function ProfilePage() {
           <div style={{ flex: 1, paddingTop: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
-                {localProfile.name || 'Kayaa Member'}
+                {localProfile.name
+                  || (user?.user_metadata?.full_name as string | undefined)
+                  || (user?.user_metadata?.name as string | undefined)
+                  || (user?.email?.split('@')[0])
+                  || 'Kayaa Member'}
               </h2>
               <button
                 onClick={() => navigate('/profile/edit')}
@@ -160,7 +184,7 @@ export default function ProfilePage() {
             { label: 'Regulars',  value: regularsCount },
           ].map(({ label, value }) => (
             <div key={label} style={{ textAlign: 'center', padding: '10px 4px' }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff' }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff', opacity: histLoading ? 0.4 : 1, transition: 'opacity 0.2s' }}>
                 {value}
               </div>
               <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
