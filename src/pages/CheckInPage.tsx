@@ -191,7 +191,7 @@ function QRScanner({ onDetect, onClose }: QRScannerProps) {
                 width: '100%', background: '#161B22',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '10px', padding: '12px',
-                color: '#fff', fontSize: '13px',
+                color: '#fff', fontSize: '16px',
                 boxSizing: 'border-box', marginBottom: '8px',
               }}
             />

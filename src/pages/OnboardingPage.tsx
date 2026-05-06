@@ -105,7 +105,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
 const inputStyle: React.CSSProperties = {
   width: '100%', background: 'var(--color-surface)',
   border: '1px solid var(--color-border)', borderRadius: '14px',
-  padding: '15px 16px', color: 'var(--color-text)', fontSize: '15px',
+  padding: '15px 16px', color: 'var(--color-text)', fontSize: '16px',
   fontFamily: 'DM Sans, sans-serif', outline: 'none',
   boxSizing: 'border-box', minHeight: '52px',
 };

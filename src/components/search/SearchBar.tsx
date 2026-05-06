@@ -242,7 +242,7 @@ export default function SearchBar({
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
             color: isListening ? '#39D98A' : 'var(--color-text)',
-            fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+            fontSize: '16px', fontFamily: 'DM Sans, sans-serif',
             padding: '12px 8px',
             // Remove default search-input clear button (handled manually)
             WebkitAppearance: 'none',

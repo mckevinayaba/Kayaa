@@ -40,6 +40,18 @@ h1, h2, h3, h4, h5, h6 {
   --color-amber: var(--color-amber);
 }
 
+/* ── Mobile: prevent iOS auto-zoom on input focus ──── */
+/* iOS Safari zooms in when an input has font-size < 16px.
+   This ensures all inputs/textareas/selects are safe by default. */
+input, textarea, select {
+  font-size: max(16px, 1em);
+}
+
+/* ── Mobile: tap highlight ─────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ── Accessibility ─────────────────────────────────── */
 .sr-only {
   position: absolute;
