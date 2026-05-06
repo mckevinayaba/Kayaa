@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
-import { useLocationContext } from '../contexts/LocationContext';
+import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import AreaSelector from '../components/AreaSelector';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -41,21 +41,29 @@ export default function AppLayout() {
   const routerLocation  = useRouterLocation();
   const navigate        = useNavigate();
   const { user, signOut } = useAuth();
-  const { suburb, current, loading, error, needsConfirmation, setManualSuburb, confirm } = useLocationContext();
+  const {
+    displaySuburb, displayCity,
+    isDetecting, detectionError,
+    manualOverride, setManualOverride,
+  } = useNeighbourhood();
   const [areaOpen,    setAreaOpen]    = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const isVenuePage = routerLocation.pathname.startsWith('/venue');
 
-  // Only show a suburb name when it has been explicitly confirmed.
-  // Unconfirmed or IP-based readings (Honeydew / Randburg) show the neutral label.
+  // Location chip label:
+  //   - Venue pages: "Place" (irrelevant to current location)
+  //   - Detecting: "Locating…"
+  //   - GPS denied/failed and nothing typed: "Set your area"
+  //   - Otherwise: detected suburb or city
   const locationLabel = isVenuePage
     ? 'Place'
-    : loading
-      ? '…'
-      : (suburb && !needsConfirmation) ? suburb : 'Set your area';
+    : isDetecting
+      ? 'Locating…'
+      : displaySuburb || displayCity || 'Set your area';
 
-  const needsArea = error && !suburb;
+  // Show AreaSelector automatically only if GPS was denied (user must type manually)
+  const needsArea = detectionError === 'denied' && !manualOverride;
 
   const firstName  = getFirstName(user);
   const avatarUrl  = getAvatarUrl(user);
@@ -74,20 +82,11 @@ export default function AppLayout() {
       {/* Skip link */}
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
-      {/* AreaSelector */}
-      {needsArea && (
+      {/* AreaSelector — shown when GPS denied (forced) or when user taps the chip */}
+      {(needsArea || areaOpen) && (
         <AreaSelector
-          currentSuburb={suburb}
-          suggestedSuburb={current?.source === 'gps' ? current.suburb : undefined}
-          suggestedCity={current?.source === 'gps' ? current.city : undefined}
-          onSelect={(s, c) => { setManualSuburb(s, c); confirm(); }}
-          onClose={() => {}}
-        />
-      )}
-      {areaOpen && !needsArea && (
-        <AreaSelector
-          currentSuburb={suburb}
-          onSelect={(s, c) => { setManualSuburb(s, c); confirm(); setAreaOpen(false); }}
+          currentSuburb={displaySuburb}
+          onSelect={(s, c) => { setManualOverride(s, c); setAreaOpen(false); }}
           onClose={() => setAreaOpen(false)}
         />
       )}
@@ -193,18 +192,18 @@ export default function AppLayout() {
               padding: '5px 10px',
             }}
           >
-            {loading ? (
+            {isDetecting ? (
               <div style={{
                 width: '7px', height: '7px', borderRadius: '50%',
                 background: '#39D98A', opacity: 0.6,
                 animation: 'navLocPulse 1.2s ease-in-out infinite',
               }} />
             ) : (
-              <MapPin size={12} color="#39D98A" />
+              <MapPin size={12} color={displaySuburb ? '#39D98A' : 'rgba(255,255,255,0.4)'} />
             )}
             <span style={{
               fontSize: '12px', fontWeight: 600,
-              color: (suburb && !needsConfirmation) ? 'var(--color-text)' : 'var(--color-muted)',
+              color: displaySuburb ? 'var(--color-text)' : 'var(--color-muted)',
               fontFamily: 'DM Sans, sans-serif',
             }}>
               {locationLabel}

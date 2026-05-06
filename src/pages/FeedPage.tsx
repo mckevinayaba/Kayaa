@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, MapPin, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import useLocation from '../hooks/useLocation';
-import { useLocationContext } from '../contexts/LocationContext';
+import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import AreaSelector from '../components/AreaSelector';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier, tierScore } from '../lib/areaGroups';
@@ -1236,14 +1235,13 @@ function InstallBanner() {
 export default function FeedPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { suburb, city, lat: userLat, lon: userLon, needsConfirmation } = useLocation();
   const {
-    movedTo, acceptMove, dismissMove,
-    isBrowsing, clearBrowsing, current, activeLabel,
-    reconfirmNeeded, dismissReconfirm,
-    confirm: confirmLocation, setManualSuburb,
-    profileChecked,
-  } = useLocationContext();
+    displaySuburb: suburb, displayCity: city,
+    displayLat: userLat, displayLon: userLon,
+    isDetecting, manualOverride,
+    setManualOverride, clearManualOverride,
+  } = useNeighbourhood();
+  const needsConfirmation = !isDetecting && !suburb && !manualOverride;
   const { selectedCountry, categoryLabels } = useCountry();
 
   // Raw data from API (unfiltered beyond isCleanVenue)
@@ -1260,7 +1258,6 @@ export default function FeedPage() {
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [showComposer,    setShowComposer]    = useState(false);
-  const [areaPickerOpen,  setAreaPickerOpen]  = useState(false);
   const [quickAddOpen,    setQuickAddOpen]    = useState(false);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -1296,24 +1293,20 @@ export default function FeedPage() {
   const [scope, setScope] = useState<FeedScope>('nearby');
   const [manualScope, setManualScope] = useState<FeedScope | null>(null);
 
-  // Only show the gate when:
-  //  1. profileChecked = true (Supabase profile load has completed — no flicker for returning users)
-  //  2. needsConfirmation = true (no confirmed area yet)
-  //  3. no suburb/city resolved from any source
-  const hasAnyLocation = !!(suburb || city);
+  // Show the area gate only after GPS has finished AND found nothing.
+  // While GPS is running: never show (avoids flash for users whose GPS works).
+  // After GPS completes with no suburb: show the manual picker.
+  // Once any location resolves: hide automatically.
   const [showAreaGate, setShowAreaGate] = useState(false);
 
-  // Open gate only once profileChecked, if still no location
   useEffect(() => {
-    if (profileChecked && needsConfirmation && !hasAnyLocation) {
+    // GPS done and no suburb or manual override → ask user to type
+    if (!isDetecting && !suburb && !manualOverride) {
       setShowAreaGate(true);
+    } else {
+      setShowAreaGate(false);
     }
-  }, [profileChecked]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Close gate as soon as location resolves
-  useEffect(() => {
-    if (!needsConfirmation || suburb || city) setShowAreaGate(false);
-  }, [needsConfirmation, suburb, city]);
+  }, [isDetecting, suburb, manualOverride]);
 
   const areaLabel = suburb || city || 'Your area';
 
@@ -1689,117 +1682,8 @@ export default function FeedPage() {
         />
       )}
 
-      {/* Area picker — opened when user taps "Change area" in the reconfirm banner */}
-      {areaPickerOpen && (
-        <AreaSelector
-          currentSuburb={current?.suburb ?? ''}
-          onSelect={(s, c) => {
-            setManualSuburb(s, c);
-            setAreaPickerOpen(false);
-            setRefreshKey(k => k + 1);
-          }}
-          onClose={() => setAreaPickerOpen(false)}
-        />
-      )}
-
-      {/* Reconfirm banner — shown on sign-in when saved suburb is >6 h stale.
-          Never silently assume yesterday's neighbourhood. User decides. */}
-      {reconfirmNeeded && !movedTo && (
-        <div style={{
-          background: 'rgba(245,158,11,0.07)',
-          border: '1px solid rgba(245,158,11,0.25)',
-          borderRadius: '14px',
-          padding: '14px 16px',
-          marginBottom: '14px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>📍</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
-                Still in {current?.suburb || suburb}?
-              </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
-                Your saved area was last confirmed a while ago
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => { confirmLocation(); setRefreshKey(k => k + 1); }}
-              style={{
-                flex: 1, padding: '9px 12px', borderRadius: '10px',
-                background: '#39D98A', border: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
-                color: '#000', cursor: 'pointer',
-              }}
-            >
-              Yes, I'm in {current?.suburb || suburb}
-            </button>
-            <button
-              onClick={() => { dismissReconfirm(); setAreaPickerOpen(true); }}
-              style={{
-                flex: 1, padding: '9px 12px', borderRadius: '10px',
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
-                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-              }}
-            >
-              Change area
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Move-detection card — appears when GPS detects you've moved to a new area */}
-      {movedTo && (
-        <div style={{
-          background: 'rgba(57,217,138,0.06)',
-          border: '1px solid rgba(57,217,138,0.22)',
-          borderRadius: '14px',
-          padding: '14px 16px',
-          marginBottom: '14px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>📍</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
-                You're in a different area
-              </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
-                GPS shows you're near <strong style={{ color: '#39D98A' }}>{movedTo.suburb || movedTo.city}</strong>,
-                {' '}but your saved area is <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{current?.suburb || suburb}</strong>
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => { acceptMove(); setRefreshKey(k => k + 1); }}
-              style={{
-                flex: 1, padding: '9px 12px', borderRadius: '10px',
-                background: '#39D98A', border: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
-                color: '#000', cursor: 'pointer',
-              }}
-            >
-              Switch to {movedTo.suburb || movedTo.city}
-            </button>
-            <button
-              onClick={dismissMove}
-              style={{
-                flex: 1, padding: '9px 12px', borderRadius: '10px',
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
-                color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
-              }}
-            >
-              Stay in {current?.suburb || suburb}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Browsing indicator — when user is viewing a different area than their current location */}
-      {isBrowsing && (
+      {/* Manual area indicator — shown when user is browsing a different area than GPS */}
+      {manualOverride && suburb && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
@@ -1807,14 +1691,13 @@ export default function FeedPage() {
         }}>
           <span style={{ fontSize: '13px' }}>🔍</span>
           <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>
-            Browsing <strong>{activeLabel}</strong>
-            {current && ` · Currently in ${current.suburb || current.city}`}
+            Browsing <strong>{manualOverride}</strong>
           </span>
           <button
-            onClick={() => { clearBrowsing(); setRefreshKey(k => k + 1); }}
+            onClick={() => { clearManualOverride(); setRefreshKey(k => k + 1); }}
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}
           >
-            Back home
+            Use GPS
           </button>
         </div>
       )}

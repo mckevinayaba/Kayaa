@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
+import { NeighbourhoodProvider } from './contexts/NeighbourhoodContext';
 import { LocationProvider } from './contexts/LocationContext';
 import AppLayout from './layouts/AppLayout';
 import AuthLayout from './layouts/AuthLayout';
@@ -71,6 +72,7 @@ function FeedGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
+    <NeighbourhoodProvider>
     <AuthProvider>
       <LocationProvider>
       <BrowserRouter>
@@ -191,5 +193,6 @@ export default function App() {
       </BrowserRouter>
       </LocationProvider>
     </AuthProvider>
+    </NeighbourhoodProvider>
   );
 }
