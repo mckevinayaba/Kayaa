@@ -1242,6 +1242,7 @@ export default function FeedPage() {
     isBrowsing, clearBrowsing, current, activeLabel,
     reconfirmNeeded, dismissReconfirm,
     confirm: confirmLocation, setManualSuburb,
+    profileChecked,
   } = useLocationContext();
   const { selectedCountry, categoryLabels } = useCountry();
 
@@ -1295,12 +1296,21 @@ export default function FeedPage() {
   const [scope, setScope] = useState<FeedScope>('nearby');
   const [manualScope, setManualScope] = useState<FeedScope | null>(null);
 
-  // Only show the gate when there is truly no location data yet (brand new user).
-  // Legacy users (kayaa_city in localStorage) are pre-confirmed in LocationContext.
+  // Only show the gate when:
+  //  1. profileChecked = true (Supabase profile load has completed — no flicker for returning users)
+  //  2. needsConfirmation = true (no confirmed area yet)
+  //  3. no suburb/city resolved from any source
   const hasAnyLocation = !!(suburb || city);
-  const [showAreaGate, setShowAreaGate] = useState(needsConfirmation && !hasAnyLocation);
+  const [showAreaGate, setShowAreaGate] = useState(false);
 
-  // If context resolves location after mount, close the gate automatically.
+  // Open gate only once profileChecked, if still no location
+  useEffect(() => {
+    if (profileChecked && needsConfirmation && !hasAnyLocation) {
+      setShowAreaGate(true);
+    }
+  }, [profileChecked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close gate as soon as location resolves
   useEffect(() => {
     if (!needsConfirmation || suburb || city) setShowAreaGate(false);
   }, [needsConfirmation, suburb, city]);

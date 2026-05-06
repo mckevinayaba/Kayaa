@@ -73,6 +73,13 @@ export interface LocationContextValue {
   loading: boolean;
   error:   boolean;
 
+  /**
+   * true once the Supabase profile load has completed (success or failure).
+   * Use this to avoid showing the "set your area" gate before we know
+   * whether the user already has a saved suburb.
+   */
+  profileChecked: boolean;
+
   /** First-run gate: user hasn't confirmed their area yet */
   needsConfirmation: boolean;
 
@@ -180,6 +187,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [error,            setError]            = useState(false);
   const [movedTo,          setMovedTo]          = useState<NeighbourhoodInfo | null>(null);
   const [reconfirmNeeded,  setReconfirmNeeded]  = useState(false);
+  // true once the Supabase profile fetch has resolved (success or failure)
+  // For unauthenticated users it is true immediately (no fetch needed)
+  const [profileChecked,   setProfileChecked]   = useState(!user);
 
   const currentRef   = useRef(current);
   const confirmedRef = useRef(confirmed);
@@ -222,39 +232,45 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     async function loadProfile() {
-      const { data } = await supabase
-        .from('profiles')
-        .select('home_suburb, home_city, latitude, longitude, location_source, location_confirmed_at')
-        .eq('id', user!.id)
-        .single();
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('home_suburb, home_city, latitude, longitude, location_source, location_confirmed_at')
+          .eq('id', user!.id)
+          .single();
 
-      if (data?.home_suburb) {
-        const confirmedAt = data.location_confirmed_at
-          ? new Date(data.location_confirmed_at).getTime()
-          : 0;
+        if (data?.home_suburb) {
+          const confirmedAt = data.location_confirmed_at
+            ? new Date(data.location_confirmed_at).getTime()
+            : 0;
 
-        const loc: NeighbourhoodInfo = {
-          suburb:      data.home_suburb,
-          city:        data.home_city ?? data.home_suburb,
-          lat:         data.latitude  ?? undefined,
-          lon:         data.longitude ?? undefined,
-          savedAt:     confirmedAt || Date.now(),
-          confirmedAt: confirmedAt || Date.now(),
-          source:      'profile',
-        };
+          const loc: NeighbourhoodInfo = {
+            suburb:      data.home_suburb,
+            city:        data.home_city ?? data.home_suburb,
+            lat:         data.latitude  ?? undefined,
+            lon:         data.longitude ?? undefined,
+            savedAt:     confirmedAt || Date.now(),
+            confirmedAt: confirmedAt || Date.now(),
+            source:      'profile',
+          };
 
-        setCurrent(loc);
-        setConfirmed(true);
-        writeLS(LS_CURRENT, loc);
-        syncLegacy(loc);
+          setCurrent(loc);
+          setConfirmed(true);
+          writeLS(LS_CURRENT, loc);
+          syncLegacy(loc);
 
-        // If the saved suburb is older than RECONFIRM_MS (6 h), ask the
-        // user to confirm they're still there. This replaces the failed
-        // GPS-on-sign-in approach which doesn't work on desktop at all.
-        const ageMs = Date.now() - (confirmedAt || 0);
-        if (ageMs > RECONFIRM_MS) {
-          setReconfirmNeeded(true);
+          // If the saved suburb is older than RECONFIRM_MS (6 h), ask the
+          // user to confirm they're still there.
+          const ageMs = Date.now() - (confirmedAt || 0);
+          if (ageMs > RECONFIRM_MS) {
+            setReconfirmNeeded(true);
+          }
         }
+      } catch {
+        // Non-fatal — profiles table may not exist yet
+      } finally {
+        // Always mark as checked so the gate knows whether to show
+        setProfileChecked(true);
       }
     }
 
@@ -462,6 +478,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
     loading,
     error,
+    profileChecked,
     needsConfirmation: !confirmed,
 
     reconfirmNeeded,

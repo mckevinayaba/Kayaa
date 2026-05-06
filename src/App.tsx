@@ -43,53 +43,27 @@ import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 
-// ── Root: authenticated → feed/setup, anonymous → welcome (product front door) ─
-// kayaa.co.za IS the product. /welcome is sign-in/sign-up. No waitlist.
+// ── Root: authenticated → feed, anonymous → landing page ────────────────────
+// Signed-in users ALWAYS go to /feed immediately.
+// Location is loaded async by LocationContext (Supabase profile → GPS → manual).
+// The feed handles the "no area yet" state with an inline banner.
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) {
-    const setupDone = localStorage.getItem('kayaa_setup_done');
-    if (setupDone) return <Navigate to="/feed" replace />;
-    const hasLocation = !!(
-      localStorage.getItem('kayaa_suburb') ||
-      localStorage.getItem('kayaa_city') ||
-      localStorage.getItem('kayaa_location_current')
-    );
-    if (hasLocation) {
-      localStorage.setItem('kayaa_setup_done', 'true');
-      return <Navigate to="/feed" replace />;
-    }
-    return <Navigate to="/setup" replace />;
-  }
+  if (user) return <Navigate to="/feed" replace />;
   // Unauthenticated → landing page (the product front door)
   return <Navigate to="/about" replace />;
 }
 
-// ── Post-auth guard: redirects unauthenticated → /welcome, new users → /setup ─
-// Handles the case where Google OAuth or magic link drops a new user straight on /feed.
+// ── Post-auth guard: only redirects unauthenticated users to /welcome ────────
+// No longer redirects to /setup — location setup is inline on the feed.
 function FeedGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (loading) return;
-    if (!user) {
-      navigate('/welcome', { replace: true });
-      return;
-    }
-    const setupDone = localStorage.getItem('kayaa_setup_done');
-    if (setupDone) return;
-    const hasLocation = !!(
-      localStorage.getItem('kayaa_suburb') ||
-      localStorage.getItem('kayaa_city') ||
-      localStorage.getItem('kayaa_location_current')
-    );
-    if (hasLocation) {
-      localStorage.setItem('kayaa_setup_done', 'true');
-      return;
-    }
-    navigate('/setup', { replace: true });
+    if (!user) navigate('/welcome', { replace: true });
   }, [user, loading, navigate]);
 
   return <>{children}</>;
