@@ -122,14 +122,6 @@ export function Footer() {
             >
               WhatsApp
             </a>
-            <a
-              href="https://instagram.com/kayaa.app"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram"
-            >
-              Instagram
-            </a>
             <a href="mailto:hello@kayaa.co.za">Email</a>
           </div>
           <div
