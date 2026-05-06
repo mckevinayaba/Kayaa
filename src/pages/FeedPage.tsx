@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, MapPin, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
-import AreaSelector from '../components/AreaSelector';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier, tierScore } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
@@ -1237,10 +1236,12 @@ export default function FeedPage() {
   const { user } = useAuth();
   const {
     displaySuburb: suburb, displayCity: city,
-    displayLat: userLat, displayLon: userLon,
+    displayLat: _lat, displayLon: _lon,
     isDetecting, manualOverride,
-    setManualOverride, clearManualOverride,
+    clearManualOverride,
   } = useNeighbourhood();
+  const userLat = _lat ?? undefined;
+  const userLon = _lon ?? undefined;
   const needsConfirmation = !isDetecting && !suburb && !manualOverride;
   const { selectedCountry, categoryLabels } = useCountry();
 

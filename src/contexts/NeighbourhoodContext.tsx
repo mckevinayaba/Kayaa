@@ -163,7 +163,7 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
 
   // What to show in the UI — manual wins over GPS, GPS wins over empty
   const displaySuburb = manualOverride ?? currentSuburb;
-  const displayCity   = manualCity ?? currentCity || 'Johannesburg';
+  const displayCity   = manualCity ?? (currentCity || 'Johannesburg');
   const displayLat    = currentLat;   // always from GPS
   const displayLon    = currentLon;
 

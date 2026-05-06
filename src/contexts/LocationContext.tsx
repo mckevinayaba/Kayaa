@@ -86,7 +86,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     displaySuburb, displayCity, displayLat, displayLon,
     currentSuburb, currentCity, currentLat, currentLon,
     isDetecting, detectionError,
-    manualOverride, manualCity,
+    manualOverride,
     setManualOverride, clearManualOverride,
     refetchLocation,
   } = useNeighbourhood();
