@@ -224,6 +224,22 @@ function areaScore(venue: Venue, suburb: string, city: string): number {
   return tierScore(tier);
 }
 
+// ─── Adjacency map — used for nearby fallback when local content is thin ─────
+
+const ADJACENT_SUBURBS: Record<string, string[]> = {
+  'Rosebank':      ['Parktown North', 'Parkwood', 'Dunkeld'],
+  'Parktown North':['Rosebank', 'Parkwood', 'Craighall'],
+  'Sandton':       ['Morningside', 'Illovo', 'Hyde Park', 'Bryanston'],
+  'Honeydew':      ['Randburg', 'Northgate', 'Randpark Ridge'],
+  'Randburg':      ['Honeydew', 'Ferndale', 'Northgate'],
+  'Orlando West':  ['Orlando East', 'Pimville', 'Diepkloof'],
+  'Soweto':        ['Orlando West', 'Pimville', 'Diepkloof', 'Meadowlands'],
+  'Alexandra':     ['Wynberg', 'Sandton', 'Marlboro'],
+  'Tembisa':       ['Ivory Park', 'Midrand'],
+};
+
+const NEARBY_THRESHOLD = 5; // expand if detected suburb has fewer than this many venues
+
 // Filter + sort main venue list by scope.
 function filterAndRankByScope(
   venues: Venue[],
@@ -1238,7 +1254,7 @@ export default function FeedPage() {
     displaySuburb: suburb, displayCity: city,
     displayLat: _lat, displayLon: _lon,
     isDetecting, manualOverride,
-    clearManualOverride,
+    setManualOverride, clearManualOverride,
   } = useNeighbourhood();
   const userLat = _lat ?? undefined;
   const userLon = _lon ?? undefined;
@@ -1310,6 +1326,34 @@ export default function FeedPage() {
   }, [isDetecting, suburb, manualOverride]);
 
   const areaLabel = suburb || city || 'Your area';
+
+  // "Not your neighbourhood?" banner — shown for 8 s after GPS resolves,
+  // dismissed instantly on tap, or replaced by AreaSelector if user taps Change.
+  const [gpsConfirmDismissed, setGpsConfirmDismissed] = useState(false);
+  const [showGpsConfirm,      setShowGpsConfirm]      = useState(false);
+  const [showAreaSearch,      setShowAreaSearch]       = useState(false);
+  const [areaSearchQuery,     setAreaSearchQuery]      = useState('');
+
+  // Fire the 8-second banner once GPS resolves a suburb (and not manual override)
+  useEffect(() => {
+    if (!isDetecting && suburb && !manualOverride && !gpsConfirmDismissed) {
+      setShowGpsConfirm(true);
+      const t = setTimeout(() => setShowGpsConfirm(false), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [isDetecting, suburb]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleConfirmGpsSuburb() {
+    setShowGpsConfirm(false);
+    setGpsConfirmDismissed(true);
+  }
+
+  function handleChangeArea() {
+    setShowGpsConfirm(false);
+    setGpsConfirmDismissed(true);
+    setShowAreaSearch(true);
+    setAreaSearchQuery('');
+  }
 
   // Personal greeting
   const hour = new Date().getHours();
@@ -1486,6 +1530,22 @@ export default function FeedPage() {
   // Sparse local: in this_neighbourhood scope with some but few results
   const sparseLocal = !loading && scope === 'this_neighbourhood' && venues.length > 0 && venues.length < LOCAL_THRESHOLD;
 
+  // Nearby fallback — if the detected suburb has < NEARBY_THRESHOLD venues,
+  // surface venues from adjacent suburbs with a "Nearby" label.
+  const nearbyFallbackVenues = useMemo(() => {
+    if (loading || manualOverride) return [];
+    if (venues.length >= NEARBY_THRESHOLD) return [];
+    const adjacent = ADJACENT_SUBURBS[suburb] ?? [];
+    if (adjacent.length === 0) return [];
+    return rawVenues
+      .filter(isCleanVenue)
+      .filter(v => adjacent.some(adj =>
+        v.neighborhood?.toLowerCase() === adj.toLowerCase() ||
+        v.city?.toLowerCase() === adj.toLowerCase()
+      ))
+      .slice(0, 12);
+  }, [rawVenues, venues.length, suburb, manualOverride, loading]);
+
   const venueIdsWithEvents = useMemo(() => new Set(events.map(e => e.venueId)), [events]);
 
   const isFiltered = !!(search.trim() || categoryFilter !== 'All' || activityFilter !== 'All');
@@ -1611,6 +1671,108 @@ export default function FeedPage() {
                 : 'No cached data available. Connect to the internet to load places.'}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── "Not your neighbourhood?" GPS confirmation banner ───────────── */}
+      {showGpsConfirm && !manualOverride && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: 'rgba(57,217,138,0.07)',
+          border: '1px solid rgba(57,217,138,0.2)',
+          borderRadius: '12px', padding: '10px 14px', marginBottom: '12px',
+        }}>
+          <span style={{ fontSize: '15px', flexShrink: 0 }}>📍</span>
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            color: 'rgba(255,255,255,0.7)', flex: 1, lineHeight: 1.4,
+          }}>
+            Showing <strong style={{ color: '#F0F6FC' }}>{suburb}</strong> — not right?
+          </span>
+          <button
+            onClick={handleChangeArea}
+            style={{
+              padding: '5px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+              background: '#39D98A', color: '#0D1117',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+              flexShrink: 0,
+            }}
+          >
+            Change
+          </button>
+          <button
+            onClick={handleConfirmGpsSuburb}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: 'rgba(255,255,255,0.3)', fontSize: '16px', padding: '0 2px', flexShrink: 0,
+            }}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Area search input — shown when user taps Change in the GPS banner */}
+      {showAreaSearch && (
+        <div style={{
+          background: '#161B22', border: '1px solid rgba(57,217,138,0.25)',
+          borderRadius: '14px', padding: '14px 16px', marginBottom: '14px',
+        }}>
+          <div style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            color: '#F0F6FC', marginBottom: '10px',
+          }}>
+            Which suburb are you in?
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              autoFocus
+              value={areaSearchQuery}
+              onChange={e => setAreaSearchQuery(e.target.value)}
+              placeholder="e.g. Rosebank, Soweto…"
+              style={{
+                flex: 1, padding: '10px 14px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                outline: 'none',
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && areaSearchQuery.trim()) {
+                  setManualOverride(areaSearchQuery.trim(), city);
+                  setShowAreaSearch(false);
+                  setRefreshKey(k => k + 1);
+                }
+                if (e.key === 'Escape') setShowAreaSearch(false);
+              }}
+            />
+            <button
+              onClick={() => {
+                if (areaSearchQuery.trim()) {
+                  setManualOverride(areaSearchQuery.trim(), city);
+                  setShowAreaSearch(false);
+                  setRefreshKey(k => k + 1);
+                }
+              }}
+              style={{
+                padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                background: '#39D98A', color: '#0D1117',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              }}
+            >
+              Set
+            </button>
+          </div>
+          <button
+            onClick={() => setShowAreaSearch(false)}
+            style={{
+              marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)',
+              padding: 0,
+            }}
+          >
+            Cancel — use my GPS location
+          </button>
         </div>
       )}
 
@@ -1939,6 +2101,71 @@ export default function FeedPage() {
                 )}
               </>
             );
+          })()}
+        </div>
+      )}
+
+      {/* ── Also nearby — shown when local content is thin ──── */}
+      {!loading && nearbyFallbackVenues.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '4px 0 14px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+              color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
+              letterSpacing: '0.1em', whiteSpace: 'nowrap',
+            }}>
+              Also nearby
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+
+          {/* Group by adjacent suburb */}
+          {(() => {
+            const groups: Record<string, typeof nearbyFallbackVenues> = {};
+            for (const v of nearbyFallbackVenues) {
+              const key = v.neighborhood || v.city || 'Nearby';
+              if (!groups[key]) groups[key] = [];
+              groups[key].push(v);
+            }
+            return Object.entries(groups).map(([adjSuburb, adjVenues]) => (
+              <div key={adjSuburb} style={{ marginBottom: '16px' }}>
+                <div style={{
+                  fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                  fontSize: '13px', color: 'rgba(255,255,255,0.45)',
+                  marginBottom: '10px',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                }}>
+                  <span style={{ fontSize: '11px' }}>📍</span>
+                  Also nearby in {adjSuburb}
+                </div>
+                {adjVenues.map(venue => (
+                  <div key={venue.id} style={{ position: 'relative' }}>
+                    <div style={{
+                      position: 'absolute', top: '12px', right: '12px', zIndex: 1,
+                      background: 'rgba(96,165,250,0.15)',
+                      border: '1px solid rgba(96,165,250,0.3)',
+                      borderRadius: '6px', padding: '2px 7px',
+                      fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+                      fontSize: '10px', color: '#93C5FD', letterSpacing: '0.06em',
+                    }}>
+                      NEARBY
+                    </div>
+                    <VenueCard
+                      venue={venue}
+                      headingCount={headingCounts[venue.id] ?? 0}
+                      vibeWinner={vibeWinners[venue.id] ?? null}
+                      hasActiveStory={activeStoryVenueIds.has(venue.id)}
+                      onStoryTap={async () => {
+                        const story = await getActiveVenueStory(venue.id);
+                        if (story) setViewingStory({ story, venueName: venue.name, venueCategory: venue.category });
+                      }}
+                      recommendationReason={getRecommendationReason(venue, suburb) ?? undefined}
+                    />
+                  </div>
+                ))}
+              </div>
+            ));
           })()}
         </div>
       )}
