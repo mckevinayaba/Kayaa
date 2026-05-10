@@ -1,14 +1,10 @@
-import { useNavigate } from "react-router-dom";
-
-const LINKS: { label: string; to: string }[] = [
-  { label: "Feed", to: "/feed" },
-  { label: "Board", to: "/board" },
-  { label: "Add Place", to: "/onboarding" },
-  { label: "Sign in", to: "/login" },
+const NAV_LINKS: { label: string; href: string }[] = [
+  { label: "About",         href: "/about" },
+  { label: "For Places",    href: "/about#for-places" },
+  { label: "How it works",  href: "/about#how-it-works" },
 ];
 
 export function Footer() {
-  const navigate = useNavigate();
   return (
     <footer
       style={{
@@ -57,22 +53,20 @@ export function Footer() {
       `}</style>
       <div className="kayaa-footer-inner">
         <div>
-          <button
-            onClick={() => navigate("/")}
+          <a
+            href="/about"
             style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
+              display: "block",
               fontFamily: "var(--font-display)",
               fontWeight: 700,
               fontSize: 18,
               color: "var(--green)",
               marginBottom: 8,
+              textDecoration: "none",
             }}
           >
             kayaa
-          </button>
+          </a>
           <p className="kayaa-footer-tag" style={{ margin: 0 }}>
             Built in Johannesburg. Launching across South Africa,
             neighbourhood by neighbourhood.
@@ -88,24 +82,22 @@ export function Footer() {
             justifyContent: "center",
           }}
         >
-          {LINKS.map((l, i) => (
-            <span key={l.to} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <button
+          {NAV_LINKS.map((l, i) => (
+            <span key={l.href} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <a
                 className="kayaa-footer-link"
-                onClick={() => navigate(l.to)}
+                href={l.href}
                 style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
                   padding: "0 6px",
                   fontFamily: "var(--font-body)",
                   fontSize: 13,
                   color: "var(--muted-kayaa)",
+                  textDecoration: "none",
                 }}
               >
                 {l.label}
-              </button>
-              {i < LINKS.length - 1 && (
+              </a>
+              {i < NAV_LINKS.length - 1 && (
                 <span style={{ color: "var(--muted-kayaa)", fontSize: 13 }}>·</span>
               )}
             </span>

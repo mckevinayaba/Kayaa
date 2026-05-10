@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import { NeighbourhoodProvider } from './contexts/NeighbourhoodContext';
@@ -44,30 +43,19 @@ import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 
-// ── Root: authenticated → feed, anonymous → landing page ────────────────────
-// Signed-in users ALWAYS go to /feed immediately.
-// Location is loaded async by LocationContext (Supabase profile → GPS → manual).
-// The feed handles the "no area yet" state with an inline banner.
+// ── Root redirect ────────────────────────────────────────────────────────────
+// Signed-in → /feed.  Unauthenticated → landing page.
+// Rendered synchronously — no useEffect, no flash.
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/feed" replace />;
-  // Unauthenticated → landing page (the product front door)
-  return <Navigate to="/about" replace />;
+  return user ? <Navigate to="/feed" replace /> : <Navigate to="/about" replace />;
 }
 
-// ── Post-auth guard: only redirects unauthenticated users to /welcome ────────
-// No longer redirects to /setup — location setup is inline on the feed.
-function FeedGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) navigate('/welcome', { replace: true });
-  }, [user, loading, navigate]);
-
-  return <>{children}</>;
+// ── Convenience wrapper ───────────────────────────────────────────────────────
+// Keeps route definitions below clean for routes that need auth.
+function Auth({ children }: { children: React.ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
 }
 
 export default function App() {
@@ -77,117 +65,71 @@ export default function App() {
       <LocationProvider>
       <BrowserRouter>
         <Routes>
-          {/* Landing page — outside AppLayout, has its own nav */}
+          {/* Root redirect */}
           <Route path="/" element={<RootRoute />} />
 
-          {/* ── Standalone pages — own layout, no AppLayout/AuthLayout chrome ── */}
+          {/* ── Public standalone — own layout, no AppLayout chrome ── */}
           <Route path="/about"    element={<LandingPage />} />
-          {/* /waitlist no longer exists — redirect to the product */}
           <Route path="/waitlist" element={<Navigate to="/welcome" replace />} />
 
-          {/* ── Auth routes — bare AuthLayout, NO top/bottom nav ── */}
+          {/* ── Auth screens — bare AuthLayout ── */}
           <Route element={<AuthLayout />}>
-            <Route path="/welcome"  element={<WelcomePage />} />
-            <Route path="/setup"    element={<SetupPage />} />
-            {/* Legacy /login URL → welcome page */}
-            <Route path="/login"    element={<Navigate to="/welcome" replace />} />
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/setup"   element={<SetupPage />} />
+            <Route path="/login"   element={<Navigate to="/welcome" replace />} />
           </Route>
 
-          {/* ── App routes — AppLayout with top/bottom nav ── */}
+          {/* ── App shell — AppLayout with top/bottom nav ── */}
           <Route element={<AppLayout />}>
-            <Route path="/feed" element={
-              <FeedGuard><FeedPage /></FeedGuard>
-            } />
-            <Route path="/venue/:slug" element={<VenuePage />} />
-            <Route path="/venue/:slug/checkin" element={<CheckInPage />} />
-            <Route path="/checkin/:venueId" element={<QRCheckInPage />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/board" element={<BoardPage />} />
-            <Route path="/board/mine" element={<BoardMinePage />} />
-            <Route path="/board/new" element={<BoardNewPage />} />
-            <Route path="/board/:id" element={<BoardPostPage />} />
-            <Route path="/jobs" element={<JobsPage />} />
-            <Route path="/checkin" element={<CheckInBrowsePage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/skills"           element={<SkillsPage />} />
-            <Route path="/skills/browse"    element={<SkillsBrowse />} />
-            <Route path="/skills/new"       element={<PostSkill />} />
-            <Route path="/skills/edit/:id"  element={<PostSkill />} />
-            <Route path="/skills/:id"       element={<SkillDetail />} />
-            <Route path="/post/new"    element={<CreatePost />} />
-            <Route path="/card/:name" element={<RegularCardPage />} />
-            <Route path="/countries" element={<CountriesPage />} />
-            <Route path="/profile"          element={<ProfilePage />} />
-            <Route path="/profile/edit"    element={<EditProfile />} />
-            <Route path="/settings/privacy"        element={<PrivacySettings />} />
-            <Route path="/settings/notifications"  element={<NotificationSettings />} />
-            <Route path="/settings/emergency-contacts" element={<EmergencyContacts />} />
-            <Route path="/help"                    element={<Help />} />
+
+            {/* ── Protected: require sign-in before the page renders ── */}
+            <Route path="/feed"    element={<Auth><FeedPage /></Auth>} />
+            <Route path="/onboarding" element={<Auth><OnboardingPage /></Auth>} />
+
+            {/* Board — read (/:id) stays public; write actions require auth */}
+            <Route path="/board"      element={<Auth><BoardPage /></Auth>} />
+            <Route path="/board/mine" element={<Auth><BoardMinePage /></Auth>} />
+            <Route path="/board/new"  element={<Auth><BoardNewPage /></Auth>} />
+            <Route path="/board/:id"  element={<BoardPostPage />} />
+
+            {/* Profile + settings */}
+            <Route path="/profile"      element={<Auth><ProfilePage /></Auth>} />
+            <Route path="/profile/edit" element={<Auth><EditProfile /></Auth>} />
+            <Route path="/settings/privacy"            element={<Auth><PrivacySettings /></Auth>} />
+            <Route path="/settings/notifications"      element={<Auth><NotificationSettings /></Auth>} />
+            <Route path="/settings/emergency-contacts" element={<Auth><EmergencyContacts /></Auth>} />
+
+            {/* Skills — browse/read public; create/edit require auth */}
+            <Route path="/skills"          element={<SkillsPage />} />
+            <Route path="/skills/browse"   element={<SkillsBrowse />} />
+            <Route path="/skills/new"      element={<Auth><PostSkill /></Auth>} />
+            <Route path="/skills/edit/:id" element={<Auth><PostSkill /></Auth>} />
+            <Route path="/skills/:id"      element={<SkillDetail />} />
+
+            {/* Posts */}
+            <Route path="/post/new" element={<Auth><CreatePost /></Auth>} />
+
+            {/* Owner dashboard suite */}
+            <Route path="/dashboard"        element={<Auth><DashboardPage /></Auth>} />
+            <Route path="/venue/dashboard"  element={<Auth><VenueDashboard /></Auth>} />
+            <Route path="/venue/hours"      element={<Auth><VenueHours /></Auth>} />
+            <Route path="/venue/qr-code"    element={<Auth><VenueQRCode /></Auth>} />
+            <Route path="/venue/analytics"  element={<Auth><VenueAnalytics /></Auth>} />
+            <Route path="/venue/updates"    element={<Auth><VenueUpdates /></Auth>} />
+            <Route path="/venue/photos"     element={<Auth><VenuePhotos /></Auth>} />
+            <Route path="/venue/events"     element={<Auth><VenueEvents /></Auth>} />
+
+            {/* ── Public app pages — no sign-in required ── */}
+            <Route path="/venue/:slug"          element={<VenuePage />} />
+            <Route path="/venue/:slug/checkin"  element={<CheckInPage />} />
+            <Route path="/checkin/:venueId"     element={<QRCheckInPage />} />
+            <Route path="/explore"              element={<ExplorePage />} />
+            <Route path="/checkin"              element={<CheckInBrowsePage />} />
+            <Route path="/jobs"                 element={<JobsPage />} />
+            <Route path="/card/:name"           element={<RegularCardPage />} />
+            <Route path="/countries"            element={<CountriesPage />} />
+            <Route path="/help"                 element={<Help />} />
             <Route path="/search" element={<Navigate to="/checkin" replace />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/dashboard"
-              element={
-                <ProtectedRoute>
-                  <VenueDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/hours"
-              element={
-                <ProtectedRoute>
-                  <VenueHours />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/qr-code"
-              element={
-                <ProtectedRoute>
-                  <VenueQRCode />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/analytics"
-              element={
-                <ProtectedRoute>
-                  <VenueAnalytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/updates"
-              element={
-                <ProtectedRoute>
-                  <VenueUpdates />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/photos"
-              element={
-                <ProtectedRoute>
-                  <VenuePhotos />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/venue/events"
-              element={
-                <ProtectedRoute>
-                  <VenueEvents />
-                </ProtectedRoute>
-              }
-            />
           </Route>
         </Routes>
       </BrowserRouter>
