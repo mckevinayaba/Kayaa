@@ -37,6 +37,7 @@ import { QueueStatus }     from '../components/utility/QueueStatus';
 import { WaterStatus }     from '../components/utility/WaterStatus';
 import { EventsCalendar }  from '../components/utility/EventsCalendar';
 import { QuickAsk }        from '../components/utility/QuickAsk';
+import PushBanner          from '../components/PushBanner';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -1861,6 +1862,9 @@ export default function FeedPage() {
 
       {/* Quick action shortcuts */}
       <QuickActions onCompose={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
+
+      {/* Push permission banner — only shows after neighbourhood is known */}
+      <PushBanner />
 
       {/* Load shedding status */}
       <div style={{ marginBottom: '16px' }}>
