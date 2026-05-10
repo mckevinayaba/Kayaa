@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { mockVenues, mockEvents, mockPosts } from './mockData';
 import type { Venue, Event, Post, Story } from '../types';
 import { getAreaTier } from './areaGroups';
 
@@ -91,12 +90,22 @@ function dbPostToPost(row: any): Post {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function getAllVenues(countryCode?: string): Promise<Venue[]> {
+export async function getAllVenues(options?: {
+  countryCode?: string;
+  suburb?: string;
+  city?: string;
+}): Promise<Venue[]> {
   let q = supabase.from('venues').select('*').eq('is_active', true);
-  if (countryCode) q = q.eq('country_code', countryCode);
+  if (options?.countryCode) q = q.eq('country_code', options.countryCode);
+  // Neighbourhood-first: filter server-side when suburb or city is known.
+  // This prevents venues from unrelated cities bleeding into the feed.
+  if (options?.suburb) {
+    q = q.ilike('location', `%${options.suburb}%`);
+  } else if (options?.city) {
+    q = q.ilike('location', `%${options.city}%`);
+  }
   const { data, error } = await q.order('created_at', { ascending: false });
-
-  if (error || !data || data.length === 0) return mockVenues.filter(isRealVenue);
+  if (error || !data) return [];
   return data.map(dbVenueToVenue);
 }
 
@@ -108,7 +117,7 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
     .eq('is_active', true)
     .maybeSingle();
 
-  if (error || !data) return mockVenues.find(v => v.slug === slug) ?? null;
+  if (error || !data) return null;
   return dbVenueToVenue(data);
 }
 
@@ -119,7 +128,7 @@ export async function getVenueEvents(venueId: string): Promise<Event[]> {
     .eq('venue_id', venueId)
     .order('event_date', { ascending: true });
 
-  if (error || !data) return mockEvents.filter(e => e.venueId === venueId);
+  if (error || !data) return [];
   if (data.length === 0) return [];
   return data.map(dbEventToEvent);
 }
@@ -131,7 +140,7 @@ export async function getVenuePosts(venueId: string): Promise<Post[]> {
     .eq('venue_id', venueId)
     .order('created_at', { ascending: false });
 
-  if (error || !data) return mockPosts.filter(p => p.venueId === venueId);
+  if (error || !data) return [];
   if (data.length === 0) return [];
   return data.map(dbPostToPost);
 }
@@ -441,13 +450,6 @@ function isRealVenue(v: Venue): boolean {
   return v.description.trim().length >= 10 && !DEMO_NAMES.test(v.name);
 }
 
-function matchesCityContext(v: Venue, city: string): boolean {
-  if (!city) return true;
-  const c = city.toLowerCase();
-  const vc = v.city.toLowerCase();
-  const vn = v.neighborhood.toLowerCase();
-  return vc.includes(c) || c.includes(vc) || vn.includes(c);
-}
 
 function localFirst<T extends Venue>(venues: T[], city: string): T[] {
   const c = city.toLowerCase();
@@ -458,39 +460,38 @@ function localFirst<T extends Venue>(venues: T[], city: string): T[] {
   });
 }
 
-export async function getTrendingPlaces(city?: string): Promise<TrendingVenue[]> {
+// FIX 4: Trending only shows venues with REAL check-ins in the last 7 days
+// in the user's neighbourhood. Returns [] if none — section is hidden by FeedPage.
+export async function getTrendingPlaces(suburb?: string, city?: string): Promise<TrendingVenue[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: cis, error } = await supabase
     .from('check_ins')
     .select('venue_id')
     .gte('created_at', sevenDaysAgo);
 
-  const fallback = [...mockVenues]
-    .filter(v => isRealVenue(v) && (!city || matchesCityContext(v, city)))
-    .sort((a, b) => b.followerCount - a.followerCount)
-    .slice(0, 5)
-    .map(v => ({ ...v, weeklyCheckins: Math.round(v.followerCount / 5) }));
-
-  if (error || !cis || cis.length === 0) return fallback;
+  // No real check-ins this week → section is hidden
+  if (error || !cis || cis.length === 0) return [];
 
   const counts: Record<string, number> = {};
   for (const ci of cis) counts[ci.venue_id] = (counts[ci.venue_id] ?? 0) + 1;
 
   const topIds = Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 10).map(([id]) => id);
-  if (topIds.length === 0) return fallback;
+  if (topIds.length === 0) return [];
 
   const { data: rows, error: ve } = await supabase
     .from('venues').select('*').in('id', topIds).eq('is_active', true);
 
-  if (ve || !rows || rows.length === 0) return fallback;
+  if (ve || !rows || rows.length === 0) return [];
 
   const venues = rows
     .map(r => ({ ...dbVenueToVenue(r), weeklyCheckins: counts[r.id] ?? 0 }))
     .filter(isRealVenue)
     .sort((a, b) => b.weeklyCheckins - a.weeklyCheckins);
 
-  if (!city) return venues.slice(0, 5);
-  return localFirst(venues, city).slice(0, 5);
+  // Prefer suburb-match, fall back to city-match
+  const area = suburb || city;
+  if (!area) return venues.slice(0, 5);
+  return localFirst(venues, area).slice(0, 5);
 }
 
 export async function getHappeningTonight(): Promise<TonightEvent[]> {
@@ -521,42 +522,43 @@ export async function getHappeningTonight(): Promise<TonightEvent[]> {
   }));
 }
 
-export async function getNewPlaces(city?: string): Promise<Venue[]> {
+export async function getNewPlaces(suburb?: string, city?: string): Promise<Venue[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await supabase
+  let q = supabase
     .from('venues')
     .select('*')
     .gte('created_at', sevenDaysAgo)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(10);
+  if (suburb) q = q.ilike('location', `%${suburb}%`);
+  else if (city) q = q.ilike('location', `%${city}%`);
 
+  const { data, error } = await q;
   if (error || !data || data.length === 0) return [];
   const venues = data.map(dbVenueToVenue).filter(isRealVenue);
-  if (!city) return venues.slice(0, 5);
-  return localFirst(venues, city).slice(0, 5);
+  const area = suburb || city;
+  if (!area) return venues.slice(0, 5);
+  return localFirst(venues, area).slice(0, 5);
 }
 
-export async function getMostLovedPlaces(city?: string): Promise<Venue[]> {
-  const { data, error } = await supabase
+export async function getMostLovedPlaces(suburb?: string, city?: string): Promise<Venue[]> {
+  let q = supabase
     .from('venues')
     .select('*')
     .gt('regulars_count', 0)
     .eq('is_active', true)
     .order('regulars_count', { ascending: false })
     .limit(10);
+  if (suburb) q = q.ilike('location', `%${suburb}%`);
+  else if (city) q = q.ilike('location', `%${city}%`);
 
-  if (error || !data || data.length === 0) {
-    const fallback = [...mockVenues]
-      .filter(v => isRealVenue(v) && (!city || matchesCityContext(v, city)))
-      .sort((a, b) => b.followerCount - a.followerCount)
-      .filter(v => v.followerCount > 0);
-    if (!city) return fallback.slice(0, 5);
-    return localFirst(fallback, city).slice(0, 5);
-  }
+  const { data, error } = await q;
+  if (error || !data || data.length === 0) return [];
   const venues = data.map(dbVenueToVenue).filter(isRealVenue);
-  if (!city) return venues.slice(0, 5);
-  return localFirst(venues, city).slice(0, 5);
+  const area = suburb || city;
+  if (!area) return venues.slice(0, 5);
+  return localFirst(venues, area).slice(0, 5);
 }
 
 export async function getGlobalActivity(): Promise<ActivityItem[]> {
@@ -576,15 +578,8 @@ export async function getGlobalActivity(): Promise<ActivityItem[]> {
   const ciData = ciRes.data ?? [];
   const postData = postRes.data ?? [];
 
-  if (ciData.length === 0 && postData.length === 0) {
-    return [
-      { id: 'm1', text: "Lerato checked in at Uncle Dee's Barbershop 💈", time: '2 min ago', initial: 'L' },
-      { id: 'm2', text: "Mama Zulu's Shisanyama posted an update", time: '18 min ago', initial: '✦' },
-      { id: 'm3', text: 'Someone checked in at Sipho Corner Spaza', time: '1 hr ago', initial: '👤' },
-      { id: 'm4', text: "Thabo became a regular at Mama Zulu's", time: '3 hr ago', initial: 'T' },
-      { id: 'm5', text: 'Faith Assembly Church added a new event', time: '5 hr ago', initial: '✦' },
-    ];
-  }
+  // No real activity yet — return empty so the activity strip is hidden
+  if (ciData.length === 0 && postData.length === 0) return [];
 
   const venueIds = [...new Set([...ciData.map(r => r.venue_id), ...postData.map(r => r.venue_id)])];
   const { data: vRows } = await supabase.from('venues').select('id, name').in('id', venueIds);

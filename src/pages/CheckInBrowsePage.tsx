@@ -227,7 +227,7 @@ export default function CheckInBrowsePage() {
   const [showSort, setShowSort] = useState(false);
 
   useEffect(() => {
-    getAllVenues(selectedCountry.code).then(v => {
+    getAllVenues({ countryCode: selectedCountry.code }).then(v => {
       setVenues(v.filter(x => x.description.trim().length >= 10));
       setLoading(false);
     });

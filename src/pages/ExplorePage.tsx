@@ -137,7 +137,7 @@ export default function ExplorePage() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   useEffect(() => {
-    getAllVenues(selectedCountry.code).then(v => {
+    getAllVenues({ countryCode: selectedCountry.code }).then(v => {
       setVenues(v.filter(x => x.description.trim().length >= 10));
       setLoading(false);
     });
