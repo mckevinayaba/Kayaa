@@ -22,7 +22,6 @@ interface DashStats {
   totalCheckins:  number;
   weekViews:      number;
   regularsCount:  number;
-  safetyRating:   number;
   dailyAvg:       number;
   lapsedCount:    number;
   newFacesCount:  number;
@@ -232,7 +231,7 @@ export default function VenueDashboard() {
       setVenue(v);
 
       // Load all stats in parallel
-      const [studioStats, weeklyBars, recentCIs, viewsRes, totalRes, regularsRes, safetyRes] = await Promise.all([
+      const [studioStats, weeklyBars, recentCIs, viewsRes, totalRes, regularsRes] = await Promise.all([
         getDashboardStats(v.id),
         getWeeklyRhythm(v.id),
         getRecentCheckIns(v.id, 15),
@@ -254,12 +253,6 @@ export default function VenueDashboard() {
           .eq('venue_id', v.id)
           .eq('is_ghost', false)
           .not('visitor_name', 'is', null),
-        // safety rating (optional table)
-        supabase
-          .from('place_safety_summary')
-          .select('avg_score')
-          .eq('place_id', v.id)
-          .maybeSingle(),
       ]);
 
       // Count unique regulars (visited 5+ times) from check_ins
@@ -278,7 +271,6 @@ export default function VenueDashboard() {
         totalCheckins:  totalRes.count ?? v.checkinCount ?? 0,
         weekViews:      viewsRes.count ?? 0,
         regularsCount:  trueRegularsCount || v.regularsCount,
-        safetyRating:   Number(safetyRes.data?.avg_score ?? 0),
         dailyAvg:       studioStats.dailyAvg,
         lapsedCount:    studioStats.lapsedCount,
         newFacesCount:  studioStats.newFacesCount,
@@ -477,14 +469,12 @@ export default function VenueDashboard() {
             : <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)' }}>No check-in data yet</div>
           }
           <div style={{ marginTop: '10px', display: 'flex', gap: '16px' }}>
-            <div>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>{stats?.weekViews ?? 0}</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> profile views</span>
-            </div>
-            <div>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>{stats?.dailyAvg ?? 0}</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> daily avg</span>
-            </div>
+            {(stats?.dailyAvg ?? 0) > 0 && (
+              <div>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>{stats?.dailyAvg ?? 0}</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> daily avg</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -328,7 +328,7 @@ export default function BoardPage() {
 
       {/* Post Your Skills banner */}
       <div
-        onClick={() => navigate('/skills')}
+        onClick={() => navigate('/board')}
         style={{
           margin: '14px 16px 0',
           background: 'linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(57,217,138,0.08) 100%)',
@@ -359,7 +359,7 @@ export default function BoardPage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           <button
-            onClick={() => navigate('/skills')}
+            onClick={() => navigate('/board')}
             style={{ background: 'rgba(57,217,138,0.15)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Browse →

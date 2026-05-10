@@ -24,15 +24,12 @@ import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
 import ExplorePage from './pages/ExplorePage';
-import SkillsPage   from './pages/SkillsPage';
-import SkillsBrowse  from './pages/SkillsBrowse';
 import SkillDetail   from './pages/SkillDetail';
 import PostSkill     from './pages/PostSkill';
 import CreatePost   from './pages/CreatePost';
 import ProfilePage      from './pages/ProfilePage';
 import EditProfile      from './pages/EditProfile';
 import PrivacySettings       from './pages/PrivacySettings';
-import NotificationSettings  from './pages/NotificationSettings';
 import Help                  from './pages/Help';
 import EmergencyContacts     from './pages/EmergencyContacts';
 import VenueDashboard        from './pages/VenueDashboard';
@@ -96,12 +93,12 @@ export default function App() {
             <Route path="/profile"      element={<Auth><ProfilePage /></Auth>} />
             <Route path="/profile/edit" element={<Auth><EditProfile /></Auth>} />
             <Route path="/settings/privacy"            element={<Auth><PrivacySettings /></Auth>} />
-            <Route path="/settings/notifications"      element={<Auth><NotificationSettings /></Auth>} />
+            <Route path="/settings/notifications"      element={<Navigate to="/profile" replace />} />
             <Route path="/settings/emergency-contacts" element={<Auth><EmergencyContacts /></Auth>} />
 
-            {/* Skills — browse/read public; create/edit require auth */}
-            <Route path="/skills"          element={<SkillsPage />} />
-            <Route path="/skills/browse"   element={<SkillsBrowse />} />
+            {/* Skills — /skills and /skills/browse redirect to /board; detail + create still work */}
+            <Route path="/skills"          element={<Navigate to="/board" replace />} />
+            <Route path="/skills/browse"   element={<Navigate to="/board" replace />} />
             <Route path="/skills/new"      element={<Auth><PostSkill /></Auth>} />
             <Route path="/skills/edit/:id" element={<Auth><PostSkill /></Auth>} />
             <Route path="/skills/:id"      element={<SkillDetail />} />

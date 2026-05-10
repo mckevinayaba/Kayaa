@@ -114,7 +114,7 @@ export default function SkillDetail() {
           This listing is no longer available
         </p>
         <button
-          onClick={() => navigate('/skills')}
+          onClick={() => navigate('/board')}
           style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px', padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
         >
           Browse Skills

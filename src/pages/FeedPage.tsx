@@ -93,27 +93,20 @@ const SCOPE_LABELS: Record<FeedScope, string> = {
 
 // ─── Community Tools panel ────────────────────────────────────────────────────
 
-type CommunityToolKey = 'stock' | 'queue' | 'water' | 'events' | 'ask' | null;
+type CommunityToolKey = 'queue' | 'events' | 'ask' | null;
 
 const TOOL_ACCENT: Record<string, string> = {
-  stock:  '#39D98A',
   queue:  '#60A5FA',
-  water:  '#FBBF24',
   events: '#60A5FA',
   ask:    '#A78BFA',
 };
 
 const COMMUNITY_TOOLS: { key: string; emoji: string; title: string; sub: string }[][] = [
-  // Row 1 — 3 utility widgets
+  // Single row — 3 tools (stock + water are now always-visible above)
   [
-    { key: 'stock',  emoji: '📦', title: 'In Stock?',    sub: 'Check nearby spazas' },
-    { key: 'queue',  emoji: '⏱️', title: 'Queue Times',  sub: 'Live wait times'     },
-    { key: 'water',  emoji: '💧', title: 'Water Status', sub: 'Outage alerts'       },
-  ],
-  // Row 2 — 2 community tools
-  [
-    { key: 'events', emoji: '📅', title: 'Events',       sub: "What's happening"    },
-    { key: 'ask',    emoji: '❓', title: 'Quick Ask',    sub: 'Ask neighbours'      },
+    { key: 'queue',  emoji: '⏱️', title: 'Queue Times',  sub: 'Live wait times'  },
+    { key: 'events', emoji: '📅', title: 'Events',       sub: "What's happening" },
+    { key: 'ask',    emoji: '❓', title: 'Quick Ask',    sub: 'Ask neighbours'   },
   ],
 ];
 
@@ -160,9 +153,7 @@ function CommunityTools({ areaLabel }: { areaLabel: string }) {
       </div>
 
       {/* Expanded panel */}
-      {open === 'stock'  && <StockChecker area={areaLabel} />}
       {open === 'queue'  && <QueueStatus />}
-      {open === 'water'  && <WaterStatus area={areaLabel} />}
       {open === 'events' && <EventsCalendar />}
       {open === 'ask'    && <QuickAsk neighbourhood={areaLabel} />}
     </div>
@@ -1876,7 +1867,17 @@ export default function FeedPage() {
         <LoadSheddingWidget compact />
       </div>
 
-      {/* Community utility tools */}
+      {/* Water status — always visible, no tap needed */}
+      <div style={{ marginBottom: '10px' }}>
+        <WaterStatus area={areaLabel} />
+      </div>
+
+      {/* Stock checker — always visible, no tap needed */}
+      <div style={{ marginBottom: '16px' }}>
+        <StockChecker area={areaLabel} />
+      </div>
+
+      {/* Community utility tools (queue, events, ask) */}
       <CommunityTools areaLabel={areaLabel} />
 
       {/* Greeting + clickable area label */}

@@ -156,7 +156,7 @@ export default function PostSkill() {
         </p>
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
           <button
-            onClick={() => navigate('/skills')}
+            onClick={() => navigate('/board')}
             style={{
               padding: '12px 24px', borderRadius: '12px',
               background: '#39D98A', border: 'none',

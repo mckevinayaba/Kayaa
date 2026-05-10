@@ -45,20 +45,8 @@ const CATEGORY_COLOR: Record<string, string> = {
   'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
 };
 
-const AVATAR_COLORS = ['#39D98A', '#F5A623', '#60A5FA', '#F472B6', '#A78BFA', '#FB923C'];
-
-const REGULARS_BY_VENUE: Record<string, string[]> = {
-  '1': ['L', 'T', 'S', 'N', 'B', 'K'],
-  '2': ['T', 'N', 'S', 'B', 'M', 'A'],
-  '3': ['A', 'S', 'T', 'L', 'N', 'P'],
-  '4': ['N', 'L', 'Z', 'A', 'T', 'K'],
-  '5': ['B', 'S', 'T', 'N', 'M', 'L'],
-  '6': ['S', 'T', 'N', 'B', 'L', 'A'],
-};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const LIVE_TIMES = ['2 min ago', '18 min ago', '1 hour ago', '3 hours ago'];
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -822,57 +810,6 @@ function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentS
   );
 }
 
-// ─── Top Regulars ─────────────────────────────────────────────────────────────
-
-const TOP_REGULAR_NAMES = ['Thabo', 'Nomsa', 'Sipho', 'Lerato', 'Bongani'];
-const TOP_REGULAR_BADGE_ICONS: Record<string, string> = {
-  newcomer: '🌱', regular: '⭐', loyal: '🔥', legend: '👑',
-};
-const TOP_REGULAR_BADGES = ['legend', 'loyal', 'loyal', 'regular', 'regular'];
-
-function TopRegularsSection({ venue }: { venue: Venue }) {
-  const initials = REGULARS_BY_VENUE[venue.id] ?? ['T', 'N', 'S', 'L', 'B'];
-  const top5 = initials.slice(0, 5);
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
-        People who call this home
-      </h2>
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', overflow: 'hidden' }}>
-        {top5.map((initial, i) => {
-          const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
-          const badge = TOP_REGULAR_BADGES[i];
-          return (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '11px 14px',
-              borderBottom: i < top5.length - 1 ? '1px solid var(--color-border)' : 'none',
-            }}>
-              <div style={{
-                width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
-                background: `${color}18`, border: `1.5px solid ${color}40`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color,
-              }}>
-                {initial}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', fontFamily: 'Syne, sans-serif' }}>
-                  {TOP_REGULAR_NAMES[i % TOP_REGULAR_NAMES.length]}
-                </span>
-              </div>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                {TOP_REGULAR_BADGE_ICONS[badge]} {badge.charAt(0).toUpperCase() + badge.slice(1)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ─── Events Section ───────────────────────────────────────────────────────────
 
 function EventsSection({ events }: { events: Event[] }) {
@@ -1271,7 +1208,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
     <div style={{ marginBottom: '20px' }}>
       <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>What people say</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {posts.map((post, idx) => {
+        {posts.map((post) => {
           if (post.audience === 'regulars_only' && visitCount < 3) {
             return <LockedPostCard key={post.id} post={post} venueName={venueName} visitCount={visitCount} />;
           }
@@ -1288,7 +1225,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
                 </div>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{post.authorName.split(' ')[0]}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{LIVE_TIMES[idx % LIVE_TIMES.length]}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{post.createdAt ? timeAgo(post.createdAt) : ''}</div>
                 </div>
               </div>
               <p style={{ fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, marginBottom: '10px' }}>{post.content}</p>
@@ -1923,9 +1860,6 @@ export default function VenuePage() {
 
         {/* ── Text stories (legacy) ────────────────────────────────────────── */}
         {stories.length > 0 && <StoriesStrip stories={stories} />}
-
-        {/* ── Top regulars ─────────────────────────────────────────────────── */}
-        <TopRegularsSection venue={venue} />
 
         {/* ── Upcoming events with RSVP ─────────────────────────────────────── */}
         <EventsSection events={events} />
