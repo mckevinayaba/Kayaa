@@ -177,13 +177,54 @@ function ResultCard({ item, searchQuery }: { item: StockItem; searchQuery: strin
 interface StockCheckerProps {
   /** Pre-fill the area label for log analytics */
   area?: string;
+  /**
+   * compact = true → renders a single collapsed row in the feed.
+   * Tapping it expands the full checker inline.
+   * Use this in the feed so the checker doesn't dominate above-the-fold space.
+   */
+  compact?: boolean;
 }
 
-export function StockChecker({ area = '' }: StockCheckerProps) {
+export function StockChecker({ area = '', compact = false }: StockCheckerProps) {
+  const [open,    setOpen]    = useState(!compact);   // collapsed by default in compact mode
   const [query,   setQuery]   = useState('');
   const [results, setResults] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  // ── Compact trigger (collapsed state) ──────────────────────────────────────
+  if (compact && !open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+          background: '#161B22', border: '1px solid #21262D',
+          borderRadius: '12px', padding: '12px 14px',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '9px', flexShrink: 0,
+          background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Package size={15} color="#39D98A" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+            Is it in stock nearby?
+          </div>
+          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+            Bread, milk, airtime… tap to search
+          </div>
+        </div>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A', flexShrink: 0 }}>
+          Search →
+        </span>
+      </button>
+    );
+  }
 
   const doSearch = useCallback(async (item: string) => {
     if (!item.trim()) return;

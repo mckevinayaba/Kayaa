@@ -1607,7 +1607,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div style={{ padding: '16px', paddingBottom: '140px' }}>
+    <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* Accessible live region — announces load/refresh state to screen readers */}
       <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">
@@ -1876,9 +1876,9 @@ export default function FeedPage() {
         <WaterStatus area={areaLabel} />
       </div>
 
-      {/* Stock checker — always visible, no tap needed */}
+      {/* Stock checker — compact trigger, expands inline when tapped */}
       <div style={{ marginBottom: '16px' }}>
-        <StockChecker area={areaLabel} />
+        <StockChecker area={areaLabel} compact />
       </div>
 
       {/* Community utility tools (queue, events, ask) */}
