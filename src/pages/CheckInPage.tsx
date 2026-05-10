@@ -235,6 +235,7 @@ export default function CheckInPage() {
   const [distanceKm, setDistKm] = useState<number | null>(null);
   const [score, setScore]       = useState<UserVenueScore | null>(null);
   const [method, setMethod]     = useState<'gps' | 'qr' | 'qr_link' | 'manual'>('gps');
+  const [isGhost, setIsGhost]   = useState(false);
 
   const visitorId = getVisitorId();
 
@@ -327,6 +328,7 @@ export default function CheckInPage() {
         venueType: v.category, visitorId, method: m,
         userId:   user?.id,
         userName,
+        isGhost,
       });
       setScore(result.score);
       setStep('celebration'); // always celebrate — will sync on reconnect
@@ -342,6 +344,7 @@ export default function CheckInPage() {
       method:    m,
       userId:    user?.id,
       userName,
+      isGhost,
     });
     setScore(result.score);
     setStep(result.alreadyCheckedIn ? 'duplicate' : 'celebration');
@@ -368,6 +371,7 @@ export default function CheckInPage() {
         venue={venue}
         score={score}
         userName={userName}
+        isGhost={isGhost}
         onDismiss={() => navigate(`/venue/${venue.slug}`)}
       />
     );
@@ -419,28 +423,75 @@ export default function CheckInPage() {
 
       {/* Venue mini-card */}
       {venue && (
-        <div style={{
-          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          borderRadius: '16px', padding: '14px',
-          display: 'flex', gap: '12px', alignItems: 'center',
-          marginBottom: '36px',
-        }}>
+        <div style={{ marginBottom: '36px' }}>
           <div style={{
-            width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
-            background: `${color}18`, border: `1px solid ${color}30`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px',
+            background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+            borderRadius: '16px', padding: '14px',
+            display: 'flex', gap: '12px', alignItems: 'center',
+            marginBottom: '10px',
           }}>
-            {emoji}
-          </div>
-          <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '3px' }}>
-              {venue.name}
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+              background: `${color}18`, border: `1px solid ${color}30`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px',
+            }}>
+              {emoji}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--color-muted)' }}>
-              <MapPin size={11} />
-              {venue.neighborhood}, {venue.city}
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '3px' }}>
+                {venue.name}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--color-muted)' }}>
+                <MapPin size={11} />
+                {venue.neighborhood}, {venue.city}
+              </div>
             </div>
           </div>
+
+          {/* Quiet check-in toggle */}
+          <button
+            onClick={() => setIsGhost(g => !g)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: isGhost ? 'rgba(255,255,255,0.04)' : 'transparent',
+              border: `1px solid ${isGhost ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+              borderRadius: '12px', padding: '10px 14px',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px' }}>🤫</span>
+              <span style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                color: isGhost ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.4)',
+                fontWeight: isGhost ? 600 : 400,
+              }}>
+                Check in quietly
+              </span>
+            </div>
+            <div style={{
+              width: '36px', height: '20px', borderRadius: '10px',
+              background: isGhost ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
+              position: 'relative', transition: 'background 0.15s', flexShrink: 0,
+            }}>
+              <div style={{
+                position: 'absolute', top: '2px',
+                left: isGhost ? '18px' : '2px',
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: isGhost ? '#fff' : 'rgba(255,255,255,0.4)',
+                transition: 'left 0.15s, background 0.15s',
+              }} />
+            </div>
+          </button>
+          {isGhost && (
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              color: 'rgba(255,255,255,0.3)', margin: '6px 14px 0',
+              lineHeight: 1.5,
+            }}>
+              Your visit is counted but your name won't appear in the regulars list.
+            </p>
+          )}
         </div>
       )}
 

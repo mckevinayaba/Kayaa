@@ -953,8 +953,10 @@ export async function saveVisit(params: {
   userId?:   string;
   /** Human-readable name to show in Regulars — first name from Google profile */
   userName?: string;
+  /** Private/ghost check-in — visit counted but name not shown in Regulars list */
+  isGhost?:  boolean;
 }): Promise<{ score: UserVenueScore; alreadyCheckedIn: boolean }> {
-  const { venueId, venueName, venueSlug, venueType, visitorId, method, userId, userName } = params;
+  const { venueId, venueName, venueSlug, venueType, visitorId, method, userId, userName, isGhost = false } = params;
 
   // ── Duplicate guard ──────────────────────────────────────────────────────────
   if (await isRecentDuplicate(venueId, visitorId)) {
@@ -1004,10 +1006,10 @@ export async function saveVisit(params: {
   try {
     await supabase.from('check_ins').insert({
       venue_id:       venueId,
-      visitor_name:   userId   ? (userName ?? visitorId) : visitorId,
-      display_name:   displayName,
-      user_id:        userId   ?? null,
-      is_ghost:       false,
+      visitor_name:   isGhost  ? null : (userId ? (userName ?? visitorId) : visitorId),
+      display_name:   isGhost  ? null : displayName,
+      user_id:        isGhost  ? null : (userId ?? null),
+      is_ghost:       isGhost,
       is_first_visit: newCount === 1,
       visit_number:   newCount,
       method,
@@ -1017,8 +1019,8 @@ export async function saveVisit(params: {
     try {
       await supabase.from('check_ins').insert({
         venue_id:       venueId,
-        visitor_name:   userId ? (userName ?? visitorId) : visitorId,
-        is_ghost:       false,
+        visitor_name:   isGhost ? null : (userId ? (userName ?? visitorId) : visitorId),
+        is_ghost:       isGhost,
         is_first_visit: newCount === 1,
         visit_number:   newCount,
       });
