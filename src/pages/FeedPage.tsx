@@ -1446,9 +1446,9 @@ export default function FeedPage() {
       getNewPlaces(suburb || undefined, city || undefined),
       getMostLovedPlaces(suburb || undefined, city || undefined),
       getGlobalActivity(),
-      getNeighbourhoodPosts(areaLabel),
-      getUserPostsForFeed(),
-      getSafetyAlerts(),
+      getNeighbourhoodPosts(suburb || city || ''),
+      getUserPostsForFeed(suburb || city || ''),
+      getSafetyAlerts(suburb || city || ''),
     ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa]) => {
       const venues = v as Venue[];
       setRawVenues(venues);
@@ -2175,26 +2175,50 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── From the neighbourhood (community posts) ────────── */}
-      {!loading && !isFiltered && userPosts.length > 0 && (
+      {/* ── From the neighbourhood (community posts — current suburb only) ── */}
+      {!loading && !isFiltered && suburb && (
         <div style={{ marginTop: '8px', marginBottom: '8px' }}>
-          {/* Divider */}
+          {/* Section header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 16px' }}>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
             <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
-              From the neighbourhood
+              {suburb}
             </span>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
           </div>
-          {userPosts.slice(0, 5).map(p => (
-            <UserPostCard key={p.id} post={p} liked={likedPostIds.has(p.id)} onLike={handleLike} />
-          ))}
-          {userPosts.length > 5 && (
+
+          {userPosts.length > 0 ? (
+            <>
+              {userPosts.slice(0, 5).map(p => (
+                <UserPostCard key={p.id} post={p} liked={likedPostIds.has(p.id)} onLike={handleLike} />
+              ))}
+              {userPosts.length > 5 && (
+                <button
+                  onClick={() => setShowComposer(true)}
+                  style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}
+                >
+                  + {userPosts.length - 5} more posts — share yours
+                </button>
+              )}
+            </>
+          ) : (
+            /* Honest empty state — neighbourhood is known but no posts yet */
             <button
               onClick={() => setShowComposer(true)}
-              style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}
+              style={{
+                width: '100%', background: 'rgba(57,217,138,0.04)',
+                border: '1px dashed rgba(57,217,138,0.2)', borderRadius: '14px',
+                padding: '20px 16px', cursor: 'pointer', textAlign: 'center',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+              }}
             >
-              + {userPosts.length - 5} more posts — share yours
+              <span style={{ fontSize: '22px' }}>✍️</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(57,217,138,0.8)' }}>
+                No posts in {suburb} yet
+              </span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>
+                Be the first to start the {suburb} conversation
+              </span>
             </button>
           )}
         </div>

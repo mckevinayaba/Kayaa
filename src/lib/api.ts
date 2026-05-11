@@ -1861,12 +1861,18 @@ function dbUserPost(row: any): UserPost {
   };
 }
 
-/** Fetch recent neighbourhood posts for the feed (last 30). */
-export async function getUserPostsForFeed(): Promise<UserPost[]> {
+/**
+ * Fetch recent posts for the feed.
+ * neighbourhood is REQUIRED for the Home feed — only that suburb's posts are returned.
+ * Without a neighbourhood we return [] rather than leaking global posts into Home.
+ */
+export async function getUserPostsForFeed(neighbourhood: string): Promise<UserPost[]> {
+  if (!neighbourhood) return [];
   try {
     const { data, error } = await supabase
       .from('user_posts')
       .select('*')
+      .eq('neighbourhood', neighbourhood)
       .order('created_at', { ascending: false })
       .limit(30);
     if (error || !data) return [];
@@ -1874,13 +1880,18 @@ export async function getUserPostsForFeed(): Promise<UserPost[]> {
   } catch { return []; }
 }
 
-/** Fetch active safety alerts (last 24 h). */
-export async function getSafetyAlerts(): Promise<UserPost[]> {
+/**
+ * Fetch active safety alerts (last 24 h) for the current neighbourhood only.
+ * Without a neighbourhood we return [] — never show other suburbs' alerts in Home.
+ */
+export async function getSafetyAlerts(neighbourhood: string): Promise<UserPost[]> {
+  if (!neighbourhood) return [];
   try {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('user_posts')
       .select('*')
+      .eq('neighbourhood', neighbourhood)
       .eq('category', 'alert')
       .gt('created_at', cutoff)
       .order('created_at', { ascending: false });
