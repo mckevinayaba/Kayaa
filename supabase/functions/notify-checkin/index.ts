@@ -1,7 +1,6 @@
 // notify-checkin — fired by DB webhook on check_ins INSERT
 // Sends owner email on every check-in, plus a milestone email at 10 check-ins this week.
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY')!;
@@ -48,7 +47,7 @@ async function markSent(eventType: string, entityId: string) {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Verify webhook secret
   if (WEBHOOK_SECRET && req.headers.get('x-webhook-secret') !== WEBHOOK_SECRET) {
     return new Response('Unauthorized', { status: 401 });

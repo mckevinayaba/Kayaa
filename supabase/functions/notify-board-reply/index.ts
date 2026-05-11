@@ -1,7 +1,6 @@
 // notify-board-reply — fired by DB webhook on board_post_comments INSERT
 // Emails the original post author when the first comment arrives.
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
@@ -44,7 +43,7 @@ async function markSent(eventType: string, entityId: string) {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (WEBHOOK_SECRET && req.headers.get('x-webhook-secret') !== WEBHOOK_SECRET) {
     return new Response('Unauthorized', { status: 401 });
   }
