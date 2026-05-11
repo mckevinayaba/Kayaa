@@ -448,7 +448,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowStorySheet(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: 'var(--color-surface)', borderRadius: '20px 20px 0 0', padding: '20px 16px 40px', maxHeight: '80vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>Share today's story</h2>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>Post today's story</h2>
               <button onClick={() => setShowStorySheet(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><XIcon size={18} color="var(--color-muted)" /></button>
             </div>
 
@@ -546,7 +546,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
           style={{ width: '100%', marginBottom: '20px', padding: '16px', background: 'transparent', border: '1.5px solid rgba(57,217,138,0.35)', borderRadius: '14px', color: '#39D98A', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
           <Camera size={16} />
-          📸 Share what's happening today
+          📸 Post what's happening today
         </button>
       )}
 

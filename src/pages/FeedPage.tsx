@@ -1859,7 +1859,7 @@ export default function FeedPage() {
       )}
 
       {/* Stories strip with "+" compose bubble */}
-      <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />
+      <StoriesStrip stories={stories} />
 
       {/* Post bar — single primary action + 3 compact secondary shortcuts */}
       <PostBar
