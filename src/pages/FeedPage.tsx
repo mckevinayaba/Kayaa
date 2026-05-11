@@ -38,6 +38,7 @@ import { WaterStatus }     from '../components/utility/WaterStatus';
 import { EventsCalendar }  from '../components/utility/EventsCalendar';
 import { QuickAsk }        from '../components/utility/QuickAsk';
 import PushBanner          from '../components/PushBanner';
+import { SafetyAlertOptIn } from '../components/SafetyAlertOptIn';
 import { useCountry } from '../contexts/CountryContext';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
@@ -1883,6 +1884,13 @@ export default function FeedPage() {
 
       {/* Community utility tools (queue, events, ask) */}
       <CommunityTools areaLabel={areaLabel} />
+
+      {/* Safety alert opt-in — only shown when suburb is known */}
+      {suburb && (
+        <div style={{ marginBottom: '16px' }}>
+          <SafetyAlertOptIn suburb={suburb} />
+        </div>
+      )}
 
       {/* Greeting + clickable area label */}
       <div style={{ marginBottom: '10px' }}>
