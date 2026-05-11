@@ -33,7 +33,7 @@ function durationHours(start: string, end: string): number {
 
 // ─── WaterStatus ──────────────────────────────────────────────────────────────
 
-export function WaterStatus({ area }: { area: string }) {
+export function WaterStatus({ area, compact }: { area: string; compact?: boolean }) {
   const [state,     setState]     = useState<WaterState>('on');
   const [outage,    setOutage]    = useState<WaterOutage | null>(null);
   const [loading,   setLoading]   = useState(true);
@@ -68,6 +68,31 @@ export function WaterStatus({ area }: { area: string }) {
   useEffect(() => {
     fetchStatus();
   }, [area]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Compact pill ─────────────────────────────────────────────────────────
+
+  if (compact) {
+    if (loading) return (
+      <div style={{ height: '36px', width: '120px', background: 'rgba(255,255,255,0.04)', borderRadius: '18px', flexShrink: 0 }} />
+    );
+    const pillColor  = state === 'on' ? '#60A5FA' : state === 'off' ? '#EF4444' : '#FBBF24';
+    const pillBg     = state === 'on' ? 'rgba(96,165,250,0.1)'   : state === 'off' ? 'rgba(239,68,68,0.1)'  : 'rgba(251,191,36,0.1)';
+    const pillBorder = state === 'on' ? 'rgba(96,165,250,0.25)'  : state === 'off' ? 'rgba(239,68,68,0.25)' : 'rgba(251,191,36,0.25)';
+    const pillLabel  = state === 'on' ? 'Water normal' : state === 'off' ? 'Water outage' : 'Water scheduled';
+    return (
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: '5px',
+        height: '36px', padding: '0 12px', flexShrink: 0,
+        background: pillBg, border: `1px solid ${pillBorder}`,
+        borderRadius: '18px',
+      }}>
+        <Droplet size={12} color={pillColor} />
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: pillColor, whiteSpace: 'nowrap' }}>
+          {pillLabel}
+        </span>
+      </div>
+    );
+  }
 
   // ── Normal ────────────────────────────────────────────────────────────────
 

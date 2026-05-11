@@ -11,7 +11,7 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
   const navigate = useNavigate();
 
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div style={{ marginBottom: '28px' }}>
 
       {/* Primary: compose prompt */}
       <button
@@ -19,7 +19,7 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
         style={{
           width: '100%',
           display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '13px 16px',
+          padding: '16px 16px',
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.09)',
           borderRadius: '16px',
@@ -44,7 +44,7 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
           color: 'rgba(255,255,255,0.3)',
           flex: 1,
         }}>
-          {suburb ? `What's happening in ${suburb}?` : "What's happening nearby?"}
+          {suburb ? `What's happening in ${suburb} today?` : "What's happening nearby today?"}
         </span>
         <span style={{
           fontFamily: 'Syne, sans-serif', fontWeight: 700,

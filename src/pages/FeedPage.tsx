@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, X, MapPin, PenSquare } from 'lucide-react';
+import { Search, X, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { haversineKm } from '../lib/geocode';
@@ -94,71 +94,6 @@ const SCOPE_LABELS: Record<FeedScope, string> = {
 // ─── Community Tools panel ────────────────────────────────────────────────────
 
 type CommunityToolKey = 'queue' | 'events' | 'ask' | null;
-
-const TOOL_ACCENT: Record<string, string> = {
-  queue:  '#60A5FA',
-  events: '#60A5FA',
-  ask:    '#A78BFA',
-};
-
-const COMMUNITY_TOOLS: { key: string; emoji: string; title: string; sub: string }[][] = [
-  // Single row — 3 tools (stock + water are now always-visible above)
-  [
-    { key: 'queue',  emoji: '⏱️', title: 'Queue Times',  sub: 'Live wait times'  },
-    { key: 'events', emoji: '📅', title: 'Events',       sub: "What's happening" },
-    { key: 'ask',    emoji: '❓', title: 'Quick Ask',    sub: 'Ask neighbours'   },
-  ],
-];
-
-function CommunityTools({ areaLabel }: { areaLabel: string }) {
-  const [open, setOpen] = useState<CommunityToolKey>(null);
-
-  function toggle(key: string) {
-    setOpen(prev => prev === key ? null : key as CommunityToolKey);
-  }
-
-  return (
-    <div style={{ marginBottom: '16px' }}>
-      {/* Two-row grid */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: open ? '10px' : '0' }}>
-        {COMMUNITY_TOOLS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '6px' }}>
-            {row.map(t => {
-              const active = open === t.key;
-              const accent = TOOL_ACCENT[t.key] ?? '#39D98A';
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => toggle(t.key)}
-                  style={{
-                    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                    padding: '10px 10px', borderRadius: '12px', cursor: 'pointer',
-                    background: active ? `${accent}12` : 'var(--color-surface)',
-                    border: active ? `1px solid ${accent}40` : '1px solid var(--color-border)',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <span style={{ fontSize: '16px', marginBottom: '3px' }}>{t.emoji}</span>
-                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '11px', color: active ? accent : 'var(--color-text)', lineHeight: 1.2 }}>
-                    {t.title}
-                  </span>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'var(--color-muted)', marginTop: '1px' }}>
-                    {t.sub}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Expanded panel */}
-      {open === 'queue'  && <QueueStatus />}
-      {open === 'events' && <EventsCalendar />}
-      {open === 'ask'    && <QuickAsk neighbourhood={areaLabel} />}
-    </div>
-  );
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1090,6 +1025,146 @@ function InstallBanner() {
   );
 }
 
+// ─── Hero venue card ──────────────────────────────────────────────────────────
+
+function HeroVenueCard({ venue }: { venue: Venue }) {
+  const navigate = useNavigate();
+  const emoji = CAT_EMOJI_MAP[venue.category] ?? '📍';
+  return (
+    <div
+      onClick={() => navigate(`/venue/${venue.slug}`)}
+      style={{
+        position: 'relative', width: '100%', height: '280px',
+        background: '#161B22',
+        borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden', marginBottom: '28px', cursor: 'pointer',
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ fontSize: '80px', userSelect: 'none', lineHeight: 1 }}>{emoji}</span>
+
+      {/* Venue type badge — top left */}
+      <div style={{
+        position: 'absolute', top: '16px', left: '16px',
+        background: 'rgba(57,217,138,0.15)', border: '1px solid rgba(57,217,138,0.3)',
+        borderRadius: '20px', padding: '4px 12px',
+        fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+        color: '#39D98A', textTransform: 'lowercase',
+      }}>
+        {venue.category}
+      </div>
+
+      {/* Bottom overlay */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        padding: '40px 16px 20px',
+        background: 'linear-gradient(transparent, rgba(13,17,23,0.96))',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px',
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '20px', color: '#FFFFFF',
+            margin: '0 0 4px', lineHeight: 1.2,
+          }}>
+            {venue.name}
+          </h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+            {venue.neighborhood || venue.city}
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+          {(venue.checkinsToday ?? 0) > 0 && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>
+              {venue.checkinsToday} here today
+            </span>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); navigate(`/venue/${venue.slug}/checkin`); }}
+            style={{
+              background: '#39D98A', color: '#0D1117',
+              borderRadius: '20px', border: 'none',
+              padding: '9px 20px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontSize: '13px', cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            Check in
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Utility pill strip ───────────────────────────────────────────────────────
+
+function UtilityPillStrip({ areaLabel }: { areaLabel: string }) {
+  const [stockOpen, setStockOpen]       = useState(false);
+  const [communityTool, setCommunityTool] = useState<CommunityToolKey>(null);
+
+  const pillBase: React.CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: '5px',
+    height: '36px', padding: '0 12px', flexShrink: 0,
+    background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '18px', cursor: 'pointer',
+    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+    color: 'rgba(255,255,255,0.55)',
+    WebkitTapHighlightColor: 'transparent',
+  };
+  const pillActive: React.CSSProperties = {
+    ...pillBase,
+    background: 'rgba(57,217,138,0.12)',
+    border: '1px solid rgba(57,217,138,0.3)',
+    color: '#39D98A',
+  };
+
+  return (
+    <div style={{ marginBottom: '28px' }}>
+      {/* Pill scroll row */}
+      <div style={{
+        display: 'flex', gap: '8px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        paddingBottom: '2px',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        <LoadSheddingWidget compact />
+        <WaterStatus area={areaLabel} compact />
+        <button style={stockOpen ? pillActive : pillBase} onClick={() => setStockOpen(o => !o)}>
+          📦 Search stock
+        </button>
+        {([
+          { key: 'queue'  as CommunityToolKey, emoji: '⏱️', label: 'Queue' },
+          { key: 'events' as CommunityToolKey, emoji: '📅', label: 'Events' },
+          { key: 'ask'    as CommunityToolKey, emoji: '❓', label: 'Quick Ask' },
+        ] as { key: CommunityToolKey; emoji: string; label: string }[]).map(t => (
+          <button
+            key={String(t.key)}
+            style={communityTool === t.key ? pillActive : pillBase}
+            onClick={() => setCommunityTool(prev => prev === t.key ? null : t.key)}
+          >
+            {t.emoji} {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Expanded panels */}
+      {stockOpen && (
+        <div style={{ marginTop: '12px' }}>
+          <StockChecker area={areaLabel} />
+        </div>
+      )}
+      {communityTool === 'queue'  && <div style={{ marginTop: '12px' }}><QueueStatus /></div>}
+      {communityTool === 'events' && <div style={{ marginTop: '12px' }}><EventsCalendar /></div>}
+      {communityTool === 'ask'    && <div style={{ marginTop: '12px' }}><QuickAsk neighbourhood={areaLabel} /></div>}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
@@ -1103,7 +1178,6 @@ export default function FeedPage() {
   } = useNeighbourhood();
   const userLat = _lat ?? undefined;
   const userLon = _lon ?? undefined;
-  const needsConfirmation = !isDetecting && !suburb && !manualOverride;
   const { selectedCountry, categoryLabels } = useCountry();
 
   // Raw data from API (unfiltered beyond isCleanVenue)
@@ -1199,14 +1273,6 @@ export default function FeedPage() {
     setShowAreaSearch(true);
     setAreaSearchQuery('');
   }
-
-  // Personal greeting
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const firstName = user
-    ? ((user.user_metadata?.full_name || user.user_metadata?.name || '') as string)
-        .split(' ')[0] || user.email?.split('@')[0] || ''
-    : '';
 
   // Reset manual scope override when user changes area so smart default re-applies
   useEffect(() => {
@@ -1433,7 +1499,6 @@ export default function FeedPage() {
     [rawMostLoved, scope, suburb, city, userLat, userLon],
   );
 
-  const activeCount = venues.filter(v => (v.checkinsToday ?? 0) >= 3).length;
   let activityIdx = 0;
 
   // Expand note for rails when auto-expanded beyond selected scope
@@ -1621,64 +1686,44 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── Personal greeting + neighbourhood pulse ──────────────────────── */}
-      {user && (
-        <div style={{ marginBottom: '20px' }}>
+      {/* ── Neighbourhood hero header ─────────────────────────────────────── */}
+      <div style={{ marginBottom: '32px' }}>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          textTransform: 'uppercase', letterSpacing: '0.12em',
+          color: 'rgba(57,217,138,0.6)', margin: '0 0 6px',
+        }}>
+          {getGreeting()}
+        </p>
+        <div onClick={() => setShowAreaGate(true)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
-            fontSize: '22px', color: '#F0F6FC',
-            margin: '0 0 4px', lineHeight: 1.2,
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: 'clamp(36px, 12vw, 48px)', color: '#FFFFFF',
+            letterSpacing: '-0.02em', lineHeight: 1,
+            margin: 0,
           }}>
-            {greeting}{firstName ? `, ${firstName}` : ''}
+            {suburb || areaLabel || 'Your area'}
           </h1>
-          <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-            color: 'rgba(255,255,255,0.4)', margin: '0 0 10px',
-          }}>
-            {(suburb && !needsConfirmation)
-              ? `Here's what's happening in ${suburb}`
-              : 'Set your area to see what\'s nearby'}
-          </p>
-
-          {/* Neighbourhood pulse — real aggregate stats */}
-          {suburb && !needsConfirmation && !loading && (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {(() => {
-                const totalCheckins = rawVenues.reduce((s, v) => s + (v.checkinsToday ?? 0), 0);
-                const activePlaces  = rawVenues.filter(v => (v.checkinsToday ?? 0) >= 1).length;
-                const totalPlaces   = rawVenues.length;
-                const pills = [];
-
-                if (totalPlaces > 0)
-                  pills.push({ label: `${totalPlaces} place${totalPlaces !== 1 ? 's' : ''}`, emoji: '🏠', color: '#39D98A' });
-                if (activePlaces > 0)
-                  pills.push({ label: `${activePlaces} active today`, emoji: '⚡', color: '#F59E0B' });
-                if (totalCheckins > 0)
-                  pills.push({ label: `${totalCheckins} check-in${totalCheckins !== 1 ? 's' : ''}`, emoji: '📍', color: '#60A5FA' });
-
-                if (pills.length === 0 && totalPlaces === 0)
-                  pills.push({ label: 'No places yet — add one →', emoji: '➕', color: '#39D98A' });
-
-                return pills.map(p => (
-                  <button
-                    key={p.label}
-                    onClick={p.label.includes('add one') ? () => setQuickAddOpen(true) : undefined}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '5px',
-                      padding: '4px 10px', borderRadius: '20px',
-                      background: `${p.color}12`, border: `1px solid ${p.color}25`,
-                      fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
-                      color: p.color, cursor: p.label.includes('add one') ? 'pointer' : 'default',
-                    }}
-                  >
-                    <span>{p.emoji}</span>{p.label}
-                  </button>
-                ));
-              })()}
-            </div>
-          )}
         </div>
-      )}
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#9CA3AF', margin: '0 0 10px' }}>
+          {rawVenues.length > 0
+            ? `${rawVenues.length} place${rawVenues.length !== 1 ? 's' : ''} in your neighbourhood`
+            : 'Set your neighbourhood to see places nearby'}
+        </p>
+        {!loading && rawVenues.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#39D98A', flexShrink: 0, boxShadow: '0 0 6px rgba(57,217,138,0.6)' }} />
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                {rawVenues.filter(v => (v.checkinsToday ?? 0) >= 1).length} active now
+              </span>
+            </div>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+              {new Date().toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* QuickAddPlace sheet */}
       {quickAddOpen && (
@@ -1723,65 +1768,15 @@ export default function FeedPage() {
       {/* Push permission banner — only shows after neighbourhood is known */}
       <PushBanner />
 
-      {/* Load shedding status */}
-      <div style={{ marginBottom: '16px' }}>
-        <LoadSheddingWidget compact />
-      </div>
-
-      {/* Water status — always visible, no tap needed */}
-      <div style={{ marginBottom: '10px' }}>
-        <WaterStatus area={areaLabel} />
-      </div>
-
-      {/* Stock checker — compact trigger, expands inline when tapped */}
-      <div style={{ marginBottom: '16px' }}>
-        <StockChecker area={areaLabel} compact />
-      </div>
-
-      {/* Community utility tools (queue, events, ask) */}
-      <CommunityTools areaLabel={areaLabel} />
+      {/* ── Utility pill strip (load shedding · water · stock · tools) ─────── */}
+      <UtilityPillStrip areaLabel={areaLabel} />
 
       {/* Safety alert opt-in — only shown when suburb is known */}
       {suburb && (
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <SafetyAlertOptIn suburb={suburb} />
         </div>
       )}
-
-      {/* Greeting + clickable area label */}
-      <div style={{ marginBottom: '10px' }}>
-        <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '2px' }}>{getGreeting()} 👋</p>
-        <div
-          onClick={() => setShowAreaGate(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginBottom: '10px' }}
-        >
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', lineHeight: 1.2, margin: 0 }}>
-            {areaLabel}
-          </h1>
-          <MapPin size={15} color="rgba(255,255,255,0.3)" style={{ marginTop: '2px' }} />
-        </div>
-        {/* Neighbourhood pulse stat strip */}
-        {!loading && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <div style={{ background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ fontSize: '11px', color: '#39D98A' }}>🏪</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>{activeCount} active today</span>
-            </div>
-            {userPosts.length > 0 && (
-              <div style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ fontSize: '11px' }}>💬</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#60A5FA' }}>{userPosts.length} post{userPosts.length !== 1 ? 's' : ''}</span>
-              </div>
-            )}
-            {activity.length > 0 && (
-              <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '20px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ fontSize: '11px' }}>📍</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#F59E0B' }}>{activity.length} check-ins</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (
@@ -1797,7 +1792,7 @@ export default function FeedPage() {
       )}
 
       {/* Search */}
-      <div style={{ position: 'relative', marginBottom: '12px' }}>
+      <div style={{ position: 'relative', marginBottom: '16px' }}>
         <Search size={15} color="var(--color-muted)" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         <input
           type="text"
@@ -1809,27 +1804,38 @@ export default function FeedPage() {
       </div>
 
       {/* Category strip */}
-      <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} chips={countryChips} />
-
+      <div style={{ marginBottom: '28px' }}>
+        <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} chips={countryChips} />
+      </div>
 
       {/* Trending this week — scope-filtered */}
-      {trendingResult.expanded && trendingResult.venues.length > 0 && (
-        <ScopeNote>{expandNote(trendingResult as RailResult<Venue>)}</ScopeNote>
+      {trendingResult.venues.length > 0 && (
+        <div style={{ marginBottom: '28px' }}>
+          {trendingResult.expanded && <ScopeNote>{expandNote(trendingResult as RailResult<Venue>)}</ScopeNote>}
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: '0 0 12px' }}>Trending</p>
+          <TrendingRail venues={trendingResult.venues} />
+        </div>
       )}
-      <TrendingRail venues={trendingResult.venues} />
 
       {/* Happening tonight */}
-      <HappeningTonight events={tonight} />
+      <div style={{ marginBottom: '28px' }}>
+        <HappeningTonight events={tonight} />
+      </div>
 
       {/* New in your neighbourhood — scope-filtered */}
-      <NewPlacesSection
-        venues={newPlacesResult.venues}
-        expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
-      />
+      <div style={{ marginBottom: '28px' }}>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: '0 0 12px' }}>New in your neighbourhood</p>
+        <NewPlacesSection
+          venues={newPlacesResult.venues}
+          expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
+        />
+      </div>
 
       {/* Event rail */}
       {activityFilter === 'All' && !search && events.length > 0 && (
-        <EventRail events={events} venues={venues} />
+        <div style={{ marginBottom: '28px' }}>
+          <EventRail events={events} venues={venues} />
+        </div>
       )}
 
       {/* Safety alerts — always at top */}
@@ -1872,18 +1878,13 @@ export default function FeedPage() {
             const activeNowCount = sortMode === 'active_now' ? sortedVenues.length : 0;
             return (
               <>
-                <div style={{ marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
-                      {mode.label}
-                    </h2>
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
-                      {sortMode === 'active_now' ? `${activeNowCount} active` : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`}
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: '2px 0 0' }}>
-                    {mode.tagline}
+                <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: 0 }}>
+                    {mode.label.replace(/^[^\s]+\s/, '')}
                   </p>
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+                    {sortMode === 'active_now' ? `${activeNowCount} active` : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`}
+                  </span>
                 </div>
 
                 {sortedVenues.length === 0 && sortMode === 'active_now' && (
@@ -1893,12 +1894,17 @@ export default function FeedPage() {
                       No check-ins in the last 2 hours nearby.
                     </p>
                     <button onClick={() => setSortMode('for_you')} style={{ marginTop: '10px', background: 'none', border: '1px solid rgba(57,217,138,0.25)', color: '#39D98A', borderRadius: '10px', padding: '7px 16px', fontSize: '12px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
-                      Back to For You →
+                      See all places →
                     </button>
                   </div>
                 )}
 
-                {sortedVenues.slice(0, visibleCount).map((venue, i) => {
+                {/* Hero card — first venue gets full-width treatment */}
+                {sortedVenues.length > 0 && (
+                  <HeroVenueCard venue={sortedVenues[0]} />
+                )}
+
+                {sortedVenues.slice(1, visibleCount).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
                   const moment = showActivity ? activity[activityIdx] : null;
                   if (showActivity) activityIdx++;
