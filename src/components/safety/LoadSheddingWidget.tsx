@@ -72,19 +72,19 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
     return (
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: '5px',
-        padding: '4px 10px',
+        height: '36px', padding: '0 12px', flexShrink: 0,
         background: conf.bg, border: `1px solid ${conf.border}`,
-        borderRadius: '20px',
+        borderRadius: '18px',
       }}>
         {isOff
           ? <Zap    size={12} color={conf.color} />
           : <ZapOff size={12} color={conf.color} />
         }
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: conf.color }}>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: conf.color, whiteSpace: 'nowrap' }}>
           {isOff ? 'No load shedding' : conf.label}
         </span>
         {next && !isOff && (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap' }}>
             · {timeUntil(next.start)}
           </span>
         )}

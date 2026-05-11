@@ -1824,7 +1824,6 @@ export default function FeedPage() {
 
       {/* New in your neighbourhood — scope-filtered */}
       <div style={{ marginBottom: '28px' }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: '0 0 12px' }}>New in your neighbourhood</p>
         <NewPlacesSection
           venues={newPlacesResult.venues}
           expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
@@ -1899,12 +1898,12 @@ export default function FeedPage() {
                   </div>
                 )}
 
-                {/* Hero card — first venue gets full-width treatment */}
-                {sortedVenues.length > 0 && (
-                  <HeroVenueCard venue={sortedVenues[0]} />
+                {/* Hero card — always the top filtered venue, even when active_now is empty */}
+                {filteredVenues.length > 0 && (
+                  <HeroVenueCard venue={filteredVenues[0]} />
                 )}
 
-                {sortedVenues.slice(1, visibleCount).map((venue, i) => {
+                {sortedVenues.filter(v => v.id !== filteredVenues[0]?.id).slice(0, visibleCount - 1).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
                   const moment = showActivity ? activity[activityIdx] : null;
                   if (showActivity) activityIdx++;
