@@ -398,14 +398,37 @@ export async function getRecentActivity(venueId: string): Promise<ActivityItem[]
   return items;
 }
 
-export async function getAllEvents(): Promise<Event[]> {
-  const { data, error } = await supabase
+// ─── Internal neighbourhood venue-ID resolver ─────────────────────────────────
+// Fetches active venue IDs for a suburb/city in a single indexed query.
+// Used by events, stories, and activity functions to restrict to local venues.
+// Returns [] if no suburb/city provided — callers treat that as "show nothing".
+
+async function getLocalVenueIds(suburb?: string, city?: string): Promise<string[]> {
+  if (!suburb && !city) return [];
+  let q = supabase.from('venues').select('id').eq('is_active', true);
+  if (suburb) q = q.ilike('location', `%${suburb}%`);
+  else if (city) q = q.ilike('location', `%${city}%`);
+  const { data } = await q;
+  return (data ?? []).map((r: { id: string }) => r.id);
+}
+
+export async function getAllEvents(suburb?: string, city?: string): Promise<Event[]> {
+  const venueIds = await getLocalVenueIds(suburb, city);
+  // If a neighbourhood is given but has no venues, return [] honestly.
+  // Only fall through to unfiltered if NEITHER suburb nor city was provided
+  // (e.g. venue-detail pages calling this without location context).
+  if ((suburb || city) && venueIds.length === 0) return [];
+
+  let q = supabase
     .from('events')
     .select('*')
     .gte('event_date', new Date().toISOString())
     .order('event_date', { ascending: true })
     .limit(20);
 
+  if (venueIds.length > 0) q = q.in('venue_id', venueIds);
+
+  const { data, error } = await q;
   if (error || !data) return [];
   return data.map(dbEventToEvent);
 }
@@ -494,18 +517,24 @@ export async function getTrendingPlaces(suburb?: string, city?: string): Promise
   return localFirst(venues, area).slice(0, 5);
 }
 
-export async function getHappeningTonight(): Promise<TonightEvent[]> {
+export async function getHappeningTonight(suburb?: string, city?: string): Promise<TonightEvent[]> {
+  const venueIds = await getLocalVenueIds(suburb, city);
+  if ((suburb || city) && venueIds.length === 0) return [];
+
   const now = new Date();
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+  const dayEnd   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
 
-  const { data, error } = await supabase
+  let q = supabase
     .from('events')
     .select('*, venues(name, slug, type)')
     .gte('event_date', dayStart)
     .lt('event_date', dayEnd)
     .order('event_date', { ascending: true });
 
+  if (venueIds.length > 0) q = q.in('venue_id', venueIds);
+
+  const { data, error } = await q;
   if (error || !data || data.length === 0) return [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -561,18 +590,29 @@ export async function getMostLovedPlaces(suburb?: string, city?: string): Promis
   return localFirst(venues, area).slice(0, 5);
 }
 
-export async function getGlobalActivity(): Promise<ActivityItem[]> {
+export async function getGlobalActivity(suburb?: string, city?: string): Promise<ActivityItem[]> {
+  const venueIds = await getLocalVenueIds(suburb, city);
+  if ((suburb || city) && venueIds.length === 0) return [];
+
   const [ciRes, postRes] = await Promise.all([
-    supabase
-      .from('check_ins')
-      .select('id, venue_id, visitor_name, is_ghost, created_at, visit_number')
-      .order('created_at', { ascending: false })
-      .limit(5),
-    supabase
-      .from('posts')
-      .select('id, venue_id, content, created_at')
-      .order('created_at', { ascending: false })
-      .limit(3),
+    (() => {
+      let q = supabase
+        .from('check_ins')
+        .select('id, venue_id, visitor_name, is_ghost, created_at, visit_number')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (venueIds.length > 0) q = q.in('venue_id', venueIds);
+      return q;
+    })(),
+    (() => {
+      let q = supabase
+        .from('posts')
+        .select('id, venue_id, content, created_at')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (venueIds.length > 0) q = q.in('venue_id', venueIds);
+      return q;
+    })(),
   ]);
 
   const ciData = ciRes.data ?? [];
@@ -581,8 +621,8 @@ export async function getGlobalActivity(): Promise<ActivityItem[]> {
   // No real activity yet — return empty so the activity strip is hidden
   if (ciData.length === 0 && postData.length === 0) return [];
 
-  const venueIds = [...new Set([...ciData.map(r => r.venue_id), ...postData.map(r => r.venue_id)])];
-  const { data: vRows } = await supabase.from('venues').select('id, name').in('id', venueIds);
+  const activityVenueIds = [...new Set([...ciData.map(r => r.venue_id), ...postData.map(r => r.venue_id)])];
+  const { data: vRows } = await supabase.from('venues').select('id, name').in('id', activityVenueIds);
   const venueMap: Record<string, string> = {};
   for (const v of vRows ?? []) venueMap[v.id] = v.name;
 
@@ -615,14 +655,22 @@ export async function getGlobalActivity(): Promise<ActivityItem[]> {
   return items.slice(0, 5);
 }
 
-export async function getActiveStories(venueId?: string): Promise<Story[]> {
+export async function getActiveStories(venueId?: string, suburb?: string, city?: string): Promise<Story[]> {
+  // If fetching for the feed (no specific venueId), scope to local venues only
+  let localIds: string[] = [];
+  if (!venueId && (suburb || city)) {
+    localIds = await getLocalVenueIds(suburb, city);
+    if (localIds.length === 0) return [];
+  }
+
   let query = supabase
     .from('place_stories')
     .select('*, venues(name, type)')
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false });
 
-  if (venueId) query = query.eq('venue_id', venueId);
+  if (venueId)           query = query.eq('venue_id', venueId);
+  else if (localIds.length > 0) query = query.in('venue_id', localIds);
 
   const { data, error } = await query;
   if (error || !data) return [];

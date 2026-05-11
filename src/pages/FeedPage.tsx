@@ -1439,13 +1439,13 @@ export default function FeedPage() {
   useEffect(() => {
     Promise.all([
       getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined, city: city || undefined }),
-      getAllEvents(),
-      getActiveStories(),
+      getAllEvents(suburb || undefined, city || undefined),
+      getActiveStories(undefined, suburb || undefined, city || undefined),
       getTrendingPlaces(suburb || undefined, city || undefined),
-      getHappeningTonight(),
+      getHappeningTonight(suburb || undefined, city || undefined),
       getNewPlaces(suburb || undefined, city || undefined),
       getMostLovedPlaces(suburb || undefined, city || undefined),
-      getGlobalActivity(),
+      getGlobalActivity(suburb || undefined, city || undefined),
       getNeighbourhoodPosts(suburb || city || ''),
       getUserPostsForFeed(suburb || city || ''),
       getSafetyAlerts(suburb || city || ''),
