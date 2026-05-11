@@ -28,7 +28,7 @@ import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
 import CategoryStrip from '../components/CategoryStrip';
-import QuickActions from '../components/feed/QuickActions';
+import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
@@ -1861,8 +1861,12 @@ export default function FeedPage() {
       {/* Stories strip with "+" compose bubble */}
       <StoriesStrip stories={stories} onCompose={() => setShowComposer(true)} />
 
-      {/* Quick action shortcuts */}
-      <QuickActions onCompose={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
+      {/* Post bar — single primary action + 3 compact secondary shortcuts */}
+      <PostBar
+        suburb={suburb || areaLabel}
+        onPost={() => setShowComposer(true)}
+        onAddPlace={() => setQuickAddOpen(true)}
+      />
 
       {/* Push permission banner — only shows after neighbourhood is known */}
       <PushBanner />

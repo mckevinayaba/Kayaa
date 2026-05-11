@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import AreaSelector from '../components/AreaSelector';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,11 +28,11 @@ function getAvatarUrl(user: ReturnType<typeof useAuth>['user']): string {
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: '/feed',       emoji: '🏠', label: 'Home'     },
-  { to: '/explore',    emoji: '🔍', label: 'Discover' },
-  { to: '/board',      emoji: '📋', label: 'Board'    },
-  { to: '/onboarding', emoji: '➕', label: 'Add Place'},
-  { to: '/profile',    emoji: '👤', label: 'Profile'  },
+  { to: '/feed',       emoji: '🏠', label: 'Home'      },
+  { to: '/explore',    emoji: '🔍', label: 'Discover'  },
+  { to: '/board',      emoji: '📋', label: 'Board'     },
+  { to: '/onboarding', emoji: '➕', label: 'Add Place' },
+  { to: '/alerts',     emoji: '🔔', label: 'Alerts'    },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,14 +160,16 @@ export default function AppLayout() {
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
         background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
-        padding: '0 16px', height: '56px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 14px', height: '56px',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center',
       }}>
-        {/* Logo — tap always scrolls to top of feed */}
+        {/* Left: logo */}
         <NavLink
           to="/feed"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ textDecoration: 'none' }}
+          style={{ textDecoration: 'none', justifySelf: 'start' }}
         >
           <span style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700,
@@ -177,41 +179,53 @@ export default function AppLayout() {
           </span>
         </NavLink>
 
-        {/* Right: location chip + user avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Centre: neighbourhood */}
+        <button
+          onClick={() => !isVenuePage && setAreaOpen(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            background: 'none', border: 'none',
+            cursor: isVenuePage ? 'default' : 'pointer',
+            padding: '5px 8px',
+            borderRadius: '20px',
+          }}
+        >
+          {isDetecting ? (
+            <div style={{
+              width: '7px', height: '7px', borderRadius: '50%',
+              background: '#39D98A', opacity: 0.6,
+              animation: 'navLocPulse 1.2s ease-in-out infinite',
+            }} />
+          ) : (
+            <MapPin size={12} color={displaySuburb ? '#39D98A' : 'rgba(255,255,255,0.4)'} />
+          )}
+          <span style={{
+            fontSize: '13px', fontWeight: 700,
+            color: displaySuburb ? 'var(--color-text)' : 'var(--color-muted)',
+            fontFamily: 'Syne, sans-serif',
+            maxWidth: '120px',
+            overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+          }}>
+            {locationLabel}
+          </span>
+          <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
+        </button>
 
-          {/* Neighbourhood trigger */}
+        {/* Right: search + avatar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifySelf: 'end' }}>
           <button
-            onClick={() => !isVenuePage && setAreaOpen(true)}
+            onClick={() => navigate('/checkin')}
             style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '20px',
-              cursor: isVenuePage ? 'default' : 'pointer',
-              padding: '5px 10px',
+              width: '36px', height: '36px', borderRadius: '50%',
+              background: 'none', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
             }}
+            aria-label="Search places"
           >
-            {isDetecting ? (
-              <div style={{
-                width: '7px', height: '7px', borderRadius: '50%',
-                background: '#39D98A', opacity: 0.6,
-                animation: 'navLocPulse 1.2s ease-in-out infinite',
-              }} />
-            ) : (
-              <MapPin size={12} color={displaySuburb ? '#39D98A' : 'rgba(255,255,255,0.4)'} />
-            )}
-            <span style={{
-              fontSize: '12px', fontWeight: 600,
-              color: displaySuburb ? 'var(--color-text)' : 'var(--color-muted)',
-              fontFamily: 'DM Sans, sans-serif',
-            }}>
-              {locationLabel}
-            </span>
-            <style>{`@keyframes navLocPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }`}</style>
+            <Search size={19} color="rgba(255,255,255,0.5)" />
           </button>
 
-          {/* User avatar / join button */}
           {user ? (
             <button
               onClick={() => setProfileOpen(p => !p)}
@@ -279,81 +293,37 @@ export default function AppLayout() {
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: '8px', paddingRight: '8px',
       }}>
-        {navItems.map(({ to, emoji, label }) => {
-          // Profile tab: active for /profile/*, /settings/*, /dashboard, /venue/*
-          const isProfileTab = to === '/profile';
-          const forceActive  = isProfileTab && (
-            routerLocation.pathname.startsWith('/profile') ||
-            routerLocation.pathname.startsWith('/settings') ||
-            routerLocation.pathname === '/dashboard' ||
-            routerLocation.pathname.startsWith('/venue/dashboard') ||
-            routerLocation.pathname.startsWith('/venue/analytics') ||
-            routerLocation.pathname.startsWith('/venue/updates') ||
-            routerLocation.pathname.startsWith('/venue/photos') ||
-            routerLocation.pathname.startsWith('/venue/events') ||
-            routerLocation.pathname.startsWith('/venue/hours') ||
-            routerLocation.pathname.startsWith('/venue/qr-code')
-          );
-
-          return isProfileTab ? (
-            <NavLink
-              key={to}
-              to={to}
-              end
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: '3px', textDecoration: 'none',
-                color: forceActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
-                flex: 1, padding: '8px 0', minWidth: '60px',
-                transition: 'color 0.15s',
-              }}
-            >
-              <span style={{
-                fontSize: '22px', lineHeight: 1,
-                filter: forceActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
-                transition: 'filter 0.15s',
-              }}>
-                {emoji}
-              </span>
-              <span style={{
-                fontSize: '10px', fontWeight: forceActive ? 700 : 500,
-                fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
-              }}>
-                {label}
-              </span>
-            </NavLink>
-          ) : (
-            <NavLink
-              key={to}
-              to={to}
-              style={({ isActive }) => ({
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: '3px', textDecoration: 'none',
-                color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
-                flex: 1, padding: '8px 0', minWidth: '60px',
-                transition: 'color 0.15s',
-              })}
-            >
-              {({ isActive }) => (
-                <>
-                  <span style={{
-                    fontSize: '22px', lineHeight: 1,
-                    filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
-                    transition: 'filter 0.15s',
-                  }}>
-                    {emoji}
-                  </span>
-                  <span style={{
-                    fontSize: '10px', fontWeight: isActive ? 700 : 500,
-                    fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
-                  }}>
-                    {label}
-                  </span>
-                </>
-              )}
-            </NavLink>
-          );
-        })}
+        {navItems.map(({ to, emoji, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            style={({ isActive }) => ({
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '3px', textDecoration: 'none',
+              color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
+              flex: 1, padding: '8px 0', minWidth: '60px',
+              transition: 'color 0.15s',
+            })}
+          >
+            {({ isActive }) => (
+              <>
+                <span style={{
+                  fontSize: '22px', lineHeight: 1,
+                  filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
+                  transition: 'filter 0.15s',
+                }}>
+                  {emoji}
+                </span>
+                <span style={{
+                  fontSize: '10px', fontWeight: isActive ? 700 : 500,
+                  fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
+                }}>
+                  {label}
+                </span>
+              </>
+            )}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );

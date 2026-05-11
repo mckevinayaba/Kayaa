@@ -39,6 +39,7 @@ import VenueAnalytics        from './pages/VenueAnalytics';
 import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
+import AlertsPage            from './pages/AlertsPage';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="/card/:name"           element={<RegularCardPage />} />
             <Route path="/countries"            element={<CountriesPage />} />
             <Route path="/help"                 element={<Help />} />
+            <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
             <Route path="/search" element={<Navigate to="/checkin" replace />} />
           </Route>
         </Routes>
