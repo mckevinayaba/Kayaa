@@ -118,7 +118,6 @@ export default function TrendingRail({ venues }: { venues: TrendingVenue[] }) {
                   fontSize: hasCover ? '12px' : '13px',
                   color: hasCover ? '#fff' : 'var(--color-text)',
                   marginBottom: '4px',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {venue.name}
                 </div>

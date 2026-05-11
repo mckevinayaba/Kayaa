@@ -1505,16 +1505,6 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
           </div>
         </div>
 
-        {/* OpenStreetMap embed — free, no token */}
-        <div style={{ borderRadius: '10px', overflow: 'hidden', height: '180px', marginBottom: '12px', border: '1px solid var(--color-border)' }}>
-          <iframe
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${venue.longitude - 0.012},${venue.latitude - 0.008},${venue.longitude + 0.012},${venue.latitude + 0.008}&layer=mapnik&marker=${venue.latitude},${venue.longitude}`}
-            style={{ width: '100%', height: '100%', border: 0, display: 'block', filter: 'invert(0.85) hue-rotate(180deg) brightness(0.9)' }}
-            title={`Map showing ${venue.name}`}
-            loading="lazy"
-          />
-        </div>
-
         {/* Directions link */}
         <a
           href={mapsUrl}

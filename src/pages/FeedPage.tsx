@@ -59,8 +59,6 @@ type ActivityFilter = 'All' | 'Active today' | 'Events today';
 type SortMode = 'for_you' | 'active_now' | 'trending' | 'most_loved' | 'new_places';
 
 const LOCAL_THRESHOLD = 3; // min local venues before defaulting to nearby
-// 'Active today' = ≥3 check-ins today (community-verified, never hardcoded)
-const ACTIVITY_FILTERS: ActivityFilter[] = ['All', 'Active today', 'Events today'];
 
 const SORT_MODES: { key: SortMode; label: string; tagline: string }[] = [
   { key: 'for_you',    label: '🎯 For You',    tagline: 'Places your neighbours actually rate' },
@@ -419,76 +417,6 @@ function applyCategoryFilter(venues: Venue[], cat: string, ids: Set<string>): Ve
 
 const ACTIVITY_AFTER = new Set([0, 1, 2]);
 
-// ─── Scope selector ───────────────────────────────────────────────────────────
-
-function ScopeSelector({ value, onChange }: { value: FeedScope; onChange: (s: FeedScope) => void }) {
-  // Show 4 chips; "Explore" is visually de-emphasised
-  const scopes: FeedScope[] = ['this_neighbourhood', 'nearby', 'city_wide', 'explore_all'];
-  return (
-    <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '2px' } as React.CSSProperties}>
-      {scopes.map(s => {
-        const active = value === s;
-        const isExplore = s === 'explore_all';
-        return (
-          <button
-            key={s}
-            onClick={() => onChange(s)}
-            style={{
-              padding: '5px 13px',
-              borderRadius: '20px',
-              border: active ? 'none' : `1px solid ${isExplore ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)'}`,
-              background: active ? 'rgba(57,217,138,0.15)' : 'transparent',
-              color: active ? '#39D98A' : isExplore ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.45)',
-              fontSize: '12px',
-              fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              transition: 'all 0.15s',
-            }}
-          >
-            {SCOPE_LABELS[s]}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Sort selector ────────────────────────────────────────────────────────────
-
-function SortSelector({ value, onChange }: { value: SortMode; onChange: (m: SortMode) => void }) {
-  return (
-    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '2px', marginBottom: '12px' } as React.CSSProperties}>
-      {SORT_MODES.map(m => {
-        const active = value === m.key;
-        return (
-          <button
-            key={m.key}
-            onClick={() => onChange(m.key)}
-            style={{
-              padding: '5px 12px',
-              borderRadius: '20px',
-              border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
-              background: active ? 'rgba(57,217,138,0.15)' : 'transparent',
-              color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
-              fontSize: '12px',
-              fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              transition: 'all 0.15s',
-            }}
-          >
-            {m.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -747,81 +675,6 @@ const CAT_EMOJI_MAP: Record<string, string> = {
 // OpenNowSection removed — hardcoded status is inaccurate and damages trust.
 // Community check-ins are the real signal. See "Active today" badge on VenueCard.
 
-// ─── New This Week section ────────────────────────────────────────────────────
-
-function NewThisWeekSection({ venues, areaLabel }: { venues: Venue[]; areaLabel: string }) {
-  const navigate = useNavigate();
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const newVenues = venues
-    .filter(v => new Date(v.createdAt).getTime() > sevenDaysAgo)
-    .slice(0, 8);
-
-  if (newVenues.length === 0) return null;
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: 0 }}>
-          Just added in {areaLabel}
-        </h2>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-          this week
-        </span>
-      </div>
-      <div style={{
-        display: 'flex', gap: '10px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '4px', WebkitOverflowScrolling: 'touch',
-      } as React.CSSProperties}>
-        {newVenues.map(venue => {
-          const emoji = CAT_EMOJI_MAP[venue.category] ?? CAT_EMOJI_MAP.default;
-          return (
-            <div
-              key={venue.id}
-              onClick={() => navigate(`/venue/${venue.slug}`)}
-              style={{
-                flexShrink: 0, width: '140px', cursor: 'pointer',
-                background: '#161B22',
-                border: '1px solid rgba(57,217,138,0.25)',
-                borderRadius: '14px', padding: '12px 10px',
-                position: 'relative',
-              }}
-            >
-              {/* NEW badge */}
-              <div style={{
-                position: 'absolute', top: '8px', right: '8px',
-                background: '#39D98A', color: '#0D1117',
-                fontFamily: 'Syne, sans-serif', fontWeight: 800,
-                fontSize: '9px', letterSpacing: '0.08em',
-                padding: '2px 6px', borderRadius: '20px',
-              }}>
-                NEW
-              </div>
-              <div style={{ fontSize: '24px', marginBottom: '8px', lineHeight: 1 }}>{emoji}</div>
-              <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
-                fontSize: '12px', color: '#F0F6FC', marginBottom: '3px',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                paddingRight: '8px',
-              }}>
-                {venue.name}
-              </div>
-              <div style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
-                color: 'rgba(255,255,255,0.4)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {venue.category}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ─── New place in-app banner ──────────────────────────────────────────────────
 
@@ -884,7 +737,6 @@ function NewPlaceBanner({ venues, areaLabel }: { venues: Venue[]; areaLabel: str
           style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
             color: '#F0F6FC', cursor: 'pointer',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}
           onClick={() => { navigate(`/venue/${shown.slug}`); setDismissed(true); }}
         >
@@ -1119,7 +971,7 @@ function NewPlacesSection({ venues, expandedNote }: { venues: Venue[]; expandedN
               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${color}18`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '8px' }}>
                 {emoji}
               </div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', marginBottom: '6px' }}>
                 {venue.name}
               </div>
               <span style={{ fontSize: '10px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.12)', padding: '2px 8px', borderRadius: '20px', display: 'inline-block' }}>
@@ -1295,7 +1147,7 @@ export default function FeedPage() {
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>(() => {
     const saved = localStorage.getItem('kayaa_feed_sort') as SortMode | null;
-    return saved ?? 'for_you';
+    return saved ?? 'active_now';
   });
 
   // Scope: starts at 'nearby' (safe default); set to smart default after data loads.
@@ -1931,9 +1783,6 @@ export default function FeedPage() {
         )}
       </div>
 
-      {/* Scope selector */}
-      <ScopeSelector value={scope} onChange={handleScopeChange} />
-
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (
         <ScopeNote>
@@ -1962,23 +1811,6 @@ export default function FeedPage() {
       {/* Category strip */}
       <CategoryStrip value={categoryFilter} onChange={v => { setCategoryFilter(v); setActivityFilter('All'); }} chips={countryChips} />
 
-      {/* Activity filter chips */}
-      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', paddingBottom: '4px', marginBottom: '12px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
-        {ACTIVITY_FILTERS.map(f => (
-          <button key={f} onClick={() => setActivityFilter(f)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: '20px', border: activityFilter === f ? 'none' : '1px solid var(--color-border)', background: activityFilter === f ? 'var(--color-accent)' : 'var(--color-surface)', color: activityFilter === f ? '#000' : 'var(--color-muted)', fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* Sort mode selector */}
-      <SortSelector value={sortMode} onChange={mode => {
-        setSortMode(mode);
-        localStorage.setItem('kayaa_feed_sort', mode);
-      }} />
-
-      {/* New this week — places added in last 7 days */}
-      {!loading && <NewThisWeekSection venues={venues} areaLabel={suburb || areaLabel} />}
 
       {/* Trending this week — scope-filtered */}
       {trendingResult.expanded && trendingResult.venues.length > 0 && (
@@ -2308,7 +2140,7 @@ export default function FeedPage() {
                     }}>
                       {emoji}
                     </div>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--color-text)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--color-text)', marginBottom: '4px' }}>
                       {venue.name}
                     </div>
                     <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
