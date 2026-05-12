@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Map, List, SlidersHorizontal, X, Users } from 'lucide-react';
 import { getAllVenues } from '../lib/api';
@@ -7,7 +7,9 @@ import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
 import SearchBar from '../components/search/SearchBar';
 import VisualFilters from '../components/feed/VisualFilters';
-import MapView from '../components/map/MapView';
+// MapView is lazy-loaded so leaflet/dist/leaflet.css is code-split into its own chunk
+// and never injected into the global CSS bundle (prevents a loading dot on other pages)
+const MapView = lazy(() => import('../components/map/MapView'));
 import type { Venue } from '../types';
 import type { FilterPill } from '../components/feed/VisualFilters';
 
@@ -328,16 +330,18 @@ export default function ExplorePage() {
       {/* ── Content area ────────────────────────────────────────────────────── */}
       <div style={{ flex: 1, overflowY: view === 'list' ? 'auto' : 'hidden', position: 'relative' }}>
 
-        {/* Map view */}
+        {/* Map view — lazy-loaded to keep leaflet CSS out of the global bundle */}
         {view === 'map' && (
           <div style={{ height: '100%', padding: '12px 16px' }}>
-            <MapView
-              venues={filtered}
-              userLat={userLat}
-              userLon={userLon}
-              height="100%"
-              onSelect={venue => navigate(`/venue/${venue.slug}`)}
-            />
+            <Suspense fallback={<div style={{ width: '100%', height: '100%', background: '#161B22', borderRadius: '16px' }} />}>
+              <MapView
+                venues={filtered}
+                userLat={userLat}
+                userLon={userLon}
+                height="100%"
+                onSelect={venue => navigate(`/venue/${venue.slug}`)}
+              />
+            </Suspense>
           </div>
         )}
 

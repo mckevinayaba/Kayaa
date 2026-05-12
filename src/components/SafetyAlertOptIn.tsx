@@ -4,9 +4,11 @@ import { supabase } from '../lib/supabase';
 
 interface Props {
   suburb: string;
+  /** Compact 36px pill for the utility strip */
+  compact?: boolean;
 }
 
-export function SafetyAlertOptIn({ suburb }: Props) {
+export function SafetyAlertOptIn({ suburb, compact }: Props) {
   const [optedIn,  setOptedIn]  = useState(false);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
@@ -59,6 +61,44 @@ export function SafetyAlertOptIn({ suburb }: Props) {
 
   if (loading || !userId) return null;
 
+  // ── Compact pill mode (36px, for utility strip) ──────────────────────────
+  if (compact) {
+    return (
+      <div
+        onClick={toggle}
+        role="button"
+        aria-pressed={optedIn}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          height: '36px', padding: '0 12px', flexShrink: 0,
+          background: optedIn ? 'rgba(57,217,138,0.12)' : '#161B22',
+          border: `1px solid ${optedIn ? 'rgba(57,217,138,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          borderRadius: '18px', cursor: saving ? 'default' : 'pointer',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          color: optedIn ? '#39D98A' : 'rgba(255,255,255,0.55)',
+          WebkitTapHighlightColor: 'transparent',
+          transition: 'all 0.2s',
+        }}
+      >
+        {saving
+          ? <Loader2 size={12} color="rgba(255,255,255,0.3)" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+          : <Bell size={12} color={optedIn ? '#39D98A' : 'rgba(255,255,255,0.4)'} style={{ flexShrink: 0 }} />
+        }
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {suburb} alerts
+        </span>
+        {/* Small dot indicator for on/off */}
+        <span style={{
+          width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
+          background: optedIn ? '#39D98A' : 'rgba(255,255,255,0.2)',
+          transition: 'background 0.2s',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // ── Full card mode ────────────────────────────────────────────────────────
   return (
     <div
       style={{

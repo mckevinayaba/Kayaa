@@ -62,13 +62,6 @@ type SortMode = 'for_you' | 'active_now' | 'trending' | 'most_loved' | 'new_plac
 
 const LOCAL_THRESHOLD = 3; // min local venues before defaulting to nearby
 
-const SORT_MODES: { key: SortMode; label: string; tagline: string }[] = [
-  { key: 'for_you',    label: '🎯 For You',    tagline: 'Places your neighbours actually rate' },
-  { key: 'active_now', label: '⚡ Active Now',  tagline: 'Where people are right now' },
-  { key: 'trending',   label: '🔥 Trending',   tagline: "What's getting popular" },
-  { key: 'most_loved', label: '💛 Most Loved', tagline: 'Places with the most regulars' },
-  { key: 'new_places', label: '🆕 New',        tagline: 'Just joined Kayaa' },
-];
 
 // Key → venue.category matcher (covers all country variants stored in DB)
 const CAT_KEY_MATCH: Record<string, (cat: string) => boolean> = {
@@ -167,6 +160,7 @@ const ADJACENT_SUBURBS: Record<string, string[]> = {
 };
 
 const NEARBY_THRESHOLD = 5; // expand if detected suburb has fewer than this many venues
+const NEW_VENUE_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000; // 14 days — new vs established
 
 // Filter + sort main venue list by scope.
 function filterAndRankByScope(
@@ -1105,7 +1099,7 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
 
 // ─── Utility pill strip ───────────────────────────────────────────────────────
 
-function UtilityPillStrip({ areaLabel }: { areaLabel: string }) {
+function UtilityPillStrip({ areaLabel, suburb }: { areaLabel: string; suburb: string }) {
   const [stockOpen, setStockOpen]       = useState(false);
   const [communityTool, setCommunityTool] = useState<CommunityToolKey>(null);
 
@@ -1138,6 +1132,7 @@ function UtilityPillStrip({ areaLabel }: { areaLabel: string }) {
       } as React.CSSProperties}>
         <LoadSheddingWidget compact />
         <WaterStatus area={areaLabel} compact />
+        {suburb && <SafetyAlertOptIn suburb={suburb} compact />}
         <button style={stockOpen ? pillActive : pillBase} onClick={() => setStockOpen(o => !o)}>
           📦 Search stock
         </button>
@@ -1480,10 +1475,30 @@ export default function FeedPage() {
     return result;
   }, [venues, activityFilter, categoryFilter, search, venueIdsWithEvents]);
 
-  // Pre-sorted list used for both rendering and count display
-  const sortedVenues = useMemo(
-    () => applySortMode(filteredVenues, sortMode, suburb),
-    [filteredVenues, sortMode, suburb],
+  // ── 14-day new/established split ─────────────────────────────────────────
+  // Venues appear in exactly ONE section: "New in your neighbourhood" (< 14d)
+  // or "Places in {suburb}" (≥ 14d). Never both.
+  const newVenues = useMemo(
+    () => filteredVenues.filter(v => Date.now() - new Date(v.createdAt).getTime() < NEW_VENUE_THRESHOLD_MS),
+    [filteredVenues],
+  );
+  const establishedVenues = useMemo(
+    () => filteredVenues.filter(v => Date.now() - new Date(v.createdAt).getTime() >= NEW_VENUE_THRESHOLD_MS),
+    [filteredVenues],
+  );
+  // Hero: prefer the top established venue, fall back to the top new venue
+  const heroVenue = useMemo(
+    () => establishedVenues[0] ?? newVenues[0] ?? null,
+    [establishedVenues, newVenues],
+  );
+  // Cards for each section: exclude the hero so it never appears twice
+  const newCards = useMemo(
+    () => newVenues.filter(v => v.id !== heroVenue?.id),
+    [newVenues, heroVenue],
+  );
+  const establishedCards = useMemo(
+    () => establishedVenues.filter(v => v.id !== heroVenue?.id),
+    [establishedVenues, heroVenue],
   );
 
   // ─── Computed: scope-filtered rails ─────────────────────────────────────────
@@ -1772,15 +1787,8 @@ export default function FeedPage() {
       {/* Push permission banner — only shows after neighbourhood is known */}
       <PushBanner />
 
-      {/* ── Utility pill strip (load shedding · water · stock · tools) ─────── */}
-      <UtilityPillStrip areaLabel={areaLabel} />
-
-      {/* Safety alert opt-in — only shown when suburb is known */}
-      {suburb && (
-        <div style={{ marginBottom: '28px' }}>
-          <SafetyAlertOptIn suburb={suburb} />
-        </div>
-      )}
+      {/* ── Utility pill strip (load shedding · water · safety alerts · stock · tools) ── */}
+      <UtilityPillStrip areaLabel={areaLabel} suburb={suburb} />
 
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (
@@ -1826,14 +1834,6 @@ export default function FeedPage() {
         <HappeningTonight events={tonight} />
       </div>
 
-      {/* New in your neighbourhood — scope-filtered */}
-      <div style={{ marginBottom: '28px' }}>
-        <NewPlacesSection
-          venues={newPlacesResult.venues}
-          expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
-        />
-      </div>
-
       {/* Event rail */}
       {activityFilter === 'All' && !search && events.length > 0 && (
         <div style={{ marginBottom: '28px' }}>
@@ -1875,40 +1875,41 @@ export default function FeedPage() {
         )
       ) : (
         <div>
-          {/* Section header + venue list — with consistent active_now logic */}
-          {(() => {
-            // When active_now has 0 results, silently fall back to for_you.
-            // Never show a section heading that contradicts the "0 active now" count above.
-            const activeNowEmpty = sortMode === 'active_now' && sortedVenues.length === 0;
-            const displayVenues  = activeNowEmpty
-              ? applySortMode(filteredVenues, 'for_you', suburb)
-              : sortedVenues;
-            const sectionLabel   = activeNowEmpty
-              ? `Places in ${suburb || areaLabel}`
-              : SORT_MODES.find(m => m.key === sortMode)!.label.replace(/^[^\s]+\s/, '');
-            const countLabel     = activeNowEmpty
-              ? `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`
-              : sortMode === 'active_now'
-                ? `${sortedVenues.length} active`
-                : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`;
+          {/* ── Hero venue — best established first, then best new ── */}
+          {heroVenue && <HeroVenueCard venue={heroVenue} />}
+
+          {/* ── New in your neighbourhood (< 14 days, minus hero) ── */}
+          {newCards.length > 0 && (
+            <div style={{ marginBottom: '28px' }}>
+              <NewPlacesSection
+                venues={newCards}
+                expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
+              />
+            </div>
+          )}
+
+          {/* ── Places in {suburb} — established venues only (≥ 14 days) ─────
+               Hidden entirely when all venues are newly registered.
+               Venues NEVER appear in both this section and "New in your neighbourhood". */}
+          {establishedCards.length > 0 && (() => {
+            const activeNowEmpty = sortMode === 'active_now' &&
+              applySortMode(establishedCards, 'active_now', suburb).length === 0;
+            const displayEstablished = activeNowEmpty
+              ? applySortMode(establishedCards, 'for_you', suburb)
+              : applySortMode(establishedCards, sortMode, suburb);
 
             return (
               <>
                 <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: 0 }}>
-                    {sectionLabel}
+                    Places in {suburb || areaLabel}
                   </p>
                   <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
-                    {countLabel}
+                    {establishedCards.length} place{establishedCards.length !== 1 ? 's' : ''}
                   </span>
                 </div>
 
-                {/* Hero card — always the top filtered venue */}
-                {filteredVenues.length > 0 && (
-                  <HeroVenueCard venue={filteredVenues[0]} />
-                )}
-
-                {displayVenues.filter(v => v.id !== filteredVenues[0]?.id).slice(0, visibleCount - 1).map((venue, i) => {
+                {displayEstablished.slice(0, visibleCount - 1).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
                   const moment = showActivity ? activity[activityIdx] : null;
                   if (showActivity) activityIdx++;
@@ -1946,14 +1947,14 @@ export default function FeedPage() {
                   );
                 })}
 
-                {/* More to load — spinner triggers next batch via scroll listener */}
-                {visibleCount < sortedVenues.length && (
+                {/* More to load — spinner */}
+                {visibleCount < displayEstablished.length && (
                   <div style={{ textAlign: 'center', padding: '20px 0' }}>
                     <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid rgba(57,217,138,0.25)', borderTopColor: '#39D98A', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
                   </div>
                 )}
                 {/* End of feed */}
-                {sortedVenues.length > 20 && visibleCount >= sortedVenues.length && (
+                {displayEstablished.length > 20 && visibleCount >= displayEstablished.length && (
                   <p style={{ textAlign: 'center', padding: '20px 0 8px', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.22)', margin: 0 }}>
                     You've seen it all ✓
                   </p>
