@@ -15,21 +15,21 @@ interface DaySlot {
 
 type WeekHours = Record<string, DaySlot>;
 
-const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'] as const;
+const DAYS = ['mon','tue','wed','thu','fri','sat','sun'] as const;
 
 const DAY_LABELS: Record<string, string> = {
-  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
-  thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+  mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday',
+  thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
 };
 
 const DEFAULT_HOURS: WeekHours = {
-  monday:    { open: '08:00', close: '18:00', closed: false },
-  tuesday:   { open: '08:00', close: '18:00', closed: false },
-  wednesday: { open: '08:00', close: '18:00', closed: false },
-  thursday:  { open: '08:00', close: '18:00', closed: false },
-  friday:    { open: '08:00', close: '18:00', closed: false },
-  saturday:  { open: '09:00', close: '14:00', closed: false },
-  sunday:    { open: '00:00', close: '00:00', closed: true  },
+  mon: { open: '08:00', close: '18:00', closed: false },
+  tue: { open: '08:00', close: '18:00', closed: false },
+  wed: { open: '08:00', close: '18:00', closed: false },
+  thu: { open: '08:00', close: '18:00', closed: false },
+  fri: { open: '08:00', close: '18:00', closed: false },
+  sat: { open: '09:00', close: '14:00', closed: false },
+  sun: { open: '00:00', close: '00:00', closed: true  },
 };
 
 // ─── Quick presets ────────────────────────────────────────────────────────────
@@ -39,26 +39,26 @@ const PRESETS: { label: string; emoji: string; hours: WeekHours }[] = [
     label: 'Mon – Fri 9–5',
     emoji: '🏢',
     hours: {
-      monday:    { open: '09:00', close: '17:00', closed: false },
-      tuesday:   { open: '09:00', close: '17:00', closed: false },
-      wednesday: { open: '09:00', close: '17:00', closed: false },
-      thursday:  { open: '09:00', close: '17:00', closed: false },
-      friday:    { open: '09:00', close: '17:00', closed: false },
-      saturday:  { open: '00:00', close: '00:00', closed: true  },
-      sunday:    { open: '00:00', close: '00:00', closed: true  },
+      mon: { open: '09:00', close: '17:00', closed: false },
+      tue: { open: '09:00', close: '17:00', closed: false },
+      wed: { open: '09:00', close: '17:00', closed: false },
+      thu: { open: '09:00', close: '17:00', closed: false },
+      fri: { open: '09:00', close: '17:00', closed: false },
+      sat: { open: '00:00', close: '00:00', closed: true  },
+      sun: { open: '00:00', close: '00:00', closed: true  },
     },
   },
   {
     label: 'Mon – Sat extended',
     emoji: '🏪',
     hours: {
-      monday:    { open: '07:00', close: '20:00', closed: false },
-      tuesday:   { open: '07:00', close: '20:00', closed: false },
-      wednesday: { open: '07:00', close: '20:00', closed: false },
-      thursday:  { open: '07:00', close: '20:00', closed: false },
-      friday:    { open: '07:00', close: '21:00', closed: false },
-      saturday:  { open: '08:00', close: '18:00', closed: false },
-      sunday:    { open: '00:00', close: '00:00', closed: true  },
+      mon: { open: '07:00', close: '20:00', closed: false },
+      tue: { open: '07:00', close: '20:00', closed: false },
+      wed: { open: '07:00', close: '20:00', closed: false },
+      thu: { open: '07:00', close: '20:00', closed: false },
+      fri: { open: '07:00', close: '21:00', closed: false },
+      sat: { open: '08:00', close: '18:00', closed: false },
+      sun: { open: '00:00', close: '00:00', closed: true  },
     },
   },
   {
@@ -72,12 +72,15 @@ const PRESETS: { label: string; emoji: string; hours: WeekHours }[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function parseHours(raw: string | undefined): WeekHours {
+function parseHours(raw: unknown): WeekHours {
   if (!raw) return DEFAULT_HOURS;
   try {
-    const parsed = JSON.parse(raw);
-    // Validate shape — must have at least 'monday'
-    if (typeof parsed === 'object' && parsed.monday) return { ...DEFAULT_HOURS, ...parsed };
+    // JSONB from PostgREST is already an object; TEXT columns arrive as strings.
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    // Validate shape — must have at least 'mon' (short-key format)
+    if (typeof parsed === 'object' && parsed !== null && (parsed as Record<string, unknown>).mon) {
+      return { ...DEFAULT_HOURS, ...(parsed as WeekHours) };
+    }
   } catch { /* fall through */ }
   return DEFAULT_HOURS;
 }
@@ -206,11 +209,11 @@ export default function VenueHours() {
 
       const { data } = await supabase
         .from('venues')
-        .select('opening_hours')
+        .select('owner_hours')
         .eq('id', ownership.venueId)
         .maybeSingle();
 
-      setHours(parseHours(data?.opening_hours));
+      setHours(parseHours(data?.owner_hours));
       setLoading(false);
     })();
   }, [user]);
@@ -220,7 +223,7 @@ export default function VenueHours() {
     setSaving(true);
     await supabase
       .from('venues')
-      .update({ opening_hours: JSON.stringify(hours) })
+      .update({ owner_hours: hours })
       .eq('id', venueId);
     setSaving(false);
     setSaved(true);

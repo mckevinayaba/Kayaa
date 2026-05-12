@@ -131,6 +131,36 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
   return dbVenueToVenue(data);
 }
 
+// ── Venue view recording ──────────────────────────────────────────────────────
+
+/**
+ * Records one view for a venue, deduplicated per session via sessionStorage.
+ * Fails silently — never throws, never crashes the caller.
+ */
+export async function recordVenueView(venueId: string): Promise<void> {
+  try {
+    const key = `kayaa_viewed_${venueId}`;
+    // Check if already recorded this session — storage may be blocked in
+    // private-browsing environments, so guard every storage access.
+    let alreadySeen = false;
+    try {
+      alreadySeen = sessionStorage.getItem(key) === '1';
+    } catch { /* storage unavailable — proceed as if unseen */ }
+
+    if (alreadySeen) return;
+
+    // Insert the view row
+    const { error } = await supabase
+      .from('venue_views')
+      .insert({ venue_id: venueId });
+
+    if (!error) {
+      // Mark as seen for the rest of this session
+      try { sessionStorage.setItem(key, '1'); } catch { /* ignore */ }
+    }
+  } catch { /* never surface view-recording errors to the UI */ }
+}
+
 // ── Phase 8: Promotion hooks ──────────────────────────────────────────────────
 
 /** Returns the current active promotion for a venue, or null if none. */

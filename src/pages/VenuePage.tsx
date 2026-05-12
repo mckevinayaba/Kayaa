@@ -22,7 +22,7 @@ import {
   getVibeSummary, reportVibe, cancelVibeReport,
   getActiveVenueStory, getInteractiveUserId,
   getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
-  getVenueRecentCheckIns,
+  getVenueRecentCheckIns, recordVenueView,
 } from '../lib/api';
 import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin } from '../lib/api';
 import type { Venue, Event, Post, Story } from '../types';
@@ -1932,6 +1932,9 @@ export default function VenuePage() {
       setVenue(v);
       setLoading(false);
       setIsLiked(getLikedVenues().has(v.id));
+
+      // Record one view per session — deduplicated, fails silently
+      recordVenueView(v.id);
 
       // Load all supplementary data in parallel
       getVenueEvents(v.id).then(setEvents);
