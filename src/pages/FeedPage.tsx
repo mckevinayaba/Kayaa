@@ -19,6 +19,8 @@ import {
 import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Venue, Event, Story } from '../types';
+import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
+import { VenueStatusBadge } from '../components/VenueStatusBadge';
 import VenueCard from '../components/VenueCard';
 import StoryViewer from '../components/StoryViewer';
 import ActivityMoment from '../components/ActivityMoment';
@@ -599,13 +601,7 @@ function LocalEmptyState({ scope, areaLabel, onExpand, onAddPlace }: {
 
 // ─── Open Now section ─────────────────────────────────────────────────────────
 
-const CAT_EMOJI_MAP: Record<string, string> = {
-  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
-  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
-  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
-  'Live Music Venue': '🎵', 'Community Space': '🤝', Market: '🛒',
-  Mechanic: '🔧', Gym: '💪', default: '📍',
-};
+// CAT_EMOJI_MAP replaced by getCategoryEmoji() from venueUtils for fuzzy matching
 
 // OpenNowSection removed — hardcoded status is inaccurate and damages trust.
 // Community check-ins are the real signal. See "Active today" badge on VenueCard.
@@ -662,7 +658,7 @@ function NewPlaceBanner({ venues, areaLabel }: { venues: Venue[]; areaLabel: str
         background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
       }}>
-        {CAT_EMOJI_MAP[shown.category] ?? '📍'}
+        {getCategoryEmoji(shown.category)}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', fontWeight: 700, marginBottom: '1px' }}>
@@ -1029,7 +1025,9 @@ function InstallBanner() {
 
 function HeroVenueCard({ venue }: { venue: Venue }) {
   const navigate = useNavigate();
-  const emoji = CAT_EMOJI_MAP[venue.category] ?? '📍';
+  const emoji = getCategoryEmoji(venue.category);
+  const hasRecentCheckin = !!(venue.lastCheckinAt && Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000);
+  const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   return (
     <div
       onClick={() => navigate(`/venue/${venue.slug}`)}
@@ -1042,7 +1040,8 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
         flexShrink: 0,
       }}
     >
-      <span style={{ fontSize: '80px', userSelect: 'none', lineHeight: 1 }}>{emoji}</span>
+      {/* Large emoji — the only visual anchor, no map artifacts */}
+      <span style={{ fontSize: '72px', userSelect: 'none', lineHeight: 1 }}>{emoji}</span>
 
       {/* Venue type badge — top left */}
       <div style={{
@@ -1070,9 +1069,14 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
           }}>
             {venue.name}
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-            {venue.neighborhood || venue.city}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+              {venue.neighborhood || venue.city}
+            </p>
+            {openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today' && (
+              <VenueStatusBadge status={openStatus} size="sm" />
+            )}
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
           {(venue.checkinsToday ?? 0) > 0 && (
@@ -1219,7 +1223,7 @@ export default function FeedPage() {
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
-  const [sortMode, setSortMode] = useState<SortMode>(() => {
+  const [sortMode, _setSortMode] = useState<SortMode>(() => {
     const saved = localStorage.getItem('kayaa_feed_sort') as SortMode | null;
     return saved ?? 'active_now';
   });
@@ -1715,7 +1719,7 @@ export default function FeedPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
               <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#39D98A', flexShrink: 0, boxShadow: '0 0 6px rgba(57,217,138,0.6)' }} />
               <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-                {rawVenues.filter(v => (v.checkinsToday ?? 0) >= 1).length} active now
+                {rawVenues.filter(v => v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000).length} active now
               </span>
             </div>
             <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
@@ -1871,39 +1875,40 @@ export default function FeedPage() {
         )
       ) : (
         <div>
-          {/* Section header: sort label + tagline */}
+          {/* Section header + venue list — with consistent active_now logic */}
           {(() => {
-            const mode = SORT_MODES.find(m => m.key === sortMode)!;
-            const activeNowCount = sortMode === 'active_now' ? sortedVenues.length : 0;
+            // When active_now has 0 results, silently fall back to for_you.
+            // Never show a section heading that contradicts the "0 active now" count above.
+            const activeNowEmpty = sortMode === 'active_now' && sortedVenues.length === 0;
+            const displayVenues  = activeNowEmpty
+              ? applySortMode(filteredVenues, 'for_you', suburb)
+              : sortedVenues;
+            const sectionLabel   = activeNowEmpty
+              ? `Places in ${suburb || areaLabel}`
+              : SORT_MODES.find(m => m.key === sortMode)!.label.replace(/^[^\s]+\s/, '');
+            const countLabel     = activeNowEmpty
+              ? `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`
+              : sortMode === 'active_now'
+                ? `${sortedVenues.length} active`
+                : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`;
+
             return (
               <>
                 <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: 0 }}>
-                    {mode.label.replace(/^[^\s]+\s/, '')}
+                    {sectionLabel}
                   </p>
                   <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
-                    {sortMode === 'active_now' ? `${activeNowCount} active` : `${filteredVenues.length} place${filteredVenues.length !== 1 ? 's' : ''}`}
+                    {countLabel}
                   </span>
                 </div>
 
-                {sortedVenues.length === 0 && sortMode === 'active_now' && (
-                  <div style={{ textAlign: 'center', padding: '28px 0 12px' }}>
-                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚡</div>
-                    <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-                      No check-ins in the last 2 hours nearby.
-                    </p>
-                    <button onClick={() => setSortMode('for_you')} style={{ marginTop: '10px', background: 'none', border: '1px solid rgba(57,217,138,0.25)', color: '#39D98A', borderRadius: '10px', padding: '7px 16px', fontSize: '12px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}>
-                      See all places →
-                    </button>
-                  </div>
-                )}
-
-                {/* Hero card — always the top filtered venue, even when active_now is empty */}
+                {/* Hero card — always the top filtered venue */}
                 {filteredVenues.length > 0 && (
                   <HeroVenueCard venue={filteredVenues[0]} />
                 )}
 
-                {sortedVenues.filter(v => v.id !== filteredVenues[0]?.id).slice(0, visibleCount - 1).map((venue, i) => {
+                {displayVenues.filter(v => v.id !== filteredVenues[0]?.id).slice(0, visibleCount - 1).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
                   const moment = showActivity ? activity[activityIdx] : null;
                   if (showActivity) activityIdx++;

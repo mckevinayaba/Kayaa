@@ -5,12 +5,8 @@ import type { Venue } from '../types';
 import type { VibeType } from '../lib/api';
 import ShareModal from './ShareModal';
 import { VerificationBadge } from './common/VerificationBadge';
-
-const categoryEmoji: Record<string, string> = {
-  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
-  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
-  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
-};
+import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
+import { VenueStatusBadge } from './VenueStatusBadge';
 
 const categoryColor: Record<string, string> = {
   Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
@@ -52,8 +48,10 @@ interface VenueCardProps {
 
 export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason }: VenueCardProps) {
   const navigate = useNavigate();
-  const emoji  = categoryEmoji[venue.category] ?? '📍';
+  const emoji  = getCategoryEmoji(venue.category);
   const color  = categoryColor[venue.category] ?? '#39D98A';
+  const hasRecentCheckin = !!(venue.lastCheckinAt && Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000);
+  const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   const [shareOpen, setShareOpen] = useState(false);
   const todayCount = venue.checkinsToday ?? 0;
   // Three activity states — never based on hardcoded status field
@@ -231,12 +229,17 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
-          {/* Location */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px' }}>
-            <MapPin size={11} color="var(--color-muted)" />
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-              {venue.neighborhood}, {venue.city}
-            </span>
+          {/* Location + open status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <MapPin size={11} color="var(--color-muted)" />
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                {venue.neighborhood}, {venue.city}
+              </span>
+            </div>
+            {openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today' && (
+              <VenueStatusBadge status={openStatus} size="sm" />
+            )}
           </div>
 
           {recommendationReason && (

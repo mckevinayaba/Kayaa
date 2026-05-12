@@ -5,7 +5,8 @@ import {
   ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
   Heart, Phone, MessageCircle, Navigation, Store,
 } from 'lucide-react';
-import type { OwnerHours } from '../types';
+import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
+import { VenueStatusBadge } from '../components/VenueStatusBadge';
 import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
@@ -31,12 +32,6 @@ import { StockChecker } from '../components/utility/StockChecker';
 import { QueueStatus }  from '../components/utility/QueueStatus';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕',
-  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
-  Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
-};
 
 const CATEGORY_COLOR: Record<string, string> = {
   Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
@@ -66,31 +61,8 @@ function formatEventTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Owner-hours open/closed calculator ──────────────────────────────────────
-// Returns null when no owner hours are set (don't show a status badge at all)
-// Returns true/false only when the owner has set their hours
-function isOpenBySAST(ownerHours: OwnerHours): boolean {
-  const now = new Date();
-  // SAST = UTC+2
-  const sast = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-  const days = ['sun','mon','tue','wed','thu','fri','sat'] as const;
-  const dayKey = days[sast.getUTCDay()];
-  const dayHours = ownerHours[dayKey];
-  if (!dayHours || dayHours.closed) return false;
-  const mins = sast.getUTCHours() * 60 + sast.getUTCMinutes();
-  const [openH, openM] = (dayHours.open ?? '00:00').split(':').map(Number);
-  const [closeH, closeM] = (dayHours.close ?? '00:00').split(':').map(Number);
-  return mins >= openH * 60 + openM && mins < closeH * 60 + closeM;
-}
-
-// Only returns a badge when owner has claimed + set hours — never guesses
-function getOwnerStatus(venue: Venue): { label: string; color: string } | null {
-  if (!venue.ownerClaimed || !venue.ownerHours) return null;
-  const open = isOpenBySAST(venue.ownerHours);
-  return open
-    ? { label: 'Open',   color: '#39D98A' }
-    : { label: 'Closed', color: '#6B7280' };
-}
+// Open/closed status is now computed by getVenueOpenStatus() from ../lib/venueUtils
+// which handles all states (before_open, open, open_active, closing_soon, closed, no_hours)
 
 function formatWaNumber(n: string): string {
   const digits = n.replace(/\D/g, '');
@@ -193,9 +165,10 @@ function PhotoGalleryHero({
   const [idx, setIdx] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
+  const emoji = getCategoryEmoji(venue.category);
   const color = CATEGORY_COLOR[venue.category] ?? '#39D98A';
-  const ownerStatus = getOwnerStatus(venue); // null = no badge; only shows when owner set hours
+  const hasRecentCheckin = !!(venue.lastCheckinAt && Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000);
+  const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   const hasCover = allPhotos.length > 0;
   const todayCount = venue.checkinsToday ?? 0;
 
@@ -314,22 +287,8 @@ function PhotoGalleryHero({
             {emoji} {venue.category}
           </span>
 
-          {/* Owner-set status — ONLY shown when owner has claimed + set hours */}
-          {ownerStatus && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              fontSize: '11px', fontWeight: 700, color: ownerStatus.color,
-              background: `${ownerStatus.color}18`, padding: '3px 10px', borderRadius: '20px',
-              border: `1px solid ${ownerStatus.color}30`,
-            }}>
-              <span style={{
-                width: '6px', height: '6px', borderRadius: '50%',
-                background: ownerStatus.color, display: 'inline-block',
-                animation: ownerStatus.label === 'Open' ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
-              }} />
-              {ownerStatus.label}
-            </span>
-          )}
+          {/* Open/closed status — from ownerHours, null-safe */}
+          <VenueStatusBadge status={openStatus} size="sm" />
 
           {/* Community activity — always shown alongside or instead of owner status */}
           {todayCount >= 3 && (
@@ -597,8 +556,9 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
 
 function OpeningHoursSection({ venue }: { venue: Venue }) {
   if (!venue.openHours) return null;
-  // Only show owner-verified status dot when owner has claimed + set structured hours
-  const ownerStatus = getOwnerStatus(venue);
+  const hasRecentCheckin = !!(venue.lastCheckinAt && Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000);
+  const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
+  const showStatus = openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today';
 
   return (
     <div style={{ marginBottom: '20px' }}>
@@ -609,20 +569,9 @@ function OpeningHoursSection({ venue }: { venue: Venue }) {
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '14px', padding: '14px 16px',
       }}>
-        {ownerStatus && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              background: ownerStatus.color, flexShrink: 0,
-              display: 'inline-block',
-              animation: ownerStatus.label === 'Open' ? 'navLocPulse 1.2s ease-in-out infinite' : 'none',
-            }} />
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: ownerStatus.color }}>
-              {ownerStatus.label}
-            </span>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif' }}>
-              · set by owner
-            </span>
+        {showStatus && (
+          <div style={{ marginBottom: '10px' }}>
+            <VenueStatusBadge status={openStatus} size="md" />
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -1715,7 +1664,7 @@ export default function VenuePage() {
   if (notFound || !venue) return <VenueNotFound />;
 
   const galleryImages = venue.galleryImages ?? [];
-  const emoji = CATEGORY_EMOJI[venue.category] ?? '📍';
+  const emoji = getCategoryEmoji(venue.category);
 
   return (
     <div>
