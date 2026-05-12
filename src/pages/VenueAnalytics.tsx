@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BarChart3, Users, TrendingUp, Zap } from 'lucide-react';
+import { ArrowLeft, BarChart3, Users, TrendingUp, TrendingDown, Zap, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -286,6 +286,96 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
   );
 }
 
+// ─── Trend badge ─────────────────────────────────────────────────────────────
+// Shows a +/- delta vs prior period. Renders nothing if delta is 0 or periods
+// don't have enough data to compare honestly.
+
+function TrendBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0 && current === 0) return null;
+  if (previous === 0) return null; // can't calculate % from zero — don't mislead
+
+  const delta = current - previous;
+  if (delta === 0) return null;
+
+  const pct = Math.round(Math.abs(delta / previous) * 100);
+  const up  = delta > 0;
+
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '3px',
+      fontSize: '10px', fontWeight: 700,
+      color: up ? '#39D98A' : '#F87171',
+      background: up ? 'rgba(57,217,138,0.1)' : 'rgba(248,113,113,0.1)',
+      border: `1px solid ${up ? 'rgba(57,217,138,0.25)' : 'rgba(248,113,113,0.25)'}`,
+      borderRadius: '20px', padding: '2px 7px',
+      fontFamily: 'DM Sans, sans-serif',
+    }}>
+      {up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+      {up ? '+' : '-'}{pct}% vs last week
+    </span>
+  );
+}
+
+// ─── Profile views card ───────────────────────────────────────────────────────
+// Only renders when view data is available — honest about empty state.
+
+function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number }) {
+  const total = thisWeek + lastWeek;
+
+  return (
+    <div style={{
+      background: '#161B22', border: '1px solid #21262D',
+      borderRadius: '16px', padding: '16px', marginBottom: '16px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+            Profile Views
+          </div>
+          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+            People who opened your place page
+          </div>
+        </div>
+        <Eye size={16} color="rgba(96,165,250,0.6)" />
+      </div>
+
+      {total === 0 ? (
+        <div style={{
+          padding: '16px 0', textAlign: 'center',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.25)',
+        }}>
+          No view data yet
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
+          <div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '32px', color: '#60A5FA', lineHeight: 1 }}>
+              {thisWeek}
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+              This week
+            </div>
+            <div style={{ marginTop: '6px' }}>
+              <TrendBadge current={thisWeek} previous={lastWeek} />
+            </div>
+          </div>
+          {lastWeek > 0 && (
+            <div style={{ paddingBottom: '22px' }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'rgba(255,255,255,0.3)', lineHeight: 1 }}>
+                {lastWeek}
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
+                Last week
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function Skeleton() {
@@ -304,15 +394,18 @@ export default function VenueAnalytics() {
   const { user }  = useAuth();
   const navigate  = useNavigate();
 
-  const [venueId,   setVenueId]   = useState<string | null>(null);
-  const [venueName, setVenueName] = useState('');
-  const [loading,   setLoading]   = useState(true);
-  const [report,    setReport]    = useState<CommunityReportData | null>(null);
-  const [bars,      setBars]      = useState<WeeklyBar[]>([]);
-  const [hours,     setHours]     = useState<number[]>(Array(24).fill(0));
-  const [regulars,  setRegulars]  = useState<StudioRegular[]>([]);
-  const [today,     setToday]     = useState(0);
-  const [week,      setWeek]      = useState(0);
+  const [venueId,       setVenueId]       = useState<string | null>(null);
+  const [venueName,     setVenueName]     = useState('');
+  const [loading,       setLoading]       = useState(true);
+  const [report,        setReport]        = useState<CommunityReportData | null>(null);
+  const [bars,          setBars]          = useState<WeeklyBar[]>([]);
+  const [hours,         setHours]         = useState<number[]>(Array(24).fill(0));
+  const [regulars,      setRegulars]      = useState<StudioRegular[]>([]);
+  const [today,         setToday]         = useState(0);
+  const [week,          setWeek]          = useState(0);
+  const [prevWeek,      setPrevWeek]      = useState(0);
+  const [viewsThisWeek, setViewsThisWeek] = useState(0);
+  const [viewsLastWeek, setViewsLastWeek] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -321,21 +414,48 @@ export default function VenueAnalytics() {
       if (!ownership) { setLoading(false); return; }
       setVenueId(ownership.venueId);
 
-      const [statsRes, barsRes, reportRes, regularsRes, hourlyRes] = await Promise.all([
+      const now       = Date.now();
+      const weekMs    = 7 * 86_400_000;
+      const weekAgo   = new Date(now - weekMs).toISOString();
+      const twoWksAgo = new Date(now - 2 * weekMs).toISOString();
+
+      const [statsRes, barsRes, reportRes, regularsRes, hourlyRes,
+             vRow, viewsThisRes, viewsLastRes, prevWeekRes] = await Promise.all([
         getDashboardStats(ownership.venueId),
         getWeeklyRhythm(ownership.venueId),
         getCommunityReportData(ownership.venueId),
         getStudioRegulars(ownership.venueId),
         fetchHourlyData(ownership.venueId),
+        // venue name
+        supabase.from('venues').select('name').eq('id', ownership.venueId).single(),
+        // profile views — this week
+        supabase
+          .from('venue_views')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', ownership.venueId)
+          .gte('viewed_at', weekAgo),
+        // profile views — last week (for comparison)
+        supabase
+          .from('venue_views')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', ownership.venueId)
+          .gte('viewed_at', twoWksAgo)
+          .lt('viewed_at', weekAgo),
+        // check-ins — previous week (for trend comparison)
+        supabase
+          .from('check_ins')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', ownership.venueId)
+          .gte('created_at', twoWksAgo)
+          .lt('created_at', weekAgo),
       ]);
 
-      // Get venue name
-      const { data: vRow } = await supabase
-        .from('venues').select('name').eq('id', ownership.venueId).single();
-      setVenueName(vRow?.name ?? '');
-
+      setVenueName(vRow.data?.name ?? '');
       setToday(statsRes.todayCount);
       setWeek(statsRes.weekCount);
+      setPrevWeek(prevWeekRes.count ?? 0);
+      setViewsThisWeek(viewsThisRes.count ?? 0);
+      setViewsLastWeek(viewsLastRes.count ?? 0);
       setBars(barsRes);
       setReport(reportRes);
       setRegulars(regularsRes);
@@ -389,30 +509,46 @@ export default function VenueAnalytics() {
 
       <div style={{ padding: '16px' }}>
 
-        {/* ── Live pulse ─────────────────────────────────────────────────── */}
+        {/* ── Check-in pulse ─────────────────────────────────────────────── */}
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px',
         }}>
-          {[
-            { label: 'Today', value: today, accent: '#39D98A', icon: '✅' },
-            { label: 'This week', value: week, accent: '#60A5FA', icon: <TrendingUp size={16} color="rgba(96,165,250,0.7)" /> },
-          ].map(t => (
-            <div key={t.label} style={{
-              background: '#161B22', border: `1px solid ${t.accent}20`,
-              borderRadius: '14px', padding: '14px',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: t.accent, lineHeight: 1 }}>
-                  {t.value}
-                </span>
-                <span style={{ fontSize: '16px' }}>{t.icon}</span>
-              </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {t.label}
-              </div>
+          {/* Today */}
+          <div style={{
+            background: '#161B22', border: '1px solid rgba(57,217,138,0.15)',
+            borderRadius: '14px', padding: '14px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: '#39D98A', lineHeight: 1 }}>
+                {today}
+              </span>
+              <span style={{ fontSize: '14px' }}>✅</span>
             </div>
-          ))}
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Today
+            </div>
+          </div>
+
+          {/* This week — with trend badge if comparison data exists */}
+          <div style={{
+            background: '#161B22', border: '1px solid rgba(96,165,250,0.15)',
+            borderRadius: '14px', padding: '14px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: '#60A5FA', lineHeight: 1 }}>
+                {week}
+              </span>
+              <TrendingUp size={16} color="rgba(96,165,250,0.6)" />
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+              This week
+            </div>
+            <TrendBadge current={week} previous={prevWeek} />
+          </div>
         </div>
+
+        {/* ── Profile views ──────────────────────────────────────────────── */}
+        <ViewsCard thisWeek={viewsThisWeek} lastWeek={viewsLastWeek} />
 
         {/* ── Monthly summary ────────────────────────────────────────────── */}
         {report && <SummaryCard report={report} />}
