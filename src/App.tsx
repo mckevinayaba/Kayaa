@@ -43,6 +43,7 @@ import VenueEditDetails      from './pages/VenueEditDetails';
 import AlertsPage            from './pages/AlertsPage';
 import VenueBoostPage        from './pages/VenueBoostPage';
 import NeighbourhoodPage     from './pages/NeighbourhoodPage';
+import OwnerDashboard        from './pages/OwnerDashboard';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -111,6 +112,7 @@ export default function App() {
             <Route path="/post/new" element={<Auth><CreatePost /></Auth>} />
 
             {/* Owner dashboard suite */}
+            <Route path="/owner"            element={<Auth><OwnerDashboard /></Auth>} />
             <Route path="/dashboard"        element={<Auth><DashboardPage /></Auth>} />
             <Route path="/venue/dashboard"  element={<Auth><VenueDashboard /></Auth>} />
             <Route path="/venue/hours"      element={<Auth><VenueHours /></Auth>} />

@@ -723,9 +723,9 @@ export default function VenueDashboard() {
           );
         })()}
 
-        {/* ── Studio deep-link ─────────────────────────────────────────────── */}
+        {/* ── Owner dashboard deep-link ────────────────────────────────────── */}
         <Link
-          to="/feed"
+          to="/owner"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             marginTop: '20px', padding: '14px',
@@ -735,7 +735,7 @@ export default function VenueDashboard() {
           }}
         >
           <Eye size={16} />
-          Open Full Studio Dashboard
+          Open Owner Dashboard
         </Link>
 
       </div>

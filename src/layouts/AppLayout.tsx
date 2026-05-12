@@ -124,6 +124,7 @@ export default function AppLayout() {
           {[
             { label: '👤  View profile',        action: () => { navigate('/profile');       setProfileOpen(false); } },
             { label: '✏️  Edit profile',         action: () => { navigate('/profile/edit');  setProfileOpen(false); } },
+            { label: '🏪  My place dashboard',  action: () => { navigate('/owner');          setProfileOpen(false); } },
             { label: '📍  Home neighbourhood',   action: () => { setAreaOpen(true);           setProfileOpen(false); } },
             { label: '⚙️  Settings',             action: () => { navigate('/settings/privacy'); setProfileOpen(false); } },
           ].map(item => (
