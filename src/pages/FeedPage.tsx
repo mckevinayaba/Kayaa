@@ -15,6 +15,7 @@ import {
   getActiveStoryVenuesBatch, getActiveVenueStory,
   getUserPostsForFeed, getSafetyAlerts,
   likePost, unlikePost, getUserLikedPosts,
+  getPromotedVenuesForFeed,
 } from '../lib/api';
 import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -1191,6 +1192,7 @@ export default function FeedPage() {
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
+  const [promotedVenues, setPromotedVenues] = useState<Venue[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [showComposer,    setShowComposer]    = useState(false);
   const [quickAddOpen,    setQuickAddOpen]    = useState(false);
@@ -1367,9 +1369,11 @@ export default function FeedPage() {
       getNeighbourhoodPosts(suburb || city || ''),
       getUserPostsForFeed(suburb || city || ''),
       getSafetyAlerts(suburb || city || ''),
-    ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa]) => {
+      getPromotedVenuesForFeed(suburb || undefined),
+    ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa, pv]) => {
       const venues = v as Venue[];
       setRawVenues(venues);
+      setPromotedVenues((pv as Venue[]) ?? []);
       // Cache top 50 for offline use
       try {
         localStorage.setItem('kayaa_cached_venues', JSON.stringify(venues.slice(0, 50)));
@@ -1875,6 +1879,25 @@ export default function FeedPage() {
         )
       ) : (
         <div>
+          {/* ── Featured / promoted venues — only renders when promotions are live ── */}
+          {promotedVenues.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#FBBF24', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#FBBF24' }} />
+                Featured
+              </p>
+              {promotedVenues.map(venue => (
+                <VenueCard
+                  key={venue.id}
+                  venue={venue}
+                  headingCount={headingCounts[venue.id] ?? 0}
+                  vibeWinner={vibeWinners[venue.id] ?? null}
+                  hasActiveStory={activeStoryVenueIds.has(venue.id)}
+                />
+              ))}
+            </div>
+          )}
+
           {/* ── Hero venue — best established first, then best new ── */}
           {heroVenue && <HeroVenueCard venue={heroVenue} />}
 

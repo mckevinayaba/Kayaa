@@ -211,6 +211,39 @@ export async function getPromotedVenuesForFeed(suburb?: string): Promise<Venue[]
   return data.map(dbVenueToVenue);
 }
 
+// ── Owner updates ─────────────────────────────────────────────────────────────
+
+export interface VenueOwnerUpdate {
+  id: string;
+  title: string;
+  content: string | null;
+  type: 'general' | 'special' | 'menu' | 'event' | 'announcement';
+  createdAt: string;
+  expiresAt: string | null;
+}
+
+/** Returns the 3 most recent non-expired owner updates for a venue. */
+export async function getVenueOwnerUpdates(venueId: string): Promise<VenueOwnerUpdate[]> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('venue_updates')
+    .select('id, title, content, type, created_at, expires_at')
+    .eq('venue_id', venueId)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  if (error || !data) return [];
+  return data.map(r => ({
+    id: r.id,
+    title: r.title,
+    content: r.content ?? null,
+    type: (r.type as VenueOwnerUpdate['type']) ?? 'general',
+    createdAt: r.created_at,
+    expiresAt: r.expires_at ?? null,
+  }));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getVenueEvents(venueId: string): Promise<Event[]> {

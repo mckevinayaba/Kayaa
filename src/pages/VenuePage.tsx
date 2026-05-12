@@ -22,9 +22,9 @@ import {
   getVibeSummary, reportVibe, cancelVibeReport,
   getActiveVenueStory, getInteractiveUserId,
   getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
-  getVenueRecentCheckIns, recordVenueView,
+  getVenueRecentCheckIns, recordVenueView, getVenueOwnerUpdates,
 } from '../lib/api';
-import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin } from '../lib/api';
+import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
 import { haversineKm } from '../lib/geocode';
@@ -1261,7 +1261,9 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
 function ClaimCTA({ venue }: { venue: Venue }) {
   const [open, setOpen] = useState(false);
   // 'idle' while we check for an existing pending request
-  const [claimState, setClaimState] = useState<'checking' | 'unclaimed' | 'pending'>('checking');
+  // 'submitted' = just submitted this session (shows 48h message)
+  // 'pending'   = pre-existing pending claim found on DB check
+  const [claimState, setClaimState] = useState<'checking' | 'unclaimed' | 'pending' | 'submitted'>('checking');
 
   useEffect(() => {
     // If already claimed by owner, skip the check entirely
@@ -1281,7 +1283,37 @@ function ClaimCTA({ venue }: { venue: Venue }) {
   if (venue.ownerClaimed === true) return null;
   if (claimState === 'checking') return null;
 
-  // ── Pending state ─────────────────────────────────────────────────────────
+  // ── Just submitted this session ───────────────────────────────────────────
+  if (claimState === 'submitted') {
+    return (
+      <div style={{
+        marginBottom: '20px',
+        background: 'rgba(57,217,138,0.06)',
+        border: '1px solid rgba(57,217,138,0.22)',
+        borderRadius: '14px', padding: '14px 16px',
+        display: 'flex', alignItems: 'center', gap: '12px',
+      }}>
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+          background: 'rgba(57,217,138,0.12)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '18px',
+        }}>
+          ✅
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: '0 0 2px' }}>
+            Claim submitted
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+            We will be in touch within 48 hours.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Pre-existing pending claim (found on page load) ───────────────────────
   if (claimState === 'pending') {
     return (
       <div style={{
@@ -1347,10 +1379,77 @@ function ClaimCTA({ venue }: { venue: Venue }) {
         <ClaimModal
           venue={venue}
           onClose={() => setOpen(false)}
-          onSubmitted={() => { setOpen(false); setClaimState('pending'); }}
+          onSubmitted={() => { setOpen(false); setClaimState('submitted'); }}
         />
       )}
     </>
+  );
+}
+
+// ─── Owner Updates Section ────────────────────────────────────────────────────
+
+const UPDATE_TYPE_CONFIG: Record<string, { emoji: string; color: string; label: string }> = {
+  special:      { emoji: '🔥', color: '#FB923C', label: 'Special' },
+  menu:         { emoji: '🍽️', color: '#60A5FA', label: 'Menu Update' },
+  event:        { emoji: '🎉', color: '#F472B6', label: 'Event' },
+  announcement: { emoji: '📢', color: '#FBBF24', label: 'Announcement' },
+  general:      { emoji: '📝', color: '#A78BFA', label: 'Update' },
+};
+
+function timeAgoShort(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
+  if (updates.length === 0) return null;
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>
+        From the owner
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {updates.map(u => {
+          const cfg = UPDATE_TYPE_CONFIG[u.type] ?? UPDATE_TYPE_CONFIG.general;
+          return (
+            <div
+              key={u.id}
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '14px', padding: '14px 16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: u.content ? '8px' : '0' }}>
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>{cfg.emoji}</span>
+                <span style={{
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700,
+                  color: cfg.color, letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}>
+                  {cfg.label}
+                </span>
+                <span style={{ marginLeft: 'auto', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+                  {timeAgoShort(u.createdAt)}
+                </span>
+              </div>
+              <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px', lineHeight: 1.35 }}>
+                {u.title}
+              </p>
+              {u.content && (
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.55 }}>
+                  {u.content}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1918,6 +2017,8 @@ export default function VenuePage() {
   const [safetyRating,      setSafetyRating]      = useState(0);
   const [safetyReviews,     setSafetyReviews]     = useState(0);
 
+  const [ownerUpdates, setOwnerUpdates] = useState<VenueOwnerUpdate[]>([]);
+
   // Phase 3: distance + liked
   const [distance, setDistance] = useState<number | null>(null);
   const [isLiked,  setIsLiked]  = useState(false);
@@ -1942,6 +2043,7 @@ export default function VenuePage() {
       getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
+      getVenueOwnerUpdates(v.id).then(setOwnerUpdates);
 
       // Safety rating from place_safety_summary view
       supabase
@@ -2123,6 +2225,9 @@ export default function VenuePage() {
 
         {/* ── Upcoming events with RSVP ─────────────────────────────────────── */}
         <EventsSection events={events} />
+
+        {/* ── Owner updates (hidden when none exist) ────────────────────────── */}
+        <OwnerUpdatesSection updates={ownerUpdates} />
 
         {/* ── Community posts ──────────────────────────────────────────────── */}
         <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} venueSlug={venue.slug} />
