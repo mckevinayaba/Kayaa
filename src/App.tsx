@@ -39,6 +39,7 @@ import VenueAnalytics        from './pages/VenueAnalytics';
 import VenueUpdates          from './pages/VenueUpdates';
 import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
+import VenueEditDetails      from './pages/VenueEditDetails';
 import AlertsPage            from './pages/AlertsPage';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
@@ -111,6 +112,7 @@ export default function App() {
             <Route path="/dashboard"        element={<Auth><DashboardPage /></Auth>} />
             <Route path="/venue/dashboard"  element={<Auth><VenueDashboard /></Auth>} />
             <Route path="/venue/hours"      element={<Auth><VenueHours /></Auth>} />
+            <Route path="/venue/edit"       element={<Auth><VenueEditDetails /></Auth>} />
             <Route path="/venue/qr-code"    element={<Auth><VenueQRCode /></Auth>} />
             <Route path="/venue/analytics"  element={<Auth><VenueAnalytics /></Auth>} />
             <Route path="/venue/updates"    element={<Auth><VenueUpdates /></Auth>} />

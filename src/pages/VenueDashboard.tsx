@@ -4,6 +4,7 @@ import {
   BarChart3, Users, Eye, Star, TrendingUp, TrendingDown,
   Clock, Camera, Share2, Settings, ArrowLeft,
   CheckSquare, Zap, QrCode, MessageSquarePlus, RefreshCw,
+  FileText, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -214,6 +215,8 @@ export default function VenueDashboard() {
   const [recent,   setRecent]   = useState<DashboardCheckIn[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [refresh,  setRefresh]  = useState(false);
+  const [isOpen,   setIsOpen]   = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -229,6 +232,7 @@ export default function VenueDashboard() {
       const v = await getVenueById(ownership.venueId);
       if (!v) { setLoading(false); setRefresh(false); return; }
       setVenue(v);
+      setIsOpen(v.isOpen);
 
       // Load all stats in parallel
       const [studioStats, weeklyBars, recentCIs, viewsRes, totalRes, regularsRes] = await Promise.all([
@@ -279,6 +283,18 @@ export default function VenueDashboard() {
       setLoading(false);
       setRefresh(false);
     }
+  }
+
+  async function toggleStatus() {
+    if (!venue || toggling) return;
+    setToggling(true);
+    const next = !isOpen;
+    setIsOpen(next); // optimistic
+    await supabase
+      .from('venues')
+      .update({ status: next ? 'open' : 'closed' })
+      .eq('id', venue.id);
+    setToggling(false);
   }
 
   // ── Redirect unauthenticated users ────────────────────────────────────────
@@ -361,17 +377,41 @@ export default function VenueDashboard() {
               {venue.category} · {venue.neighborhood}
             </div>
           </div>
-          <Link
-            to={`/venue/${venue.slug}`}
-            style={{
-              padding: '7px 12px', borderRadius: '10px', textDecoration: 'none',
-              background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
-              color: '#39D98A', whiteSpace: 'nowrap', flexShrink: 0,
-            }}
-          >
-            View page →
-          </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0, alignItems: 'flex-end' }}>
+            <Link
+              to={`/venue/${venue.slug}`}
+              style={{
+                padding: '7px 12px', borderRadius: '10px', textDecoration: 'none',
+                background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+                color: '#39D98A', whiteSpace: 'nowrap',
+              }}
+            >
+              View page →
+            </Link>
+            {/* Open / Closed quick toggle */}
+            <button
+              onClick={toggleStatus}
+              disabled={toggling}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '5px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                background: isOpen ? 'rgba(57,217,138,0.12)' : 'rgba(255,255,255,0.06)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {isOpen
+                ? <ToggleRight size={14} color="#39D98A" />
+                : <ToggleLeft  size={14} color="rgba(255,255,255,0.3)" />
+              }
+              <span style={{
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                color: isOpen ? '#39D98A' : 'rgba(255,255,255,0.3)',
+              }}>
+                {isOpen ? 'Open' : 'Closed'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* ── Alert banners ───────────────────────────────────────────────── */}
@@ -567,6 +607,14 @@ export default function VenueDashboard() {
             Quick Actions
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+            <ActionButton
+              to="/venue/edit"
+              icon={<FileText size={20} color="#39D98A" />}
+              label="Edit Details"
+              sub="Description, phone, WhatsApp and open status"
+              accent="#39D98A"
+            />
 
             <ActionButton
               to="/venue/hours"
