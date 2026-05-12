@@ -121,6 +121,11 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                   }}
                 />
               )}
+              {/* Subtle bottom gradient — softens the cut between photo and card body */}
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(to bottom, transparent 55%, rgba(13,17,23,0.22) 100%)',
+              }} />
             </>
           ) : (
             /* Emoji fallback — gradient + large category emoji */
@@ -208,7 +213,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         </div>
 
         {/* ── Card body ── */}
-        <div style={{ padding: '14px 16px 0' }}>
+        <div style={{ padding: '14px 16px 14px' }}>
 
           {/* Category + trust signals row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px', flexWrap: 'wrap' }}>
@@ -289,12 +294,12 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             </div>
           )}
 
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: '14px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '14px' }}>
             {getHumanDetail(venue.description)}
           </p>
 
           {/* Bottom row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {(venue.regularsCount ?? venue.checkinCount) > 50 && (
                 <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>

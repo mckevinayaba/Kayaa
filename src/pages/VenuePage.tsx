@@ -91,7 +91,7 @@ function SkeletonBlock({ w = '100%', h = 16, radius = 8, mb = 0 }: { w?: string 
 function VenueSkeleton() {
   return (
     <div>
-      <div style={{ background: 'var(--color-surface2)', height: '300px' }} />
+      <div style={{ background: 'var(--color-surface2)', height: '320px' }} />
       <div style={{ padding: '16px' }}>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
           {[1, 2, 3].map(i => <SkeletonBlock key={i} h={72} radius={14} />)}
@@ -199,7 +199,7 @@ function PhotoGalleryHero({
 
   return (
     <div
-      style={{ position: 'relative', height: '300px', overflow: 'hidden', background: '#0D1117' }}
+      style={{ position: 'relative', height: '320px', overflow: 'hidden', background: '#0D1117' }}
       onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
       onTouchEnd={e => handleTouchEnd(e.changedTouches[0].clientX)}
     >
@@ -360,9 +360,9 @@ function PhotoGalleryHero({
 
         {/* Venue name */}
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
           color: '#fff', lineHeight: 1.15, margin: '0 0 5px',
-          textShadow: '0 2px 10px rgba(0,0,0,0.7)',
+          textShadow: '0 2px 12px rgba(0,0,0,0.8)',
         }}>
           {venue.name}
         </h1>
@@ -590,7 +590,7 @@ function OpeningHoursSection({ venue }: { venue: Venue }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         Opening hours
       </h2>
       <div style={{
@@ -653,7 +653,7 @@ function RecentActivityFeed({ venueId }: { venueId: string }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', margin: 0, letterSpacing: '-0.01em' }}>
           Recent activity
         </h2>
         <span style={{
@@ -773,7 +773,7 @@ function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentS
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: vibeWinner ? '8px' : '0' }}>
         {stats.map(s => (
           <div key={s.label}>
-            <span style={{ fontSize: '15px', color: 'var(--color-text)', fontWeight: 700 }}>{s.value}</span>
+            <span style={{ fontSize: '17px', color: 'var(--color-text)', fontWeight: 700 }}>{s.value}</span>
             <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> {s.label}</span>
           </div>
         ))}
@@ -823,7 +823,7 @@ function EventsSection({ events }: { events: Event[] }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>Upcoming events</h2>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', letterSpacing: '-0.01em' }}>Upcoming events</h2>
         {events.length > 0 && (
           <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)', background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px' }}>
             {events.length} upcoming
@@ -1360,7 +1360,7 @@ function AboutSection({ venue }: { venue: Venue }) {
   const year = new Date(venue.createdAt).getFullYear();
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>Quick facts</h2>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>Quick facts</h2>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
@@ -1470,7 +1470,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>What people say</h2>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>What people say</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {posts.map((post) => {
           if (post.audience === 'regulars_only' && visitCount < 3) {
@@ -1553,7 +1553,7 @@ function VibeCheckSection({ venueId }: { venueId: string }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         What's the vibe right now?
       </h2>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -1606,7 +1606,7 @@ function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (id
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '10px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
         Inside {venue.name}
       </h2>
       <div style={{
@@ -1620,7 +1620,7 @@ function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (id
           <div
             key={i}
             onClick={() => onImageClick(i)}
-            style={{ flexShrink: 0, width: '140px', height: '140px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+            style={{ flexShrink: 0, width: '150px', height: '150px', borderRadius: '14px', overflow: 'hidden', cursor: 'pointer', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
           >
             <img src={url} alt={`${venue.name} photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
           </div>
@@ -1687,7 +1687,7 @@ function VideoCard({ venue }: { venue: Venue }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '10px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
         Watch {venue.name} in action
       </h2>
       <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', background: '#000' }}>
@@ -1719,7 +1719,7 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
     if (!venue.address) return null;
     return (
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
           Location
         </h2>
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
@@ -1743,7 +1743,7 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         Location
       </h2>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
@@ -1828,7 +1828,7 @@ function ContactSection({ venue }: { venue: Venue }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         Contact
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -2064,7 +2064,7 @@ export default function VenuePage() {
         <OpeningHoursSection venue={venue} />
 
         {/* ── Safety rating + check-in ─────────────────────────────────────── */}
-        <div style={{ padding: '0 16px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <SafetyRating
             placeId={venue.id}
             rating={safetyRating}
