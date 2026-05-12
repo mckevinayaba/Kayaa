@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MapPin, Share2, CheckCircle2 } from 'lucide-react';
+import { MapPin, Share2, CheckCircle2, Store } from 'lucide-react';
 import type { Venue } from '../types';
 import type { VibeType } from '../lib/api';
 import ShareModal from './ShareModal';
 import { VerificationBadge } from './common/VerificationBadge';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { VenueStatusBadge } from './VenueStatusBadge';
+
+const NEW_PLACE_MS = 14 * 24 * 60 * 60 * 1000;
 
 const categoryColor: Record<string, string> = {
   Barbershop: '#39D98A', Shisanyama: '#F5A623', Tavern: '#60A5FA',
@@ -208,12 +210,44 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         {/* ── Card body ── */}
         <div style={{ padding: '14px 16px 0' }}>
 
-          {/* Category header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+          {/* Category + trust signals row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: 700, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
               {emoji} {venue.category}
             </span>
+
+            {/* Verified (no type) — check mark */}
             {venue.isVerified && !venue.verificationType && <CheckCircle2 size={14} color="#39D98A" />}
+
+            {/* Owner managed — shown only when explicitly claimed */}
+            {venue.ownerClaimed && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '3px',
+                fontSize: '10px', fontWeight: 700,
+                color: '#60A5FA',
+                background: 'rgba(96,165,250,0.1)',
+                border: '1px solid rgba(96,165,250,0.2)',
+                borderRadius: '20px', padding: '2px 7px',
+                fontFamily: 'DM Sans, sans-serif',
+              }}>
+                <Store size={9} color="#60A5FA" />
+                Owner managed
+              </span>
+            )}
+
+            {/* New place — first 14 days only */}
+            {Date.now() - new Date(venue.createdAt).getTime() < NEW_PLACE_MS && (
+              <span style={{
+                fontSize: '10px', fontWeight: 700,
+                color: '#39D98A',
+                background: 'rgba(57,217,138,0.1)',
+                border: '1px solid rgba(57,217,138,0.2)',
+                borderRadius: '20px', padding: '2px 7px',
+                fontFamily: 'DM Sans, sans-serif',
+              }}>
+                New
+              </span>
+            )}
           </div>
 
           {/* Place name + verification badge */}

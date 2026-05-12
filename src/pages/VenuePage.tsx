@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X,
   ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
-  Heart, Phone, MessageCircle, Navigation, Store,
+  Heart, Phone, MessageCircle, Navigation, Store, Sparkles, Users,
 } from 'lucide-react';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { VenueStatusBadge } from '../components/VenueStatusBadge';
@@ -339,7 +339,8 @@ function PhotoGalleryHero({
               background: 'rgba(57,217,138,0.18)', padding: '3px 9px', borderRadius: '20px',
               border: '1px solid rgba(57,217,138,0.35)',
             }}>
-              ✨ New place
+              <Sparkles size={10} color="#39D98A" />
+              New place
             </span>
           )}
 
@@ -351,7 +352,8 @@ function PhotoGalleryHero({
               background: 'rgba(96,165,250,0.14)', padding: '3px 9px', borderRadius: '20px',
               border: '1px solid rgba(96,165,250,0.3)',
             }}>
-              🏠 Owner managed
+              <Store size={10} color="#60A5FA" />
+              Owner managed
             </span>
           )}
         </div>
@@ -913,22 +915,61 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
   const truncated = desc.length > 160 && !expanded;
   const displayDesc = truncated ? desc.slice(0, 157) + '…' : desc;
 
-  type Chip = { label: string; color: string; bg: string; border: string };
+  type Chip = {
+    key: string;
+    icon: React.ReactNode;
+    label: string;
+    color: string;
+    bg: string;
+    border: string;
+  };
   const chips: Chip[] = [];
-  if (isNew) chips.push({
-    label: '✨ Newly added', color: '#39D98A',
-    bg: 'rgba(57,217,138,0.1)', border: 'rgba(57,217,138,0.25)',
+
+  // Active today — always highest priority, backed by real check-in data
+  if (isActiveToday || hasRecentCheckin) chips.push({
+    key: 'active',
+    icon: <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', flexShrink: 0, animation: 'navLocPulse 1.2s ease-in-out infinite' }} />,
+    label: venue.checkinsToday && venue.checkinsToday >= 3
+      ? `${venue.checkinsToday} people here today`
+      : 'Active today',
+    color: '#39D98A',
+    bg: 'rgba(57,217,138,0.08)', border: 'rgba(57,217,138,0.2)',
   });
+
+  // Owner managed — only when explicitly claimed
   if (venue.ownerClaimed) chips.push({
-    label: '🏠 Owner managed', color: '#60A5FA',
+    key: 'claimed',
+    icon: <Store size={10} color="#60A5FA" style={{ flexShrink: 0 }} />,
+    label: 'Owner managed',
+    color: '#60A5FA',
     bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)',
   });
-  if (venue.isVerified) chips.push({
-    label: '✅ Verified place', color: '#A78BFA',
+
+  // Verified — backed by isVerified flag (not shown if VerificationBadge handles it separately)
+  if (venue.isVerified && !venue.verificationType) chips.push({
+    key: 'verified',
+    icon: <CheckCircle2 size={10} color="#A78BFA" style={{ flexShrink: 0 }} />,
+    label: 'Verified',
+    color: '#A78BFA',
     bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.25)',
   });
-  if (isActiveToday || hasRecentCheckin) chips.push({
-    label: '🟢 Active today', color: '#39D98A',
+
+  // Regulars — only meaningful above a real threshold
+  const regulars = venue.regularsCount ?? venue.checkinCount;
+  if (regulars >= 20) chips.push({
+    key: 'regulars',
+    icon: <Users size={10} color="#FBBF24" style={{ flexShrink: 0 }} />,
+    label: `${regulars >= 1000 ? `${(regulars / 1000).toFixed(1)}k` : regulars} regulars`,
+    color: '#FBBF24',
+    bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)',
+  });
+
+  // Newly added — only for first 14 days
+  if (isNew) chips.push({
+    key: 'new',
+    icon: <Sparkles size={10} color="#39D98A" style={{ flexShrink: 0 }} />,
+    label: 'Newly added',
+    color: '#39D98A',
     bg: 'rgba(57,217,138,0.08)', border: 'rgba(57,217,138,0.2)',
   });
 
@@ -971,14 +1012,16 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: hasTags ? '8px' : 0 }}>
           {chips.map(chip => (
             <span
-              key={chip.label}
+              key={chip.key}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
                 fontSize: '11px', fontWeight: 700, color: chip.color,
                 background: chip.bg, border: `1px solid ${chip.border}`,
                 borderRadius: '20px', padding: '4px 10px',
                 fontFamily: 'DM Sans, sans-serif',
               }}
             >
+              {chip.icon}
               {chip.label}
             </span>
           ))}
