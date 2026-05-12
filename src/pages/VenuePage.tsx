@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { VenueStatusBadge } from '../components/VenueStatusBadge';
+import { useAuth } from '../contexts/AuthContext';
 import StoryViewer from '../components/StoryViewer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
@@ -446,16 +447,14 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
     bg: string,
     fg: string,
     shadow: string,
-    disabled = false,
   ) => (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       gap: '5px', padding: '14px 8px', borderRadius: '14px',
-      background: disabled ? 'var(--color-surface)' : bg,
-      border: disabled ? '1px solid var(--color-border)' : 'none',
-      color: disabled ? 'rgba(255,255,255,0.25)' : fg,
-      boxShadow: disabled ? 'none' : `0 4px 14px ${shadow}`,
-      opacity: disabled ? 0.55 : 1,
+      background: bg,
+      border: 'none',
+      color: fg,
+      boxShadow: `0 4px 14px ${shadow}`,
       minHeight: '72px',
     }}>
       {icon}
@@ -477,29 +476,29 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
         </div>
       )}
 
-      {/* 3-up action buttons */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '10px' }}>
+      {/* Action buttons — auto-fit based on how many are present */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${1 + (venue.phoneNumber ? 1 : 0) + (waUrl ? 1 : 0)}, 1fr)`,
+        gap: '10px', marginBottom: '10px',
+      }}>
         {/* CHECK IN — opens quick modal; GPS full-flow stays in sticky bar */}
         <button onClick={onCheckIn} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}>
           {actionBtnInner(<CheckCircle2 size={24} />, 'CHECK IN', '#39D98A', '#000', 'rgba(57,217,138,0.4)')}
         </button>
 
-        {/* CALL */}
-        {venue.phoneNumber ? (
+        {/* CALL — only rendered when phone number exists */}
+        {venue.phoneNumber && (
           <a href={`tel:${venue.phoneNumber}`} style={{ textDecoration: 'none' }}>
             {actionBtnInner(<Phone size={24} />, 'CALL', '#3B82F6', '#fff', 'rgba(59,130,246,0.4)')}
           </a>
-        ) : (
-          actionBtnInner(<Phone size={24} />, 'CALL', '', '', '', true)
         )}
 
-        {/* WHATSAPP */}
-        {waUrl ? (
+        {/* WHATSAPP — only rendered when number exists */}
+        {waUrl && (
           <a href={waUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
             {actionBtnInner(<MessageCircle size={24} />, 'WHATSAPP', '#25D366', '#fff', 'rgba(37,211,102,0.4)')}
           </a>
-        ) : (
-          actionBtnInner(<MessageCircle size={24} />, 'WHATSAPP', '', '', '', true)
         )}
       </div>
 
@@ -1048,6 +1047,144 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
   );
 }
 
+// ─── Listing Completeness Panel ──────────────────────────────────────────────
+// Shown when a place is missing key profile info.
+// • For the venue owner   → links to owner tools to fix each gap
+// • For unclaimed venues  → shows the gaps and nudges the owner to claim
+// • Fully complete places → not rendered at all
+
+type CompletenessMissing = {
+  key: 'photo' | 'description' | 'contact' | 'hours';
+  label: string;
+  ownerPath: string;
+  ownerCta: string;
+};
+
+const COMPLETENESS_ITEMS: CompletenessMissing[] = [
+  { key: 'photo',       label: 'No photos yet',               ownerPath: '/venue/photos',    ownerCta: 'Add photos'        },
+  { key: 'description', label: 'No description',              ownerPath: '/venue/edit',       ownerCta: 'Write description' },
+  { key: 'contact',     label: 'No contact details',          ownerPath: '/venue/edit',       ownerCta: 'Add contact'       },
+  { key: 'hours',       label: 'No opening hours',            ownerPath: '/venue/hours',      ownerCta: 'Set hours'         },
+];
+
+function ListingCompletenessPanel({
+  venue,
+  isOwner,
+}: {
+  venue: Venue;
+  isOwner: boolean;
+}) {
+  const missing: CompletenessMissing[] = [];
+
+  const hasPhoto = !!(venue.coverImage || (venue.galleryImages && venue.galleryImages.length > 0));
+  const hasDescription = !!(venue.description && venue.description.trim().length > 20);
+  const hasContact = !!(venue.phoneNumber || venue.whatsappNumber);
+  const hasHours = !!(venue.openHours || venue.ownerHours);
+
+  if (!hasPhoto)       missing.push(COMPLETENESS_ITEMS[0]);
+  if (!hasDescription) missing.push(COMPLETENESS_ITEMS[1]);
+  if (!hasContact)     missing.push(COMPLETENESS_ITEMS[2]);
+  if (!hasHours)       missing.push(COMPLETENESS_ITEMS[3]);
+
+  // Nothing missing — hide
+  if (missing.length === 0) return null;
+
+  // Claimed by another owner — they'll fix it themselves; don't show to visitors
+  if (venue.ownerClaimed && !isOwner) return null;
+
+  // Unclaimed with only 1 gap — not worth prompting visitors
+  if (!isOwner && !venue.ownerClaimed && missing.length < 2) return null;
+
+  function scrollToClaim() {
+    const el = document.querySelector('[data-claim-cta]') as HTMLElement | null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  return (
+    <div style={{
+      marginBottom: '20px',
+      background: 'rgba(251,191,36,0.04)',
+      border: '1px solid rgba(251,191,36,0.18)',
+      borderRadius: '14px',
+      overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '12px 16px 10px',
+        borderBottom: '1px solid rgba(251,191,36,0.1)',
+        display: 'flex', alignItems: 'center', gap: '8px',
+      }}>
+        <span style={{ fontSize: '14px' }}>✏️</span>
+        <span style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+          color: '#FBBF24',
+        }}>
+          {isOwner ? 'Complete your listing' : 'This listing needs some love'}
+        </span>
+        {/* Completeness bar */}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' }}>
+          {COMPLETENESS_ITEMS.map(item => (
+            <div key={item.key} style={{
+              width: '20px', height: '4px', borderRadius: '2px',
+              background: missing.some(m => m.key === item.key)
+                ? 'rgba(251,191,36,0.3)'
+                : 'rgba(57,217,138,0.5)',
+            }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Missing items list */}
+      <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {missing.map(item => (
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
+              background: 'rgba(251,191,36,0.5)',
+            }} />
+            <span style={{
+              flex: 1, fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              color: 'rgba(255,255,255,0.6)',
+            }}>
+              {item.label}
+            </span>
+            {isOwner && (
+              <a
+                href={item.ownerPath}
+                onClick={e => { e.preventDefault(); window.location.href = item.ownerPath; }}
+                style={{
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                  color: '#FBBF24', textDecoration: 'none',
+                  padding: '3px 10px', borderRadius: '20px',
+                  border: '1px solid rgba(251,191,36,0.3)',
+                }}
+              >
+                {item.ownerCta} →
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* CTA for unclaimed */}
+      {!isOwner && !venue.ownerClaimed && (
+        <button
+          onClick={scrollToClaim}
+          style={{
+            width: '100%', background: 'rgba(251,191,36,0.08)',
+            border: 'none', borderTop: '1px solid rgba(251,191,36,0.1)',
+            padding: '11px 16px', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#FBBF24', textAlign: 'center',
+          }}
+        >
+          Is this your place? Claim it to complete the listing →
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Claim This Place ─────────────────────────────────────────────────────────
 
 type ClaimSubmitStatus = 'idle' | 'submitting' | 'done' | 'error';
@@ -1347,6 +1484,7 @@ function ClaimCTA({ venue }: { venue: Venue }) {
   return (
     <>
       <div
+        data-claim-cta
         onClick={() => setOpen(true)}
         role="button"
         style={{
@@ -1998,6 +2136,7 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
 export default function VenuePage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [loading,         setLoading]         = useState(true);
   const [notFound,        setNotFound]        = useState(false);
@@ -2155,6 +2294,12 @@ export default function VenuePage() {
 
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
+
+        {/* ── Listing completeness — prompts owner or unclaimed CTA ─────────── */}
+        <ListingCompletenessPanel
+          venue={venue}
+          isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
+        />
 
         {/* ── Place story — description, trust signals, tags ────────────────── */}
         <PlaceStoryPanel venue={venue} />
