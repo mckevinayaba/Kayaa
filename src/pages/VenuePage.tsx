@@ -40,6 +40,8 @@ const CATEGORY_COLOR: Record<string, string> = {
   'Sports Ground': '#FB923C', 'Home Business': '#94A3B8',
 };
 
+const NEW_PLACE_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -327,6 +329,30 @@ function PhotoGalleryHero({
                   Verified
                 </span>
               )
+          )}
+
+          {/* Newly added badge — shown for first 14 days */}
+          {Date.now() - new Date(venue.createdAt).getTime() < NEW_PLACE_THRESHOLD_MS && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              fontSize: '11px', fontWeight: 700, color: '#39D98A',
+              background: 'rgba(57,217,138,0.18)', padding: '3px 9px', borderRadius: '20px',
+              border: '1px solid rgba(57,217,138,0.35)',
+            }}>
+              ✨ New place
+            </span>
+          )}
+
+          {/* Owner managed badge — shown when ownerClaimed */}
+          {venue.ownerClaimed && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              fontSize: '11px', fontWeight: 700, color: '#60A5FA',
+              background: 'rgba(96,165,250,0.14)', padding: '3px 9px', borderRadius: '20px',
+              border: '1px solid rgba(96,165,250,0.3)',
+            }}>
+              🏠 Owner managed
+            </span>
           )}
         </div>
 
@@ -872,6 +898,113 @@ function EventsSection({ events }: { events: Event[] }) {
   );
 }
 
+// ─── Place Story Panel ────────────────────────────────────────────────────────
+// Surfaces description, trust signals, and tags early in the page scroll.
+
+function PlaceStoryPanel({ venue }: { venue: Venue }) {
+  const [expanded, setExpanded] = useState(false);
+  const desc = venue.description ?? '';
+  const isNew = Date.now() - new Date(venue.createdAt).getTime() < NEW_PLACE_THRESHOLD_MS;
+  const isActiveToday = !!(venue.checkinsToday && venue.checkinsToday > 0);
+  const hasRecentCheckin = !!(
+    venue.lastCheckinAt &&
+    Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000
+  );
+  const truncated = desc.length > 160 && !expanded;
+  const displayDesc = truncated ? desc.slice(0, 157) + '…' : desc;
+
+  type Chip = { label: string; color: string; bg: string; border: string };
+  const chips: Chip[] = [];
+  if (isNew) chips.push({
+    label: '✨ Newly added', color: '#39D98A',
+    bg: 'rgba(57,217,138,0.1)', border: 'rgba(57,217,138,0.25)',
+  });
+  if (venue.ownerClaimed) chips.push({
+    label: '🏠 Owner managed', color: '#60A5FA',
+    bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)',
+  });
+  if (venue.isVerified) chips.push({
+    label: '✅ Verified place', color: '#A78BFA',
+    bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.25)',
+  });
+  if (isActiveToday || hasRecentCheckin) chips.push({
+    label: '🟢 Active today', color: '#39D98A',
+    bg: 'rgba(57,217,138,0.08)', border: 'rgba(57,217,138,0.2)',
+  });
+
+  const hasTags = !!(venue.tags && venue.tags.length > 0);
+  if (!desc && chips.length === 0 && !hasTags) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      {/* Description card */}
+      {desc && (
+        <div style={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '14px', padding: '14px 16px',
+          marginBottom: chips.length > 0 || hasTags ? '10px' : 0,
+        }}>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, margin: 0,
+          }}>
+            {displayDesc}
+          </p>
+          {desc.length > 160 && (
+            <button
+              onClick={() => setExpanded(e => !e)}
+              style={{
+                marginTop: '8px', background: 'none', border: 'none', padding: 0,
+                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700,
+                color: '#39D98A', cursor: 'pointer',
+              }}
+            >
+              {expanded ? 'Show less' : 'Read more'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Trust + status chips */}
+      {chips.length > 0 && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: hasTags ? '8px' : 0 }}>
+          {chips.map(chip => (
+            <span
+              key={chip.label}
+              style={{
+                fontSize: '11px', fontWeight: 700, color: chip.color,
+                background: chip.bg, border: `1px solid ${chip.border}`,
+                borderRadius: '20px', padding: '4px 10px',
+                fontFamily: 'DM Sans, sans-serif',
+              }}
+            >
+              {chip.label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Tags */}
+      {hasTags && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {(venue.tags ?? []).map(tag => (
+            <span key={tag} style={{
+              fontSize: '11px', color: 'var(--color-muted)',
+              background: 'var(--color-surface2)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '20px', padding: '4px 10px',
+              fontFamily: 'DM Sans, sans-serif',
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Claim This Place ─────────────────────────────────────────────────────────
 
 function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
@@ -1041,37 +1174,33 @@ function AboutSection({ venue }: { venue: Venue }) {
   const year = new Date(venue.createdAt).getFullYear();
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>About this place</h2>
+      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px' }}>Quick facts</h2>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.7, marginBottom: '16px' }}>
-          {venue.description}
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Type</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Type</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.category}</span>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Neighbourhood</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Neighbourhood</span>
             <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.neighborhood}, {venue.city}</span>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>On Kayaa since</span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{year}</span>
-          </div>
           {venue.address && (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '90px' }}>Address</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Address</span>
               <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.address}</span>
             </div>
           )}
-          {venue.tags && venue.tags.length > 0 && (
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-              {venue.tags.map(tag => (
-                <span key={tag} style={{ fontSize: '11px', color: 'var(--color-muted)', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '3px 10px' }}>
-                  {tag}
-                </span>
-              ))}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>On Kayaa since</span>
+            <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{year}</span>
+          </div>
+          {(venue.regularsCount ?? venue.checkinCount) > 0 && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Community</span>
+              <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>
+                {(venue.regularsCount ?? venue.checkinCount).toLocaleString()} regulars
+              </span>
             </div>
           )}
         </div>
@@ -1735,6 +1864,9 @@ export default function VenuePage() {
 
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
+
+        {/* ── Place story — description, trust signals, tags ────────────────── */}
+        <PlaceStoryPanel venue={venue} />
 
         {/* ── Real-time recent activity ─────────────────────────────────────── */}
         <RecentActivityFeed venueId={venue.id} />
