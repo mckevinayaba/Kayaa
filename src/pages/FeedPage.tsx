@@ -1879,6 +1879,41 @@ export default function FeedPage() {
         )
       ) : (
         <div>
+          {/* ── Neighbourhood economy strip — tap to browse by category ─────────
+               Task 3: lightweight summary that orients users to the local economy.
+               Uses already-loaded filteredVenues, no extra fetch needed. */}
+          {suburb && filteredVenues.length >= 3 && (() => {
+            const catCount = new Set(filteredVenues.map(v => v.category)).size;
+            const activeCount = filteredVenues.filter(v => (v.checkinsToday ?? 0) >= 1).length;
+            return (
+              <button
+                onClick={() => navigate('/neighbourhood')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  width: '100%', textAlign: 'left',
+                  background: 'rgba(255,255,255,0.025)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '14px', padding: '11px 14px', marginBottom: '18px',
+                  cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
+                  transition: 'background 0.15s',
+                }}
+              >
+                <span style={{ fontSize: '18px', flexShrink: 0 }}>🏘️</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', flex: 1, lineHeight: 1.4 }}>
+                  <strong style={{ color: 'var(--color-text)', fontWeight: 700 }}>
+                    {filteredVenues.length} place{filteredVenues.length !== 1 ? 's' : ''}
+                  </strong>
+                  {catCount > 1 && ` · ${catCount} categories`}
+                  {activeCount > 0 && ` · ${activeCount} active today`}
+                  {' in '}{suburb}
+                </span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 700, flexShrink: 0 }}>
+                  Browse →
+                </span>
+              </button>
+            );
+          })()}
+
           {/* ── Featured / promoted venues — only renders when promotions are live ── */}
           {promotedVenues.length > 0 && (
             <div style={{ marginBottom: '20px' }}>

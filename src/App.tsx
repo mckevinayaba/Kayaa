@@ -42,6 +42,7 @@ import VenueEvents           from './pages/VenueEvents';
 import VenueEditDetails      from './pages/VenueEditDetails';
 import AlertsPage            from './pages/AlertsPage';
 import VenueBoostPage        from './pages/VenueBoostPage';
+import NeighbourhoodPage     from './pages/NeighbourhoodPage';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="/venue/:slug/checkin"  element={<CheckInPage />} />
             <Route path="/checkin/:venueId"     element={<QRCheckInPage />} />
             <Route path="/explore"              element={<ExplorePage />} />
+            <Route path="/neighbourhood"        element={<NeighbourhoodPage />} />
             <Route path="/checkin"              element={<CheckInBrowsePage />} />
             <Route path="/jobs"                 element={<JobsPage />} />
             <Route path="/card/:name"           element={<RegularCardPage />} />
