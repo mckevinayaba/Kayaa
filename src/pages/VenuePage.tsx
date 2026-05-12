@@ -1007,13 +1007,37 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
 
 // ─── Claim This Place ─────────────────────────────────────────────────────────
 
-function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', confirmed: false });
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle');
+type ClaimSubmitStatus = 'idle' | 'submitting' | 'done' | 'error';
+
+const CLAIM_ROLES = [
+  { value: 'owner',          label: 'Owner',          desc: 'This is my business' },
+  { value: 'manager',        label: 'Manager',        desc: 'I manage this place' },
+  { value: 'representative', label: 'Representative', desc: 'I act on behalf of the owner' },
+] as const;
+type ClaimRole = typeof CLAIM_ROLES[number]['value'];
+
+function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: () => void; onSubmitted: () => void }) {
+  const [form, setForm] = useState({
+    name: '', email: '', phone: '',
+    role: 'owner' as ClaimRole,
+    message: '',
+    confirmed: false,
+  });
+  const [status, setStatus] = useState<ClaimSubmitStatus>('idle');
+
+  const canSubmit = form.confirmed && !!form.name.trim() && !!form.email.trim() && status !== 'submitting';
+
+  const fieldStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
+    borderRadius: '10px', padding: '12px 14px',
+    fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--color-text)',
+    outline: 'none',
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.confirmed) return;
+    if (!canSubmit) return;
     setStatus('submitting');
     try {
       const { error } = await supabase.from('claimed_requests').insert({
@@ -1022,106 +1046,161 @@ function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
         name:               form.name.trim(),
         email:              form.email.trim().toLowerCase(),
         phone:              form.phone.trim() || null,
+        role:               form.role,
+        message:            form.message.trim() || null,
         is_owner_confirmed: form.confirmed,
       });
       if (error) throw error;
       setStatus('done');
+      onSubmitted();
     } catch {
       setStatus('error');
     }
   }
 
-  const inp = (placeholder: string, value: string, onChange: (v: string) => void, type = 'text') => (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      required
-      style={{
-        width: '100%', boxSizing: 'border-box',
-        background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
-        borderRadius: '10px', padding: '12px 14px',
-        fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--color-text)',
-        outline: 'none',
-      }}
-    />
-  );
-
   return (
     <div
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(0,0,0,0.85)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
     >
       <div style={{
         width: '100%', maxWidth: '480px',
         background: 'var(--color-surface)', borderRadius: '20px 20px 0 0',
-        padding: '24px 20px 40px', boxSizing: 'border-box',
+        padding: '24px 20px 44px', boxSizing: 'border-box',
+        maxHeight: '92dvh', overflowY: 'auto',
       }}>
+        {/* Drag handle */}
+        <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)', margin: '0 auto 20px' }} />
+
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', margin: 0 }}>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: '0 0 4px' }}>
               Claim {venue.name}
             </h2>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '4px 0 0' }}>
-              Once approved, you can set your hours and post updates.
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+              Tell us who you are. We'll review within 24 hours and notify you by email.
             </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, marginLeft: '12px', marginTop: '2px' }}>
             <X size={20} color="var(--color-muted)" />
           </button>
         </div>
 
         {status === 'done' ? (
-          <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
-              Request sent
+          <div style={{ textAlign: 'center', padding: '28px 0 8px' }}>
+            <div style={{ fontSize: '52px', marginBottom: '14px' }}>✅</div>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: 'var(--color-text)', margin: '0 0 8px' }}>
+              Request received
             </h3>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
-              We'll review your claim and get back to you within 24 hours.
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
+              We'll review your claim for <strong style={{ color: 'var(--color-text)' }}>{venue.name}</strong> and reply to <strong style={{ color: 'var(--color-text)' }}>{form.email}</strong> within 24 hours.
             </p>
             <button
               onClick={onClose}
-              style={{ marginTop: '20px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '10px 28px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
+              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '12px 32px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
             >
               Done
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {inp('Your full name', form.name, v => setForm(f => ({ ...f, name: v })))}
-            {inp('Email address', form.email, v => setForm(f => ({ ...f, email: v })), 'email')}
-            {inp('Phone number (optional)', form.phone, v => setForm(f => ({ ...f, phone: v })), 'tel')}
 
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', borderRadius: '10px' }}>
+            {/* Role selector */}
+            <div>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                My role
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {CLAIM_ROLES.map(r => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, role: r.value }))}
+                    style={{
+                      flex: 1, padding: '10px 6px', borderRadius: '10px', cursor: 'pointer',
+                      background: form.role === r.value ? 'rgba(57,217,138,0.12)' : 'var(--color-surface2)',
+                      border: form.role === r.value ? '1.5px solid rgba(57,217,138,0.45)' : '1px solid var(--color-border)',
+                      textAlign: 'center', transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: form.role === r.value ? '#39D98A' : 'var(--color-text)' }}>
+                      {r.label}
+                    </div>
+                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                      {r.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Name */}
+            <input
+              type="text" placeholder="Your full name" value={form.name} required
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              style={fieldStyle}
+            />
+
+            {/* Email */}
+            <input
+              type="email" placeholder="Email address" value={form.email} required
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              style={fieldStyle}
+            />
+
+            {/* Phone */}
+            <input
+              type="tel" placeholder="Phone number (optional)" value={form.phone}
+              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              style={fieldStyle}
+            />
+
+            {/* Optional message / proof */}
+            <textarea
+              placeholder={`Anything that helps us verify — e.g. "I opened this barbershop in 2019" (optional)`}
+              value={form.message}
+              rows={3}
+              onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+              style={{ ...fieldStyle, resize: 'none', lineHeight: 1.5 }}
+            />
+
+            {/* Confirmation checkbox */}
+            <label style={{
+              display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer',
+              padding: '12px 14px', background: 'var(--color-surface2)',
+              border: `1px solid ${form.confirmed ? 'rgba(57,217,138,0.3)' : 'var(--color-border)'}`,
+              borderRadius: '10px', transition: 'border-color 0.15s',
+            }}>
               <input
-                type="checkbox"
-                checked={form.confirmed}
+                type="checkbox" checked={form.confirmed}
                 onChange={e => setForm(f => ({ ...f, confirmed: e.target.checked }))}
                 style={{ marginTop: '2px', accentColor: '#39D98A', flexShrink: 0 }}
               />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
-                I am the owner or authorised representative of {venue.name} and I confirm this information is accurate.
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.55 }}>
+                I confirm I am authorised to manage <strong style={{ color: 'var(--color-text)' }}>{venue.name}</strong> and that this information is accurate.
               </span>
             </label>
 
             {status === 'error' && (
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#EF4444', margin: 0 }}>
-                Something went wrong. Please try again.
+                Something went wrong — please try again.
               </p>
             )}
 
             <button
               type="submit"
-              disabled={!form.confirmed || status === 'submitting' || !form.name || !form.email}
+              disabled={!canSubmit}
               style={{
-                background: form.confirmed && form.name && form.email ? 'var(--color-accent)' : 'rgba(57,217,138,0.25)',
-                color: form.confirmed && form.name && form.email ? '#000' : 'rgba(255,255,255,0.3)',
-                border: 'none', borderRadius: '20px', padding: '14px',
+                background: canSubmit ? 'var(--color-accent)' : 'rgba(57,217,138,0.2)',
+                color: canSubmit ? '#000' : 'rgba(255,255,255,0.25)',
+                border: 'none', borderRadius: '20px', padding: '15px',
                 fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
-                cursor: form.confirmed ? 'pointer' : 'not-allowed',
+                cursor: canSubmit ? 'pointer' : 'not-allowed',
                 transition: 'all 0.2s',
               }}
             >
@@ -1134,24 +1213,82 @@ function ClaimModal({ venue, onClose }: { venue: Venue; onClose: () => void }) {
   );
 }
 
+// ─── Claim CTA — state-aware (unclaimed / pending / claimed) ──────────────────
+
 function ClaimCTA({ venue }: { venue: Venue }) {
   const [open, setOpen] = useState(false);
-  // Don't show if already claimed
-  if (venue.ownerClaimed === true) return null;
+  // 'idle' while we check for an existing pending request
+  const [claimState, setClaimState] = useState<'checking' | 'unclaimed' | 'pending'>('checking');
 
+  useEffect(() => {
+    // If already claimed by owner, skip the check entirely
+    if (venue.ownerClaimed) { setClaimState('unclaimed'); return; }
+
+    supabase
+      .from('claimed_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venue.id)
+      .eq('status', 'pending')
+      .then(({ count }) => {
+        setClaimState((count ?? 0) > 0 ? 'pending' : 'unclaimed');
+      });
+  }, [venue.id, venue.ownerClaimed]);
+
+  // Hide entirely when claimed or still checking
+  if (venue.ownerClaimed === true) return null;
+  if (claimState === 'checking') return null;
+
+  // ── Pending state ─────────────────────────────────────────────────────────
+  if (claimState === 'pending') {
+    return (
+      <div style={{
+        marginBottom: '20px',
+        background: 'rgba(251,191,36,0.06)',
+        border: '1px solid rgba(251,191,36,0.2)',
+        borderRadius: '14px', padding: '14px 16px',
+        display: 'flex', alignItems: 'center', gap: '12px',
+      }}>
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+          background: 'rgba(251,191,36,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '18px',
+        }}>
+          ⏳
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#FBBF24', margin: '0 0 2px' }}>
+            Ownership claim under review
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+            A request to manage this place has been submitted and is awaiting approval.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Unclaimed state ───────────────────────────────────────────────────────
   return (
     <>
       <div
         onClick={() => setOpen(true)}
+        role="button"
         style={{
           marginBottom: '20px', cursor: 'pointer',
-          background: 'rgba(57,217,138,0.05)',
-          border: '1px dashed rgba(57,217,138,0.3)',
+          background: 'rgba(57,217,138,0.04)',
+          border: '1px dashed rgba(57,217,138,0.28)',
           borderRadius: '14px', padding: '14px 16px',
           display: 'flex', alignItems: 'center', gap: '12px',
+          WebkitTapHighlightColor: 'transparent',
+          transition: 'background 0.15s',
         }}
       >
-        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(57,217,138,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+          background: 'rgba(57,217,138,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
           <Store size={18} color="#39D98A" />
         </div>
         <div style={{ flex: 1 }}>
@@ -1159,11 +1296,17 @@ function ClaimCTA({ venue }: { venue: Venue }) {
             Is this your place?
           </p>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
-            Claim it to set your hours and post updates →
+            Claim it to set your hours, post updates, and own your listing →
           </p>
         </div>
       </div>
-      {open && <ClaimModal venue={venue} onClose={() => setOpen(false)} />}
+      {open && (
+        <ClaimModal
+          venue={venue}
+          onClose={() => setOpen(false)}
+          onSubmitted={() => { setOpen(false); setClaimState('pending'); }}
+        />
+      )}
     </>
   );
 }
