@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Venue, Event, Post, Story } from '../types';
+import type { Venue, Event, Post, Story, VenuePromotion } from '../types';
 import { getAreaTier } from './areaGroups';
 
 // ─── DB row → App type mappers ────────────────────────────────────────────────
@@ -55,6 +55,11 @@ function dbVenueToVenue(row: any): Venue {
     verificationType: row.verification_type ?? undefined,
     tags: [],
     createdAt: row.created_at ?? '',
+    // Phase 8: monetisation fields (nullable until migration runs)
+    planTier:       (row.plan_tier as 'free' | 'starter' | 'pro') ?? 'free',
+    isPromoted:     row.is_promoted     ?? false,
+    promotedUntil:  row.promoted_until  ?? undefined,
+    visibilityScore: row.visibility_score ?? 0,
   };
 }
 
@@ -104,7 +109,12 @@ export async function getAllVenues(options?: {
   } else if (options?.city) {
     q = q.ilike('location', `%${options.city}%`);
   }
-  const { data, error } = await q.order('created_at', { ascending: false });
+  // Sort: promoted venues (higher visibility_score) rise first.
+  // All current venues have visibility_score = 0, so order is unchanged until
+  // admin/purchase sets a non-zero score — no surprise reordering for users.
+  const { data, error } = await q
+    .order('visibility_score', { ascending: false })
+    .order('created_at',       { ascending: false });
   if (error || !data) return [];
   return data.map(dbVenueToVenue);
 }
@@ -120,6 +130,58 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
   if (error || !data) return null;
   return dbVenueToVenue(data);
 }
+
+// ── Phase 8: Promotion hooks ──────────────────────────────────────────────────
+
+/** Returns the current active promotion for a venue, or null if none. */
+export async function getVenueActivePromotion(venueId: string): Promise<VenuePromotion | null> {
+  const { data } = await supabase
+    .from('venue_promotions')
+    .select('*')
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .gt('ends_at', new Date().toISOString())
+    .order('ends_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+  return {
+    id: data.id,
+    venueId: data.venue_id,
+    promotionType: data.promotion_type,
+    startsAt: data.starts_at,
+    endsAt: data.ends_at,
+    isActive: data.is_active,
+    source: data.source,
+    createdAt: data.created_at,
+  };
+}
+
+/**
+ * Returns promoted venues for a given suburb — ready to be injected at the top
+ * of the feed when at least one active promotion exists.
+ * Returns [] when no promotions are live (no visible change for users).
+ */
+export async function getPromotedVenuesForFeed(suburb?: string): Promise<Venue[]> {
+  let q = supabase
+    .from('venues')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_promoted', true)
+    .gt('promoted_until', new Date().toISOString());
+
+  if (suburb) q = q.ilike('location', `%${suburb}%`);
+
+  const { data } = await q
+    .order('visibility_score', { ascending: false })
+    .limit(3);
+
+  if (!data) return [];
+  return data.map(dbVenueToVenue);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getVenueEvents(venueId: string): Promise<Event[]> {
   const { data, error } = await supabase

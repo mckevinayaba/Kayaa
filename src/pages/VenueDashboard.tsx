@@ -376,6 +376,30 @@ export default function VenueDashboard() {
             <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
               {venue.category} · {venue.neighborhood}
             </div>
+            {/* Plan tier indicator — always shown so owners know where they stand */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px' }}>
+              <span style={{
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px',
+                letterSpacing: '0.05em', textTransform: 'uppercase',
+                color: venue.planTier === 'pro' ? '#FBBF24' : venue.planTier === 'starter' ? '#39D98A' : 'rgba(255,255,255,0.35)',
+                background: venue.planTier === 'pro' ? 'rgba(251,191,36,0.1)' : venue.planTier === 'starter' ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${venue.planTier === 'pro' ? 'rgba(251,191,36,0.25)' : venue.planTier === 'starter' ? 'rgba(57,217,138,0.2)' : 'rgba(255,255,255,0.1)'}`,
+                borderRadius: '4px', padding: '2px 6px',
+              }}>
+                {venue.planTier === 'pro' ? 'Pro plan' : venue.planTier === 'starter' ? 'Starter plan' : 'Free plan'}
+              </span>
+              {venue.isPromoted && (
+                <span style={{
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px',
+                  color: '#F5A623', background: 'rgba(245,166,35,0.1)',
+                  border: '1px solid rgba(245,166,35,0.2)',
+                  borderRadius: '4px', padding: '2px 6px', textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Promoted
+                </span>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0, alignItems: 'flex-end' }}>
             <Link
@@ -665,10 +689,10 @@ export default function VenueDashboard() {
             />
 
             <ActionButton
-              to="/feed"
+              to="/venue/boost"
               emoji="👑"
               label="Boost Your Place"
-              sub="Appear at the top of the Feed"
+              sub="Paid plans launching soon — see what's coming"
               premium
             />
 

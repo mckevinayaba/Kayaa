@@ -41,6 +41,7 @@ import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 import VenueEditDetails      from './pages/VenueEditDetails';
 import AlertsPage            from './pages/AlertsPage';
+import VenueBoostPage        from './pages/VenueBoostPage';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -118,6 +119,7 @@ export default function App() {
             <Route path="/venue/updates"    element={<Auth><VenueUpdates /></Auth>} />
             <Route path="/venue/photos"     element={<Auth><VenuePhotos /></Auth>} />
             <Route path="/venue/events"     element={<Auth><VenueEvents /></Auth>} />
+            <Route path="/venue/boost"      element={<Auth><VenueBoostPage /></Auth>} />
 
             {/* ── Public app pages — no sign-in required ── */}
             <Route path="/venue/:slug"          element={<VenuePage />} />

@@ -43,6 +43,37 @@ export interface Venue {
   verificationType?: 'verified' | 'recommended' | 'trusted';
   tags: string[];
   createdAt: string;
+  // ── Phase 8: monetisation readiness ──────────────────────────────────────
+  planTier?: 'free' | 'starter' | 'pro';
+  isPromoted?: boolean;
+  promotedUntil?: string;
+  visibilityScore?: number;
+}
+
+// ── Promotion slot ────────────────────────────────────────────────────────────
+
+export interface VenuePromotion {
+  id: string;
+  venueId: string;
+  promotionType: 'featured' | 'spotlight' | 'category_top' | 'neighbourhood_pin';
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+  source: 'admin' | 'purchase' | 'partner' | 'gift';
+  createdAt: string;
+}
+
+// ── Partner / sponsor metadata ────────────────────────────────────────────────
+
+export interface VenuePartner {
+  id: string;
+  venueId: string;
+  partnerName: string;
+  partnerType: 'sponsor' | 'distributor' | 'media_partner' | 'service_provider' | 'franchise';
+  partnerRef?: string;
+  metadata: Record<string, unknown>;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface CheckIn {
