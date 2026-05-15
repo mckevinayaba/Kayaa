@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, AlertTriangle, X, MessageCircle, ChevronRight } from 'lucide-react';
+import NudgeCard from '../components/NudgeCard';
 import {
   getBoardPosts,
   updateBoardPostStatus,
@@ -429,16 +430,25 @@ export default function BoardPage() {
             Loading…
           </div>
         ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>
-              {activeTab === 'all' ? '📌' : getCategoryConfig(activeTab).emoji}
-            </div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              Nothing here yet
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
-              Be the first to post in {display}
-            </div>
+          <div style={{ paddingTop: '16px' }}>
+            {activeTab === 'all' ? (
+              <NudgeCard
+                emoji="📌"
+                title={`Nothing posted in ${display || 'your area'} yet`}
+                body="Be the first — share something for sale, ask a question, post a safety alert or announce an event."
+                ctaLabel="Post something"
+                onCta={() => navigate('/board/new')}
+              />
+            ) : (
+              <NudgeCard
+                emoji={getCategoryConfig(activeTab).emoji}
+                title={`No ${getCategoryConfig(activeTab).label} posts in ${display || 'your area'}`}
+                body="Nothing here yet — you could be the first to post in this category."
+                ctaLabel={`Post ${getCategoryConfig(activeTab).label}`}
+                onCta={() => navigate('/board/new')}
+                accent={getCategoryConfig(activeTab).color}
+              />
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -340,8 +340,24 @@ export default function BoardMinePage() {
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
-            No {activeTab} posts
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '14px' }}>
+              No {activeTab} posts
+            </div>
+            <button
+              onClick={() => setActiveTab('active')}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: '20px',
+                padding: '8px 18px',
+                fontSize: '13px', fontWeight: 600,
+                color: 'var(--color-muted)', cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif',
+              }}
+            >
+              See active posts →
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

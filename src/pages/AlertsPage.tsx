@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell, ShieldAlert, Zap, Droplet, RefreshCw,
   Newspaper, Eye, Megaphone, Search, Calendar,
@@ -6,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { getSafetyAlerts, getUserPostsForFeed, getNeighbourhoodPosts } from '../lib/api';
+import NudgeCard from '../components/NudgeCard';
 import type { UserPost, NeighbourhoodPost } from '../lib/api';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { WaterStatus } from '../components/utility/WaterStatus';
@@ -178,6 +180,7 @@ function AlertSkeleton() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AlertsPage() {
+  const navigate = useNavigate();
   const { displaySuburb, displayCity } = useNeighbourhood();
   const suburb = displaySuburb || displayCity || '';
 
@@ -251,8 +254,6 @@ export default function AlertsPage() {
 
   useEffect(() => { load(); }, [suburb]); // eslint-disable-line
 
-  const hasAnything = safetyItems.length > 0 || communityItems.length > 0;
-
   return (
     <div style={{ padding: '16px 16px 80px' }}>
 
@@ -320,6 +321,15 @@ export default function AlertsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {safetyItems.map(item => <AlertCard key={item.id} item={item} />)}
           </div>
+        ) : suburb ? (
+          <NudgeCard
+            emoji="✅"
+            title={`All clear in ${suburb}`}
+            body="No safety alerts in the last 3 days — stay aware and share anything you spot."
+            ctaLabel="See Board →"
+            onCta={() => navigate('/board?tab=safety')}
+            accent="#39D98A"
+          />
         ) : (
           <div style={{
             padding: '16px',
@@ -336,7 +346,7 @@ export default function AlertsPage() {
               fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
               color: 'rgba(255,255,255,0.45)',
             }}>
-              {suburb ? `No safety alerts in ${suburb} in the last 3 days` : 'Set your neighbourhood to see safety alerts'}
+              Set your neighbourhood to see safety alerts
             </span>
           </div>
         )}
@@ -357,6 +367,15 @@ export default function AlertsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {communityItems.map(item => <AlertCard key={item.id} item={item} />)}
           </div>
+        ) : suburb ? (
+          <NudgeCard
+            emoji="✍️"
+            title={`Nothing shared in ${suburb} this week`}
+            body="Be the first to post what's happening nearby — news, events, spotted, lost & found."
+            ctaLabel="Post something"
+            onCta={() => navigate('/board/new')}
+            accent="#60A5FA"
+          />
         ) : (
           <div style={{
             padding: '16px',
@@ -370,9 +389,7 @@ export default function AlertsPage() {
               fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
               color: 'rgba(255,255,255,0.35)',
             }}>
-              {suburb
-                ? `Nothing shared in ${suburb} this week`
-                : 'Set your neighbourhood to see community activity'}
+              Set your neighbourhood to see community activity
             </span>
           </div>
         )}
@@ -399,21 +416,6 @@ export default function AlertsPage() {
             color: 'rgba(255,255,255,0.25)', margin: 0, lineHeight: 1.6,
           }}>
             Tap your location in the top bar to see alerts and community updates for your area.
-          </p>
-        </div>
-      )}
-
-      {/* ── All quiet — shown only when suburb is set and truly nothing ────── */}
-      {suburb && !loading && !hasAnything && (
-        <div style={{
-          marginTop: '-8px', padding: '20px',
-          textAlign: 'center',
-        }}>
-          <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-            color: 'rgba(255,255,255,0.2)', margin: 0,
-          }}>
-            Quiet in {suburb} — check back later
           </p>
         </div>
       )}

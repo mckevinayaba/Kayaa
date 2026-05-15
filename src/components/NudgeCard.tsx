@@ -11,7 +11,8 @@ export interface NudgeCardProps {
   body: string;
   ctaLabel: string;
   onCta: () => void;
-  onDismiss: () => void;
+  /** Omit to render without a dismiss button (good for factual / transient states) */
+  onDismiss?: () => void;
   /** Optional accent colour — defaults to Kayaa green */
   accent?: string;
 }
@@ -33,24 +34,26 @@ export default function NudgeCard({
         border: `1px solid ${accent}20`,
         borderLeft: `3px solid ${accent}55`,
         borderRadius: '14px',
-        padding: '14px 40px 14px 14px',
+        padding: onDismiss ? '14px 40px 14px 14px' : '14px',
         marginBottom: '12px',
       }}
     >
-      {/* Dismiss button */}
-      <button
-        onClick={onDismiss}
-        aria-label="Dismiss"
-        style={{
-          position: 'absolute', top: '10px', right: '10px',
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(255,255,255,0.22)', fontSize: '17px',
-          lineHeight: 1, padding: '3px 5px',
-          fontFamily: 'monospace',
-        }}
-      >
-        ×
-      </button>
+      {/* Dismiss button — only rendered when handler is provided */}
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          style={{
+            position: 'absolute', top: '10px', right: '10px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.22)', fontSize: '17px',
+            lineHeight: 1, padding: '3px 5px',
+            fontFamily: 'monospace',
+          }}
+        >
+          ×
+        </button>
+      )}
 
       <div style={{ display: 'flex', gap: '11px', alignItems: 'flex-start' }}>
         <span style={{ fontSize: '20px', lineHeight: 1, marginTop: '1px', flexShrink: 0 }}>
