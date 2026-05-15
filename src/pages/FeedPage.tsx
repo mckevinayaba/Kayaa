@@ -34,10 +34,8 @@ import CategoryStrip from '../components/CategoryStrip';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
-import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { StockChecker }    from '../components/utility/StockChecker';
 import { QueueStatus }     from '../components/utility/QueueStatus';
-import { WaterStatus }     from '../components/utility/WaterStatus';
 import { EventsCalendar }  from '../components/utility/EventsCalendar';
 import { QuickAsk }        from '../components/utility/QuickAsk';
 import PushBanner          from '../components/PushBanner';
@@ -1132,8 +1130,6 @@ function UtilityPillStrip({ areaLabel, suburb }: { areaLabel: string; suburb: st
         paddingBottom: '2px',
         WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
-        <LoadSheddingWidget compact />
-        <WaterStatus area={areaLabel} compact />
         {suburb && <SafetyAlertOptIn suburb={suburb} compact />}
         <button style={stockOpen ? pillActive : pillBase} onClick={() => setStockOpen(o => !o)}>
           📦 Search stock

@@ -41,6 +41,7 @@ import VenuePhotos           from './pages/VenuePhotos';
 import VenueEvents           from './pages/VenueEvents';
 import VenueEditDetails      from './pages/VenueEditDetails';
 import AlertsPage            from './pages/AlertsPage';
+import CreatePage            from './pages/CreatePage';
 import VenueBoostPage        from './pages/VenueBoostPage';
 import NeighbourhoodPage     from './pages/NeighbourhoodPage';
 import OwnerDashboard        from './pages/OwnerDashboard';
@@ -136,6 +137,7 @@ export default function App() {
             <Route path="/countries"            element={<CountriesPage />} />
             <Route path="/help"                 element={<Help />} />
             <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
+            <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
             <Route path="/search" element={<Navigate to="/checkin" replace />} />
           </Route>
         </Routes>

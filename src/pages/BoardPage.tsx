@@ -15,16 +15,19 @@ import useLocation from '../hooks/useLocation';
 // ─── Category config ──────────────────────────────────────────────────────────
 
 export const BOARD_CATEGORIES: { key: BoardCategory; label: string; emoji: string; color: string }[] = [
-  { key: 'for_sale',       label: 'For Sale',      emoji: '🛍️',  color: '#F5A623' },
-  { key: 'free',           label: 'Free',          emoji: '🎁',  color: '#39D98A' },
-  { key: 'services',       label: 'Services',      emoji: '🔧',  color: '#60A5FA' },
-  { key: 'jobs',           label: 'Jobs',          emoji: '💼',  color: '#A78BFA' },
-  { key: 'lost_found',     label: 'Lost & Found',  emoji: '🔍',  color: '#F472B6' },
-  { key: 'announcements',  label: 'Announcements', emoji: '📢',  color: '#34D399' },
-  { key: 'ask',            label: 'Ask',           emoji: '❓',  color: '#94A3B8' },
-  { key: 'events',         label: 'Events',        emoji: '🎉',  color: '#FB923C' },
-  { key: 'accommodation',  label: 'Accommodation', emoji: '🏠',  color: '#60A5FA' },
-  { key: 'safety',         label: 'Safety',        emoji: '🚨',  color: '#EF4444' },
+  // Opportunities — anchored first so they're visible without scrolling
+  { key: 'jobs',           label: 'Jobs',           emoji: '💼',  color: '#A78BFA' },
+  { key: 'services',       label: 'Services',       emoji: '🔧',  color: '#60A5FA' },
+  { key: 'accommodation',  label: 'Housing / Rent', emoji: '🏠',  color: '#34D399' },
+  // Classifieds
+  { key: 'for_sale',       label: 'For Sale',       emoji: '🛍️',  color: '#F5A623' },
+  { key: 'free',           label: 'Free',           emoji: '🎁',  color: '#39D98A' },
+  // Community
+  { key: 'events',         label: 'Events',         emoji: '🎉',  color: '#FB923C' },
+  { key: 'announcements',  label: 'Announcements',  emoji: '📢',  color: '#34D399' },
+  { key: 'lost_found',     label: 'Lost & Found',   emoji: '🔍',  color: '#F472B6' },
+  { key: 'ask',            label: 'Ask',            emoji: '❓',  color: '#94A3B8' },
+  { key: 'safety',         label: 'Safety',         emoji: '🚨',  color: '#EF4444' },
 ];
 
 function getCategoryConfig(key: string) {
@@ -309,17 +312,17 @@ export default function BoardPage() {
           </button>
         </div>
 
-        {/* What is the Board — shown always, explains the page in one line */}
+        {/* Board purpose + live count */}
         <div style={{
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '12px', padding: '12px 14px', marginBottom: '14px',
         }}>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
-            Your neighbourhood noticeboard. Buy and sell, find services, share safety alerts, ask questions and post what's happening nearby.
+            Jobs, services, housing and local listings for {display || 'your neighbourhood'}.
           </p>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: '6px 0 0' }}>
-            {display} · {loading ? '…' : `${posts.length} active post${posts.length !== 1 ? 's' : ''}`}
+            {loading ? '…' : `${posts.length} active post${posts.length !== 1 ? 's' : ''}`}
             {expanded && !loading && (
               <span style={{ color: '#F5A623' }}> · showing nearby area</span>
             )}
@@ -327,50 +330,63 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* Post Your Skills banner */}
-      <div
-        onClick={() => navigate('/board')}
-        style={{
-          margin: '14px 16px 0',
-          background: 'linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(57,217,138,0.08) 100%)',
-          border: '1px solid rgba(96,165,250,0.25)',
-          borderRadius: '14px',
-          padding: '14px 16px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-        }}
-      >
-        <div style={{
-          width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
-          background: 'rgba(96,165,250,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '20px',
+      {/* ── Opportunities quick-access ────────────────────────────────────────── */}
+      <div style={{ padding: '14px 16px 0' }}>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+          color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
+          letterSpacing: '0.07em', margin: '0 0 10px',
         }}>
-          🔧
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '2px' }}>
-            Skills & Services
-          </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
-            Barber, mechanic, tutor, cleaner, DJ — let your neighbourhood find you
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-          <button
-            onClick={() => navigate('/board')}
-            style={{ background: 'rgba(57,217,138,0.15)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-          >
-            Browse →
-          </button>
-          <button
-            onClick={() => navigate('/skills/new')}
-            style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '8px', padding: '5px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-          >
-            Post skill
-          </button>
+          Opportunities
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '6px' }}>
+          {[
+            { key: 'jobs',          emoji: '💼', label: 'Jobs',    color: '#A78BFA' },
+            { key: 'services',      emoji: '🔧', label: 'Services',color: '#60A5FA' },
+            { key: 'accommodation', emoji: '🏠', label: 'Housing', color: '#34D399' },
+          ].map(opp => {
+            const count = loading ? null : posts.filter(p => p.category === opp.key).length;
+            const active = activeTab === opp.key;
+            return (
+              <button
+                key={opp.key}
+                onClick={() => setActiveTab(opp.key)}
+                style={{
+                  background: active ? `${opp.color}18` : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${active ? `${opp.color}40` : 'rgba(255,255,255,0.08)'}`,
+                  borderRadius: '14px', padding: '12px 8px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s',
+                }}
+              >
+                <span style={{ fontSize: '20px', lineHeight: 1 }}>{opp.emoji}</span>
+                <span style={{
+                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+                  color: active ? opp.color : '#F0F6FC',
+                }}>
+                  {opp.label}
+                </span>
+                {count !== null && count > 0 && (
+                  <span style={{
+                    fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                    color: opp.color, background: `${opp.color}15`,
+                    borderRadius: '10px', padding: '1px 6px',
+                  }}>
+                    {count}
+                  </span>
+                )}
+                {count === 0 && !loading && (
+                  <span style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+                    color: 'rgba(255,255,255,0.2)',
+                  }}>
+                    Post first
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

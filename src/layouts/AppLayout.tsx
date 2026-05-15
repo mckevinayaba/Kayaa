@@ -28,11 +28,11 @@ function getAvatarUrl(user: ReturnType<typeof useAuth>['user']): string {
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: '/feed',          emoji: '🏠', label: 'Home'      },
-  { to: '/neighbourhood', emoji: '🏘️', label: 'Discover'  },
-  { to: '/board',         emoji: '📋', label: 'Board'     },
-  { to: '/onboarding',    emoji: '➕', label: 'Add Place' },
-  { to: '/alerts',        emoji: '🔔', label: 'Alerts'    },
+  { to: '/feed',          emoji: '🏠', label: 'Home'     },
+  { to: '/neighbourhood', emoji: '🏘️', label: 'Discover' },
+  { to: '/board',         emoji: '📋', label: 'Board'    },
+  { to: '/create',        emoji: '➕', label: 'Create'   },
+  { to: '/alerts',        emoji: '🔔', label: 'Alerts'   },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
