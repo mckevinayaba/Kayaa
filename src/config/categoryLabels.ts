@@ -1,7 +1,9 @@
 export type CategoryKey =
   | 'barbershop' | 'salon' | 'food' | 'tavern'
   | 'spaza' | 'church' | 'carwash' | 'cafe'
-  | 'gym' | 'market' | 'mechanic' | 'other';
+  | 'gym' | 'market' | 'mechanic'
+  | 'restaurant' | 'nightclub' | 'park' | 'community' | 'lodge'
+  | 'other';
 
 export type CategoryConfig = {
   key: CategoryKey;
@@ -21,8 +23,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café',                 emoji: '☕' },
     { key: 'gym',        label: 'Gym / Fitness',        emoji: '💪' },
     { key: 'market',     label: 'Market Stall',         emoji: '🏪' },
-    { key: 'mechanic',   label: 'Mechanic / Garage',   emoji: '🔧' },
-    { key: 'other',      label: 'Other Place',          emoji: '📍' },
+    { key: 'mechanic',    label: 'Mechanic / Garage',    emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',           emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Nightclub / Club',     emoji: '🎶' },
+    { key: 'park',        label: 'Park / Playground',    emoji: '🌳' },
+    { key: 'community',   label: 'Community Hall',       emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Guesthouse',   emoji: '🏨' },
+    { key: 'other',       label: 'Other Place',          emoji: '📍' },
   ],
   KE: [
     { key: 'barbershop', label: 'Kinyozi',                    emoji: '💈' },
@@ -35,8 +42,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café / Coffee Shop',         emoji: '☕' },
     { key: 'gym',        label: 'Gym / Fitness',              emoji: '💪' },
     { key: 'market',     label: 'Market / Soko',              emoji: '🏪' },
-    { key: 'mechanic',   label: 'Mechanic / Garage',          emoji: '🔧' },
-    { key: 'other',      label: 'Other Place',                emoji: '📍' },
+    { key: 'mechanic',    label: 'Mechanic / Garage',          emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',               emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Nightclub / Club',         emoji: '🎶' },
+    { key: 'park',        label: 'Park / Playground',        emoji: '🌳' },
+    { key: 'community',   label: 'Community Centre',         emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Hotel',            emoji: '🏨' },
+    { key: 'other',       label: 'Other Place',              emoji: '📍' },
   ],
   NG: [
     { key: 'barbershop', label: 'Barbing Saloon',         emoji: '💈' },
@@ -49,8 +61,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café / Eatery',          emoji: '☕' },
     { key: 'gym',        label: 'Gym / Fitness Centre',   emoji: '💪' },
     { key: 'market',     label: 'Market Stall',           emoji: '🏪' },
-    { key: 'mechanic',   label: 'Mechanic / Vulcanizer',  emoji: '🔧' },
-    { key: 'other',      label: 'Other Place',            emoji: '📍' },
+    { key: 'mechanic',    label: 'Mechanic / Vulcanizer',  emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',            emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Nightclub / Club',      emoji: '🎶' },
+    { key: 'park',        label: 'Park / Playground',     emoji: '🌳' },
+    { key: 'community',   label: 'Community Space',       emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Hotel',         emoji: '🏨' },
+    { key: 'other',       label: 'Other Place',           emoji: '📍' },
   ],
   GH: [
     { key: 'barbershop', label: 'Barbershop',            emoji: '💈' },
@@ -63,8 +80,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café / Coffee Shop',    emoji: '☕' },
     { key: 'gym',        label: 'Gym / Fitness',         emoji: '💪' },
     { key: 'market',     label: 'Market Stall',          emoji: '🏪' },
-    { key: 'mechanic',   label: 'Mechanic / Garage',     emoji: '🔧' },
-    { key: 'other',      label: 'Other Place',           emoji: '📍' },
+    { key: 'mechanic',    label: 'Mechanic / Garage',     emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',           emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Nightclub / Spot',     emoji: '🎶' },
+    { key: 'park',        label: 'Park / Playground',    emoji: '🌳' },
+    { key: 'community',   label: 'Community Centre',     emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Guesthouse',   emoji: '🏨' },
+    { key: 'other',       label: 'Other Place',          emoji: '📍' },
   ],
   CM: [
     { key: 'barbershop', label: 'Salon de Coiffure',        emoji: '💈' },
@@ -77,8 +99,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café / Boulangerie',       emoji: '☕' },
     { key: 'gym',        label: 'Salle de Sport',           emoji: '💪' },
     { key: 'market',     label: 'Marché / Tablier',         emoji: '🏪' },
-    { key: 'mechanic',   label: 'Garage / Mécanicien',      emoji: '🔧' },
-    { key: 'other',      label: 'Autre Lieu',               emoji: '📍' },
+    { key: 'mechanic',    label: 'Garage / Mécanicien',      emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',              emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Boîte de Nuit / Bar',    emoji: '🎶' },
+    { key: 'park',        label: 'Parc / Jardin',           emoji: '🌳' },
+    { key: 'community',   label: 'Espace Communautaire',    emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Auberge',         emoji: '🏨' },
+    { key: 'other',       label: 'Autre Lieu',              emoji: '📍' },
   ],
   // Cameroon — English preference
   CM_EN: [
@@ -92,8 +119,13 @@ export const CATEGORY_LABELS: Record<string, CategoryConfig[]> = {
     { key: 'cafe',       label: 'Café / Bakery',       emoji: '☕' },
     { key: 'gym',        label: 'Gym / Fitness',       emoji: '💪' },
     { key: 'market',     label: 'Market Stall',        emoji: '🏪' },
-    { key: 'mechanic',   label: 'Mechanic / Garage',   emoji: '🔧' },
-    { key: 'other',      label: 'Other Place',         emoji: '📍' },
+    { key: 'mechanic',    label: 'Mechanic / Garage',   emoji: '🔧' },
+    { key: 'restaurant',  label: 'Restaurant',         emoji: '🍽️' },
+    { key: 'nightclub',   label: 'Nightclub / Club',   emoji: '🎶' },
+    { key: 'park',        label: 'Park / Playground',  emoji: '🌳' },
+    { key: 'community',   label: 'Community Space',    emoji: '🤝' },
+    { key: 'lodge',       label: 'Lodge / Guesthouse', emoji: '🏨' },
+    { key: 'other',       label: 'Other Place',        emoji: '📍' },
   ],
 };
 

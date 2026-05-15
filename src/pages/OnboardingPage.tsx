@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 // react-router-dom not needed after magic-link auth — no navigate calls remain
 import { ArrowLeft, Shield, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
 import { createVenue, createVenueOwner, updateVenueCoords, uploadVenueFile } from '../lib/api';
 import { signInWithEmail } from '../lib/auth';
@@ -16,14 +17,25 @@ const SA_PROVINCES = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toSlug(name: string): string {
+/** Deterministic slug — used for display/preview only */
+function toDisplaySlug(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, '')
     .trim()
     .replace(/\s+/g, '-')
-    .slice(0, 14)
+    .slice(0, 30)
     .replace(/-+$/, '');
+}
+
+/**
+ * Submission slug — appends a 4-char random suffix so that two places with
+ * similar names never collide on the `slug UNIQUE` constraint.
+ */
+function toSlug(name: string): string {
+  const base = toDisplaySlug(name);
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return base ? `${base}-${suffix}` : `place-${suffix}`;
 }
 
 function fileExt(file: File): string {
@@ -484,6 +496,8 @@ interface FormData {
   privacyAgreed: boolean;
 }
 
+const DRAFT_KEY = 'kayaa_place_draft';
+
 const empty: FormData = {
   venueName: '', venueType: '', streetAddress: '', suburb: '', city: '',
   province: 'Gauteng', description: '',
@@ -495,6 +509,7 @@ const empty: FormData = {
 
 export default function OnboardingPage() {
   const { selectedCountry, categoryLabels, callingCode } = useCountry();
+  const { user } = useAuth();
   const venueTypeItems = [
     ...categoryLabels.map(c => ({ emoji: c.emoji, label: c.label })),
     { emoji: '➕', label: 'Other' },
@@ -503,12 +518,46 @@ export default function OnboardingPage() {
   const [form, setForm] = useState<FormData>(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'cover' | 'submit', string>>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [finalSlug, setFinalSlug] = useState('');
   const qrWrapRef = useRef<HTMLDivElement>(null);
   // Stable session ID for Storage paths across re-renders
   const sessionId = useRef(`s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
 
-  const slug = toSlug(form.venueName);
-  const qrUrl = `https://kayaa.co.za/checkin/${slug}`;
+  // Check for saved draft on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as FormData;
+        if (parsed.venueName) setHasDraft(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Auto-save draft on every form change (skip empty form)
+  useEffect(() => {
+    if (!form.venueName && !form.venueType) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); } catch { /* ignore */ }
+    setDraftSaved(true);
+    const t = setTimeout(() => setDraftSaved(false), 2000);
+    return () => clearTimeout(t);
+  }, [form]);
+
+  // Pre-fill contact fields from authenticated user (runs once on sign-in)
+  useEffect(() => {
+    if (!user) return;
+    const name = (user.user_metadata?.full_name || user.user_metadata?.name || '').split(' ')[0];
+    setForm(f => ({
+      ...f,
+      ownerName:  f.ownerName  || name,
+      ownerEmail: f.ownerEmail || (user.email ?? ''),
+    }));
+  }, [user]);
+
+  const displaySlug = toDisplaySlug(form.venueName);
+  const qrUrl = `https://kayaa.co.za/checkin/${finalSlug || displaySlug}`;
 
   function set(key: keyof FormData) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -520,16 +569,14 @@ export default function OnboardingPage() {
   // ── Step 1 → 2 ────────────────────────────────────────────────────────────
   const goStep2 = useCallback(() => {
     const errs: typeof errors = {};
-    if (!form.venueName.trim())                   errs.venueName   = 'Give your place a name';
-    else if (form.venueName.trim().length < 3)    errs.venueName   = 'Name must be at least 3 characters';
-    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName   = 'Name cannot be numbers only';
-    if (!form.venueType)                          errs.venueType   = 'Pick a type for your place';
-    if (!form.suburb.trim())                      errs.suburb      = 'Add the suburb your place is in';
-    else if (form.suburb.trim().length < 3)       errs.suburb      = 'Enter a specific suburb, not just a city';
-    if (!form.city.trim())                        errs.city        = 'Add the city';
-    if (!form.description.trim())                 errs.description = 'Add a short description of your place';
-    else if (form.description.trim().length < 20) errs.description = 'Description must be at least 20 characters';
-    if (!form.coverImageUrl)                      errs.cover       = 'Please add a photo of your place to continue.';
+    if (!form.venueName.trim())                   errs.venueName = 'Give your place a name';
+    else if (form.venueName.trim().length < 3)    errs.venueName = 'Name must be at least 3 characters';
+    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName = 'Name cannot be numbers only';
+    if (!form.venueType)                          errs.venueType = 'Pick a type for your place';
+    if (!form.suburb.trim())                      errs.suburb    = 'Add the suburb your place is in';
+    else if (form.suburb.trim().length < 3)       errs.suburb    = 'Enter a specific suburb, not just a city';
+    if (!form.city.trim())                        errs.city      = 'Add the city';
+    // description and cover photo are optional — owners can add them later from the dashboard
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setStep(2); window.scrollTo(0, 0);
   }, [form]);
@@ -540,7 +587,7 @@ export default function OnboardingPage() {
   // ── Step 3 → 4 (create venue + owner) ────────────────────────────────────
   async function goStep4() {
     const errs: typeof errors = {};
-    if (!form.ownerName.trim())  errs.ownerName  = "We need your name";
+    if (!form.ownerName.trim())  errs.ownerName  = 'We need your name';
     if (!form.ownerEmail.trim()) errs.ownerEmail = 'Add your email so you can sign in';
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -551,10 +598,14 @@ export default function OnboardingPage() {
     const city   = form.city.trim();
     const fullAddress = [form.streetAddress.trim(), suburb, city, form.province].filter(Boolean).join(', ');
 
+    // Generate a collision-proof slug at submission time (random 4-char suffix)
+    const slug = toSlug(form.venueName);
+    setFinalSlug(slug);
+
     // All gallery images: cover is slot 0, additional slots 1–7
     const allGallery = [form.coverImageUrl, ...form.galleryImages].filter(Boolean);
 
-    const { row: venueRow, error: venueErr } = await createVenue({
+    const venueData = {
       name: form.venueName.trim(),
       type: form.venueType,
       slug,
@@ -566,27 +617,56 @@ export default function OnboardingPage() {
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
       intro_video: form.introVideoUrl || undefined,
       country_code: selectedCountry.code,
-    });
+      owner_user_id: user?.id,
+    };
+
+    // First attempt
+    const firstAttempt = await createVenue(venueData);
+    let venueRow = firstAttempt.row;
+    let venueErr = firstAttempt.error;
+
+    // If slug collision (extremely rare with random suffix), auto-retry once with a fresh slug
+    if (venueErr?.code === '23505') {
+      const retrySlug = toSlug(form.venueName);
+      setFinalSlug(retrySlug);
+      const retry = await createVenue({ ...venueData, slug: retrySlug });
+      venueRow = retry.row;
+      venueErr = retry.error;
+    }
 
     if (venueErr || !venueRow) {
-      setErrors({ submit: 'Could not create your place. Please try again.' });
+      let msg = 'Could not create your place. Please try again.';
+      if (venueErr) {
+        if (venueErr.code === '23505') {
+          msg = 'Unable to generate a unique link for your place. Please try again.';
+        } else if (venueErr.code === '23502') {
+          msg = 'Some required information is missing. Please check your details.';
+        } else if (venueErr.message?.includes('Failed to fetch') || venueErr.message?.includes('network')) {
+          msg = 'No internet connection. Please check your connection and try again.';
+        }
+      }
+      setErrors({ submit: msg });
       setSubmitting(false);
       return;
     }
+
+    const venueId = venueRow.id;
 
     const { error: ownerErr } = await createVenueOwner({
       name: form.ownerName.trim(),
       phone: form.ownerPhone.trim(),
       email: form.ownerEmail.trim() || undefined,
-      venue_id: venueRow.id,
+      venue_id: venueId,
     });
-    if (ownerErr) console.error('Owner creation failed:', ownerErr);
+    // Non-fatal: venue is live even if owner record fails
+    if (ownerErr) console.warn('Owner record creation failed:', ownerErr.message);
 
-    localStorage.setItem('kayaa_venue_id', venueRow.id);
+    localStorage.setItem('kayaa_venue_id', venueId);
     localStorage.setItem('kayaa_pending_email', form.ownerEmail.trim());
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
 
     geocodeAddress(fullAddress).then(coords => {
-      if (coords) updateVenueCoords(venueRow.id, coords.lat, coords.lng).catch(() => {});
+      if (coords) updateVenueCoords(venueId, coords.lat, coords.lng).catch(() => {});
     }).catch(() => {});
 
     signInWithEmail(form.ownerEmail.trim()).catch(() => {});
@@ -602,7 +682,7 @@ export default function OnboardingPage() {
     if (!canvas) return;
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = `${slug}-kayaa-qr.png`;
+    a.download = `${finalSlug}-kayaa-qr.png`;
     a.click();
   }
 
@@ -629,7 +709,7 @@ export default function OnboardingPage() {
           </p>
           <div className="ob-slug" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '8px 14px', marginBottom: '28px' }}>
             <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/</span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'DM Sans, sans-serif' }}>{slug}</span>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'DM Sans, sans-serif' }}>{finalSlug}</span>
           </div>
           <div className="ob-qr" style={{ marginBottom: '28px' }}>
             <div ref={qrWrapRef} onClick={downloadQR} style={{ display: 'inline-block', padding: '16px', borderRadius: '16px', background: '#fff', cursor: 'pointer', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }} title="Tap to download">
@@ -809,9 +889,47 @@ export default function OnboardingPage() {
       <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
         Tell us about your place
       </h1>
-      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
+      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: hasDraft ? '12px' : '28px' }}>
         Every great neighbourhood spot deserves its own page.
       </p>
+
+      {/* Draft resume banner */}
+      {hasDraft && (
+        <div style={{
+          background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.25)',
+          borderRadius: '12px', padding: '12px 14px', marginBottom: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+        }}>
+          <div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
+              You have an unsaved draft
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+              Continue adding your place?
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+            <button
+              onClick={() => {
+                try {
+                  const raw = localStorage.getItem(DRAFT_KEY);
+                  if (raw) setForm(JSON.parse(raw) as FormData);
+                } catch { /* ignore */ }
+                setHasDraft(false);
+              }}
+              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+            >
+              Resume
+            </button>
+            <button
+              onClick={() => { try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } setHasDraft(false); }}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', cursor: 'pointer' }}
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
         {/* Venue name */}
@@ -867,7 +985,7 @@ export default function OnboardingPage() {
 
         {/* Description */}
         <div>
-          <label style={labelStyle}>Describe your place in one line</label>
+          <label style={labelStyle}>Describe your place in one line <span style={{ fontWeight: 400 }}>(optional)</span></label>
           <textarea value={form.description} onChange={set('description')} placeholder="e.g. Best fades in Soweto, open 7 days a week" maxLength={200}
             style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', lineHeight: 1.5, border: `1px solid ${errors.description ? '#F87171' : 'var(--color-border)'}` }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '4px' }}>
@@ -879,10 +997,11 @@ export default function OnboardingPage() {
         {/* Cover photo — REQUIRED */}
         <div>
           <label style={{ ...labelStyle, color: 'var(--color-text)', fontSize: '15px', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>
-            Add a photo of your place
+            Add a photo of your place{' '}
+            <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
           </label>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
-            Required. It can be your sign, your shopfront, or the inside. A real photo makes people trust your place immediately.
+            Your sign, shopfront, or inside — anything real. You can add one later from your dashboard.
           </p>
           <CoverPhotoUpload
             sessionId={sessionId.current}
@@ -898,26 +1017,24 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Continue button — disabled until cover uploaded */}
+      {/* Continue button */}
       <button
         onClick={goStep2}
         style={{
           width: '100%', minHeight: '56px',
-          background: form.coverImageUrl ? 'var(--color-accent)' : 'rgba(57,217,138,0.3)',
-          color: form.coverImageUrl ? '#000' : 'rgba(0,0,0,0.5)',
+          background: 'var(--color-accent)', color: '#000',
           border: 'none', borderRadius: '14px',
           fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-          cursor: form.coverImageUrl ? 'pointer' : 'default',
-          transition: 'background 0.2s, color 0.2s',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          transition: 'opacity 0.2s',
         }}
       >
         Continue →
+        {draftSaved && (
+          <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(0,0,0,0.55)' }}>Draft saved ✓</span>
+        )}
       </button>
-      {errors.cover && !form.coverImageUrl && (
-        <p style={{ fontSize: '12px', color: '#F87171', marginTop: '8px', textAlign: 'center' }}>
-          {errors.cover}
-        </p>
-      )}
     </div>
   );
 }

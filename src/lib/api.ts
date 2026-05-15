@@ -320,6 +320,7 @@ export async function createVenue(data: {
   address?: string;
   province?: string;
   country_code?: string;
+  owner_user_id?: string;
   // lat/lng: pass when live geocoding is wired up
   latitude?: number;
   longitude?: number;
@@ -334,9 +335,9 @@ export async function createVenue(data: {
     .select()
     .single();
 
-  // If country_code column doesn't exist yet (migration pending), retry without it
-  if (error && (error.message.includes('country_code') || error.code === '42703')) {
-    const { country_code: _cc, ...rest } = data;
+  // If optional columns don't exist yet (migration pending), retry without them
+  if (error && (error.message.includes('country_code') || error.message.includes('owner_user_id') || error.code === '42703')) {
+    const { country_code: _cc, owner_user_id: _oui, ...rest } = data;
     const { data: row2, error: error2 } = await supabase
       .from('venues')
       .insert(rest)
