@@ -43,6 +43,7 @@ import { QuickAsk }        from '../components/utility/QuickAsk';
 import PushBanner          from '../components/PushBanner';
 import { SafetyAlertOptIn } from '../components/SafetyAlertOptIn';
 import { useCountry } from '../contexts/CountryContext';
+import NudgeCard from '../components/NudgeCard';
 
 // ─── Scope model ──────────────────────────────────────────────────────────────
 //
@@ -1194,6 +1195,23 @@ export default function FeedPage() {
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
   const [promotedVenues, setPromotedVenues] = useState<Venue[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
+
+  // ── Nudge dismissals (localStorage-backed) ────────────────────────────────
+  const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('kayaa_nudges_dismissed');
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
+    } catch { return new Set<string>(); }
+  });
+
+  function dismissNudge(key: string) {
+    setDismissedNudges(prev => {
+      const next = new Set(prev);
+      next.add(key);
+      try { localStorage.setItem('kayaa_nudges_dismissed', JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }
   const [showComposer,    setShowComposer]    = useState(false);
   const [quickAddOpen,    setQuickAddOpen]    = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1504,6 +1522,31 @@ export default function FeedPage() {
     () => establishedVenues.filter(v => v.id !== heroVenue?.id),
     [establishedVenues, heroVenue],
   );
+
+  // ── Nudge visibility ─────────────────────────────────────────────────────
+  const suburbNudgeKey = (suburb || 'global').toLowerCase().replace(/\s+/g, '_');
+
+  // "Add a place" — show inline after 2nd card when area has < 15 places
+  const showAddPlaceNudge =
+    !loading && !isFiltered && filteredVenues.length > 0 && filteredVenues.length < 15 &&
+    !dismissedNudges.has('add_place_global');
+
+  // "First post" — shown in the community posts empty state
+  const showFirstPostNudge =
+    !loading && !isFiltered && suburb.length > 0 && userPosts.length === 0 &&
+    filteredVenues.length > 0 &&
+    !dismissedNudges.has(`first_post_${suburbNudgeKey}`);
+
+  // "Activation" — pick the newest un-checked-in venue (< 7 days, < 3 check-ins)
+  const activationTarget = useMemo(() => {
+    if (loading || isFiltered) return null;
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return newCards.find(v =>
+      new Date(v.createdAt).getTime() > sevenDaysAgo &&
+      (v.checkinCount ?? 0) < 3 &&
+      !dismissedNudges.has(`activation_${v.id}`)
+    ) ?? null;
+  }, [loading, isFiltered, newCards, dismissedNudges]);
 
   // ─── Computed: scope-filtered rails ─────────────────────────────────────────
 
@@ -1938,10 +1981,25 @@ export default function FeedPage() {
 
           {/* ── New in your neighbourhood (< 14 days, minus hero) ── */}
           {newCards.length > 0 && (
-            <div style={{ marginBottom: '28px' }}>
+            <div style={{ marginBottom: activationTarget ? '12px' : '28px' }}>
               <NewPlacesSection
                 venues={newCards}
                 expandedNote={expandNote(newPlacesResult as RailResult<Venue>)}
+              />
+            </div>
+          )}
+
+          {/* ── Activation nudge — for the newest uncheckd-in venue ── */}
+          {activationTarget && (
+            <div style={{ marginBottom: '16px' }}>
+              <NudgeCard
+                emoji="🆕"
+                title={`${activationTarget.name} just joined Kayaa`}
+                body={`Help them get visible in ${activationTarget.neighborhood || suburb || areaLabel} — be one of their first check-ins.`}
+                ctaLabel="Check in"
+                onCta={() => navigate(`/venue/${activationTarget.slug}/checkin`)}
+                onDismiss={() => dismissNudge(`activation_${activationTarget.id}`)}
+                accent="#F59E0B"
               />
             </div>
           )}
@@ -2001,6 +2059,32 @@ export default function FeedPage() {
                         compact
                       />
                       {moment && <ActivityMoment key={moment.id} text={moment.text} time={moment.time} initial={moment.initial} />}
+
+                      {/* Add-place nudge — after the 2nd card */}
+                      {i === 1 && showAddPlaceNudge && (
+                        <NudgeCard
+                          emoji="➕"
+                          title={`Know a place in ${suburb || areaLabel} that's not here?`}
+                          body="Every neighbourhood has spots that are worth finding. Add them to Kayaa."
+                          ctaLabel="Add a place"
+                          onCta={() => navigate('/onboarding')}
+                          onDismiss={() => dismissNudge('add_place_global')}
+                          accent="#39D98A"
+                        />
+                      )}
+
+                      {/* First-post nudge — after the 4th card */}
+                      {i === 3 && showFirstPostNudge && (
+                        <NudgeCard
+                          emoji="✍️"
+                          title={`No posts in ${suburb} yet`}
+                          body="Be the first to share what's happening in your area today."
+                          ctaLabel="Post something"
+                          onCta={() => setShowComposer(true)}
+                          onDismiss={() => dismissNudge(`first_post_${suburbNudgeKey}`)}
+                          accent="#60A5FA"
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -2115,24 +2199,31 @@ export default function FeedPage() {
               )}
             </>
           ) : (
-            /* Honest empty state — neighbourhood is known but no posts yet */
-            <button
-              onClick={() => setShowComposer(true)}
-              style={{
-                width: '100%', background: 'rgba(57,217,138,0.04)',
-                border: '1px dashed rgba(57,217,138,0.2)', borderRadius: '14px',
-                padding: '20px 16px', cursor: 'pointer', textAlign: 'center',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-              }}
-            >
-              <span style={{ fontSize: '22px' }}>✍️</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(57,217,138,0.8)' }}>
-                No posts in {suburb} yet
-              </span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>
-                Be the first to start the {suburb} conversation
-              </span>
-            </button>
+            /* Honest empty state — neighbourhood is known but no posts yet.
+               If the inline first-post nudge was already dismissed, show a quieter hint. */
+            showFirstPostNudge ? (
+              <NudgeCard
+                emoji="✍️"
+                title={`No posts in ${suburb} yet`}
+                body="Share what's happening, what's open, what to avoid, or just say hello."
+                ctaLabel="Be the first to post"
+                onCta={() => setShowComposer(true)}
+                onDismiss={() => dismissNudge(`first_post_${suburbNudgeKey}`)}
+                accent="#60A5FA"
+              />
+            ) : (
+              <button
+                onClick={() => setShowComposer(true)}
+                style={{
+                  width: '100%', background: 'transparent',
+                  border: '1px dashed rgba(255,255,255,0.07)', borderRadius: '12px',
+                  padding: '12px', cursor: 'pointer', textAlign: 'center', color: 'rgba(255,255,255,0.22)',
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                }}
+              >
+                + Post something in {suburb}
+              </button>
+            )
           )}
         </div>
       )}
