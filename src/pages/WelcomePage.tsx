@@ -63,14 +63,20 @@ type Step = 'welcome' | 'email' | 'sent';
 export default function WelcomePage() {
   const { signIn, signInWithGoogle, user } = useAuth();
 
-  // Already signed in → feed (setup guard will redirect to /setup if needed)
-  if (user) return <Navigate to="/feed" replace />;
-
+  // ⚠️  All hooks MUST be declared before any conditional return.
+  // Moving them above the `if (user)` guard prevents a React hooks-order
+  // violation: first render registers these 5 hooks (user=null path);
+  // if they came AFTER the early return, auth resolution (user→non-null)
+  // would call fewer hooks than React expects and throw a render error
+  // that bubbles up to ChunkErrorBoundary as "Something went wrong."
   const [step,          setStep]          = useState<Step>('welcome');
   const [email,         setEmail]         = useState('');
   const [emailLoading,  setEmailLoading]  = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error,         setError]         = useState('');
+
+  // Already signed in → feed (setup guard will redirect to /setup if needed)
+  if (user) return <Navigate to="/feed" replace />;
 
   // ── Google handler ──────────────────────────────────────────────────────────
   async function handleGoogle() {

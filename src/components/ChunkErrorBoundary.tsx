@@ -9,12 +9,25 @@
  * because they require componentDidCatch / getDerivedStateFromError
  * lifecycle methods that have no function-component equivalent.
  *
- * Recovery strategy: hard reload via window.location.reload().
- * This is the only reliable way to re-trigger a chunk fetch — a soft
- * re-render won't re-request a module that already failed to load.
+ * Error classification
+ * ────────────────────
+ * isChunk   — JS/CSS chunk failed to load from the CDN.
+ *             Cause: new deploy changed chunk filenames; old HTML cached.
+ *             Fix: hard reload fetches fresh chunk URLs.
  *
- * The boundary also catches React render errors in any child, not just
- * chunk failures, which gives us full error containment at the app root.
+ * isNetwork — Generic fetch failure unrelated to chunk loading.
+ *             Cause: device is offline, Supabase unreachable, DNS failure.
+ *             Fix: wait for connection, then retry.
+ *
+ * isRender  — React render error (bad hook order, null dereference, etc.)
+ *             Cause: code bug. Reloading may loop; navigate to /feed instead.
+ *
+ * Retry strategy
+ * ──────────────
+ * - retryCount is stored in component state (survives soft retries).
+ * - Hard reload (window.location.reload) is correct ONLY for chunk errors.
+ * - For render errors, hard-navigate to /feed — reloading replays the crash.
+ * - After 3 retries without success, show extended help copy.
  */
 
 import { Component } from 'react';
@@ -25,34 +38,100 @@ interface Props {
 }
 
 interface State {
-  hasError:  boolean;
-  isChunk:   boolean;   // true when the error is a chunk/network failure
-  errorMsg:  string;
+  hasError:   boolean;
+  errorKind:  'chunk' | 'network' | 'render';
+  errorMsg:   string;
+  retryCount: number;
 }
+
+// ── Error classification ──────────────────────────────────────────────────────
+
+/**
+ * Chunk errors come from Vite/Rollup dynamic import failures.
+ * The message MUST mention the import mechanism — not just "Failed to fetch"
+ * which is shared with ordinary network request failures.
+ */
+const CHUNK_PATTERN =
+  /dynamically imported module|Loading chunk \d+ failed|Importing a module script failed/i;
+
+/**
+ * Network errors where there is no mention of a dynamic import.
+ * Supabase, fetch(), XHR all produce "Failed to fetch" or "NetworkError".
+ */
+const NETWORK_PATTERN = /Failed to fetch|NetworkError|network error|net::ERR/i;
+
+function classifyError(error: Error): 'chunk' | 'network' | 'render' {
+  const msg = error?.message ?? '';
+  if (CHUNK_PATTERN.test(msg))  return 'chunk';
+  if (NETWORK_PATTERN.test(msg)) return 'network';
+  return 'render';
+}
+
+// ── Copy per error kind ───────────────────────────────────────────────────────
+
+const KIND_CONFIG = {
+  chunk: {
+    icon:    '📡',
+    heading: 'Connection hiccup',
+    body:    "A page section didn't load — probably a network blip or a recent update. Tap Retry to reload.",
+    retry:   'Retry',
+  },
+  network: {
+    icon:    '🌐',
+    heading: 'No connection',
+    body:    "Kayaa can't reach the server right now. Check your connection and try again.",
+    retry:   'Try again',
+  },
+  render: {
+    icon:    '⚠️',
+    heading: 'Something went wrong',
+    body:    'An unexpected error occurred in the app. Go to Home to start fresh.',
+    retry:   'Go to Home',
+  },
+} as const;
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default class ChunkErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, isChunk: false, errorMsg: '' };
+    this.state = { hasError: false, errorKind: 'render', errorMsg: '', retryCount: 0 };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    // Detect chunk-load failures by their error message.
-    // Vite/Rollup chunk errors look like "Failed to fetch dynamically imported module"
-    // or "Loading chunk … failed" (webpack), or "Importing a module script failed".
-    const msg   = error?.message ?? '';
-    const isChunk = /dynamically imported|Loading chunk|Failed to fetch|Importing a module/i.test(msg);
-    return { hasError: true, isChunk, errorMsg: msg };
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return {
+      hasError:  true,
+      errorKind: classifyError(error),
+      errorMsg:  error?.message ?? 'Unknown error',
+    };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // In production you would pipe this to Sentry / Supabase logs.
-    console.error('[ChunkErrorBoundary]', error, info.componentStack);
+    const kind = classifyError(error);
+
+    // Structured log — easier to search in Supabase logs / Sentry later
+    console.error('[ChunkErrorBoundary]', {
+      kind,
+      message:        error?.message,
+      componentStack: info.componentStack,
+      route:          window.location.pathname,
+      retryCount:     this.state.retryCount,
+    });
   }
 
   handleRetry = () => {
-    // Hard reload: browser will re-fetch any failed chunks from the network.
-    window.location.reload();
+    const { errorKind } = this.state;
+
+    // Render errors: reloading replays the crash — navigate away instead
+    if (errorKind === 'render') {
+      window.location.href = '/feed';
+      return;
+    }
+
+    // Chunk / network errors: hard reload re-fetches chunks & re-checks network
+    this.setState(s => ({ retryCount: s.retryCount + 1 }), () => {
+      window.location.reload();
+    });
   };
 
   handleHome = () => {
@@ -62,7 +141,9 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
   render() {
     if (!this.state.hasError) return this.props.children;
 
-    const { isChunk } = this.state;
+    const { errorKind, retryCount } = this.state;
+    const cfg = KIND_CONFIG[errorKind];
+    const repeatedFailure = retryCount >= 2;
 
     return (
       <div style={{
@@ -84,7 +165,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '32px', marginBottom: '24px', flexShrink: 0,
         }}>
-          {isChunk ? '📡' : '⚠️'}
+          {cfg.icon}
         </div>
 
         {/* Headline */}
@@ -93,22 +174,34 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
           fontSize: '22px', color: '#F0F6FC',
           margin: '0 0 10px', lineHeight: 1.2,
         }}>
-          {isChunk ? 'Connection hiccup' : 'Something went wrong'}
+          {cfg.heading}
         </h1>
 
         {/* Body */}
         <p style={{
           fontFamily: 'DM Sans, sans-serif',
           fontSize: '14px', color: 'rgba(255,255,255,0.45)',
-          lineHeight: 1.65, margin: '0 0 32px',
+          lineHeight: 1.65, margin: '0 0 8px',
           maxWidth: '280px',
         }}>
-          {isChunk
-            ? "Kayaa couldn't load this section — probably a network blip. Tap Retry and it'll come back."
-            : 'An unexpected error occurred. Retrying usually fixes it.'}
+          {cfg.body}
         </p>
 
-        {/* Retry — primary */}
+        {/* Extra help after repeated retries */}
+        {repeatedFailure && errorKind !== 'render' && (
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px', color: 'rgba(255,255,255,0.28)',
+            lineHeight: 1.6, margin: '0 0 24px',
+            maxWidth: '280px',
+          }}>
+            Still not loading? Try opening Kayaa in a new browser tab, or clear your browser cache.
+          </p>
+        )}
+
+        <div style={{ height: repeatedFailure ? 0 : '24px' }} />
+
+        {/* Primary action */}
         <button
           onClick={this.handleRetry}
           style={{
@@ -119,22 +212,35 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
             cursor: 'pointer', marginBottom: '10px',
           }}
         >
-          Retry
+          {errorKind === 'render' ? 'Go to Home' : cfg.retry}
         </button>
 
-        {/* Go Home — secondary */}
-        <button
-          onClick={this.handleHome}
-          style={{
-            width: '100%', maxWidth: '300px', minHeight: '48px',
-            background: 'transparent', color: 'rgba(255,255,255,0.4)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
-            cursor: 'pointer',
-          }}
-        >
-          Go to Home
-        </button>
+        {/* Secondary: go home (only shown for non-render errors) */}
+        {errorKind !== 'render' && (
+          <button
+            onClick={this.handleHome}
+            style={{
+              width: '100%', maxWidth: '300px', minHeight: '48px',
+              background: 'transparent', color: 'rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+              cursor: 'pointer',
+            }}
+          >
+            Go to Home
+          </button>
+        )}
+
+        {/* Retry count hint — shown after first retry, hidden on render errors */}
+        {retryCount > 0 && errorKind !== 'render' && (
+          <p style={{
+            marginTop: '16px',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.2)',
+          }}>
+            Retried {retryCount} time{retryCount !== 1 ? 's' : ''}
+          </p>
+        )}
 
         {/* Brand */}
         <div style={{
