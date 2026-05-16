@@ -1117,10 +1117,9 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
-            fontSize: '22px', color: '#F0F6FC',
-            margin: '0 0 5px', lineHeight: 1.15,
-            letterSpacing: '-0.3px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '20px', color: '#FFFFFF',
+            margin: '0 0 4px', lineHeight: 1.2,
           }}>
             {venue.name}
           </h2>
