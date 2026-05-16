@@ -376,8 +376,8 @@ function VideoUpload({ sessionId, onUploaded, currentUrl }: VideoUploadProps) {
 
   async function handleFile(file: File) {
     if (!file.type.startsWith('video/')) { setError('Please select a video file.'); return; }
-    if (file.size > 100 * 1024 * 1024) {
-      setError('This video is too large. Please use a shorter clip or compress it first.');
+    if (file.size > 50 * 1024 * 1024) {
+      setError('Video must be under 50 MB. Please trim or compress the clip first.');
       return;
     }
 
@@ -392,8 +392,8 @@ function VideoUpload({ sessionId, onUploaded, currentUrl }: VideoUploadProps) {
     const vid = document.createElement('video');
     vid.src = localUrl;
     vid.onloadedmetadata = () => {
-      if (vid.duration > 60) {
-        setWarning('This video is longer than 60 seconds. It will still upload but consider trimming it.');
+      if (vid.duration > 90) {
+        setWarning('Video is over 90 seconds — consider trimming it to show the best moment. It will still upload.');
       }
     };
 
@@ -415,7 +415,7 @@ function VideoUpload({ sessionId, onUploaded, currentUrl }: VideoUploadProps) {
       <style>{`@keyframes progScan3 { 0%{left:-45%} 100%{left:100%} }`}</style>
       <input
         ref={inputRef} type="file" accept="video/*"
-        capture="user"
+        capture="environment"
         style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
       />
@@ -466,7 +466,7 @@ function VideoUpload({ sessionId, onUploaded, currentUrl }: VideoUploadProps) {
               Tap to add your place video
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-              MP4 or MOV · Max 100MB · Up to 60 seconds
+              MP4 or MOV · Max 50 MB · Up to 90 seconds
             </div>
           </div>
         </div>

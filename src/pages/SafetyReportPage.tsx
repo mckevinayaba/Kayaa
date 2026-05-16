@@ -17,14 +17,15 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, X, Clock, MapPin, Shield, Loader } from 'lucide-react';
+import { ArrowLeft, Camera, X, Clock, MapPin, Shield, Loader, Video } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import {
   createSafetyReport,
-  uploadUserPostImage,
+  uploadSafetyMedia,
   type SafetyIncidentType,
 } from '../lib/api';
+import VideoPlayer from '../components/VideoPlayer';
 
 // ─── Incident type config ──────────────────────────────────────────────────────
 
@@ -264,8 +265,9 @@ function DetailsScreen({
   const [landmark,    setLandmark]    = useState('');
   const [timeMode,    setTimeMode]    = useState<'now' | 'custom'>('now');
   const [customTime,  setCustomTime]  = useState(defaultTimeValue());
-  const [imageFile,   setImageFile]   = useState<File | null>(null);
-  const [imagePreview,setImagePreview]= useState<string | null>(null);
+  const [mediaFile,   setMediaFile]   = useState<File | null>(null);
+  const [mediaPreview,setMediaPreview]= useState<string | null>(null);
+  const [mediaKind,   setMediaKind]   = useState<'photo' | 'video' | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [submitting,  setSubmitting]  = useState(false);
   const [error,       setError]       = useState<string | null>(null);
@@ -274,24 +276,46 @@ function DetailsScreen({
 
   const canSubmit = title.trim().length >= 3 && details.trim().length >= 5;
 
-  function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
+  // Photo: 20MB · Video: 50MB hard, 60s soft warning
+  const PHOTO_LIMIT_MB = 20;
+  const VIDEO_LIMIT_MB = 50;
+
+  function handleMedia(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    // 20 MB cap — video is not supported yet
-    if (file.size > 20 * 1024 * 1024) {
-      setError('Image must be under 20 MB. Video support coming soon.');
+    const isVideo = file.type.startsWith('video/');
+    const limitMB = isVideo ? VIDEO_LIMIT_MB : PHOTO_LIMIT_MB;
+
+    if (file.size > limitMB * 1024 * 1024) {
+      setError(`${isVideo ? 'Video' : 'Image'} must be under ${limitMB} MB.`);
       return;
     }
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+
+    // Soft duration check for video
+    if (isVideo) {
+      const vid = document.createElement('video');
+      const tempUrl = URL.createObjectURL(file);
+      vid.src = tempUrl;
+      vid.onloadedmetadata = () => {
+        if (vid.duration > 60) {
+          setError('Video is over 60 seconds — consider trimming it. It will still upload.');
+        }
+        URL.revokeObjectURL(tempUrl);
+      };
+    }
+
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+    setMediaKind(isVideo ? 'video' : 'photo');
     setError(null);
   }
 
-  function removeImage() {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImageFile(null);
-    setImagePreview(null);
+  function removeMedia() {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(null);
+    setMediaPreview(null);
+    setMediaKind(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
@@ -304,7 +328,8 @@ function DetailsScreen({
       details:     details.trim(),
       landmark:    landmark.trim() || undefined,
       happenedAt:  timeMode === 'now' ? new Date().toISOString() : new Date(customTime).toISOString(),
-      imageFile:   imageFile ?? undefined,
+      mediaFile:   mediaFile ?? undefined,
+      mediaType:   mediaKind ?? undefined,
       isAnonymous,
     });
     setSubmitting(false);
@@ -451,62 +476,109 @@ function DetailsScreen({
           )}
         </div>
 
-        {/* Photo upload */}
+        {/* Photo / video upload */}
         <div>
-          <FieldLabel>Photo (optional)</FieldLabel>
-          {imagePreview ? (
+          <FieldLabel>Photo or video (optional)</FieldLabel>
+          {mediaPreview ? (
             <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden' }}>
-              <img
-                src={imagePreview}
-                alt="Attached photo"
-                style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }}
-              />
+              {mediaKind === 'video' ? (
+                <VideoPlayer
+                  src={mediaPreview}
+                  maxHeight={220}
+                  borderRadius={12}
+                  label="Evidence clip preview"
+                />
+              ) : (
+                <img
+                  src={mediaPreview}
+                  alt="Attached photo"
+                  style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }}
+                />
+              )}
               <button
-                onClick={removeImage}
+                onClick={removeMedia}
                 style={{
                   position: 'absolute', top: '8px', right: '8px',
                   width: '28px', height: '28px', borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.7)', border: 'none',
+                  background: 'rgba(0,0,0,0.75)', border: 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer',
+                  cursor: 'pointer', zIndex: 2,
                 }}
               >
                 <X size={14} color="#fff" />
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: '100%', padding: '20px', borderRadius: '12px',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px dashed rgba(255,255,255,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                cursor: 'pointer',
-              }}
-            >
-              <Camera size={18} color="rgba(255,255,255,0.3)" />
-              <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-                color: 'rgba(255,255,255,0.35)',
-              }}>
-                Attach a photo{' '}
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>— max 20 MB</span>
-              </span>
-            </button>
+            /* Two-button picker: Photo | Video */
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  flex: 1, padding: '16px 10px', borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px dashed rgba(255,255,255,0.12)',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <Camera size={20} color="rgba(255,255,255,0.3)" />
+                <span style={{
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  color: 'rgba(255,255,255,0.35)',
+                }}>
+                  Photo
+                </span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                  max 20 MB
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  // Switch to video-first picker by changing accept
+                  if (fileInputRef.current) {
+                    fileInputRef.current.accept = 'video/*';
+                    fileInputRef.current.click();
+                    // Reset after click so next open shows all types
+                    setTimeout(() => {
+                      if (fileInputRef.current) fileInputRef.current.accept = 'image/*,video/*';
+                    }, 500);
+                  }
+                }}
+                style={{
+                  flex: 1, padding: '16px 10px', borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px dashed rgba(255,255,255,0.12)',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <Video size={20} color="rgba(255,255,255,0.3)" />
+                <span style={{
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  color: 'rgba(255,255,255,0.35)',
+                }}>
+                  Video
+                </span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                  max 50 MB · 60 s
+                </span>
+              </button>
+            </div>
           )}
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
-            onChange={handleImage}
+            accept="image/*,video/*"
+            onChange={handleMedia}
             style={{ display: 'none' }}
           />
           <p style={{
             fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.2)', margin: '6px 0 0', lineHeight: 1.5,
           }}>
-            Photos help neighbours identify suspects or hazards. Video support coming soon.
+            Photos and short video clips help neighbours identify suspects or hazards.
           </p>
         </div>
 
@@ -739,7 +811,8 @@ interface DetailsData {
   details:     string;
   landmark?:   string;
   happenedAt:  string;
-  imageFile?:  File;
+  mediaFile?:  File;
+  mediaType?:  'photo' | 'video';
   isAnonymous: boolean;
 }
 
@@ -805,14 +878,17 @@ export default function SafetyReportPage() {
     setGlobalError(null);
 
     try {
-      // Upload image if present
-      let imageUrl: string | undefined;
-      if (data.imageFile) {
+      // Upload media (photo or video) if present
+      let mediaUrl:  string | undefined;
+      let mediaType: 'photo' | 'video' | undefined = data.mediaType;
+      if (data.mediaFile) {
         try {
-          imageUrl = await uploadUserPostImage(user.id, data.imageFile);
+          const result = await uploadSafetyMedia(user.id, data.mediaFile);
+          mediaUrl  = result.url;
+          mediaType = result.mediaType;
         } catch {
-          // Non-fatal — submit without image, warn user
-          setGlobalError('Image upload failed — your report will be submitted without the photo.');
+          // Non-fatal — submit without media, warn user
+          setGlobalError(`${data.mediaType === 'video' ? 'Video' : 'Image'} upload failed — your report will be submitted without the attachment.`);
         }
       }
 
@@ -823,7 +899,8 @@ export default function SafetyReportPage() {
         details:       data.details,
         landmark:      data.landmark,
         happenedAt:    data.happenedAt,
-        imageUrl,
+        imageUrl:      mediaUrl,
+        mediaType,
         isAnonymous:   data.isAnonymous,
       });
 

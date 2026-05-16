@@ -2211,6 +2211,7 @@ export interface SafetyReport {
   details:       string;
   happenedAt:    string;
   imageUrl:      string | null;
+  mediaType:     'photo' | 'video' | null;
   userPostId:    string | null;
   createdAt:     string;
 }
@@ -2228,9 +2229,29 @@ function dbSafetyReport(row: any): SafetyReport {
     details:       row.details ?? '',
     happenedAt:    row.happened_at ?? row.created_at ?? '',
     imageUrl:      row.image_url ?? null,
+    mediaType:     (row.media_type ?? null) as 'photo' | 'video' | null,
     userPostId:    row.user_post_id ?? null,
     createdAt:     row.created_at ?? '',
   };
+}
+
+/**
+ * Upload safety report media (photo or video) to the venue-media bucket.
+ * Returns { url, mediaType }.
+ */
+export async function uploadSafetyMedia(
+  userId: string,
+  file: File,
+): Promise<{ url: string; mediaType: 'photo' | 'video' }> {
+  const mediaType: 'photo' | 'video' = file.type.startsWith('video/') ? 'video' : 'photo';
+  const ext  = file.name.split('.').pop() ?? (mediaType === 'video' ? 'mp4' : 'jpg');
+  const path = `safety-reports/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
+  return { url: publicUrl, mediaType };
 }
 
 /**
@@ -2268,9 +2289,10 @@ export async function createSafetyReport(
     title:          string;
     details:        string;
     landmark?:      string;
-    happenedAt?:    string;   // ISO — if omitted, DB defaults to now()
-    imageUrl?:      string;
-    isAnonymous?:   boolean;  // default true
+    happenedAt?:    string;            // ISO — if omitted, DB defaults to now()
+    imageUrl?:      string;            // URL of uploaded photo or video
+    mediaType?:     'photo' | 'video'; // defaults to 'photo' if imageUrl present
+    isAnonymous?:   boolean;           // default true
     countryCode?:   string;
   }
 ): Promise<{ report: SafetyReport | null; error: string | null }> {
@@ -2310,6 +2332,7 @@ export async function createSafetyReport(
       details:       data.details,
       landmark:      data.landmark ?? null,
       image_url:     data.imageUrl ?? null,
+      media_type:    data.imageUrl ? (data.mediaType ?? 'photo') : null,
       user_post_id:  postRow?.id ?? null,
     };
     if (data.happenedAt) reportPayload.happened_at = data.happenedAt;
@@ -2336,6 +2359,7 @@ export async function createSafetyReport(
           details:       data.details,
           happenedAt:    data.happenedAt ?? new Date().toISOString(),
           imageUrl:      data.imageUrl ?? null,
+          mediaType:     data.imageUrl ? (data.mediaType ?? 'photo') : null,
           userPostId:    postRow?.id ?? null,
           createdAt:     new Date().toISOString(),
         },

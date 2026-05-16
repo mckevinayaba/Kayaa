@@ -29,8 +29,9 @@ create table if not exists safety_reports (
   -- when it happened (defaults to submission time if user selects "right now")
   happened_at     timestamptz not null default now(),
 
-  -- media
-  image_url       text,
+  -- media (photo or video)
+  image_url       text,                        -- URL of attached photo or video
+  media_type      text check (media_type in ('photo', 'video')),
 
   -- linked user_posts row (for existing surface display)
   user_post_id    uuid,                        -- soft ref, not FK (user_posts may not have uuid PK type)

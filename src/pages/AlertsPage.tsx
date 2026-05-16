@@ -24,6 +24,7 @@ import {
   getSafetyReports,
 } from '../lib/api';
 import type { UserPost, NeighbourhoodPost, SafetyReport, SafetyIncidentType } from '../lib/api';
+import VideoPlayer from '../components/VideoPlayer';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { WaterStatus } from '../components/utility/WaterStatus';
 import NudgeCard from '../components/NudgeCard';
@@ -47,6 +48,7 @@ interface AlertItem {
   incidentType?: SafetyIncidentType;
   title?:        string;
   imageUrl?:     string;
+  mediaType?:    'photo' | 'video';
   landmark?:     string;
   happenedAt?:   string;
 }
@@ -127,13 +129,22 @@ function AlertCard({ item }: { item: AlertItem }) {
       borderRadius: '14px',
       overflow: 'hidden',
     }}>
-      {/* Attached photo (structured reports only) */}
+      {/* Attached media: photo or video (structured reports only) */}
       {item.imageUrl && (
-        <img
-          src={item.imageUrl}
-          alt="Incident photo"
-          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
-        />
+        item.mediaType === 'video' ? (
+          <VideoPlayer
+            src={item.imageUrl}
+            maxHeight={200}
+            borderRadius={0}
+            label="Evidence clip"
+          />
+        ) : (
+          <img
+            src={item.imageUrl}
+            alt="Incident photo"
+            style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
+          />
+        )
       )}
 
       <div style={{ padding: '12px 14px' }}>
@@ -389,6 +400,7 @@ export default function AlertsPage() {
       incidentType: r.incidentType,
       title:        r.title,
       imageUrl:     r.imageUrl ?? undefined,
+      mediaType:    r.mediaType ?? undefined,
       landmark:     r.landmark ?? undefined,
       happenedAt:   r.happenedAt,
     }));

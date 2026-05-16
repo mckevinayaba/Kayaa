@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Clock, Calendar, CheckCircle2, Share2, X,
-  ChevronLeft, ChevronRight, Play, Volume2, VolumeX,
+  ChevronLeft, ChevronRight, Play,
   Heart, Phone, MessageCircle, Navigation, Store, Sparkles, Users,
 } from 'lucide-react';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { VenueStatusBadge } from '../components/VenueStatusBadge';
 import { useAuth } from '../contexts/AuthContext';
 import StoryViewer from '../components/StoryViewer';
+import VideoPlayer from '../components/VideoPlayer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
 import { CheckInModal }    from '../components/place/CheckInModal';
@@ -1910,30 +1911,30 @@ function ImageLightbox({ images, index, onClose, onNavigate }: { images: string[
 
 // ─── Video components ─────────────────────────────────────────────────────────
 
+/**
+ * VideoCard — tap-to-play inline intro video for a venue.
+ *
+ * Replaces the previous autoPlay muted loop implementation.
+ * Video is silent and paused until the user explicitly taps ▶.
+ * Pauses automatically when scrolled out of view.
+ */
 function VideoCard({ venue }: { venue: Venue }) {
-  const [muted, setMuted] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   if (!venue.introVideo) return null;
-
-  function toggleMute() {
-    if (!videoRef.current) return;
-    const newMuted = !muted;
-    videoRef.current.muted = newMuted;
-    setMuted(newMuted);
-  }
-
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
+      <h2 style={{
+        fontFamily: 'Syne, sans-serif', fontWeight: 700,
+        fontSize: '16px', color: 'var(--color-text)',
+        marginBottom: '12px', letterSpacing: '-0.01em',
+      }}>
         Watch {venue.name} in action
       </h2>
-      <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', background: '#000' }}>
-        <video ref={videoRef} src={venue.introVideo} autoPlay muted loop playsInline style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }} />
-        <button onClick={toggleMute} style={{ position: 'absolute', bottom: '12px', right: '12px', width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(13,17,23,0.7)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
-          {muted ? <VolumeX size={15} color="#fff" /> : <Volume2 size={15} color="#fff" />}
-        </button>
-      </div>
+      <VideoPlayer
+        src={venue.introVideo}
+        maxHeight={300}
+        borderRadius={14}
+        label={venue.name}
+      />
     </div>
   );
 }
