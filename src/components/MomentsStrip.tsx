@@ -1,46 +1,95 @@
 /**
- * MomentsStrip — Neighbourhood Moments viewer strip
+ * MomentsStrip — compact neighbourhood presence rail
  *
- * Horizontal scroll row of 24-hour local moments.
- * Visual language: portrait thumbnail cards (not circular rings).
- * Distinct from:
- *   - StoriesStrip   (venue-owned, circular, place-bound)
- *   - Board cards    (text-first, listing intent)
- *   - Alert cards    (red, urgent)
+ * Visual target: 72px total height (56px circles + 16px captions).
+ * The strip sits above the PostBar without competing with it.
  *
- * Tap a card → full-screen MomentViewer overlay.
- * "+" card → navigates to /moments/new.
- * No autoplay anywhere.
+ * Design decisions
+ * ────────────────
+ * Circles, not portrait cards — keeps the rail height under 80px.
+ * Custom M-pulse icon — branded, not generic. Two arcs + filled dot
+ *   reads as "live local signal" without using the word "MOMENTS".
+ * Label is inline with the first item's caption, not a separate header row.
+ * Empty state: no ghost card — just one whisper line of text below the "+".
+ * Viewer overlay is unchanged (full-screen, tap-to-play).
+ *
+ * Circle sizes
+ *   ADD circle  : 56 × 56, dashed accent border
+ *   MOMENT circle: 56 × 56, thumbnail fill, hair-thin ring
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Play, MapPin, Clock } from 'lucide-react';
+import { X, Play, Clock } from 'lucide-react';
 import type { NeighbourhoodMoment } from '../lib/api';
+
+// ─── Branded Moments icon ─────────────────────────────────────────────────────
+//
+// Two concentric arcs rising from a filled dot.
+// Reads as "live neighbourhood signal" — presence, not broadcast.
+// 16 × 14 px, accent colour, no stroke weight above 1.5.
+
+function MomentsIcon({ size = 14 }: { size?: number }) {
+  const scale = size / 14;
+  return (
+    <svg
+      width={16 * scale}
+      height={14 * scale}
+      viewBox="0 0 16 14"
+      fill="none"
+      aria-hidden="true"
+      style={{ display: 'block', flexShrink: 0 }}
+    >
+      {/* Filled centre dot — the neighbourhood */}
+      <circle cx="8" cy="9" r="2" fill="#39D98A" />
+      {/* Inner arc — close presence */}
+      <path
+        d="M4.5 6.5 a4.5 4.5 0 0 1 7 0"
+        stroke="#39D98A"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      {/* Outer arc — wider signal */}
+      <path
+        d="M1.5 3.5 a7.5 7.5 0 0 1 13 0"
+        stroke="#39D98A"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.28"
+      />
+    </svg>
+  );
+}
 
 // ─── Time helpers ─────────────────────────────────────────────────────────────
 
 function timeLeft(expiresAt: string): string {
-  const ms   = new Date(expiresAt).getTime() - Date.now();
-  if (ms <= 0)      return 'expired';
-  const hrs  = Math.floor(ms / (1000 * 60 * 60));
-  const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  if (hrs >= 1)     return `${hrs}h left`;
-  if (mins >= 1)    return `${mins}m left`;
-  return 'expiring';
+  const ms  = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return 'expired';
+  const hrs = Math.floor(ms / 3_600_000);
+  const min = Math.floor((ms % 3_600_000) / 60_000);
+  if (hrs >= 1) return `${hrs}h`;
+  if (min >= 1) return `${min}m`;
+  return '<1m';
 }
 
 function timeAgo(createdAt: string): string {
   const ms   = Date.now() - new Date(createdAt).getTime();
-  const mins = Math.floor(ms / 60000);
-  if (mins < 1)     return 'just now';
-  if (mins < 60)    return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)     return `${hrs}h ago`;
-  return 'yesterday';
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  return `${Math.floor(mins / 60)}h ago`;
 }
 
-// ─── Moment Viewer — full-screen overlay ─────────────────────────────────────
+// ─── Dimension constants ──────────────────────────────────────────────────────
+
+const D = 56;          // circle diameter
+const GAP = 12;        // gap between circles
+const CAPTION_MAX = 52; // max-width of caption text (px)
+
+// ─── Full-screen Moment Viewer ────────────────────────────────────────────────
+// (Unchanged from v1 — full-screen is correct for viewing media)
 
 function MomentViewer({
   moment,
@@ -60,7 +109,6 @@ function MomentViewer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
-  // Reset play state when moment changes
   useEffect(() => {
     setPlaying(false);
     if (videoRef.current) {
@@ -82,61 +130,51 @@ function MomentViewer({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.95)',
+        background: 'rgba(0,0,0,0.96)',
         display: 'flex', flexDirection: 'column',
       }}
-      onClick={onClose}  // tap outside media → close
+      onClick={onClose}
     >
       {/* Header */}
       <div
         style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-          padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)',
+          padding: 'calc(env(safe-area-inset-top,0px) + 16px) 16px 20px',
+          background: 'linear-gradient(to bottom,rgba(0,0,0,0.72) 0%,transparent 100%)',
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px',
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <MomentsIcon size={13} />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.5)', letterSpacing: '0.01em',
           }}>
-            <MapPin size={12} color="rgba(255,255,255,0.55)" />
-            <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-              color: 'rgba(255,255,255,0.55)',
-            }}>
-              {moment.neighbourhood}
-            </span>
-          </div>
-          {moment.venueName && (
-            <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-              color: 'rgba(57,217,138,0.8)', marginBottom: '2px',
-            }}>
-              📍 {moment.venueName}
-            </div>
-          )}
+            {moment.neighbourhood}
+            {moment.venueName && (
+              <span style={{ color: 'rgba(57,217,138,0.75)', marginLeft: '6px' }}>
+                · {moment.venueName}
+              </span>
+            )}
+          </span>
         </div>
         <button
           onClick={onClose}
           style={{
-            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '50%', width: '32px', height: '32px',
+            background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '50%', width: '30px', height: '30px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0,
           }}
         >
-          <X size={16} color="rgba(255,255,255,0.8)" />
+          <X size={14} color="rgba(255,255,255,0.75)" />
         </button>
       </div>
 
-      {/* Media — centred, tap to play/pause video */}
+      {/* Media */}
       <div
-        style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative',
-        }}
+        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
         onClick={e => { e.stopPropagation(); if (moment.mediaType === 'video') togglePlay(); }}
       >
         {moment.mediaType === 'video' ? (
@@ -147,21 +185,18 @@ function MomentViewer({
               preload="metadata"
               playsInline
               onEnded={() => setPlaying(false)}
-              style={{
-                maxWidth: '100%', maxHeight: '100%',
-                objectFit: 'contain', display: 'block',
-              }}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
             />
             {!playing && (
               <div style={{
                 position: 'absolute',
-                width: '56px', height: '56px', borderRadius: '50%',
-                background: 'rgba(0,0,0,0.55)',
-                border: '1.5px solid rgba(255,255,255,0.3)',
+                width: '54px', height: '54px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.52)',
+                border: '1.5px solid rgba(255,255,255,0.28)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 pointerEvents: 'none',
               }}>
-                <Play size={22} color="#fff" fill="#fff" style={{ marginLeft: '3px' }} />
+                <Play size={20} color="#fff" fill="#fff" style={{ marginLeft: '3px' }} />
               </div>
             )}
           </>
@@ -169,70 +204,53 @@ function MomentViewer({
           <img
             src={moment.mediaUrl}
             alt={moment.caption}
-            style={{
-              maxWidth: '100%', maxHeight: '100%',
-              objectFit: 'contain', display: 'block',
-            }}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
           />
         )}
 
-        {/* Prev / Next swipe zones */}
         {hasPrev && (
           <button
             onClick={e => { e.stopPropagation(); onPrev(); }}
-            style={{
-              position: 'absolute', left: 0, top: 0, bottom: 0, width: '25%',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-              padding: '0 12px',
-            }}
-            aria-label="Previous moment"
+            style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '25%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            aria-label="Previous"
           />
         )}
         {hasNext && (
           <button
             onClick={e => { e.stopPropagation(); onNext(); }}
-            style={{
-              position: 'absolute', right: 0, top: 0, bottom: 0, width: '25%',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-              padding: '0 12px',
-            }}
-            aria-label="Next moment"
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '25%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            aria-label="Next"
           />
         )}
       </div>
 
-      {/* Footer — caption + time */}
+      {/* Footer */}
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          padding: '20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px)',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+          padding: '20px 20px calc(env(safe-area-inset-bottom,0px) + 28px)',
+          background: 'linear-gradient(to top,rgba(0,0,0,0.78) 0%,transparent 100%)',
         }}
         onClick={e => e.stopPropagation()}
       >
         <p style={{
           fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
           fontSize: '16px', color: '#F0F6FC',
-          margin: '0 0 10px', lineHeight: 1.45,
+          margin: '0 0 8px', lineHeight: 1.45,
         }}>
           {moment.caption}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-            color: 'rgba(255,255,255,0.4)',
-          }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.38)' }}>
             {timeAgo(moment.createdAt)}
           </span>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
             fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-            color: remaining === 'expired' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.38)',
+            color: remaining === 'expired' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.35)',
           }}>
             <Clock size={10} />
-            {remaining}
+            {remaining} left
           </span>
         </div>
       </div>
@@ -240,144 +258,130 @@ function MomentViewer({
   );
 }
 
-// ─── Card thumbnail ───────────────────────────────────────────────────────────
+// ─── Circle bubble — moment thumbnail ────────────────────────────────────────
 
-const CARD_W = 108;
-const CARD_H = 148;
-
-function MomentCard({
+function MomentBubble({
   moment,
   onClick,
 }: {
   moment:  NeighbourhoodMoment;
   onClick: () => void;
 }) {
-  const ms = new Date(moment.expiresAt).getTime() - Date.now();
-  const hrsLeft = ms / (1000 * 60 * 60);
-  // Fade older moments slightly
-  const opacity = hrsLeft < 3 ? 0.65 : 1;
+  const msLeft  = new Date(moment.expiresAt).getTime() - Date.now();
+  const hrsLeft = msLeft / 3_600_000;
+  const opacity = hrsLeft < 3 ? 0.6 : 1;
+
+  // One-line caption: strip newlines, collapse whitespace, trim
+  const caption = moment.caption.replace(/\s+/g, ' ').trim();
 
   return (
-    <button
-      onClick={onClick}
-      style={{
-        flexShrink: 0, width: `${CARD_W}px`, height: `${CARD_H}px`,
-        borderRadius: '16px', overflow: 'hidden',
-        position: 'relative', cursor: 'pointer',
-        border: 'none', padding: 0,
-        background: '#161B22',
-        opacity,
-        WebkitTapHighlightColor: 'transparent',
-      } as React.CSSProperties}
-    >
-      {/* Media background */}
-      {moment.mediaType === 'photo' ? (
-        <img
-          src={moment.mediaUrl}
-          alt={moment.caption}
-          loading="lazy"
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-          }}
-        />
-      ) : (
-        <video
-          src={moment.mediaUrl}
-          preload="metadata"
-          muted
-          playsInline
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-          }}
-        />
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flexShrink: 0, opacity }}>
+      <button
+        onClick={onClick}
+        style={{
+          width: `${D}px`, height: `${D}px`,
+          borderRadius: '50%', overflow: 'hidden',
+          position: 'relative', cursor: 'pointer',
+          border: '1.5px solid rgba(57,217,138,0.25)',
+          background: '#161B22',
+          padding: 0, flexShrink: 0,
+          WebkitTapHighlightColor: 'transparent',
+        } as React.CSSProperties}
+        aria-label={caption}
+      >
+        {/* Thumbnail */}
+        {moment.mediaType === 'photo' ? (
+          <img
+            src={moment.mediaUrl}
+            alt=""
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <video
+            src={moment.mediaUrl}
+            preload="metadata"
+            muted
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        )}
 
-      {/* Gradient overlay */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)',
-      }} />
+        {/* Video indicator — small ▶ in bottom-right */}
+        {moment.mediaType === 'video' && (
+          <div style={{
+            position: 'absolute', bottom: '4px', right: '4px',
+            width: '16px', height: '16px', borderRadius: '50%',
+            background: 'rgba(0,0,0,0.65)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Play size={7} color="#fff" fill="#fff" style={{ marginLeft: '1px' }} />
+          </div>
+        )}
+      </button>
 
-      {/* Video play badge */}
-      {moment.mediaType === 'video' && (
-        <div style={{
-          position: 'absolute', top: '10px', right: '10px',
-          width: '24px', height: '24px', borderRadius: '50%',
-          background: 'rgba(0,0,0,0.55)',
-          border: '1px solid rgba(255,255,255,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Play size={10} color="#fff" fill="#fff" style={{ marginLeft: '1px' }} />
-        </div>
-      )}
-
-      {/* Caption */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        padding: '0 8px 10px',
+      {/* Caption — 1 line, max CAPTION_MAX px wide */}
+      <span style={{
+        fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+        color: 'rgba(255,255,255,0.45)', lineHeight: 1.3,
+        width: `${CAPTION_MAX}px`, textAlign: 'center',
+        display: 'block', overflow: 'hidden',
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
-          fontSize: '11px', color: '#F0F6FC',
-          margin: 0, lineHeight: 1.35,
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        } as React.CSSProperties}>
-          {moment.caption}
-        </p>
-      </div>
-    </button>
+        {caption}
+      </span>
+    </div>
   );
 }
 
-// ─── Add Moment Card (the "+" entry point) ────────────────────────────────────
+// ─── Add bubble — first item in rail ─────────────────────────────────────────
 
-function AddMomentCard({ onClick }: { onClick: () => void }) {
+function AddBubble({ onClick, isEmpty }: { onClick: () => void; isEmpty: boolean }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        flexShrink: 0, width: `${CARD_W}px`, height: `${CARD_H}px`,
-        borderRadius: '16px', overflow: 'hidden',
-        position: 'relative', cursor: 'pointer',
-        border: '1.5px dashed rgba(57,217,138,0.3)',
-        background: 'rgba(57,217,138,0.04)',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        gap: '8px', padding: 0,
-        WebkitTapHighlightColor: 'transparent',
-      } as React.CSSProperties}
-    >
-      <div style={{
-        width: '36px', height: '36px', borderRadius: '50%',
-        background: 'rgba(57,217,138,0.1)',
-        border: '1.5px solid rgba(57,217,138,0.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '18px',
-      }}>
-        +
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+      <button
+        onClick={onClick}
+        style={{
+          width: `${D}px`, height: `${D}px`, borderRadius: '50%',
+          background: 'rgba(57,217,138,0.06)',
+          border: '1.5px dashed rgba(57,217,138,0.35)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', padding: 0, flexShrink: 0,
+          WebkitTapHighlightColor: 'transparent',
+        } as React.CSSProperties}
+        aria-label="Share a moment"
+      >
+        <span style={{
+          fontSize: '22px', lineHeight: 1,
+          color: 'rgba(57,217,138,0.65)',
+          fontWeight: 300,
+          fontFamily: 'system-ui, sans-serif',
+          marginTop: '-1px',
+        }}>
+          +
+        </span>
+      </button>
+
+      {/* Caption row: "share" when moments exist, "be first" when empty */}
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
-        color: 'rgba(57,217,138,0.7)',
-        textAlign: 'center', lineHeight: 1.3, padding: '0 8px',
+        fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+        color: 'rgba(255,255,255,0.32)', lineHeight: 1.3,
+        width: `${CAPTION_MAX}px`, textAlign: 'center',
+        display: 'block', overflow: 'hidden',
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        Share a moment
+        {isEmpty ? 'be first' : 'share'}
       </span>
-    </button>
+    </div>
   );
 }
 
 // ─── Main strip ───────────────────────────────────────────────────────────────
 
 interface MomentsStripProps {
-  moments:      NeighbourhoodMoment[];
+  moments:       NeighbourhoodMoment[];
   neighbourhood: string;
-  showAdd?:     boolean;  // show "+" card (hide when user is not signed in)
+  showAdd?:      boolean;
 }
 
 export default function MomentsStrip({
@@ -388,107 +392,90 @@ export default function MomentsStrip({
   const navigate = useNavigate();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
-  // Body scroll lock while viewer is open
+  // Scroll-lock while viewer is open
   useEffect(() => {
-    if (viewerIndex !== null) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = viewerIndex !== null ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [viewerIndex]);
 
-  // Don't render the strip if there are no moments and no add button
-  if (moments.length === 0 && !showAdd) return null;
+  const isEmpty = moments.length === 0;
+
+  // Fully hidden if no content and no add button
+  if (isEmpty && !showAdd) return null;
 
   const activeMoment = viewerIndex !== null ? moments[viewerIndex] : null;
 
   return (
     <>
-      {/* Strip section */}
-      <div style={{ marginBottom: '20px' }}>
-        {/* Section label */}
+      {/*
+        ── Compact rail ─────────────────────────────────────────────────────────
+        Layout: [icon] "moments" label, then the horizontal bubble row.
+        Total height: ~20px label + 56px circles + 16px captions = ~92px.
+        No section card, no heavy header row.
+      */}
+      <div style={{ marginBottom: '16px' }}>
+
+        {/* Inline label row — icon + name + count */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: '10px',
+          display: 'flex', alignItems: 'center', gap: '6px',
+          marginBottom: '10px', paddingLeft: '2px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <MomentsIcon size={13} />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.35)',
+            letterSpacing: '0.02em',
+          }}>
+            moments
+          </span>
+          {!isEmpty && (
             <span style={{
-              display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%',
-              background: '#39D98A',
-              boxShadow: '0 0 6px rgba(57,217,138,0.7)',
-            }} />
-            <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
-              color: 'rgba(255,255,255,0.55)',
-              textTransform: 'uppercase', letterSpacing: '0.08em',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+              color: 'rgba(255,255,255,0.18)',
             }}>
-              Moments
+              · {moments.length} today
             </span>
-            {neighbourhood && (
-              <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-                color: 'rgba(255,255,255,0.28)',
-              }}>
-                · {neighbourhood}
-              </span>
-            )}
-          </div>
-          {moments.length > 0 && (
+          )}
+          {isEmpty && neighbourhood && (
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-              color: 'rgba(255,255,255,0.25)',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+              color: 'rgba(255,255,255,0.15)', fontStyle: 'italic',
             }}>
-              {moments.length} today
+              · none yet in {neighbourhood}
             </span>
           )}
         </div>
 
-        {/* Horizontal scroll */}
+        {/* Horizontal bubble scroll */}
         <div style={{
-          display: 'flex', gap: '10px',
+          display: 'flex', gap: `${GAP}px`, alignItems: 'flex-start',
           overflowX: 'auto', scrollbarWidth: 'none',
           marginLeft: '-16px', paddingLeft: '16px',
           marginRight: '-16px', paddingRight: '16px',
-          paddingBottom: '4px',
+          paddingBottom: '2px',
           WebkitOverflowScrolling: 'touch',
         } as React.CSSProperties}>
 
-          {/* Add moment card — first */}
+          {/* Add bubble — always first */}
           {showAdd && (
-            <AddMomentCard onClick={() => navigate('/moments/new')} />
+            <AddBubble
+              onClick={() => navigate('/moments/new')}
+              isEmpty={isEmpty}
+            />
           )}
 
-          {/* Moment cards */}
+          {/* Moment bubbles */}
           {moments.map((m, i) => (
-            <MomentCard
+            <MomentBubble
               key={m.id}
               moment={m}
               onClick={() => setViewerIndex(i)}
             />
           ))}
-
-          {/* Empty state: only shown if there ARE no moments yet */}
-          {moments.length === 0 && (
-            <div style={{
-              flexShrink: 0,
-              height: `${CARD_H}px`,
-              display: 'flex', alignItems: 'center',
-              paddingLeft: '4px',
-            }}>
-              <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-                color: 'rgba(255,255,255,0.2)', margin: 0, maxWidth: '200px',
-                lineHeight: 1.5,
-              }}>
-                No moments yet — be the first to share what {neighbourhood || 'the neighbourhood'} looks like today.
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Full-screen viewer */}
+      {/* Full-screen viewer — separate from the rail layout */}
       {activeMoment && viewerIndex !== null && (
         <MomentViewer
           moment={activeMoment}
