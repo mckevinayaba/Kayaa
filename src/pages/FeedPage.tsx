@@ -1348,7 +1348,9 @@ export default function FeedPage() {
     }
   }, [isDetecting, suburb, manualOverride]);
 
-  const areaLabel = suburb || city || 'Your area';
+  // neighbourhood-first: city is never used as a label substitute.
+  // When suburb is empty the UI shows neutral copy, not a city name.
+  const areaLabel = suburb || 'Your area';
 
   // "Not your neighbourhood?" banner — shown for 8 s after GPS resolves,
   // dismissed instantly on tap, or replaced by AreaSelector if user taps Change.
@@ -1853,7 +1855,7 @@ export default function FeedPage() {
             letterSpacing: '-0.02em', lineHeight: 1,
             margin: 0,
           }}>
-            {suburb || areaLabel || 'Your area'}
+            {areaLabel}
           </h1>
         </div>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#9CA3AF', margin: '0 0 10px' }}>

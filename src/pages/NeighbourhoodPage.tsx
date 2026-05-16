@@ -333,7 +333,7 @@ export default function NeighbourhoodPage() {
           Tap the neighbourhood chip at the top to set your area and see what's nearby.
         </p>
         <button
-          onClick={() => setManualOverride('Berea', 'Johannesburg')}
+          onClick={() => setManualOverride('Berea', 'Durban')}
           style={{
             background: 'rgba(57,217,138,0.12)', color: '#39D98A',
             border: '1px solid rgba(57,217,138,0.25)',

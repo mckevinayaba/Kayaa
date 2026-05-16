@@ -51,16 +51,19 @@ export default function AppLayout() {
 
   const isVenuePage = routerLocation.pathname.startsWith('/venue');
 
-  // Location chip label:
+  // Location chip label — neighbourhood-first, never city-first:
   //   - Venue pages: "Place" (irrelevant to current location)
   //   - Detecting: "Locating…"
-  //   - GPS denied/failed and nothing typed: "Set your area"
-  //   - Otherwise: detected suburb or city
+  //   - No suburb resolved yet: "Set your neighbourhood" (prompts action)
+  //   - Otherwise: the suburb name — the city is never shown here
+  //
+  // Deliberately omits displayCity: showing a city when the suburb is unknown
+  // implies false precision and violates Kayaa's neighbourhood-first identity.
   const locationLabel = isVenuePage
     ? 'Place'
     : isDetecting
       ? 'Locating…'
-      : displaySuburb || displayCity || 'Set your area';
+      : displaySuburb || 'Set your neighbourhood';
 
   // Show AreaSelector automatically only if GPS was denied (user must type manually)
   const needsArea = detectionError === 'denied' && !manualOverride;

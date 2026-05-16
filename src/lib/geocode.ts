@@ -13,7 +13,7 @@ interface SuburbBounds {
 }
 
 const SUBURB_BOUNDS: SuburbBounds[] = [
-  // Johannesburg — north
+  // ── Johannesburg — north ───────────────────────────────────────────────────
   { name: 'Rosebank',        minLat: -26.1520, maxLat: -26.1380, minLon: 28.0380, maxLon: 28.0500 },
   { name: 'Parktown North',  minLat: -26.1420, maxLat: -26.1300, minLon: 28.0280, maxLon: 28.0420 },
   { name: 'Sandton',         minLat: -26.1200, maxLat: -26.0900, minLon: 28.0450, maxLon: 28.0750 },
@@ -22,12 +22,30 @@ const SUBURB_BOUNDS: SuburbBounds[] = [
   { name: 'Honeydew',        minLat: -26.0900, maxLat: -26.0500, minLon: 27.9400, maxLon: 27.9900 },
   { name: 'Alexandra',       minLat: -26.1100, maxLat: -26.0900, minLon: 28.0950, maxLon: 28.1200 },
   { name: 'Tembisa',         minLat: -26.0200, maxLat: -25.9700, minLon: 28.1900, maxLon: 28.2500 },
-  // Johannesburg — south
+  // ── Johannesburg — south ───────────────────────────────────────────────────
   { name: 'Soweto',          minLat: -26.3200, maxLat: -26.2000, minLon: 27.8200, maxLon: 27.9800 },
   { name: 'Orlando West',    minLat: -26.2600, maxLat: -26.2300, minLon: 27.8900, maxLon: 27.9200 },
-  // Cape Town
+  // ── Johannesburg — inner east ──────────────────────────────────────────────
+  { name: 'Maboneng',        minLat: -26.2060, maxLat: -26.1980, minLon: 28.0530, maxLon: 28.0650 },
+  { name: 'Braamfontein',    minLat: -26.1940, maxLat: -26.1840, minLon: 28.0310, maxLon: 28.0460 },
+  // ── Pretoria / Tshwane ────────────────────────────────────────────────────
+  { name: 'Sunnyside',       minLat: -25.7480, maxLat: -25.7300, minLon: 28.2100, maxLon: 28.2350 },
+  { name: 'Hatfield',        minLat: -25.7520, maxLat: -25.7380, minLon: 28.2280, maxLon: 28.2500 },
+  { name: 'Mamelodi',        minLat: -25.7200, maxLat: -25.6900, minLon: 28.3700, maxLon: 28.4300 },
+  // ── Cape Town ─────────────────────────────────────────────────────────────
   { name: 'Khayelitsha',     minLat: -34.0400, maxLat: -33.9700, minLon: 18.6300, maxLon: 18.7200 },
-  { name: 'Mitchells Plain', minLat: -34.0600, maxLat: -34.0000, minLon: 18.6000, maxLon: 18.6800 },
+  { name: "Mitchell's Plain",minLat: -34.0600, maxLat: -34.0000, minLon: 18.6000, maxLon: 18.6800 },
+  { name: 'Observatory',     minLat: -33.9450, maxLat: -33.9300, minLon: 18.4650, maxLon: 18.4900 },
+  { name: 'Woodstock',       minLat: -33.9300, maxLat: -33.9180, minLon: 18.4450, maxLon: 18.4680 },
+  { name: 'Gugulethu',       minLat: -34.0050, maxLat: -33.9750, minLon: 18.5600, maxLon: 18.5980 },
+  { name: 'Langa',           minLat: -33.9550, maxLat: -33.9350, minLon: 18.5250, maxLon: 18.5600 },
+  // ── Durban / eThekwini ────────────────────────────────────────────────────
+  // Berea is the current Kayaa launch neighbourhood — highest priority for accuracy
+  { name: 'Berea',           minLat: -29.8700, maxLat: -29.8450, minLon: 31.0000, maxLon: 31.0280 },
+  { name: 'Glenwood',        minLat: -29.8820, maxLat: -29.8620, minLon: 30.9900, maxLon: 31.0150 },
+  { name: 'Overport',        minLat: -29.8620, maxLat: -29.8430, minLon: 31.0050, maxLon: 31.0300 },
+  { name: 'Umlazi',          minLat: -29.9900, maxLat: -29.9400, minLon: 30.8800, maxLon: 30.9400 },
+  { name: 'Chatsworth',      minLat: -29.9400, maxLat: -29.8900, minLon: 30.8900, maxLon: 30.9350 },
 ];
 
 /**

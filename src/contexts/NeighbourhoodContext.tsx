@@ -6,7 +6,7 @@
  *  - NEVER reads from localStorage to seed the displayed suburb
  *  - NEVER writes detected suburb to localStorage
  *  - manualOverride wins over GPS (user explicitly typed a suburb)
- *  - Absolute fallback: city = "Johannesburg" (never a specific suburb)
+ *  - No city fallback: when suburb is unknown, '' is the honest value
  *
  * Priority order for displaySuburb:
  *   1. manualOverride        — user typed it explicitly
@@ -16,7 +16,7 @@
  * Priority order for displayCity:
  *   1. manualCity (from manual override)
  *   2. GPS-detected city
- *   3. 'Johannesburg'        — absolute last resort
+ *   3. ''                    — never assume a city; the UI handles the empty case
  */
 
 import {
@@ -161,9 +161,11 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
 
   // ── Derived values ────────────────────────────────────────────────────────
 
-  // What to show in the UI — manual wins over GPS, GPS wins over empty
+  // What to show in the UI — manual wins over GPS, GPS wins over empty.
+  // displayCity deliberately has NO city fallback — we never assume a city.
+  // When empty, the UI shows "Set your neighbourhood", not a wrong city name.
   const displaySuburb = manualOverride ?? currentSuburb;
-  const displayCity   = manualCity ?? (currentCity || 'Johannesburg');
+  const displayCity   = manualCity ?? currentCity ?? '';
   const displayLat    = currentLat;   // always from GPS
   const displayLon    = currentLon;
 

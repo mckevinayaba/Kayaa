@@ -5,22 +5,51 @@ import { useAuth } from '../contexts/AuthContext';
 import useLocation from '../hooks/useLocation';
 
 // ── Quick areas for manual pick ───────────────────────────────────────────────
+// Sorted: suburb first within each city group.
+// Residents identify by neighbourhood, not metro — keep that word order in labels.
 const QUICK_AREAS = [
-  { suburb: 'Soweto',           city: 'Johannesburg' },
-  { suburb: 'Sandton',          city: 'Johannesburg' },
-  { suburb: 'Alexandra',        city: 'Johannesburg' },
-  { suburb: 'Tembisa',          city: 'Ekurhuleni'   },
-  { suburb: 'Maboneng',         city: 'Johannesburg' },
-  { suburb: 'Rosebank',         city: 'Johannesburg' },
-  { suburb: 'Midrand',          city: 'Johannesburg' },
-  { suburb: "Mitchell's Plain", city: 'Cape Town'    },
-  { suburb: 'Khayelitsha',      city: 'Cape Town'    },
-  { suburb: 'Cape Town CBD',    city: 'Cape Town'    },
-  { suburb: 'Observatory',      city: 'Cape Town'    },
-  { suburb: 'Bellville',        city: 'Cape Town'    },
-  { suburb: 'Durban CBD',       city: 'Durban'       },
-  { suburb: 'Umlazi',           city: 'Durban'       },
-  { suburb: 'Pinetown',         city: 'Durban'       },
+  // ── Durban — launch city (Berea first: active launch neighbourhood) ────────
+  { suburb: 'Berea',             city: 'Durban'       },
+  { suburb: 'Glenwood',          city: 'Durban'       },
+  { suburb: 'Overport',          city: 'Durban'       },
+  { suburb: 'Durban CBD',        city: 'Durban'       },
+  { suburb: 'Umlazi',            city: 'Durban'       },
+  { suburb: 'Chatsworth',        city: 'Durban'       },
+  { suburb: 'Pinetown',          city: 'Durban'       },
+  { suburb: 'Phoenix',           city: 'Durban'       },
+  // ── Johannesburg ──────────────────────────────────────────────────────────
+  { suburb: 'Soweto',            city: 'Johannesburg' },
+  { suburb: 'Alexandra',         city: 'Johannesburg' },
+  { suburb: 'Tembisa',           city: 'Ekurhuleni'   },
+  { suburb: 'Ivory Park',        city: 'Johannesburg' },
+  { suburb: 'Diepsloot',         city: 'Johannesburg' },
+  { suburb: 'Cosmo City',        city: 'Johannesburg' },
+  { suburb: 'Maboneng',          city: 'Johannesburg' },
+  { suburb: 'Braamfontein',      city: 'Johannesburg' },
+  { suburb: 'Hillbrow',          city: 'Johannesburg' },
+  { suburb: 'Rosebank',          city: 'Johannesburg' },
+  { suburb: 'Sandton',           city: 'Johannesburg' },
+  { suburb: 'Midrand',           city: 'Johannesburg' },
+  { suburb: 'Randburg',          city: 'Johannesburg' },
+  // ── Pretoria / Tshwane ────────────────────────────────────────────────────
+  { suburb: 'Sunnyside',         city: 'Pretoria'     },
+  { suburb: 'Hatfield',          city: 'Pretoria'     },
+  { suburb: 'Mamelodi',          city: 'Pretoria'     },
+  { suburb: 'Atteridgeville',    city: 'Pretoria'     },
+  { suburb: 'Soshanguve',        city: 'Pretoria'     },
+  { suburb: 'Centurion',         city: 'Pretoria'     },
+  // ── Cape Town ─────────────────────────────────────────────────────────────
+  { suburb: 'Khayelitsha',       city: 'Cape Town'    },
+  { suburb: 'Gugulethu',         city: 'Cape Town'    },
+  { suburb: 'Langa',             city: 'Cape Town'    },
+  { suburb: 'Nyanga',            city: 'Cape Town'    },
+  { suburb: "Mitchell's Plain",  city: 'Cape Town'    },
+  { suburb: 'Woodstock',         city: 'Cape Town'    },
+  { suburb: 'Observatory',       city: 'Cape Town'    },
+  { suburb: 'Salt River',        city: 'Cape Town'    },
+  { suburb: 'Cape Town CBD',     city: 'Cape Town'    },
+  { suburb: 'Bellville',         city: 'Cape Town'    },
+  { suburb: 'Parow',             city: 'Cape Town'    },
 ];
 
 // ── Intent options ────────────────────────────────────────────────────────────
