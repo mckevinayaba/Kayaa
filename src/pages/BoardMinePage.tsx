@@ -234,7 +234,7 @@ export default function BoardMinePage() {
   const totalActive = tabCount('active');
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* Header */}
       <div style={{

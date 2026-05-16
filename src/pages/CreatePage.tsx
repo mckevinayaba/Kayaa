@@ -110,8 +110,8 @@ const SECTIONS: Section[] = [
       {
         emoji:  '✨',
         label:  'Honour a place',
-        sub:    'Show appreciation for a local venue you love',
-        lands:  'Venue page',
+        sub:    'Find a local place you love and tap ✨ Honour on its page',
+        lands:  'Venue page · Discover',
         color:  '#F59E0B',
         bg:     'rgba(245,158,11,0.07)',
         border: 'rgba(245,158,11,0.2)',
@@ -127,7 +127,7 @@ export default function CreatePage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ padding: '20px 16px 100px' }}>
+    <div style={{ padding: '20px 16px calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* ── Header ── */}
       <div style={{ marginBottom: '24px' }}>

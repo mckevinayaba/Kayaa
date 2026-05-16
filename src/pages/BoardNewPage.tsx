@@ -200,7 +200,7 @@ function DetailsForm({
   const canProceed = formData.title.trim().length >= 3;
 
   return (
-    <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
+    <div style={{ padding: '0 16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* Housing: sub-type picker + hint */}
       {isHousing && (
@@ -622,7 +622,7 @@ function PreviewStep({
   const isSafety = category === 'safety';
 
   return (
-    <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
+    <div style={{ padding: '0 16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <div style={{ marginBottom: '16px' }}>
         <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '4px' }}>
           This is how your post will look

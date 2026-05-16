@@ -130,21 +130,40 @@ export default function BoardPostPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '16px', textAlign: 'center', paddingTop: '80px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
-        Loading…
+      <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+        {/* Back button placeholder */}
+        <div style={{ width: '80px', height: '32px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', marginBottom: '20px' }} />
+        {/* Category badge + age */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ width: '80px', height: '22px', background: 'rgba(255,255,255,0.06)', borderRadius: '20px' }} />
+          <div style={{ width: '50px', height: '22px', background: 'rgba(255,255,255,0.04)', borderRadius: '20px' }} />
+        </div>
+        {/* Title */}
+        <div style={{ width: '85%', height: '24px', background: 'rgba(255,255,255,0.07)', borderRadius: '8px', marginBottom: '8px' }} />
+        <div style={{ width: '60%', height: '24px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '20px' }} />
+        {/* Body lines */}
+        <div style={{ width: '100%', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', marginBottom: '8px' }} />
+        <div style={{ width: '92%', height: '14px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', marginBottom: '8px' }} />
+        <div style={{ width: '75%', height: '14px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', marginBottom: '24px' }} />
+        {/* CTA button */}
+        <div style={{ width: '100%', height: '48px', background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.12)', borderRadius: '12px' }} />
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div style={{ padding: '16px', textAlign: 'center', paddingTop: '80px' }}>
-        <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '16px' }}>
-          This post no longer exists.
+      <div style={{ padding: '16px', textAlign: 'center', paddingTop: '80px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ fontSize: '36px', marginBottom: '12px' }}>📋</div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
+          Post not found
+        </div>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', marginBottom: '20px' }}>
+          This post may have been removed or expired.
         </div>
         <button
           onClick={() => navigate('/board')}
-          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '20px', padding: '10px 20px', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '20px', padding: '11px 24px', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px' }}
         >
           Back to Board
         </button>
@@ -154,7 +173,7 @@ export default function BoardPostPage() {
 
   return (
     <>
-    <div style={{ paddingBottom: '160px', minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
       {/* Safety strip */}
       {isFreshSafety && (

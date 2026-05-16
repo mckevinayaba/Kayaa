@@ -936,7 +936,7 @@ function BoardTeaser({ posts }: { posts: NeighbourhoodPost[] }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>From the neighbourhood board</h2>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>From the Board</h2>
         <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}>See all →</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -2457,7 +2457,7 @@ export default function FeedPage() {
       {/* Places locals honour ✨ */}
       <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
 
-      {/* Neighbourhood Board teaser */}
+      {/* Board teaser */}
       {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}
 
       {/* Jobs teaser removed — Jobs lives under Board categories */}

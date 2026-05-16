@@ -248,7 +248,7 @@ export default function HousingPage() {
   const areaLabel = suburb || city || 'your area';
 
   return (
-    <div style={{ padding: '0 0 100px' }}>
+    <div style={{ padding: '0 0 calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* ── Header ── */}
       <div style={{

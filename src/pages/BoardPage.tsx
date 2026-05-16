@@ -627,7 +627,7 @@ export default function BoardPage() {
     : PRIMARY_TABS.find(t => t.key === activeTab)?.label ?? 'All';
 
   return (
-    <div style={{ paddingBottom: '140px', minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
       {/* ── Safety banner ── */}
       {showSafetyBanner && (

@@ -563,7 +563,7 @@ export default function AlertsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ padding: '16px 16px 100px' }}>
+    <div style={{ padding: '16px 16px calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div style={{
@@ -577,7 +577,14 @@ export default function AlertsPage() {
           }}>
             Alerts
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+              color: 'rgba(245,158,11,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              Status
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '10px' }}>·</span>
             <MapPin size={11} color="rgba(255,255,255,0.3)" />
             <span style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '12px',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, MapPin } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin } from 'lucide-react'; // MapPin used in header + cluster list view
 import { getAllVenues } from '../lib/api';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
@@ -474,23 +474,25 @@ export default function NeighbourhoodPage() {
   // ── Overview mode ─────────────────────────────────────────────────────────
 
   return (
-    <div style={{ padding: '16px 16px 80px' }}>
+    <div style={{ padding: '16px 16px calc(80px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '22px' }}>
-        <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '0.1em',
-          color: 'rgba(57,217,138,0.6)', margin: '0 0 4px',
-        }}>
-          Find a Place
-        </p>
         <h1 style={{
           fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
-          color: 'var(--color-text)', margin: '0 0 4px', lineHeight: 1.2,
+          color: '#F0F6FC', margin: '0 0 2px', lineHeight: 1.2,
         }}>
-          {areaLabel}
+          Discover
         </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+          <MapPin size={11} color="rgba(255,255,255,0.3)" />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.35)',
+          }}>
+            {areaLabel}
+          </span>
+        </div>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
           {totalPlaces === 0
             ? 'No places listed yet — be the first to add one'
