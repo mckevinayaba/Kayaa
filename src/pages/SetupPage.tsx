@@ -24,6 +24,9 @@ const QUICK_AREAS = [
   { suburb: 'Ivory Park',        city: 'Johannesburg' },
   { suburb: 'Diepsloot',         city: 'Johannesburg' },
   { suburb: 'Cosmo City',        city: 'Johannesburg' },
+  // NOTE: there are two South African neighbourhoods named Berea.
+  // Berea, Durban is listed first (launch city). This one is Jozi's.
+  { suburb: 'Berea',             city: 'Johannesburg' },
   { suburb: 'Maboneng',          city: 'Johannesburg' },
   { suburb: 'Braamfontein',      city: 'Johannesburg' },
   { suburb: 'Hillbrow',          city: 'Johannesburg' },
@@ -310,7 +313,7 @@ export default function SetupPage() {
           }}>
             {filtered.map(a => (
               <button
-                key={a.suburb}
+                key={`${a.suburb}-${a.city}`}
                 onClick={() => selectArea(a.suburb, a.city)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',

@@ -26,8 +26,15 @@ const SUBURB_BOUNDS: SuburbBounds[] = [
   { name: 'Soweto',          minLat: -26.3200, maxLat: -26.2000, minLon: 27.8200, maxLon: 27.9800 },
   { name: 'Orlando West',    minLat: -26.2600, maxLat: -26.2300, minLon: 27.8900, maxLon: 27.9200 },
   // ── Johannesburg — inner east ──────────────────────────────────────────────
+  // NOTE: two South African cities both have a neighbourhood named "Berea".
+  // This box covers Berea, Johannesburg (Ponte City / Hillbrow corridor).
+  // Berea, Durban is listed separately under the eThekwini section below.
+  // Maboneng is listed first so the small arts precinct is matched before the
+  // broader Berea box that partially contains it.
   { name: 'Maboneng',        minLat: -26.2060, maxLat: -26.1980, minLon: 28.0530, maxLon: 28.0650 },
   { name: 'Braamfontein',    minLat: -26.1940, maxLat: -26.1840, minLon: 28.0310, maxLon: 28.0460 },
+  { name: 'Berea',           minLat: -26.2130, maxLat: -26.1880, minLon: 28.0480, maxLon: 28.0780 },
+  { name: 'Hillbrow',        minLat: -26.2020, maxLat: -26.1880, minLon: 28.0400, maxLon: 28.0560 },
   // ── Pretoria / Tshwane ────────────────────────────────────────────────────
   { name: 'Sunnyside',       minLat: -25.7480, maxLat: -25.7300, minLon: 28.2100, maxLon: 28.2350 },
   { name: 'Hatfield',        minLat: -25.7520, maxLat: -25.7380, minLon: 28.2280, maxLon: 28.2500 },
