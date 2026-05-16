@@ -113,7 +113,7 @@ function getMineIds(): string[] {
   catch { return []; }
 }
 
-function WhatsAppCTA({ post, accent }: { post: BoardPost; accent: string }) {
+function WhatsAppCTA({ post }: { post: BoardPost }) {
   if (!post.contactWhatsapp) return null;
   const num = post.contactWhatsapp.replace(/\D/g, '');
   const msg = encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`);
@@ -233,7 +233,7 @@ function JobCard({ post, isMine, onMarkResolved }: {
         )}
       </div>
 
-      <WhatsAppCTA post={post} accent={cfg.color} />
+      <WhatsAppCTA post={post} />
     </div>
   );
 }
@@ -316,7 +316,7 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
         </div>
       </div>
 
-      <WhatsAppCTA post={post} accent="#60A5FA" />
+      <WhatsAppCTA post={post} />
     </div>
   );
 }
@@ -397,7 +397,7 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
         )}
       </div>
 
-      <WhatsAppCTA post={post} accent="#34D399" />
+      <WhatsAppCTA post={post} />
     </div>
   );
 }
