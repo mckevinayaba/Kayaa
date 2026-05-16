@@ -32,15 +32,10 @@ import MomentsStrip from '../components/MomentsStrip';
 import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
-import HonouredPlacesRail from '../components/HonouredPlacesRail';
 import CategoryStrip from '../components/CategoryStrip';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
 import ActivityIndicator from '../components/feed/ActivityIndicator';
-import { StockChecker }    from '../components/utility/StockChecker';
-import { QueueStatus }     from '../components/utility/QueueStatus';
-import { EventsCalendar }  from '../components/utility/EventsCalendar';
-import { QuickAsk }        from '../components/utility/QuickAsk';
 import PushBanner          from '../components/PushBanner';
 import { SafetyAlertOptIn } from '../components/SafetyAlertOptIn';
 import { useCountry } from '../contexts/CountryContext';
@@ -88,10 +83,6 @@ const SCOPE_LABELS: Record<FeedScope, string> = {
   city_wide: 'City-wide',
   explore_all: 'Explore',
 };
-
-// ─── Community Tools panel ────────────────────────────────────────────────────
-
-type CommunityToolKey = 'queue' | 'events' | 'ask' | null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1164,118 +1155,13 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
   );
 }
 
-// ─── Gateway strip ────────────────────────────────────────────────────────────
-
-function GatewayStrip() {
-  const navigate = useNavigate();
-
-  const tiles = [
-    { emoji: '💼', label: 'Jobs',     sub: 'Hiring now',    color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'   },
-    { emoji: '🏠', label: 'Housing',  sub: 'Rooms & rent',  color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing' },
-    { emoji: '🔔', label: 'Alerts',   sub: 'Live status',   color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'  },
-    { emoji: '✨', label: 'Honour',   sub: 'Local meaning', color: '#F59E0B', bg: 'rgba(245,158,11,0.05)',  border: 'rgba(245,158,11,0.15)',  to: '/neighbourhood' },
-  ];
-
-  return (
-    <div style={{ marginBottom: '4px' }}>
-      <p style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-        textTransform: 'uppercase', letterSpacing: '0.1em',
-        color: 'rgba(255,255,255,0.3)', margin: '0 0 8px',
-      }}>
-        Explore
-      </p>
-      <div style={{
-        display: 'flex', gap: '8px', paddingBottom: '14px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        WebkitOverflowScrolling: 'touch',
-      } as React.CSSProperties}>
-        {tiles.map(t => (
-          <button
-            key={t.to}
-            onClick={() => navigate(t.to)}
-            style={{
-              flexShrink: 0, minWidth: '72px',
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '5px', padding: '12px 10px',
-              borderRadius: '14px',
-              background: t.bg, border: `1px solid ${t.border}`,
-              cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
-            } as React.CSSProperties}
-          >
-            <span style={{ fontSize: '20px', lineHeight: 1 }}>{t.emoji}</span>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color, whiteSpace: 'nowrap' }}>{t.label}</span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.sub}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── Utility pill strip ───────────────────────────────────────────────────────
 
-function UtilityPillStrip({ areaLabel, suburb }: { areaLabel: string; suburb: string }) {
-  const [stockOpen, setStockOpen]       = useState(false);
-  const [communityTool, setCommunityTool] = useState<CommunityToolKey>(null);
-
-  const pillBase: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', gap: '5px',
-    height: '36px', padding: '0 12px', flexShrink: 0,
-    background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '18px', cursor: 'pointer',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-    color: 'rgba(255,255,255,0.55)',
-    WebkitTapHighlightColor: 'transparent',
-  };
-  const pillActive: React.CSSProperties = {
-    ...pillBase,
-    background: 'rgba(57,217,138,0.12)',
-    border: '1px solid rgba(57,217,138,0.3)',
-    color: '#39D98A',
-  };
-
+function UtilityPillStrip({ suburb }: { suburb: string }) {
+  if (!suburb) return null;
   return (
     <div style={{ marginBottom: '28px' }}>
-      {/* Pill scroll row */}
-      <div style={{
-        display: 'flex', gap: '8px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        marginLeft: '-16px', paddingLeft: '16px',
-        marginRight: '-16px', paddingRight: '16px',
-        paddingBottom: '2px',
-        WebkitOverflowScrolling: 'touch',
-      } as React.CSSProperties}>
-        {suburb && <SafetyAlertOptIn suburb={suburb} compact />}
-        <button style={stockOpen ? pillActive : pillBase} onClick={() => setStockOpen(o => !o)}>
-          📦 Search stock
-        </button>
-        {([
-          { key: 'queue'  as CommunityToolKey, emoji: '⏱️', label: 'Queue' },
-          { key: 'events' as CommunityToolKey, emoji: '📅', label: 'Events' },
-          { key: 'ask'    as CommunityToolKey, emoji: '❓', label: 'Quick Ask' },
-        ] as { key: CommunityToolKey; emoji: string; label: string }[]).map(t => (
-          <button
-            key={String(t.key)}
-            style={communityTool === t.key ? pillActive : pillBase}
-            onClick={() => setCommunityTool(prev => prev === t.key ? null : t.key)}
-          >
-            {t.emoji} {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Expanded panels */}
-      {stockOpen && (
-        <div style={{ marginTop: '12px' }}>
-          <StockChecker area={areaLabel} />
-        </div>
-      )}
-      {communityTool === 'queue'  && <div style={{ marginTop: '12px' }}><QueueStatus /></div>}
-      {communityTool === 'events' && <div style={{ marginTop: '12px' }}><EventsCalendar /></div>}
-      {communityTool === 'ask'    && <div style={{ marginTop: '12px' }}><QuickAsk neighbourhood={areaLabel} /></div>}
+      <SafetyAlertOptIn suburb={suburb} compact />
     </div>
   );
 }
@@ -2020,8 +1906,8 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Stories strip with "+" compose bubble */}
-      <StoriesStrip stories={stories} />
+      {/* Stories strip — only when there is something to show */}
+      {stories.length > 0 && <StoriesStrip stories={stories} />}
 
       {/* Neighbourhood Moments strip — 24h local visual context */}
       {(moments.length > 0 || !!user) && (
@@ -2083,11 +1969,8 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── Utility pill strip (load shedding · water · safety alerts · stock · tools) ── */}
-      <UtilityPillStrip areaLabel={areaLabel} suburb={suburb} />
-
-      {/* ── Gateway strip — Jobs, Housing, Alerts shortcuts ── */}
-      <GatewayStrip />
+      {/* ── Safety alert opt-in pill ── */}
+      <UtilityPillStrip suburb={suburb} />
 
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (
@@ -2680,9 +2563,6 @@ export default function FeedPage() {
           />
         </>
       )}
-
-      {/* Places locals honour ✨ */}
-      <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
 
       {/* Board teaser — always visible; shows empty invitation when board has no posts yet */}
       {!loading && suburb && <BoardTeaser posts={boardPosts} suburb={suburb} />}
