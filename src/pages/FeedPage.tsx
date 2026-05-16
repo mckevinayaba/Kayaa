@@ -756,8 +756,8 @@ function UserPostCard({ post, liked, onLike }: UserPostCardProps) {
 
   return (
     <div style={{
-      background: '#161B22',
-      border: `1px solid ${isAlert ? 'rgba(239,68,68,0.4)' : '#21262D'}`,
+      background: 'var(--color-surface)',
+      border: `1px solid ${isAlert ? 'rgba(239,68,68,0.4)' : 'var(--color-border)'}`,
       borderLeft: isAlert ? '3px solid #EF4444' : undefined,
       borderRadius: '12px',
       padding: '14px 16px',

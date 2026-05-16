@@ -143,9 +143,9 @@ function WhatsAppCTA({ post }: { post: BoardPost }) {
 // ── Type-specific cards ───────────────────────────────────────────────────────
 
 const JOB_INTENT_CFG: Record<JobIntent, { label: string; color: string; bg: string; border: string }> = {
-  hiring:    { label: '💼 Hiring',         color: '#A78BFA', bg: '#161B22',                    border: 'rgba(167,139,250,0.18)' },
-  available: { label: '🙋 Looking for work', color: '#34D399', bg: 'rgba(52,211,153,0.05)',   border: 'rgba(52,211,153,0.2)'  },
-  task:      { label: '⚡ Quick task',      color: '#F59E0B', bg: 'rgba(245,158,11,0.05)',    border: 'rgba(245,158,11,0.2)'  },
+  hiring:    { label: '💼 Hiring',           color: '#A78BFA', bg: 'var(--color-surface)',      border: 'rgba(167,139,250,0.18)' },
+  available: { label: '🙋 Looking for work', color: '#34D399', bg: 'rgba(52,211,153,0.05)',    border: 'rgba(52,211,153,0.2)'  },
+  task:      { label: '⚡ Quick task',       color: '#F59E0B', bg: 'rgba(245,158,11,0.05)',    border: 'rgba(245,158,11,0.2)'  },
 };
 
 const SVC_INTENT_CFG: Record<ServiceIntent, { label: string; color: string }> = {
@@ -251,7 +251,7 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
     <div
       onClick={() => navigate(`/board/${post.id}`)}
       style={{
-        background: '#161B22',
+        background: 'var(--color-surface)',
         border: '1px solid rgba(96,165,250,0.18)',
         borderRadius: '14px',
         padding: '14px',
@@ -337,7 +337,7 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
     <div
       onClick={() => navigate(`/board/${post.id}`)}
       style={{
-        background: '#161B22',
+        background: 'var(--color-surface)',
         border: '1px solid rgba(52,211,153,0.18)',
         borderRadius: '14px',
         padding: '14px',
@@ -543,7 +543,7 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
 
 function PostSkeleton() {
   return (
-    <div style={{ background: '#161B22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '14px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div style={{ width: '60px', height: '18px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px' }} />
         <div style={{ width: '40px', height: '18px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px' }} />
