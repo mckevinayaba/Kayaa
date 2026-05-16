@@ -171,23 +171,15 @@ export default function AppLayout() {
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
       }}>
-        {/* Left: logo — Syne 800, tight tracking, accent green */}
+        {/* Left: logo */}
         <NavLink
           to="/feed"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ textDecoration: 'none', justifySelf: 'start', display: 'flex', alignItems: 'center', gap: '7px' }}
+          style={{ textDecoration: 'none', justifySelf: 'start' }}
         >
-          {/* K mark — geometric square rotated 45° in accent */}
-          <div style={{
-            width: '22px', height: '22px',
-            background: '#39D98A',
-            borderRadius: '5px',
-            transform: 'rotate(45deg) scale(0.78)',
-            flexShrink: 0,
-          }} />
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
-            fontSize: '19px', color: '#F0F6FC', letterSpacing: '-0.8px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '20px', color: '#39D98A', letterSpacing: '-0.5px',
           }}>
             kayaa
           </span>
