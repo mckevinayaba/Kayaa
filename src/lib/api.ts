@@ -1820,6 +1820,8 @@ export interface BoardPost {
   price?: number;
   contactWhatsapp?: string;
   images: string[];
+  /** Phase-1 video: single short clip URL (mp4/mov/webm). Null when none. */
+  videoUrl?: string;
   status: BoardPostStatus;
   createdAt: string;
   expiresAt?: string;
@@ -1859,6 +1861,7 @@ function dbBoardPost(row: any): BoardPost {
       ?? (row.contact_method === 'whatsapp' ? row.contact_value : undefined)
       ?? undefined,
     images: Array.isArray(row.images) ? row.images : [],
+    videoUrl: row.video_url ?? undefined,
     status: (row.status as BoardPostStatus) ?? 'active',
     createdAt: row.created_at ?? new Date().toISOString(),
     expiresAt: row.expires_at ?? undefined,
@@ -1939,6 +1942,11 @@ export async function getBoardPost(id: string): Promise<BoardPost | null> {
   } catch { return null; }
 }
 
+// ─── DB migration required for video support ──────────────────────────────────
+// Run once in Supabase SQL editor:
+//   ALTER TABLE board_posts ADD COLUMN IF NOT EXISTS video_url TEXT;
+// ──────────────────────────────────────────────────────────────────────────────
+
 export async function createBoardPost(
   data: {
     neighbourhood: string;
@@ -1948,6 +1956,8 @@ export async function createBoardPost(
     price?: number;
     contact_whatsapp?: string;
     images?: string[];
+    /** Phase-1: optional short video URL (housing, for_sale, services only) */
+    video_url?: string;
     country_code?: string;
   },
   userId?: string,
@@ -1966,6 +1976,8 @@ export async function createBoardPost(
     expires_at,
   };
   if (userId) payload.user_id = userId;
+  // Only include video_url when present — column may not exist in older envs
+  if (data.video_url) payload.video_url = data.video_url;
 
   try {
     const { data: row, error } = await supabase.from('board_posts').insert(payload).select().single();
@@ -2033,6 +2045,22 @@ export async function getBoardPostsByIds(ids: string[]): Promise<BoardPost[]> {
 export async function uploadBoardImage(userId: string, file: File): Promise<string> {
   const ext = file.name.split('.').pop() ?? 'jpg';
   const path = `board/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
+  return publicUrl;
+}
+
+/**
+ * Upload a short board listing video.
+ * Accepted formats: mp4, mov (quicktime), webm.
+ * Hard max enforced client-side before calling this: 100 MB.
+ */
+export async function uploadBoardVideo(userId: string, file: File): Promise<string> {
+  const ext = (file.name.split('.').pop() ?? 'mp4').toLowerCase();
+  const path = `board/video/${userId}/${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from('venue-media')
     .upload(path, file, { upsert: true, contentType: file.type });

@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, X, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Camera, X, AlertTriangle, Play } from 'lucide-react';
 import {
   createBoardPost,
   uploadBoardImage,
+  uploadBoardVideo,
   type BoardCategory,
   type BoardPost,
 } from '../lib/api';
@@ -11,6 +12,211 @@ import { getInteractiveUserId } from '../lib/api';
 import { BOARD_CATEGORIES } from './BoardPage';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
+
+// ─── Video support ────────────────────────────────────────────────────────────
+
+/** Categories that support a short video attachment in Phase 1 */
+const VIDEO_CATS: BoardCategory[] = ['accommodation', 'for_sale', 'services'];
+
+const VIDEO_MAX_BYTES = 100 * 1024 * 1024; // 100 MB hard limit
+const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm';
+
+type VideoUploadState =
+  | { status: 'idle' }
+  | { status: 'error'; msg: string }
+  | { status: 'uploading'; localUrl: string }
+  | { status: 'done'; localUrl: string; remoteUrl: string };
+
+function VideoUpload({
+  currentUrl,
+  onUploaded,
+  onRemove,
+}: {
+  currentUrl: string;
+  onUploaded: (url: string) => void;
+  onRemove: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [state, setState] = useState<VideoUploadState>(
+    currentUrl
+      ? { status: 'done', localUrl: currentUrl, remoteUrl: currentUrl }
+      : { status: 'idle' },
+  );
+
+  // Sync if parent clears the URL
+  useEffect(() => {
+    if (!currentUrl && (state.status === 'done' || state.status === 'uploading')) {
+      setState({ status: 'idle' });
+    }
+  }, [currentUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Type check — browsers sometimes allow wrong types past the accept attr
+    const ALLOWED_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+    const ALLOWED_EXT = /\.(mp4|mov|webm)$/i;
+    if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXT.test(file.name)) {
+      setState({ status: 'error', msg: 'Only MP4, MOV, or WebM videos are supported.' });
+      return;
+    }
+
+    if (file.size > VIDEO_MAX_BYTES) {
+      setState({ status: 'error', msg: 'That video is too large. Try a shorter clip — 10 to 20 seconds works best.' });
+      return;
+    }
+
+    const localUrl = URL.createObjectURL(file);
+    setState({ status: 'uploading', localUrl });
+
+    try {
+      const uid = await getInteractiveUserId();
+      const remoteUrl = await uploadBoardVideo(uid, file);
+      setState({ status: 'done', localUrl, remoteUrl });
+      onUploaded(remoteUrl);
+    } catch {
+      URL.revokeObjectURL(localUrl);
+      setState({ status: 'error', msg: 'Upload failed. Check your connection and try again.' });
+    }
+
+    if (inputRef.current) inputRef.current.value = '';
+  }
+
+  function handleRemove() {
+    if (state.status === 'done' || state.status === 'uploading') {
+      URL.revokeObjectURL(state.localUrl);
+    }
+    setState({ status: 'idle' });
+    onRemove();
+    if (inputRef.current) inputRef.current.value = '';
+  }
+
+  const previewUrl = (state.status === 'done' || state.status === 'uploading') ? state.localUrl : '';
+
+  return (
+    <div>
+      <style>{`@keyframes vidSpin { to { transform: rotate(360deg); } }`}</style>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={VIDEO_ACCEPT}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+
+      {/* ── Idle: tap to add ── */}
+      {state.status === 'idle' && (
+        <button
+          onClick={() => inputRef.current?.click()}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'var(--color-surface)',
+            border: '1px dashed rgba(255,255,255,0.13)',
+            borderRadius: '12px', padding: '14px 16px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px',
+            textAlign: 'left',
+          }}
+        >
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
+            background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Play size={18} color="rgba(57,217,138,0.7)" />
+          </div>
+          <div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
+              Add short video
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.45 }}>
+              Walkthrough, item condition, or service proof · MP4 / MOV
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* ── Error state ── */}
+      {state.status === 'error' && (
+        <div style={{
+          background: 'rgba(239,68,68,0.07)',
+          border: '1px solid rgba(239,68,68,0.22)',
+          borderRadius: '12px', padding: '14px 16px',
+        }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171', margin: '0 0 8px', lineHeight: 1.5 }}>
+            {state.msg}
+          </p>
+          <button
+            onClick={() => { setState({ status: 'idle' }); inputRef.current?.click(); }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)', padding: 0,
+            }}
+          >
+            Try a different file →
+          </button>
+        </div>
+      )}
+
+      {/* ── Uploading / Done: video preview ── */}
+      {previewUrl && (
+        <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', lineHeight: 0 }}>
+          <video
+            src={previewUrl}
+            preload="metadata"
+            playsInline
+            controls={state.status === 'done'}
+            style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', display: 'block' }}
+          />
+
+          {/* Uploading overlay */}
+          {state.status === 'uploading' && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: '10px',
+            }}>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%',
+                border: '3px solid rgba(255,255,255,0.12)',
+                borderTop: '3px solid #39D98A',
+                animation: 'vidSpin 0.9s linear infinite',
+              }} />
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>
+                Uploading…
+              </span>
+            </div>
+          )}
+
+          {/* Remove button */}
+          {state.status === 'done' && (
+            <button
+              onClick={handleRemove}
+              style={{
+                position: 'absolute', top: '8px', right: '8px',
+                width: '28px', height: '28px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: 0,
+              }}
+            >
+              <X size={12} color="#fff" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Done confirmation */}
+      {state.status === 'done' && (
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', margin: '6px 0 0', lineHeight: 1 }}>
+          ✓ Video ready · Keep it under 20 seconds for best results
+        </p>
+      )}
+    </div>
+  );
+}
 
 // ─── Step 1: Category picker ──────────────────────────────────────────────────
 
@@ -142,6 +348,8 @@ interface FormData {
   price: string;
   contactWhatsapp: string;
   images: string[];
+  /** Phase-1 video: single optional short clip (accommodation/for_sale/services) */
+  videoUrl: string;
   isUrgent: boolean;
   housingSubType: HousingSubType;
   jobSubType: JobSubType;
@@ -527,12 +735,20 @@ function DetailsForm({
         </div>
       </div>
 
-      {/* Images */}
+      {/* ── Media section ───────────────────────────────────────────────── */}
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Photos (optional)
+        {/* Section header */}
+        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {VIDEO_CATS.includes(category) ? 'Media (optional)' : 'Photos (optional)'}
         </label>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {VIDEO_CATS.includes(category) && (
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px', lineHeight: 1.45 }}>
+            Add photos or a short video — short clips build trust faster than long descriptions.
+          </p>
+        )}
+
+        {/* Photos row */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: VIDEO_CATS.includes(category) ? '14px' : '0' }}>
           {formData.images.map((img, i) => (
             <div key={i} style={{ position: 'relative', width: '72px', height: '72px' }}>
               <img src={img} alt="" style={{ width: '72px', height: '72px', borderRadius: '10px', objectFit: 'cover' }} />
@@ -570,6 +786,23 @@ function DetailsForm({
           )}
         </div>
         <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleImageAdd} />
+
+        {/* Short video — Phase 1 categories only */}
+        {VIDEO_CATS.includes(category) && (
+          <div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>
+              Short video
+              <span style={{ marginLeft: '7px', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: '10px', color: 'rgba(255,255,255,0.22)' }}>
+                optional · 10–20 seconds
+              </span>
+            </div>
+            <VideoUpload
+              currentUrl={formData.videoUrl}
+              onUploaded={url => setFormData(prev => ({ ...prev, videoUrl: url }))}
+              onRemove={() => setFormData(prev => ({ ...prev, videoUrl: '' }))}
+            />
+          </div>
+        )}
       </div>
 
       {/* Neighbourhood indicator */}
@@ -667,6 +900,20 @@ function PreviewStep({
           </div>
         )}
 
+        {/* Video preview (if any) */}
+        {formData.videoUrl && (
+          <div style={{ borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '10px', lineHeight: 0 }}>
+            <video
+              src={formData.videoUrl}
+              preload="metadata"
+              playsInline
+              controls
+              style={{ width: '100%', maxHeight: '180px', objectFit: 'contain', display: 'block' }}
+            />
+          </div>
+        )}
+
+        {/* First photo (if any) */}
         {formData.images.length > 0 && (
           <div style={{
             borderRadius: '10px', overflow: 'hidden',
@@ -679,6 +926,7 @@ function PreviewStep({
         <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <span>📍 {suburb}</span>
           {formData.contactWhatsapp && <span>· 💬 WhatsApp</span>}
+          {formData.videoUrl && <span>· 🎬 Video</span>}
           {formData.images.length > 1 && <span>· 📷 {formData.images.length}</span>}
         </div>
       </div>
@@ -735,8 +983,8 @@ export default function BoardNewPage() {
     }
   }, [searchParams]);
   const [formData, setFormData] = useState<FormData>({
-    title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false,
-    housingSubType: 'rental', jobSubType: 'hiring', serviceSubType: 'offering',
+    title: '', description: '', price: '', contactWhatsapp: '', images: [], videoUrl: '',
+    isUrgent: false, housingSubType: 'rental', jobSubType: 'hiring', serviceSubType: 'offering',
   });
   const [submitting, setSubmitting] = useState(false);
   const [successPost, setSuccessPost] = useState<BoardPost | null>(null);
@@ -755,6 +1003,7 @@ export default function BoardNewPage() {
       price: formData.price ? Number(formData.price) : undefined,
       contact_whatsapp: formData.contactWhatsapp.trim() || undefined,
       images: formData.images,
+      video_url: formData.videoUrl || undefined,
       country_code: selectedCountry.code,
     }, uid);
 
