@@ -2193,6 +2193,162 @@ export async function uploadUserPostImage(userId: string, file: File): Promise<s
   return publicUrl;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SAFETY REPORTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type SafetyIncidentType =
+  | 'crime' | 'suspicious' | 'violence' | 'missing' | 'road' | 'fire' | 'other';
+
+export interface SafetyReport {
+  id:            string;
+  userId:        string | null;
+  isAnonymous:   boolean;
+  neighbourhood: string;
+  landmark:      string | null;
+  incidentType:  SafetyIncidentType;
+  title:         string;
+  details:       string;
+  happenedAt:    string;
+  imageUrl:      string | null;
+  userPostId:    string | null;
+  createdAt:     string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbSafetyReport(row: any): SafetyReport {
+  return {
+    id:            row.id,
+    userId:        row.user_id ?? null,
+    isAnonymous:   row.is_anonymous ?? true,
+    neighbourhood: row.neighbourhood ?? '',
+    landmark:      row.landmark ?? null,
+    incidentType:  (row.incident_type ?? 'other') as SafetyIncidentType,
+    title:         row.title ?? '',
+    details:       row.details ?? '',
+    happenedAt:    row.happened_at ?? row.created_at ?? '',
+    imageUrl:      row.image_url ?? null,
+    userPostId:    row.user_post_id ?? null,
+    createdAt:     row.created_at ?? '',
+  };
+}
+
+/**
+ * Fetch structured safety reports for a neighbourhood (last 72 h).
+ * Returns newest-first. Falls through to [] on any error.
+ */
+export async function getSafetyReports(neighbourhood: string): Promise<SafetyReport[]> {
+  if (!neighbourhood) return [];
+  try {
+    const cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('safety_reports')
+      .select('*')
+      .eq('neighbourhood', neighbourhood)
+      .gt('created_at', cutoff)
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data.map(dbSafetyReport);
+  } catch { return []; }
+}
+
+/**
+ * Submit a safety report.
+ * Writes to safety_reports (structured) AND user_posts (category='alert') for
+ * backward-compatible surface display in the Home feed and AlertsPage.
+ *
+ * Anonymous reports store the userId internally (for moderation) but never
+ * expose it publicly — the user_posts row omits user_id when is_anonymous=true.
+ */
+export async function createSafetyReport(
+  userId: string,
+  data: {
+    neighbourhood:  string;
+    incidentType:   SafetyIncidentType;
+    title:          string;
+    details:        string;
+    landmark?:      string;
+    happenedAt?:    string;   // ISO — if omitted, DB defaults to now()
+    imageUrl?:      string;
+    isAnonymous?:   boolean;  // default true
+    countryCode?:   string;
+  }
+): Promise<{ report: SafetyReport | null; error: string | null }> {
+  const isAnon = data.isAnonymous ?? true;
+
+  // ── 1. Build human-readable content for user_posts surface display ─────────
+  //    Format: "TITLE\n\nDETAILS[\n\n📍 LANDMARK]"
+  const contentParts = [`${data.title}\n\n${data.details}`];
+  if (data.landmark?.trim()) contentParts.push(`\n📍 ${data.landmark.trim()}`);
+  const content = contentParts.join('');
+
+  try {
+    // ── 2. Insert user_posts row for existing surface display ───────────────
+    const { data: postRow, error: postErr } = await supabase
+      .from('user_posts')
+      .insert({
+        user_id:      isAnon ? null : userId,
+        neighbourhood: data.neighbourhood,
+        country_code: data.countryCode ?? 'ZA',
+        category:     'alert',
+        content,
+        image_url:    data.imageUrl ?? null,
+      })
+      .select('id')
+      .single();
+
+    if (postErr) return { report: null, error: postErr.message };
+
+    // ── 3. Insert structured safety_reports row ─────────────────────────────
+    const reportPayload: Record<string, unknown> = {
+      user_id:       userId,           // always stored internally
+      is_anonymous:  isAnon,
+      neighbourhood: data.neighbourhood,
+      country_code:  data.countryCode ?? 'ZA',
+      incident_type: data.incidentType,
+      title:         data.title,
+      details:       data.details,
+      landmark:      data.landmark ?? null,
+      image_url:     data.imageUrl ?? null,
+      user_post_id:  postRow?.id ?? null,
+    };
+    if (data.happenedAt) reportPayload.happened_at = data.happenedAt;
+
+    const { data: repRow, error: repErr } = await supabase
+      .from('safety_reports')
+      .insert(reportPayload)
+      .select()
+      .single();
+
+    if (repErr) {
+      // Non-fatal: user_posts row was written, surface display will work.
+      // Return a synthetic report so the UI can still navigate to Alerts.
+      console.warn('safety_reports insert failed (non-fatal):', repErr.message);
+      return {
+        report: {
+          id:            postRow?.id ?? '',
+          userId,
+          isAnonymous:   isAnon,
+          neighbourhood: data.neighbourhood,
+          landmark:      data.landmark ?? null,
+          incidentType:  data.incidentType,
+          title:         data.title,
+          details:       data.details,
+          happenedAt:    data.happenedAt ?? new Date().toISOString(),
+          imageUrl:      data.imageUrl ?? null,
+          userPostId:    postRow?.id ?? null,
+          createdAt:     new Date().toISOString(),
+        },
+        error: null,
+      };
+    }
+
+    return { report: dbSafetyReport(repRow), error: null };
+  } catch (e) {
+    return { report: null, error: String(e) };
+  }
+}
+
 /** Toggle like on a post. Returns new liked state. */
 export async function likePost(postId: string, userId: string): Promise<void> {
   await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });

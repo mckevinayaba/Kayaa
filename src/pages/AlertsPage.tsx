@@ -19,8 +19,11 @@ import {
   Eye, Newspaper, Calendar, Megaphone, Search,
 } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
-import { getSafetyAlerts, getUserPostsForFeed, getNeighbourhoodPosts } from '../lib/api';
-import type { UserPost, NeighbourhoodPost } from '../lib/api';
+import {
+  getSafetyAlerts, getUserPostsForFeed, getNeighbourhoodPosts,
+  getSafetyReports,
+} from '../lib/api';
+import type { UserPost, NeighbourhoodPost, SafetyReport, SafetyIncidentType } from '../lib/api';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { WaterStatus } from '../components/utility/WaterStatus';
 import NudgeCard from '../components/NudgeCard';
@@ -34,12 +37,18 @@ type AlertCategory = 'alert' | CommCat;
 
 interface AlertItem {
   id: string;
-  severity:  AlertSeverity;
-  category:  AlertCategory;
-  area:      string;
-  message:   string;
-  createdAt: string;
-  author?:   string;
+  severity:      AlertSeverity;
+  category:      AlertCategory;
+  area:          string;
+  message:       string;
+  createdAt:     string;
+  author?:       string;
+  // structured safety report fields (present when sourced from safety_reports table)
+  incidentType?: SafetyIncidentType;
+  title?:        string;
+  imageUrl?:     string;
+  landmark?:     string;
+  happenedAt?:   string;
 }
 
 // ─── Visual config ────────────────────────────────────────────────────────────
@@ -55,6 +64,17 @@ const ALERT_CAT: Record<AlertCategory, {
   event:        { icon: Calendar,    color: '#F472B6', label: 'Event' },
   announcement: { icon: Megaphone,   color: '#A78BFA', label: 'Announcement' },
   lost_found:   { icon: Search,      color: '#FB923C', label: 'Lost & Found' },
+};
+
+// Incident type → display label + emoji for structured safety reports
+const INCIDENT_DISPLAY: Record<SafetyIncidentType, { label: string; emoji: string; color: string }> = {
+  crime:      { label: 'Crime',              emoji: '🔒', color: '#EF4444' },
+  suspicious: { label: 'Suspicious',         emoji: '👁',  color: '#F59E0B' },
+  violence:   { label: 'Violence',           emoji: '⚠️', color: '#EF4444' },
+  missing:    { label: 'Missing person',     emoji: '🧍', color: '#A78BFA' },
+  road:       { label: 'Road issue',         emoji: '🚗', color: '#FBBF24' },
+  fire:       { label: 'Fire / gas',         emoji: '🔥', color: '#F97316' },
+  other:      { label: 'Safety alert',       emoji: '📢', color: '#60A5FA' },
 };
 
 const SEVERITY_CFG: Record<AlertSeverity, { label: string; color: string }> = {
@@ -85,92 +105,132 @@ function timeAgo(iso: string): string {
 // ─── Alert card ───────────────────────────────────────────────────────────────
 
 function AlertCard({ item }: { item: AlertItem }) {
+  // Structured safety report (from safety_reports table) vs legacy flat post
+  const isStructured = item.category === 'alert' && !!item.incidentType;
+  const incidentDisplay = isStructured ? INCIDENT_DISPLAY[item.incidentType!] : null;
+
   const cat  = ALERT_CAT[item.category] ?? ALERT_CAT.news;
   const sev  = SEVERITY_CFG[item.severity];
   const Icon = cat.icon;
 
-  const accentColor =
-    item.severity === 'alert' ? '#EF4444' :
-    item.severity === 'watch' ? '#FBBF24' :
-    cat.color;
+  const accentColor = isStructured && incidentDisplay
+    ? incidentDisplay.color
+    : item.severity === 'alert' ? '#EF4444'
+    : item.severity === 'watch' ? '#FBBF24'
+    : cat.color;
 
   return (
     <div style={{
-      padding: '12px 14px',
       background: `${accentColor}08`,
       border: `1px solid ${accentColor}20`,
       borderLeft: `3px solid ${accentColor}55`,
       borderRadius: '14px',
+      overflow: 'hidden',
     }}>
-      {/* Top row: type badge · severity · time */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '7px', flexWrap: 'wrap', gap: '6px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
-            color: cat.color, background: `${cat.color}15`,
-            borderRadius: '20px', padding: '2px 7px',
-            textTransform: 'uppercase', letterSpacing: '0.04em',
-          }}>
-            <Icon size={10} color={cat.color} />
-            {cat.label}
-          </span>
+      {/* Attached photo (structured reports only) */}
+      {item.imageUrl && (
+        <img
+          src={item.imageUrl}
+          alt="Incident photo"
+          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
+        />
+      )}
+
+      <div style={{ padding: '12px 14px' }}>
+        {/* Top row: type badge · severity · time */}
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '8px', flexWrap: 'wrap', gap: '6px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {isStructured && incidentDisplay ? (
+              /* Structured incident type badge */
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                color: incidentDisplay.color, background: `${incidentDisplay.color}18`,
+                borderRadius: '20px', padding: '2px 8px',
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+              }}>
+                {incidentDisplay.emoji} {incidentDisplay.label}
+              </span>
+            ) : (
+              /* Legacy badge */
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                color: cat.color, background: `${cat.color}15`,
+                borderRadius: '20px', padding: '2px 7px',
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+              }}>
+                <Icon size={10} color={cat.color} />
+                {cat.label}
+              </span>
+            )}
+
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '10px',
+              color: sev.color,
+            }}>
+              <span style={{
+                width: '5px', height: '5px', borderRadius: '50%',
+                background: sev.color, display: 'inline-block', flexShrink: 0,
+              }} />
+              {sev.label}
+            </span>
+          </div>
 
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '10px',
-            color: sev.color,
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.3)',
           }}>
-            <span style={{
-              width: '5px', height: '5px', borderRadius: '50%',
-              background: sev.color, display: 'inline-block', flexShrink: 0,
-            }} />
-            {sev.label}
+            {timeAgo(item.happenedAt ?? item.createdAt)}
           </span>
         </div>
 
-        <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-          color: 'rgba(255,255,255,0.3)',
-        }}>
-          {timeAgo(item.createdAt)}
-        </span>
-      </div>
-
-      {/* Message */}
-      <p style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-        color: 'rgba(255,255,255,0.82)',
-        margin: '0 0 7px', lineHeight: 1.55,
-      }}>
-        {item.message}
-      </p>
-
-      {/* Footer: area · author */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: '3px',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-          color: 'rgba(255,255,255,0.3)',
-        }}>
-          <MapPin size={9} color="rgba(255,255,255,0.25)" />
-          {item.area}
-        </span>
-        {item.author && (
-          <>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)' }}>·</span>
-            <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-              color: 'rgba(255,255,255,0.3)',
-            }}>
-              {item.author}
-            </span>
-          </>
+        {/* Title (structured reports) */}
+        {isStructured && item.title && (
+          <p style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            color: '#F0F6FC', margin: '0 0 5px', lineHeight: 1.3,
+          }}>
+            {item.title}
+          </p>
         )}
+
+        {/* Message / details */}
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.75)',
+          margin: '0 0 8px', lineHeight: 1.55,
+        }}>
+          {item.message}
+        </p>
+
+        {/* Footer: area/landmark · author */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '3px',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.3)',
+          }}>
+            <MapPin size={9} color="rgba(255,255,255,0.25)" />
+            {item.landmark ? `${item.landmark} · ` : ''}{item.area}
+          </span>
+          {item.author && (
+            <>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)' }}>·</span>
+              <span style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                color: 'rgba(255,255,255,0.3)',
+              }}>
+                {item.author}
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -304,17 +364,41 @@ export default function AlertsPage() {
     if (!suburb) { setLoading(false); return; }
     setSpinning(true);
 
-    const [safetyRaw, feedRaw, neighbourhoodRaw] = await Promise.all([
-      getSafetyAlerts(suburb),
+    const [safetyReportsRaw, safetyRaw, feedRaw, neighbourhoodRaw] = await Promise.all([
+      getSafetyReports(suburb),          // structured safety_reports (primary)
+      getSafetyAlerts(suburb),           // legacy user_posts.category='alert' (fallback)
       getUserPostsForFeed(suburb),
       getNeighbourhoodPosts(suburb),
     ]);
 
-    // Safety — 'alert' category only, last 72 h
+    // ── Safety items ────────────────────────────────────────────────────────────
+    // Prefer structured safety_reports; fill in any legacy user_posts alerts that
+    // don't have a corresponding safety_report row.
+
+    const structuredIds = new Set(
+      (safetyReportsRaw as SafetyReport[]).map(r => r.userPostId).filter(Boolean)
+    );
+
+    const structuredAlerts: AlertItem[] = (safetyReportsRaw as SafetyReport[]).map(r => ({
+      id:           r.id,
+      severity:     'alert' as AlertSeverity,
+      category:     'alert' as AlertCategory,
+      area:         r.neighbourhood,
+      message:      r.details,
+      createdAt:    r.createdAt,
+      incidentType: r.incidentType,
+      title:        r.title,
+      imageUrl:     r.imageUrl ?? undefined,
+      landmark:     r.landmark ?? undefined,
+      happenedAt:   r.happenedAt,
+    }));
+
+    // Legacy alert posts (no matching safety_report row)
     const safetyAgo = Date.now() - 72 * 60 * 60 * 1000;
-    const safety: AlertItem[] = (safetyRaw as UserPost[])
+    const legacyAlerts: AlertItem[] = (safetyRaw as UserPost[])
       .filter(p => p.category === 'alert')
       .filter(p => new Date(p.createdAt).getTime() > safetyAgo)
+      .filter(p => !structuredIds.has(p.id))        // exclude already-covered posts
       .map(p => ({
         id:        p.id,
         severity:  'alert' as AlertSeverity,
@@ -322,7 +406,11 @@ export default function AlertsPage() {
         area:      p.neighbourhood,
         message:   p.content,
         createdAt: p.createdAt,
+        imageUrl:  p.imageUrl ?? undefined,
       }));
+
+    const safety: AlertItem[] = [...structuredAlerts, ...legacyAlerts]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Community — news · spotted · event from user_posts (last 7 days)
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -437,8 +525,8 @@ export default function AlertsPage() {
           emoji="✅"
           title={`All clear in ${suburb}`}
           body="No safety alerts in the last 72 hours. Stay aware and share anything you spot."
-          ctaLabel="Post safety update"
-          onCta={() => navigate('/board/new')}
+          ctaLabel="Report an incident"
+          onCta={() => navigate('/report/safety')}
           accent="#39D98A"
         />
       ) : (
@@ -467,7 +555,7 @@ export default function AlertsPage() {
           emoji="✍️"
           title={`Nothing shared in ${suburb} this week`}
           body="Be the first to post — news, events, spotted, lost & found."
-          ctaLabel="Post something"
+          ctaLabel="Post to Board"
           onCta={() => navigate('/board/new')}
           accent="#60A5FA"
         />
@@ -518,8 +606,8 @@ export default function AlertsPage() {
             emoji="🟢"
             title={`Quiet in ${suburb} right now`}
             body="No active safety, community, or service alerts. All systems normal."
-            ctaLabel="Post a neighbourhood update"
-            onCta={() => navigate('/board/new')}
+            ctaLabel="Report an incident"
+            onCta={() => navigate('/report/safety')}
             accent="#39D98A"
           />
           <NudgeCard
@@ -568,7 +656,7 @@ export default function AlertsPage() {
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'flex-start',
-        justifyContent: 'space-between', marginBottom: '16px',
+        justifyContent: 'space-between', marginBottom: '12px',
       }}>
         <div>
           <h1 style={{
@@ -608,6 +696,43 @@ export default function AlertsPage() {
           />
         </button>
       </div>
+
+      {/* ── Report safety CTA — always visible, deliberately understated ── */}
+      <button
+        onClick={() => navigate('/report/safety')}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+          padding: '11px 14px', marginBottom: '16px',
+          background: 'rgba(239,68,68,0.06)',
+          border: '1px solid rgba(239,68,68,0.18)',
+          borderRadius: '14px', cursor: 'pointer', textAlign: 'left',
+          WebkitTapHighlightColor: 'transparent',
+        } as React.CSSProperties}
+      >
+        <div style={{
+          width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+          background: 'rgba(239,68,68,0.12)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '17px',
+        }}>
+          🚨
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '13px', color: '#F0F6FC',
+          }}>
+            Report a safety incident
+          </div>
+          <div style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.35)', marginTop: '1px',
+          }}>
+            Crime · suspicious · missing · road · fire
+          </div>
+        </div>
+        <ShieldAlert size={15} color="rgba(239,68,68,0.5)" style={{ flexShrink: 0 }} />
+      </button>
 
       {/* ── Status strip — 4 tappable tiles ────────────────────────────── */}
       <div style={{

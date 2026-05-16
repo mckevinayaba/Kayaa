@@ -49,6 +49,7 @@ const VenueBoostPage       = lazy(() => import('./pages/VenueBoostPage'));
 const NeighbourhoodPage    = lazy(() => import('./pages/NeighbourhoodPage'));
 const OwnerDashboard       = lazy(() => import('./pages/OwnerDashboard'));
 const HousingPage          = lazy(() => import('./pages/HousingPage'));
+const SafetyReportPage     = lazy(() => import('./pages/SafetyReportPage'));
 
 // ── Page loader — shown while a lazy chunk is fetching ───────────────────────
 function PageLoader() {
@@ -173,6 +174,7 @@ export default function App() {
               <Route path="/countries"            element={<CountriesPage />} />
               <Route path="/help"                 element={<Help />} />
               <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
+              <Route path="/report/safety"       element={<Auth><SafetyReportPage /></Auth>} />
               <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
               <Route path="/search" element={<Navigate to="/checkin" replace />} />
             </Route>
