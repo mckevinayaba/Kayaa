@@ -515,7 +515,7 @@ export default function NeighbourhoodPage() {
       </div>
 
       {/* ── Places locals honour ────────────────────────────────────────── */}
-      <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
+      <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} showTeaser={false} />
 
       {/* ── Help grow your neighbourhood — missing category gaps ────────── */}
       {gaps.length > 0 && (

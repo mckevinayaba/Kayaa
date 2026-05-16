@@ -931,30 +931,67 @@ function teaserTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function BoardTeaser({ posts }: { posts: NeighbourhoodPost[] }) {
+function BoardTeaser({ posts, suburb }: { posts: NeighbourhoodPost[]; suburb?: string }) {
   const navigate = useNavigate();
+  const areaCtx  = suburb || 'your area';
+
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
         <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: 0 }}>From the Board</h2>
         <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}>See all →</button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {posts.map(post => {
-          const color = BOARD_CAT_COLORS[post.category] ?? '#94A3B8';
-          return (
-            <div key={post.id} onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px' }}>{BOARD_CAT_LABELS[post.category] ?? post.category}</span>
-                <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{teaserTime(post.createdAt)}</span>
+
+      {posts.length === 0 ? (
+        /* Launch-area empty state — Board exists, nothing posted yet */
+        <div style={{
+          border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '14px',
+          padding: '20px', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: '28px', marginBottom: '8px' }}>📋</div>
+          <p style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px',
+          }}>
+            Nothing on the Board yet
+          </p>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.38)', lineHeight: 1.55,
+            margin: '0 0 14px',
+          }}>
+            Jobs, rooms, free items, services — post anything useful for {areaCtx}.
+          </p>
+          <button
+            onClick={() => navigate('/board/new')}
+            style={{
+              background: 'rgba(57,217,138,0.1)', color: '#39D98A',
+              border: '1px solid rgba(57,217,138,0.25)', borderRadius: '10px',
+              padding: '9px 20px', cursor: 'pointer',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+            }}
+          >
+            Be the first to post →
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {posts.map(post => {
+            const color = BOARD_CAT_COLORS[post.category] ?? '#94A3B8';
+            return (
+              <div key={post.id} onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px' }}>{BOARD_CAT_LABELS[post.category] ?? post.category}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{teaserTime(post.createdAt)}</span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                  {post.content}
+                </p>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                {post.content}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1820,9 +1857,11 @@ export default function FeedPage() {
           </h1>
         </div>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#9CA3AF', margin: '0 0 10px' }}>
-          {rawVenues.length > 0
-            ? `${rawVenues.length} place${rawVenues.length !== 1 ? 's' : ''} in your neighbourhood`
-            : 'Set your neighbourhood to see places nearby'}
+          {!suburb
+            ? 'Set your neighbourhood to see places nearby'
+            : rawVenues.length === 0
+              ? `No places in ${suburb} yet — be the first to add one`
+              : `${rawVenues.length} place${rawVenues.length !== 1 ? 's' : ''} in your neighbourhood`}
         </p>
         {!loading && rawVenues.length > 0 && (() => {
           const activeNow  = rawVenues.filter(v =>
@@ -1832,6 +1871,7 @@ export default function FeedPage() {
             Date.now() - new Date(v.createdAt).getTime() < 24 * 60 * 60 * 1000,
           ).length;
           const alertCount = safetyAlerts.length;
+          const anyChip    = activeNow > 0 || newToday > 0 || alertCount > 0 || boardPosts.length > 0;
 
           return (
             <div style={{
@@ -1884,6 +1924,21 @@ export default function FeedPage() {
                   }}
                 >
                   📋 Board active
+                </button>
+              )}
+              {/* Fallback: no activity yet — soft explore chip so the row is never empty */}
+              {!anyChip && (
+                <button
+                  onClick={() => navigate('/neighbourhood')}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+                    color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+                  }}
+                >
+                  🏘️ Explore {rawVenues.length} place{rawVenues.length !== 1 ? 's' : ''} →
                 </button>
               )}
             </div>
@@ -2457,8 +2512,8 @@ export default function FeedPage() {
       {/* Places locals honour ✨ */}
       <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
 
-      {/* Board teaser */}
-      {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}
+      {/* Board teaser — always visible; shows empty invitation when board has no posts yet */}
+      {!loading && suburb && <BoardTeaser posts={boardPosts} suburb={suburb} />}
 
       {/* Jobs teaser removed — Jobs lives under Board categories */}
 

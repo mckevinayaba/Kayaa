@@ -17,9 +17,11 @@ import { getCategoryEmoji } from '../lib/venueUtils';
 interface Props {
   suburb?: string;
   city?:   string;
+  /** Show a mechanic-teaser when no honours exist yet (pass suburb for context) */
+  showTeaser?: boolean;
 }
 
-export default function HonouredPlacesRail({ suburb, city }: Props) {
+export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: Props) {
   const navigate = useNavigate();
   const [items,   setItems]   = useState<HonouredVenueItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +33,62 @@ export default function HonouredPlacesRail({ suburb, city }: Props) {
       .finally(() => setLoading(false));
   }, [suburb, city]);
 
-  // Don't render skeleton — if there's no honour data yet, stay invisible
-  if (!loading && items.length === 0) return null;
   if (loading) return null;
+
+  // No data yet — show a teaser that introduces the Honour mechanic
+  if (items.length === 0) {
+    if (!showTeaser || !suburb) return null;
+    return (
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '10px' }}>
+          <h2 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontSize: '15px', color: '#F0F6FC', margin: '0 0 3px',
+          }}>
+            Places locals honour ✨
+          </h2>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.35)', margin: 0,
+          }}>
+            These places hold memory, trust, and meaning
+          </p>
+        </div>
+        <div
+          onClick={() => navigate('/neighbourhood')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '14px',
+            background: 'rgba(245,158,11,0.04)',
+            border: '1px solid rgba(245,158,11,0.18)',
+            borderRadius: '14px', padding: '14px 16px',
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>✨</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontSize: '13px', color: '#F0F6FC', marginBottom: '3px',
+            }}>
+              No honours in {suburb} yet
+            </div>
+            <div style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)', lineHeight: 1.45,
+            }}>
+              Find a place you trust and tap ✨ Honour on its page — be the first.
+            </div>
+          </div>
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+            color: '#F59E0B', flexShrink: 0,
+          }}>
+            Discover →
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginBottom: '28px' }}>
