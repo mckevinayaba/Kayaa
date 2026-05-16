@@ -51,6 +51,7 @@ const OwnerDashboard       = lazy(() => import('./pages/OwnerDashboard'));
 const HousingPage          = lazy(() => import('./pages/HousingPage'));
 const SafetyReportPage     = lazy(() => import('./pages/SafetyReportPage'));
 const MomentCreatePage     = lazy(() => import('./pages/MomentCreatePage'));
+const UtilityReportPage    = lazy(() => import('./pages/UtilityReportPage'));
 
 // ── Page loader — shown while a lazy chunk is fetching ───────────────────────
 function PageLoader() {
@@ -177,6 +178,7 @@ export default function App() {
               <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
               <Route path="/report/safety"       element={<Auth><SafetyReportPage /></Auth>} />
               <Route path="/moments/new"         element={<Auth><MomentCreatePage /></Auth>} />
+              <Route path="/report/utility/:type" element={<Auth><UtilityReportPage /></Auth>} />
               <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
               <Route path="/search" element={<Navigate to="/checkin" replace />} />
             </Route>

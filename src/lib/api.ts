@@ -2646,3 +2646,215 @@ export async function createMoment(
     return { error: String(e) };
   }
 }
+
+// ─── Utility Reports (Power & Water) ─────────────────────────────────────────
+//
+// SQL migration (run once in Supabase SQL editor):
+// --------------------------------------------------------------------
+// create table if not exists utility_reports (
+//   id            uuid primary key default gen_random_uuid(),
+//   user_id       uuid references auth.users(id) on delete set null,
+//   neighbourhood text not null,
+//   category      text not null check (category in ('power','water')),
+//   issue_type    text not null,
+//   area_detail   text not null,
+//   started_when  text not null check (started_when in ('now','earlier')),
+//   note          text,
+//   photo_url     text,
+//   created_at    timestamptz not null default now()
+// );
+// alter table utility_reports enable row level security;
+// create policy "Anyone can view utility reports"
+//   on utility_reports for select using (true);
+// create policy "Authenticated users can insert utility reports"
+//   on utility_reports for insert with check (auth.uid() is not null);
+// --------------------------------------------------------------------
+
+export type UtilityCategory = 'power' | 'water';
+
+export type PowerIssueType =
+  | 'power_out'
+  | 'load_shedding'
+  | 'flickering'
+  | 'streetlights'
+  | 'power_restored';
+
+export type WaterIssueType =
+  | 'no_water'
+  | 'low_pressure'
+  | 'dirty_water'
+  | 'leak_burst'
+  | 'water_restored';
+
+export type UtilityIssueType = PowerIssueType | WaterIssueType;
+
+export interface UtilityReport {
+  id: string;
+  userId: string | null;
+  neighbourhood: string;
+  category: UtilityCategory;
+  issueType: UtilityIssueType;
+  areaDetail: string;
+  startedWhen: 'now' | 'earlier';
+  note: string;
+  photoUrl: string | null;
+  createdAt: string;
+  reportCount: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbUtilityReport(row: any, count: number): UtilityReport {
+  return {
+    id:            row.id,
+    userId:        row.user_id ?? null,
+    neighbourhood: row.neighbourhood,
+    category:      row.category as UtilityCategory,
+    issueType:     row.issue_type as UtilityIssueType,
+    areaDetail:    row.area_detail,
+    startedWhen:   row.started_when as 'now' | 'earlier',
+    note:          row.note ?? '',
+    photoUrl:      row.photo_url ?? null,
+    createdAt:     row.created_at,
+    reportCount:   count,
+  };
+}
+
+/**
+ * Returns the latest unique utility reports for a neighbourhood grouped by
+ * issue_type within a 2-hour window. Restoration reports suppress the
+ * corresponding issue from the returned list.
+ */
+export async function getUtilityReports(
+  neighbourhood: string,
+  category?: UtilityCategory,
+): Promise<UtilityReport[]> {
+  try {
+    const since = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString();
+
+    let q = supabase
+      .from('utility_reports')
+      .select('*')
+      .ilike('neighbourhood', `%${neighbourhood}%`)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+
+    if (category) q = q.eq('category', category);
+
+    const { data, error } = await q;
+    if (error || !data) return [];
+
+    const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+    const countMap: Record<string, number> = {};
+    const latestMap: Record<string, typeof data[0]> = {};
+
+    for (const row of data) {
+      const t  = row.issue_type as string;
+      const ts = new Date(row.created_at).getTime();
+      if (ts >= twoHoursAgo) countMap[t] = (countMap[t] ?? 0) + 1;
+      if (!latestMap[t]) latestMap[t] = row;
+    }
+
+    const restorations = new Set<string>();
+    for (const t of Object.keys(latestMap)) {
+      if (t === 'power_restored') {
+        ['power_out','load_shedding','flickering','streetlights'].forEach(x => restorations.add(x));
+      }
+      if (t === 'water_restored') {
+        ['no_water','low_pressure','dirty_water','leak_burst'].forEach(x => restorations.add(x));
+      }
+    }
+
+    const result: UtilityReport[] = [];
+    for (const [issueType, row] of Object.entries(latestMap)) {
+      if (restorations.has(issueType)) continue;
+      result.push(dbUtilityReport(row, countMap[issueType] ?? 1));
+    }
+
+    result.sort((a, b) => {
+      const aRes = a.issueType.endsWith('_restored') ? 1 : 0;
+      const bRes = b.issueType.endsWith('_restored') ? 1 : 0;
+      if (aRes !== bRes) return aRes - bRes;
+      return b.reportCount - a.reportCount;
+    });
+
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Checks if the same issue_type was reported in this neighbourhood
+ * within the last 2 hours. Returns the count.
+ */
+export async function checkUtilityDuplicate(
+  neighbourhood: string,
+  issueType:      UtilityIssueType,
+): Promise<number> {
+  try {
+    const since = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const { count } = await supabase
+      .from('utility_reports')
+      .select('id', { count: 'exact', head: true })
+      .ilike('neighbourhood', `%${neighbourhood}%`)
+      .eq('issue_type', issueType)
+      .gte('created_at', since);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Uploads a utility-report photo to the venue-media bucket under
+ * utility-reports/{userId}/.
+ */
+export async function uploadUtilityPhoto(
+  userId: string,
+  file:   File,
+): Promise<{ url: string } | { error: string }> {
+  try {
+    const ext  = file.name.split('.').pop() ?? 'jpg';
+    const path = `utility-reports/${userId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('venue-media')
+      .upload(path, file, { upsert: false });
+    if (upErr) return { error: upErr.message };
+    const { data } = supabase.storage.from('venue-media').getPublicUrl(path);
+    return { url: data.publicUrl };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}
+
+/**
+ * Inserts a single utility report row.
+ */
+export async function createUtilityReport(
+  userId: string,
+  data: {
+    neighbourhood: string;
+    category:      UtilityCategory;
+    issueType:     UtilityIssueType;
+    areaDetail:    string;
+    startedWhen:   'now' | 'earlier';
+    note?:         string;
+    photoUrl?:     string;
+  },
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from('utility_reports').insert({
+      user_id:      userId,
+      neighbourhood: data.neighbourhood,
+      category:     data.category,
+      issue_type:   data.issueType,
+      area_detail:  data.areaDetail,
+      started_when: data.startedWhen,
+      note:         data.note?.trim() || null,
+      photo_url:    data.photoUrl || null,
+    });
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}

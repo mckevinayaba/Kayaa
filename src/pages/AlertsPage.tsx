@@ -21,9 +21,9 @@ import {
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import {
   getSafetyAlerts, getUserPostsForFeed, getNeighbourhoodPosts,
-  getSafetyReports,
+  getSafetyReports, getUtilityReports,
 } from '../lib/api';
-import type { UserPost, NeighbourhoodPost, SafetyReport, SafetyIncidentType } from '../lib/api';
+import type { UserPost, NeighbourhoodPost, SafetyReport, SafetyIncidentType, UtilityReport } from '../lib/api';
 import VideoPlayer from '../components/VideoPlayer';
 import { LoadSheddingWidget } from '../components/safety/LoadSheddingWidget';
 import { WaterStatus } from '../components/utility/WaterStatus';
@@ -263,6 +263,108 @@ function AlertSkeleton() {
   );
 }
 
+// ─── Utility report card ──────────────────────────────────────────────────────
+
+const POWER_ISSUE_LABEL: Record<string, { icon: string; label: string }> = {
+  power_out:     { icon: '⚡', label: 'Power out' },
+  load_shedding: { icon: '🔁', label: 'Load shedding' },
+  flickering:    { icon: '💡', label: 'Flickering' },
+  streetlights:  { icon: '🔦', label: 'Streetlights out' },
+  power_restored:{ icon: '✅', label: 'Power restored' },
+};
+
+const WATER_ISSUE_LABEL: Record<string, { icon: string; label: string }> = {
+  no_water:      { icon: '🚱', label: 'No water' },
+  low_pressure:  { icon: '📉', label: 'Low pressure' },
+  dirty_water:   { icon: '🟤', label: 'Dirty water' },
+  leak_burst:    { icon: '💧', label: 'Leak / burst pipe' },
+  water_restored:{ icon: '✅', label: 'Water restored' },
+};
+
+function UtilityReportCard({ report }: { report: UtilityReport }) {
+  const isPower    = report.category === 'power';
+  const color      = isPower ? '#FBBF24' : '#60A5FA';
+  const isRestored = report.issueType.endsWith('_restored');
+  const accent     = isRestored ? '#39D98A' : color;
+  const labelMap   = isPower ? POWER_ISSUE_LABEL : WATER_ISSUE_LABEL;
+  const meta       = labelMap[report.issueType] ?? { icon: '⚠️', label: report.issueType };
+
+  return (
+    <div style={{
+      background: `${accent}08`,
+      border: `1px solid ${accent}20`,
+      borderLeft: `3px solid ${accent}55`,
+      borderRadius: '14px',
+      padding: '12px 14px',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', marginBottom: '7px', flexWrap: 'wrap', gap: '6px',
+      }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '11px',
+          color: accent, background: `${accent}18`,
+          borderRadius: '20px', padding: '2px 9px',
+          textTransform: 'uppercase', letterSpacing: '0.04em',
+        }}>
+          {meta.icon} {meta.label}
+        </span>
+        <span style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+          color: 'rgba(255,255,255,0.3)',
+        }}>
+          {timeAgo(report.createdAt)}
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '3px',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          color: 'rgba(255,255,255,0.6)',
+        }}>
+          <MapPin size={10} color="rgba(255,255,255,0.3)" />
+          {report.areaDetail}
+        </span>
+        {report.reportCount > 1 && (
+          <>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)' }}>·</span>
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              color: accent, fontWeight: 700,
+            }}>
+              {report.reportCount} reports
+            </span>
+          </>
+        )}
+      </div>
+
+      {report.note && (
+        <p style={{
+          margin: '7px 0 0',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          color: 'rgba(255,255,255,0.45)', lineHeight: 1.55,
+        }}>
+          {report.note}
+        </p>
+      )}
+
+      {report.photoUrl && (
+        <img
+          src={report.photoUrl}
+          alt="Report photo"
+          style={{
+            width: '100%', maxHeight: '160px', objectFit: 'cover',
+            borderRadius: '10px', marginTop: '8px', display: 'block',
+            border: '1px solid rgba(255,255,255,0.07)',
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Section divider ──────────────────────────────────────────────────────────
 
 function SectionLabel({ label, color, count }: { label: string; color: string; count?: number }) {
@@ -365,6 +467,8 @@ export default function AlertsPage() {
 
   const [safetyItems,    setSafetyItems]    = useState<AlertItem[]>([]);
   const [communityItems, setCommunityItems] = useState<AlertItem[]>([]);
+  const [powerReports,   setPowerReports]   = useState<UtilityReport[]>([]);
+  const [waterReports,   setWaterReports]   = useState<UtilityReport[]>([]);
   const [loading,        setLoading]        = useState(true);
   const [spinning,       setSpinning]       = useState(false);
   const [activeFilter,   setActiveFilter]   = useState<FilterType>('all');
@@ -375,11 +479,13 @@ export default function AlertsPage() {
     if (!suburb) { setLoading(false); return; }
     setSpinning(true);
 
-    const [safetyReportsRaw, safetyRaw, feedRaw, neighbourhoodRaw] = await Promise.all([
+    const [safetyReportsRaw, safetyRaw, feedRaw, neighbourhoodRaw, powerRaw, waterRaw] = await Promise.all([
       getSafetyReports(suburb),          // structured safety_reports (primary)
       getSafetyAlerts(suburb),           // legacy user_posts.category='alert' (fallback)
       getUserPostsForFeed(suburb),
       getNeighbourhoodPosts(suburb),
+      getUtilityReports(suburb, 'power'),
+      getUtilityReports(suburb, 'water'),
     ]);
 
     // ── Safety items ────────────────────────────────────────────────────────────
@@ -467,6 +573,8 @@ export default function AlertsPage() {
 
     setSafetyItems(safety);
     setCommunityItems(community);
+    setPowerReports(powerRaw as UtilityReport[]);
+    setWaterReports(waterRaw as UtilityReport[]);
     setLoading(false);
     setSpinning(false);
   }
@@ -500,12 +608,86 @@ export default function AlertsPage() {
   // ── Content renderer ───────────────────────────────────────────────────────
 
   function renderContent() {
-    // Power — hand off to existing full widget
+    // Power
     if (activeFilter === 'power') {
-      return <LoadSheddingWidget />;
+      const activeIssues  = powerReports.filter(r => !r.issueType.endsWith('_restored'));
+      const restorations  = powerReports.filter(r => r.issueType.endsWith('_restored'));
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Report CTA */}
+          <button
+            onClick={() => navigate('/report/utility/power')}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 14px',
+              background: 'rgba(251,191,36,0.06)',
+              border: '1px solid rgba(251,191,36,0.18)',
+              borderRadius: '14px', cursor: 'pointer', textAlign: 'left',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+              background: 'rgba(251,191,36,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '17px',
+            }}>
+              ⚡
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontSize: '13px', color: '#F0F6FC',
+              }}>
+                Report a power issue
+              </div>
+              <div style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                color: 'rgba(255,255,255,0.35)', marginTop: '1px',
+              }}>
+                Power out · load shedding · flickering · streetlights
+              </div>
+            </div>
+            <Zap size={15} color="rgba(251,191,36,0.5)" style={{ flexShrink: 0 }} />
+          </button>
+
+          {/* Neighbour reports */}
+          {loading && <AlertSkeleton />}
+          {!loading && activeIssues.length > 0 && (
+            <div>
+              <SectionLabel label="Reported issues" color="rgba(251,191,36,0.75)" count={activeIssues.length} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {activeIssues.map(r => <UtilityReportCard key={r.id} report={r} />)}
+              </div>
+            </div>
+          )}
+          {!loading && restorations.length > 0 && (
+            <div>
+              <SectionLabel label="Restored" color="rgba(57,217,138,0.65)" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {restorations.map(r => <UtilityReportCard key={r.id} report={r} />)}
+              </div>
+            </div>
+          )}
+          {!loading && powerReports.length === 0 && suburb && (
+            <NudgeCard
+              emoji="🟢"
+              title="No power issues reported"
+              body={`No power outages or streetlight issues reported in ${suburb} in the last 8 hours.`}
+              ctaLabel="Report an issue"
+              onCta={() => navigate('/report/utility/power')}
+              accent="#FBBF24"
+            />
+          )}
+
+          {/* Load shedding schedule */}
+          <SectionLabel label="Load shedding schedule" color="rgba(251,191,36,0.5)" />
+          <LoadSheddingWidget />
+        </div>
+      );
     }
 
-    // Water — hand off to existing full component
+    // Water
     if (activeFilter === 'water') {
       if (!suburb) {
         return (
@@ -519,7 +701,81 @@ export default function AlertsPage() {
           />
         );
       }
-      return <WaterStatus area={suburb} />;
+      const activeIssues = waterReports.filter(r => !r.issueType.endsWith('_restored'));
+      const restorations  = waterReports.filter(r => r.issueType.endsWith('_restored'));
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Report CTA */}
+          <button
+            onClick={() => navigate('/report/utility/water')}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 14px',
+              background: 'rgba(96,165,250,0.06)',
+              border: '1px solid rgba(96,165,250,0.18)',
+              borderRadius: '14px', cursor: 'pointer', textAlign: 'left',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+              background: 'rgba(96,165,250,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '17px',
+            }}>
+              💧
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontSize: '13px', color: '#F0F6FC',
+              }}>
+                Report a water issue
+              </div>
+              <div style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                color: 'rgba(255,255,255,0.35)', marginTop: '1px',
+              }}>
+                No water · low pressure · dirty water · leak / burst pipe
+              </div>
+            </div>
+            <Droplet size={15} color="rgba(96,165,250,0.5)" style={{ flexShrink: 0 }} />
+          </button>
+
+          {/* Neighbour reports */}
+          {loading && <AlertSkeleton />}
+          {!loading && activeIssues.length > 0 && (
+            <div>
+              <SectionLabel label="Reported issues" color="rgba(96,165,250,0.75)" count={activeIssues.length} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {activeIssues.map(r => <UtilityReportCard key={r.id} report={r} />)}
+              </div>
+            </div>
+          )}
+          {!loading && restorations.length > 0 && (
+            <div>
+              <SectionLabel label="Restored" color="rgba(57,217,138,0.65)" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {restorations.map(r => <UtilityReportCard key={r.id} report={r} />)}
+              </div>
+            </div>
+          )}
+          {!loading && waterReports.length === 0 && (
+            <NudgeCard
+              emoji="🚿"
+              title="No water issues reported"
+              body={`No water outages or pressure issues reported in ${suburb} in the last 8 hours.`}
+              ctaLabel="Report an issue"
+              onCta={() => navigate('/report/utility/water')}
+              accent="#60A5FA"
+            />
+          )}
+
+          {/* Municipal status widget */}
+          <SectionLabel label="Municipal status" color="rgba(96,165,250,0.5)" />
+          <WaterStatus area={suburb} />
+        </div>
+      );
     }
 
     // Safety feed
@@ -757,7 +1013,13 @@ export default function AlertsPage() {
           label="Power"
           icon={Zap}
           onClick={() => setActiveFilter('power')}
-          badge={<LoadSheddingWidget compact />}
+          badge={
+            loading
+              ? <div style={{ height: '24px', width: '72px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px' }} />
+              : powerReports.filter(r => !r.issueType.endsWith('_restored')).length > 0
+                ? <StatusPill dot="#FBBF24" label={`${powerReports.filter(r => !r.issueType.endsWith('_restored')).length} issue${powerReports.filter(r => !r.issueType.endsWith('_restored')).length !== 1 ? 's' : ''}`} color="#FBBF24" bg="rgba(251,191,36,0.15)" />
+                : <LoadSheddingWidget compact />
+          }
         />
 
         <StatusTile
@@ -767,9 +1029,13 @@ export default function AlertsPage() {
           icon={Droplet}
           onClick={() => setActiveFilter('water')}
           badge={
-            suburb
-              ? <WaterStatus area={suburb} compact />
-              : <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.25)' }}>Set suburb</span>
+            loading
+              ? <div style={{ height: '24px', width: '72px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px' }} />
+              : waterReports.filter(r => !r.issueType.endsWith('_restored')).length > 0
+                ? <StatusPill dot="#60A5FA" label={`${waterReports.filter(r => !r.issueType.endsWith('_restored')).length} issue${waterReports.filter(r => !r.issueType.endsWith('_restored')).length !== 1 ? 's' : ''}`} color="#60A5FA" bg="rgba(96,165,250,0.15)" />
+                : suburb
+                  ? <WaterStatus area={suburb} compact />
+                  : <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.25)' }}>Set suburb</span>
           }
         />
 
