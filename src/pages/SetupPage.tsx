@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { MapPin, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,7 +37,7 @@ const INTENTS = [
     emoji: '➕',
     title: 'Nominate a place',
     desc:  'Add somewhere worth knowing — a spaza, barber, clinic, or church.',
-    dest:  '/feed',
+    dest:  '/onboarding',
   },
   {
     id:    'owner',
@@ -82,6 +82,12 @@ export default function SetupPage() {
   const [confirmedCity, setConfirmedCity] = useState('');
   const [selectedIntent, setSelectedIntent] = useState<Intent | null>(null);
   const [detecting,     setDetecting]     = useState(false);
+  const detectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Returning user (already done setup on this device) → skip straight to feed
+  if (user && localStorage.getItem('kayaa_setup_done') === 'true') {
+    return <Navigate to="/feed" replace />;
+  }
 
   // Not authenticated → send to welcome
   if (!user) return <Navigate to="/welcome" replace />;
@@ -105,12 +111,15 @@ export default function SetupPage() {
   function handleDetect() {
     setDetecting(true);
     refresh();
-    // detecting spinner will clear once suburb arrives (via useEffect above)
+    // Safety timeout: clear spinner after 10s regardless (handles denied GPS)
+    if (detectTimerRef.current) clearTimeout(detectTimerRef.current);
+    detectTimerRef.current = setTimeout(() => setDetecting(false), 10000);
   }
 
   useEffect(() => {
     if (detecting && suburb) {
       setDetecting(false);
+      if (detectTimerRef.current) clearTimeout(detectTimerRef.current);
     }
   }, [suburb, detecting]);
 
@@ -297,6 +306,33 @@ export default function SetupPage() {
                 </span>
               </button>
             ))}
+
+            {/* Custom suburb escape hatch — shown when typed text matches nothing */}
+            {query.trim().length >= 2 && filtered.length === 0 && (
+              <button
+                onClick={() => selectArea(query.trim(), query.trim())}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '11px 14px', borderRadius: '10px',
+                  background: 'rgba(57,217,138,0.06)',
+                  border: '1px solid rgba(57,217,138,0.25)',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{
+                  fontSize: '14px', color: '#F0F6FC',
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+                }}>
+                  Use "{query.trim()}"
+                </span>
+                <span style={{
+                  fontSize: '11px', color: '#39D98A',
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                }}>
+                  Custom area →
+                </span>
+              </button>
+            )}
           </div>
         </>
       )}

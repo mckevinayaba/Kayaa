@@ -185,22 +185,40 @@ export default function WelcomePage() {
           </div>
         </div>
 
-        {/* Open Gmail */}
-        <a
-          href="https://mail.google.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '100%', minHeight: '54px',
-            background: '#39D98A', color: '#0D1117',
-            borderRadius: '14px', textDecoration: 'none',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
-            marginBottom: '16px', boxSizing: 'border-box',
-          }}
-        >
-          Open Gmail
-        </a>
+        {/* Open mail client — Gmail + Outlook side by side */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          <a
+            href="https://mail.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '6px', minHeight: '54px',
+              background: '#39D98A', color: '#0D1117',
+              borderRadius: '14px', textDecoration: 'none',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+              boxSizing: 'border-box',
+            }}
+          >
+            Open Gmail
+          </a>
+          <a
+            href="https://outlook.live.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '6px', minHeight: '54px',
+              background: '#161B22', color: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '14px', textDecoration: 'none',
+              fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '15px',
+              boxSizing: 'border-box',
+            }}
+          >
+            Open Outlook
+          </a>
+        </div>
 
         <button
           onClick={() => {
@@ -435,21 +453,7 @@ export default function WelcomePage() {
           fontSize: '12px', color: 'rgba(255,255,255,0.2)',
           fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5,
         }}>
-          By continuing you agree to Kayaa's{' '}
-          <Link
-            to="/terms"
-            style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}
-          >
-            Terms
-          </Link>
-          {' '}and{' '}
-          <Link
-            to="/privacy"
-            style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}
-          >
-            Privacy Policy
-          </Link>
-          .
+          By continuing you agree to Kayaa's Terms and Privacy Policy.
         </p>
       </div>
     </div>

@@ -5,8 +5,9 @@ export async function signInWithEmail(email: string) {
     email,
     options: {
       shouldCreateUser: true,
-      // After tapping the magic link, land on /feed — not /dashboard
-      emailRedirectTo: `${window.location.origin}/feed`,
+      // After tapping the magic link, land on /setup.
+      // SetupPage handles returning users instantly (kayaa_setup_done check).
+      emailRedirectTo: `${window.location.origin}/setup`,
     },
   });
 }
@@ -15,8 +16,8 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      // After Google auth, land on /feed
-      redirectTo: `${window.location.origin}/feed`,
+      // After Google auth, land on /setup (same bypass logic as email link)
+      redirectTo: `${window.location.origin}/setup`,
     },
   });
 }
