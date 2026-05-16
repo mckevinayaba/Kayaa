@@ -88,8 +88,10 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         onClick={() => navigate(`/venue/${venue.slug}`)}
         style={{
           background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '16px', overflow: 'hidden', marginBottom: '12px',
+          border: '1px solid var(--color-border-warm)',
+          borderRadius: 'var(--radius-card)',
+          boxShadow: 'var(--shadow-card)',
+          overflow: 'hidden', marginBottom: '14px',
           cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
           position: 'relative',
         }}
@@ -121,10 +123,10 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                   }}
                 />
               )}
-              {/* Subtle bottom gradient — softens the cut between photo and card body */}
+              {/* Editorial gradient — strong scrim for text legibility and depth */}
               <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: 'linear-gradient(to bottom, transparent 55%, rgba(13,17,23,0.22) 100%)',
+                background: 'linear-gradient(to bottom, transparent 38%, rgba(13,17,23,0.35) 65%, rgba(13,17,23,0.72) 100%)',
               }} />
             </>
           ) : (
@@ -144,27 +146,31 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
           {activitySignal === 'active' && (
             <div style={{
               position: 'absolute', top: '10px', left: '10px',
-              background: 'rgba(57,217,138,0.18)', backdropFilter: 'blur(6px)',
-              border: '1px solid rgba(57,217,138,0.4)',
-              borderRadius: '20px', padding: '4px 10px',
-              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(13,17,23,0.72)', backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(57,217,138,0.32)',
+              borderRadius: '100px', padding: '5px 11px',
+              display: 'flex', alignItems: 'center', gap: '6px',
             }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', flexShrink: 0, animation: 'headingPulse 2s ease-in-out infinite' }} />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif' }}>
-                {todayCount} {todayCount === 1 ? 'person' : 'people'} here today
+              <div style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: '#39D98A', flexShrink: 0,
+                animation: 'kDotPulse 2s ease-in-out infinite',
+              }} />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em' }}>
+                {todayCount} here today
               </span>
             </div>
           )}
           {activitySignal === 'someone' && (
             <div style={{
               position: 'absolute', top: '10px', left: '10px',
-              background: 'rgba(251,191,36,0.14)', backdropFilter: 'blur(6px)',
-              border: '1px solid rgba(251,191,36,0.35)',
-              borderRadius: '20px', padding: '4px 10px',
-              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(13,17,23,0.72)', backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(251,191,36,0.28)',
+              borderRadius: '100px', padding: '5px 11px',
+              display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FBBF24', flexShrink: 0 }} />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FBBF24', fontFamily: 'DM Sans, sans-serif' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FBBF24', fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em' }}>
                 Someone was here today
               </span>
             </div>
@@ -174,7 +180,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               position: 'absolute', top: '10px', left: '10px',
               display: 'flex', alignItems: 'center',
             }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.12)' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
             </div>
           )}
 
@@ -213,26 +219,36 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
         </div>
 
         {/* ── Card body ── */}
-        <div style={{ padding: '14px 16px 14px' }}>
+        {/* Category accent rule — 3px left bar in category color, editorial treatment */}
+        <div style={{
+          padding: '15px 18px 16px',
+          borderLeft: `3px solid ${color}`,
+        }}>
 
-          {/* Category + trust signals row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color, background: `${color}18`, padding: '2px 8px', borderRadius: '20px', lineHeight: 1.6 }}>
+          {/* Category row — smaller, more subdued, typographically light */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '7px', flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '11px', fontWeight: 700,
+              color, letterSpacing: '0.06em', textTransform: 'uppercase',
+              fontFamily: 'DM Sans, sans-serif',
+            }}>
               {emoji} {venue.category}
             </span>
 
-            {/* Verified (no type) — check mark */}
-            {venue.isVerified && !venue.verificationType && <CheckCircle2 size={14} color="#39D98A" />}
+            {/* Verified check */}
+            {venue.isVerified && !venue.verificationType && (
+              <CheckCircle2 size={12} color="#39D98A" />
+            )}
 
-            {/* Owner managed — shown only when explicitly claimed */}
+            {/* Owner managed */}
             {venue.ownerClaimed && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '3px',
                 fontSize: '10px', fontWeight: 700,
                 color: '#60A5FA',
-                background: 'rgba(96,165,250,0.1)',
-                border: '1px solid rgba(96,165,250,0.2)',
-                borderRadius: '20px', padding: '2px 7px',
+                background: 'rgba(96,165,250,0.08)',
+                border: '1px solid rgba(96,165,250,0.18)',
+                borderRadius: '100px', padding: '2px 7px',
                 fontFamily: 'DM Sans, sans-serif',
               }}>
                 <Store size={9} color="#60A5FA" />
@@ -240,26 +256,28 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               </span>
             )}
 
-            {/* New place — first 14 days only */}
+            {/* New place — first 14 days */}
             {Date.now() - new Date(venue.createdAt).getTime() < NEW_PLACE_MS && (
               <span style={{
                 fontSize: '10px', fontWeight: 700,
                 color: '#39D98A',
-                background: 'rgba(57,217,138,0.1)',
+                background: 'rgba(57,217,138,0.09)',
                 border: '1px solid rgba(57,217,138,0.2)',
-                borderRadius: '20px', padding: '2px 7px',
+                borderRadius: '100px', padding: '2px 8px',
                 fontFamily: 'DM Sans, sans-serif',
+                letterSpacing: '0.04em',
               }}>
                 New
               </span>
             )}
           </div>
 
-          {/* Place name + verification badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 4px', flexWrap: 'wrap' }}>
+          {/* Place name — bigger, tighter, more authoritative */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', margin: '0 0 5px', flexWrap: 'wrap' }}>
             <h3 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '19px',
               color: 'var(--color-text)', lineHeight: 1.2, margin: 0,
+              letterSpacing: '-0.3px',
             }}>
               {venue.name}
             </h3>
@@ -268,11 +286,11 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
-          {/* Location + open status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+          {/* Location + status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '11px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <MapPin size={11} color="var(--color-muted)" />
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+              <MapPin size={11} color="var(--color-muted2)" />
+              <span style={{ fontSize: '12px', color: 'var(--color-muted2)' }}>
                 {venue.neighborhood}, {venue.city}
               </span>
             </div>
@@ -281,45 +299,57 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
+          {/* Recommendation reason */}
           {recommendationReason && (
-            <div style={{ marginBottom: '8px' }}>
+            <div style={{ marginBottom: '9px' }}>
               <span style={{
-                fontSize: '10px', fontWeight: 700,
-                color: 'rgba(255,255,255,0.45)',
+                fontSize: '11px', fontWeight: 600,
+                color: 'var(--color-muted2)',
                 fontFamily: 'DM Sans, sans-serif',
-                letterSpacing: '0.02em',
+                letterSpacing: '0.01em',
               }}>
                 {recommendationReason}
               </span>
             </div>
           )}
 
-          <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '14px' }}>
+          {/* Description */}
+          <p style={{
+            fontSize: '13px', color: 'var(--color-muted)',
+            lineHeight: 1.65, marginBottom: '15px',
+          }}>
             {getHumanDetail(venue.description)}
           </p>
 
           {/* Bottom row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            paddingTop: '13px',
+            borderTop: '1px solid var(--color-border-warm)',
+          }}>
+            {/* Social signals */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {(venue.regularsCount ?? venue.checkinCount) > 50 && (
                 <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                  <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--color-text)', fontWeight: 700 }}>
                     💛 {(venue.regularsCount ?? venue.checkinCount).toLocaleString()}
-                  </span> regulars
+                  </span>
+                  <span style={{ color: 'var(--color-muted2)' }}> regulars</span>
                 </span>
               )}
               {venue.lastCheckinAt && (
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-muted2)' }}>
                   · {timeAgoShort(venue.lastCheckinAt)}
                 </span>
               )}
               {headingCount > 0 && (
                 <span style={{
                   fontSize: '11px', fontWeight: 700,
-                  background: 'rgba(245,166,35,0.12)',
-                  color: '#F5A623', border: '1px solid rgba(245,166,35,0.25)',
-                  borderRadius: '10px', padding: '2px 7px',
-                  animation: 'headingPulse 2s ease-in-out infinite',
+                  background: 'rgba(245,166,35,0.1)',
+                  color: '#F5A623',
+                  border: '1px solid rgba(245,166,35,0.2)',
+                  borderRadius: '100px', padding: '3px 9px',
+                  animation: 'kDotPulse 2.5s ease-in-out infinite',
                   display: 'inline-block',
                 }}>
                   🚶 {headingCount}
@@ -327,17 +357,36 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               )}
             </div>
 
+            {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 onClick={e => { e.stopPropagation(); setShareOpen(true); }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '50%', background: 'var(--color-surface2)', border: '1px solid var(--color-border)', flexShrink: 0, cursor: 'pointer' }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--color-border-warm)',
+                  flexShrink: 0, cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
               >
                 <Share2 size={14} color="var(--color-muted)" />
               </button>
               <Link
                 to={`/venue/${venue.slug}/checkin`}
                 onClick={e => e.stopPropagation()}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--color-accent)', color: '#000', textDecoration: 'none', fontSize: '12px', fontWeight: 700, fontFamily: 'Syne, sans-serif', padding: '6px 14px', borderRadius: '20px', letterSpacing: '0.01em' }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  background: 'var(--color-accent)',
+                  color: '#0D1117',
+                  textDecoration: 'none',
+                  fontSize: '12px', fontWeight: 800,
+                  fontFamily: 'Syne, sans-serif',
+                  padding: '8px 18px',
+                  borderRadius: '100px',
+                  letterSpacing: '0.02em',
+                  boxShadow: '0 2px 12px rgba(57,217,138,0.2)',
+                }}
               >
                 Check in
               </Link>

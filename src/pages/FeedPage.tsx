@@ -354,19 +354,32 @@ const ACTIVITY_AFTER = new Set([0, 1, 2]);
 
 function VenueCardSkeleton() {
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
-      <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '12px' }}>
-        <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'var(--color-surface2)', flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ height: '16px', width: '55%', background: 'var(--color-surface2)', borderRadius: '6px', marginBottom: '8px' }} />
-          <div style={{ height: '12px', width: '35%', background: 'var(--color-surface2)', borderRadius: '6px' }} />
+    <div style={{
+      background: 'var(--color-surface)',
+      border: '1px solid var(--color-border-warm)',
+      borderRadius: 'var(--radius-card)',
+      boxShadow: 'var(--shadow-card)',
+      overflow: 'hidden', marginBottom: '14px',
+    }}>
+      {/* Image shimmer */}
+      <div style={{
+        width: '100%', paddingTop: '56.25%', position: 'relative',
+        background: 'linear-gradient(90deg, var(--color-surface2) 25%, rgba(255,255,255,0.04) 50%, var(--color-surface2) 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.6s ease-in-out infinite',
+      }} />
+      {/* Body shimmer — with left accent bar placeholder */}
+      <div style={{ padding: '15px 18px 16px', borderLeft: '3px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ height: '10px', width: '28%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '10px' }} />
+        <div style={{ height: '18px', width: '62%', background: 'var(--color-surface2)', borderRadius: '5px', marginBottom: '8px' }} />
+        <div style={{ height: '11px', width: '42%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '14px' }} />
+        <div style={{ height: '12px', width: '88%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '6px' }} />
+        <div style={{ height: '12px', width: '70%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '16px' }} />
+        <div style={{ height: '1px', background: 'var(--color-border-warm)', marginBottom: '14px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ height: '11px', width: '22%', background: 'var(--color-surface2)', borderRadius: '4px' }} />
+          <div style={{ height: '32px', width: '86px', background: 'var(--color-surface2)', borderRadius: '100px' }} />
         </div>
-      </div>
-      <div style={{ height: '13px', width: '85%', background: 'var(--color-surface2)', borderRadius: '6px', marginBottom: '16px' }} />
-      <div style={{ height: '1px', background: 'var(--color-border)', marginBottom: '12px' }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ height: '12px', width: '25%', background: 'var(--color-surface2)', borderRadius: '6px' }} />
-        <div style={{ height: '30px', width: '80px', background: 'var(--color-surface2)', borderRadius: '20px' }} />
       </div>
     </div>
   );
@@ -1064,45 +1077,55 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
     <div
       onClick={() => navigate(`/venue/${venue.slug}`)}
       style={{
-        position: 'relative', width: '100%', height: '280px',
-        background: '#161B22',
-        borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)',
+        position: 'relative', width: '100%', height: '290px',
+        background: 'var(--color-surface)',
+        borderRadius: '20px',
+        border: '1px solid var(--color-border-warm)',
+        boxShadow: 'var(--shadow-float)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        overflow: 'hidden', marginBottom: '28px', cursor: 'pointer',
+        overflow: 'hidden', marginBottom: '24px', cursor: 'pointer',
         flexShrink: 0,
       }}
     >
-      {/* Large emoji — the only visual anchor, no map artifacts */}
-      <span style={{ fontSize: '72px', userSelect: 'none', lineHeight: 1 }}>{emoji}</span>
+      {/* Large emoji — intentional no-photo treatment */}
+      <span style={{
+        fontSize: '80px', userSelect: 'none', lineHeight: 1,
+        opacity: 0.9,
+        filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))',
+      }}>
+        {emoji}
+      </span>
 
-      {/* Venue type badge — top left */}
+      {/* Category badge — top left */}
       <div style={{
-        position: 'absolute', top: '16px', left: '16px',
-        background: 'rgba(57,217,138,0.15)', border: '1px solid rgba(57,217,138,0.3)',
-        borderRadius: '20px', padding: '4px 12px',
+        position: 'absolute', top: '14px', left: '14px',
+        background: 'rgba(13,17,23,0.75)', backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(57,217,138,0.25)',
+        borderRadius: '100px', padding: '4px 12px',
         fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-        color: '#39D98A', textTransform: 'lowercase',
+        color: '#39D98A', letterSpacing: '0.04em', textTransform: 'uppercase',
       }}>
         {venue.category}
       </div>
 
-      {/* Bottom overlay */}
+      {/* Bottom editorial overlay */}
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        padding: '40px 16px 20px',
-        background: 'linear-gradient(transparent, rgba(13,17,23,0.96))',
+        padding: '50px 18px 20px',
+        background: 'linear-gradient(transparent, rgba(13,17,23,0.88) 55%, rgba(13,17,23,0.98) 100%)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px',
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: '20px', color: '#FFFFFF',
-            margin: '0 0 4px', lineHeight: 1.2,
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: '22px', color: '#F0F6FC',
+            margin: '0 0 5px', lineHeight: 1.15,
+            letterSpacing: '-0.3px',
           }}>
             {venue.name}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(240,246,252,0.48)', margin: 0 }}>
               {venue.neighborhood || venue.city}
             </p>
             {openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today' && (
@@ -1110,9 +1133,12 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '7px', flexShrink: 0 }}>
           {(venue.checkinsToday ?? 0) > 0 && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.75)' }}>
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              color: 'rgba(57,217,138,0.8)', fontWeight: 600,
+            }}>
               {venue.checkinsToday} here today
             </span>
           )}
@@ -1120,10 +1146,12 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
             onClick={e => { e.stopPropagation(); navigate(`/venue/${venue.slug}/checkin`); }}
             style={{
               background: '#39D98A', color: '#0D1117',
-              borderRadius: '20px', border: 'none',
-              padding: '9px 20px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              borderRadius: '100px', border: 'none',
+              padding: '10px 22px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 800,
               fontSize: '13px', cursor: 'pointer',
+              letterSpacing: '0.02em',
+              boxShadow: '0 2px 16px rgba(57,217,138,0.25)',
               WebkitTapHighlightColor: 'transparent',
             }}
           >
@@ -2141,10 +2169,12 @@ export default function FeedPage() {
           {/* ── Featured / promoted venues — only renders when promotions are live ── */}
           {promotedVenues.length > 0 && (
             <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#FBBF24', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#FBBF24' }} />
-                Featured
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: '#FBBF24', animation: 'kDotPulse 2s ease-in-out infinite' }} />
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#FBBF24' }}>
+                  Featured
+                </span>
+              </div>
               {promotedVenues.map(venue => (
                 <VenueCard
                   key={venue.id}
@@ -2197,11 +2227,18 @@ export default function FeedPage() {
 
             return (
               <>
-                <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', margin: 0 }}>
+                <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <h2 style={{
+                    fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                    fontSize: '16px', color: 'var(--color-text)',
+                    letterSpacing: '-0.2px', margin: 0,
+                  }}>
                     Places in {suburb || areaLabel}
-                  </p>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+                  </h2>
+                  <span style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                    color: 'var(--color-muted2)', fontWeight: 500,
+                  }}>
                     {establishedCards.length} place{establishedCards.length !== 1 ? 's' : ''}
                   </span>
                 </div>

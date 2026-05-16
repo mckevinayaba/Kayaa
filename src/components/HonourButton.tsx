@@ -26,6 +26,7 @@ export default function HonourButton({ venueId, venueName, venueSlug }: Props) {
   const [count,       setCount]       = useState(0);
   const [countLoaded, setCountLoaded] = useState(false);
   const [showThanks,  setShowThanks]  = useState(false);
+  const [blooming,    setBlooming]    = useState(false);
 
   useEffect(() => {
     setHonoured(hasHonouredVenue(venueId));
@@ -45,6 +46,9 @@ export default function HonourButton({ venueId, venueName, venueSlug }: Props) {
 
   async function handleHonour() {
     if (honoured) return;
+    // Trigger bloom animation
+    setBlooming(true);
+    setTimeout(() => setBlooming(false), 700);
     // Optimistic update
     setHonoured(true);
     setCount(c => c + 1);
@@ -67,27 +71,63 @@ export default function HonourButton({ venueId, venueName, venueSlug }: Props) {
           width: '100%',
           padding: '15px 20px',
           borderRadius: '16px',
-          border: `1px solid ${honoured ? 'rgba(245,158,11,0.4)' : 'rgba(245,158,11,0.22)'}`,
+          border: `1px solid ${honoured ? 'rgba(245,158,11,0.38)' : 'rgba(245,158,11,0.18)'}`,
           background: honoured
-            ? 'rgba(245,158,11,0.09)'
-            : 'rgba(245,158,11,0.04)',
+            ? 'rgba(245,158,11,0.08)'
+            : 'rgba(245,158,11,0.03)',
           cursor: honoured ? 'default' : 'pointer',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          transition: 'all 0.2s',
+          transition: 'border-color 0.3s, background 0.3s, box-shadow 0.3s',
           WebkitTapHighlightColor: 'transparent',
-          boxShadow: honoured ? '0 0 24px rgba(245,158,11,0.08)' : 'none',
+          boxShadow: honoured
+            ? '0 0 28px rgba(245,158,11,0.1), inset 0 1px 0 rgba(245,158,11,0.08)'
+            : 'none',
+          position: 'relative',
+          overflow: 'hidden',
         } as React.CSSProperties}
       >
-        {/* Animated star */}
+        {/* Bloom rings — burst outward on tap */}
+        {blooming && (
+          <>
+            <span style={{
+              position: 'absolute', left: '28px', top: '50%',
+              width: '40px', height: '40px', marginTop: '-20px',
+              borderRadius: '50%',
+              border: '2px solid rgba(245,158,11,0.6)',
+              animation: 'kHonourRing 0.65s ease-out forwards',
+              pointerEvents: 'none',
+            }} />
+            <span style={{
+              position: 'absolute', left: '28px', top: '50%',
+              width: '40px', height: '40px', marginTop: '-20px',
+              borderRadius: '50%',
+              border: '2px solid rgba(245,158,11,0.35)',
+              animation: 'kHonourRing 0.65s 0.12s ease-out forwards',
+              pointerEvents: 'none',
+            }} />
+            <span style={{
+              position: 'absolute', left: '28px', top: '50%',
+              width: '40px', height: '40px', marginTop: '-20px',
+              borderRadius: '50%',
+              border: '1px solid rgba(245,158,11,0.18)',
+              animation: 'kHonourRing 0.65s 0.22s ease-out forwards',
+              pointerEvents: 'none',
+            }} />
+          </>
+        )}
+
+        {/* Star — spring-animates on honour */}
         <span style={{
           fontSize: '22px',
           lineHeight: 1,
+          animation: blooming ? 'kStarBurst 0.5s var(--ease-spring) forwards' : 'none',
+          transform: honoured && !blooming ? 'scale(1.2) rotate(-8deg)' : 'scale(1)',
           transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-          transform: honoured ? 'scale(1.25) rotate(-8deg)' : 'scale(1)',
           display: 'block',
           flexShrink: 0,
+          position: 'relative', zIndex: 1,
         }}>
           {honoured ? '🌟' : '✨'}
         </span>

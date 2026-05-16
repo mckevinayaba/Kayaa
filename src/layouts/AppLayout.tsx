@@ -163,21 +163,31 @@ export default function AppLayout() {
       {/* ── Top nav ──────────────────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
-        background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
+        background: 'rgba(14,17,24,0.96)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
         padding: '0 14px', height: '56px',
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
       }}>
-        {/* Left: logo */}
+        {/* Left: logo — Syne 800, tight tracking, accent green */}
         <NavLink
           to="/feed"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{ textDecoration: 'none', justifySelf: 'start' }}
+          style={{ textDecoration: 'none', justifySelf: 'start', display: 'flex', alignItems: 'center', gap: '7px' }}
         >
+          {/* K mark — geometric square rotated 45° in accent */}
+          <div style={{
+            width: '22px', height: '22px',
+            background: '#39D98A',
+            borderRadius: '5px',
+            transform: 'rotate(45deg) scale(0.78)',
+            flexShrink: 0,
+          }} />
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: '20px', color: '#39D98A', letterSpacing: '-0.5px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: '19px', color: '#F0F6FC', letterSpacing: '-0.8px',
           }}>
             kayaa
           </span>
@@ -290,41 +300,60 @@ export default function AppLayout() {
       {/* Bottom mobile nav */}
       <nav aria-label="Main navigation" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        background: '#0D1117',
-        borderTop: '1px solid rgba(57,217,138,0.1)',
+        /* Warm dark — not pure cold black */
+        background: 'rgba(14,17,24,0.97)',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
         display: 'flex', justifyContent: 'space-around', alignItems: 'center',
         height: '64px',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: '8px', paddingRight: '8px',
+        paddingLeft: '4px', paddingRight: '4px',
       }}>
         {navItems.map(({ to, emoji, label }) => (
           <NavLink
             key={to}
             to={to}
-            style={({ isActive }) => ({
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '3px', textDecoration: 'none',
-              color: isActive ? '#39D98A' : 'rgba(255,255,255,0.4)',
-              flex: 1, padding: '8px 0', minWidth: '60px',
-              transition: 'color 0.15s',
-            })}
+            style={{ flex: 1, textDecoration: 'none' }}
           >
             {({ isActive }) => (
-              <>
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', padding: '6px 4px',
+                position: 'relative',
+              }}>
+                {/* Active pill background — sits behind the emoji */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '4px',
+                    width: '44px', height: '30px',
+                    borderRadius: '100px',
+                    background: 'rgba(57,217,138,0.12)',
+                    border: '1px solid rgba(57,217,138,0.18)',
+                    animation: 'kFadeUp 0.2s ease both',
+                  }} />
+                )}
+
                 <span style={{
-                  fontSize: '22px', lineHeight: 1,
-                  filter: isActive ? 'drop-shadow(0 0 8px rgba(57,217,138,0.7))' : 'none',
-                  transition: 'filter 0.15s',
+                  fontSize: '21px', lineHeight: 1,
+                  position: 'relative', zIndex: 1,
+                  transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                  display: 'block',
                 }}>
                   {emoji}
                 </span>
                 <span style={{
-                  fontSize: '10px', fontWeight: isActive ? 700 : 500,
-                  fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em',
+                  fontSize: '10px',
+                  fontWeight: isActive ? 700 : 400,
+                  fontFamily: 'DM Sans, sans-serif',
+                  letterSpacing: '0.01em',
+                  color: isActive ? '#39D98A' : 'rgba(240,246,252,0.38)',
+                  transition: 'color 0.15s',
                 }}>
                   {label}
                 </span>
-              </>
+              </div>
             )}
           </NavLink>
         ))}
