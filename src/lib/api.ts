@@ -716,6 +716,89 @@ export async function getMostLovedPlaces(suburb?: string, city?: string): Promis
   return localFirst(venues, area).slice(0, 5);
 }
 
+// ── Fetch venues by ID array ──────────────────────────────────────────────────
+
+export async function getVenuesByIds(ids: string[]): Promise<Venue[]> {
+  if (ids.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from('venues')
+      .select('*')
+      .in('id', ids)
+      .eq('is_active', true);
+    if (error || !data) return [];
+    return data.map(dbVenueToVenue).filter(isRealVenue);
+  } catch {
+    return [];
+  }
+}
+
+// ── Most-honoured venues ──────────────────────────────────────────────────────
+
+export interface HonouredVenueItem {
+  venue: Venue;
+  count: number;
+}
+
+/**
+ * Returns venues sorted by honour count, optionally filtered by area.
+ * Falls back gracefully if the venue_honours table is empty or missing.
+ */
+export async function getMostHonouredVenues(
+  suburb?: string,
+  city?: string,
+  limit = 10,
+): Promise<HonouredVenueItem[]> {
+  try {
+    // 1. Fetch raw honour records (up to 1 000)
+    const { data: honourRows, error: hErr } = await supabase
+      .from('venue_honours')
+      .select('venue_id')
+      .limit(1000);
+
+    if (hErr || !honourRows || honourRows.length === 0) return [];
+
+    // 2. Aggregate counts in JS
+    const counts: Record<string, number> = {};
+    for (const row of honourRows) {
+      const id = row.venue_id as string;
+      if (id) counts[id] = (counts[id] ?? 0) + 1;
+    }
+
+    const ranked = Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit * 3); // fetch more so we can filter by area
+
+    if (ranked.length === 0) return [];
+
+    // 3. Fetch venue details
+    const ids = ranked.map(([id]) => id);
+    const venues = await getVenuesByIds(ids);
+
+    // 4. Area filter (loose — substring match)
+    const area = suburb || city;
+    const filtered = area
+      ? venues.filter(v =>
+          v.neighborhood?.toLowerCase().includes(area.toLowerCase()) ||
+          v.city?.toLowerCase().includes(area.toLowerCase()) ||
+          // If no area match at all and we have < 3 local, include anyway
+          false,
+        )
+      : venues;
+
+    // Use wider set if local filter returns nothing
+    const source = filtered.length > 0 ? filtered : venues;
+
+    // 5. Re-attach counts and return sorted
+    return source
+      .map(v => ({ venue: v, count: counts[v.id] ?? 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
 export async function getGlobalActivity(suburb?: string, city?: string): Promise<ActivityItem[]> {
   const venueIds = await getLocalVenueIds(suburb, city);
   if ((suburb || city) && venueIds.length === 0) return [];

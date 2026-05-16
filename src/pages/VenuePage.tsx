@@ -2293,11 +2293,12 @@ export default function VenuePage() {
         {/* ── User's personal visit badge ───────────────────────────────────── */}
         <UserVisitBadge venueId={venue.id} />
 
+        {/* ── Honour this place — shown before utility actions so it reads as
+             an emotional signal, not an afterthought ───────────────────────── */}
+        <HonourButton venueId={venue.id} venueName={venue.name} />
+
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
-
-        {/* ── Honour this place ─────────────────────────────────────────────── */}
-        <HonourButton venueId={venue.id} venueName={venue.name} />
 
         {/* ── Listing completeness — prompts owner or unclaimed CTA ─────────── */}
         <ListingCompletenessPanel

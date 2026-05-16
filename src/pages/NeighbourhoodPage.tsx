@@ -7,6 +7,7 @@ import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { useCountry } from '../contexts/CountryContext';
 import { haversineKm } from '../lib/geocode';
 import type { Venue } from '../types';
+import HonouredPlacesRail from '../components/HonouredPlacesRail';
 
 // ── Category cluster definitions ──────────────────────────────────────────────
 // Groups all DB category variants into human-readable neighbourhood clusters.
@@ -510,6 +511,9 @@ export default function NeighbourhoodPage() {
           />
         ))}
       </div>
+
+      {/* ── Places locals honour ────────────────────────────────────────── */}
+      <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
 
       {/* ── Help grow your neighbourhood — missing category gaps ────────── */}
       {gaps.length > 0 && (

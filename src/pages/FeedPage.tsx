@@ -30,6 +30,7 @@ import StoriesStrip from '../components/StoriesStrip';
 import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
+import HonouredPlacesRail from '../components/HonouredPlacesRail';
 import CategoryStrip from '../components/CategoryStrip';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
@@ -1103,9 +1104,10 @@ function GatewayStrip() {
   const navigate = useNavigate();
 
   const tiles = [
-    { emoji: '💼', label: 'Jobs',    sub: 'Hiring now',   color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'   },
-    { emoji: '🏠', label: 'Housing', sub: 'Rooms & rent',  color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing' },
-    { emoji: '🔔', label: 'Alerts',  sub: 'Live status',   color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'  },
+    { emoji: '💼', label: 'Jobs',     sub: 'Hiring now',    color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'   },
+    { emoji: '🏠', label: 'Housing',  sub: 'Rooms & rent',  color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing' },
+    { emoji: '🔔', label: 'Alerts',   sub: 'Live status',   color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'  },
+    { emoji: '✨', label: 'Honour',   sub: 'Local meaning', color: '#F59E0B', bg: 'rgba(245,158,11,0.05)',  border: 'rgba(245,158,11,0.15)',  to: '/neighbourhood' },
   ];
 
   return (
@@ -1117,22 +1119,28 @@ function GatewayStrip() {
       }}>
         Explore
       </p>
-      <div style={{ display: 'flex', gap: '8px', paddingBottom: '14px' }}>
+      <div style={{
+        display: 'flex', gap: '8px', paddingBottom: '14px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        marginLeft: '-16px', paddingLeft: '16px',
+        marginRight: '-16px', paddingRight: '16px',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
         {tiles.map(t => (
           <button
             key={t.to}
             onClick={() => navigate(t.to)}
             style={{
-              flex: 1,
+              flexShrink: 0, minWidth: '72px',
               display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '5px', padding: '12px 8px',
+              gap: '5px', padding: '12px 10px',
               borderRadius: '14px',
               background: t.bg, border: `1px solid ${t.border}`,
               cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
             } as React.CSSProperties}
           >
             <span style={{ fontSize: '20px', lineHeight: 1 }}>{t.emoji}</span>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color }}>{t.label}</span>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color, whiteSpace: 'nowrap' }}>{t.label}</span>
             <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.sub}</span>
           </button>
         ))}
@@ -1816,19 +1824,71 @@ export default function FeedPage() {
             ? `${rawVenues.length} place${rawVenues.length !== 1 ? 's' : ''} in your neighbourhood`
             : 'Set your neighbourhood to see places nearby'}
         </p>
-        {!loading && rawVenues.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#39D98A', flexShrink: 0, boxShadow: '0 0 6px rgba(57,217,138,0.6)' }} />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-                {rawVenues.filter(v => v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000).length} active now
-              </span>
+        {!loading && rawVenues.length > 0 && (() => {
+          const activeNow  = rawVenues.filter(v =>
+            v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000,
+          ).length;
+          const newToday   = rawVenues.filter(v =>
+            Date.now() - new Date(v.createdAt).getTime() < 24 * 60 * 60 * 1000,
+          ).length;
+          const alertCount = safetyAlerts.length;
+
+          return (
+            <div style={{
+              display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center',
+            }}>
+              {activeNow > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.18)',
+                  borderRadius: '20px', padding: '3px 10px',
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A',
+                }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 5px rgba(57,217,138,0.6)' }} />
+                  {activeNow} active now
+                </span>
+              )}
+              {newToday > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)',
+                  borderRadius: '20px', padding: '3px 10px',
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA',
+                }}>
+                  🆕 {newToday} new today
+                </span>
+              )}
+              {alertCount > 0 && (
+                <button
+                  onClick={() => navigate('/alerts')}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#F87171',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🚨 {alertCount} alert{alertCount !== 1 ? 's' : ''}
+                </button>
+              )}
+              {boardPosts.length > 0 && (
+                <button
+                  onClick={() => navigate('/board')}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.18)',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#A78BFA',
+                    cursor: 'pointer',
+                  }}
+                >
+                  📋 Board active
+                </button>
+              )}
             </div>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
-              {new Date().toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}
-            </span>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* QuickAddPlace sheet */}
@@ -1902,6 +1962,16 @@ export default function FeedPage() {
         }}>
           Places near you
         </p>
+        <button
+          onClick={() => navigate('/neighbourhood')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontWeight: 600, color: '#39D98A',
+          }}
+        >
+          Browse all →
+        </button>
       </div>
 
       {/* Search */}
@@ -2383,6 +2453,9 @@ export default function FeedPage() {
           />
         </>
       )}
+
+      {/* Places locals honour ✨ */}
+      <HonouredPlacesRail suburb={suburb || undefined} city={city || undefined} />
 
       {/* Neighbourhood Board teaser */}
       {boardPosts.length > 0 && <BoardTeaser posts={boardPosts} />}

@@ -35,15 +35,51 @@ function markHonouredLocally(venueId: string) {
  */
 export async function getVenueHonourCount(venueId: string): Promise<number> {
   try {
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('venue_honours')
-      .select('id', { count: 'exact', head: true })
+      .select('*', { count: 'exact', head: true })
       .eq('venue_id', venueId);
 
     if (error) return 0;
-    return (data as unknown as { count: number } | null)?.count ?? 0;
+    return count ?? 0;
   } catch {
     return 0;
+  }
+}
+
+// ── Aggregated honour data ────────────────────────────────────────────────────
+
+export interface HonouredVenueSummary {
+  venueId: string;
+  count: number;
+}
+
+/**
+ * Return the top N most-honoured venue IDs with their counts.
+ * Aggregates locally from the venue_honours table (no GROUP BY needed).
+ */
+export async function getMostHonouredVenueIds(limit = 12): Promise<HonouredVenueSummary[]> {
+  try {
+    const { data, error } = await supabase
+      .from('venue_honours')
+      .select('venue_id')
+      .limit(1000);
+
+    if (error || !data || data.length === 0) return [];
+
+    // Count by venue_id in JS
+    const counts: Record<string, number> = {};
+    for (const row of data) {
+      const id = row.venue_id as string;
+      if (id) counts[id] = (counts[id] ?? 0) + 1;
+    }
+
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit)
+      .map(([venueId, count]) => ({ venueId, count }));
+  } catch {
+    return [];
   }
 }
 
