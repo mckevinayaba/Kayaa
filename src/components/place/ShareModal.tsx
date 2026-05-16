@@ -9,6 +9,7 @@ interface PlaceShareModalProps {
     tagline?: string;
     emoji: string;
     category: string;
+    neighbourhood?: string;
   };
   onClose: () => void;
 }
@@ -16,8 +17,17 @@ interface PlaceShareModalProps {
 export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl  = `https://kayaa.co.za/venue/${place.slug}`;
-  const shareText = `Check out ${place.emoji} ${place.name} on Kayaa!\n${place.tagline ?? place.category}\n\n`;
+  const shareUrl = `https://kayaa.co.za/venue/${place.slug}`;
+
+  // Build WhatsApp message: community-useful, not marketing.
+  // SA-native — reads like something a local would actually send.
+  const locationHint = place.neighbourhood ? ` in ${place.neighbourhood}` : '';
+  const hook = place.tagline
+    ? `"${place.tagline}"`
+    : `a ${place.category.toLowerCase()} worth knowing about${locationHint}`;
+  const shareText =
+    `${place.emoji} ${place.name}${locationHint} — ${hook}.\n\n` +
+    `Find it on Kayaa 👉 `;
 
   const methods: {
     key: string;
@@ -79,14 +89,14 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
       label: 'Email',
       emoji: '📧',
       action: () => {
-        window.location.href = `mailto:?subject=${encodeURIComponent(`Check out ${place.name} on Kayaa`)}&body=${encodeURIComponent(shareText + shareUrl)}`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(`${place.emoji} ${place.name} — a spot worth knowing`)}&body=${encodeURIComponent(shareText + shareUrl)}`;
       },
     },
     {
       key: 'twitter',
       label: 'X / Twitter',
       emoji: '𝕏',
-      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank'),
+      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + shareUrl)}`, '_blank'),
     },
     {
       key: 'facebook',

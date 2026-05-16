@@ -2239,6 +2239,7 @@ export default function VenuePage() {
             tagline: venue.description?.slice(0, 80),
             emoji,
             category: venue.category,
+            neighbourhood: venue.neighborhood,
           }}
           onClose={() => setShareOpen(false)}
         />
@@ -2296,7 +2297,7 @@ export default function VenuePage() {
 
         {/* ── Honour this place — shown before utility actions so it reads as
              an emotional signal, not an afterthought ───────────────────────── */}
-        <HonourButton venueId={venue.id} venueName={venue.name} />
+        <HonourButton venueId={venue.id} venueName={venue.name} venueSlug={venue.slug} />
 
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />

@@ -8,34 +8,43 @@ import type { ShareCardData, ShareCardType } from './ShareCard';
 
 function buildCaption(card: ShareCardData): { text: string; url: string } {
   switch (card.type) {
-    case 'place':
+    case 'place': {
+      const placeUrl = `https://kayaa.co.za/venue/${card.data.slug}`;
       return {
-        text: `Check out ${card.data.name} on kayaa — https://kayaa.co.za/venue/${card.data.slug}`,
-        url: `https://kayaa.co.za/venue/${card.data.slug}`,
+        text: `📍 ${card.data.name} is a local spot worth knowing about. Check it out on Kayaa 👉 ${placeUrl}`,
+        url: placeUrl,
       };
-    case 'event':
+    }
+    case 'event': {
+      const eventUrl = `https://kayaa.co.za/venue/${card.data.venueSlug}`;
+      const dateStr  = new Date(card.data.startsAt).toLocaleDateString('en-ZA', {
+        weekday: 'short', day: 'numeric', month: 'short',
+      });
       return {
-        text: `${card.data.title} at ${card.data.venueName} on ${new Date(card.data.startsAt).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })} — https://kayaa.co.za/venue/${card.data.venueSlug}`,
-        url: `https://kayaa.co.za/venue/${card.data.venueSlug}`,
+        text: `📅 ${card.data.title} at ${card.data.venueName} — ${dateStr}. Happening in your neighbourhood 👉 ${eventUrl}`,
+        url: eventUrl,
       };
+    }
     case 'job':
       return {
-        text: `Opportunity: ${card.data.title} in ${card.data.neighborhood} — https://kayaa.co.za/jobs`,
+        text: `💼 There's a job going in ${card.data.neighborhood} — ${card.data.title}. Pass it on if you know someone 👉 https://kayaa.co.za/jobs`,
         url: 'https://kayaa.co.za/jobs',
       };
     case 'skill':
       return {
-        text: `${card.data.personName} offers ${card.data.skillName} in ${card.data.neighborhood}. Find them on kayaa — https://kayaa.co.za/jobs`,
+        text: `🛠️ Need ${card.data.skillName} in ${card.data.neighborhood}? ${card.data.personName} is available. Find them on Kayaa 👉 https://kayaa.co.za/jobs`,
         url: 'https://kayaa.co.za/jobs',
       };
-    case 'milestone':
+    case 'milestone': {
+      const milestoneUrl = `https://kayaa.co.za/venue/${card.data.placeSlug}`;
       return {
-        text: `Visit ${card.data.visitNumber} at ${card.data.placeName}! I'm a regular on kayaa — https://kayaa.co.za/venue/${card.data.placeSlug}`,
-        url: `https://kayaa.co.za/venue/${card.data.placeSlug}`,
+        text: `🌟 Visit ${card.data.visitNumber} at ${card.data.placeName} — this place has my loyalty! Kayaa tracks your neighbourhood regulars 👉 ${milestoneUrl}`,
+        url: milestoneUrl,
       };
+    }
     case 'regular_card':
       return {
-        text: `My neighbourhood regulars card on kayaa — https://kayaa.co.za`,
+        text: `This is my neighbourhood regulars card on Kayaa — every place I keep coming back to. Discover your own 👉 https://kayaa.co.za`,
         url: 'https://kayaa.co.za',
       };
   }
