@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
@@ -6,44 +7,69 @@ import { LocationProvider } from './contexts/LocationContext';
 import AppLayout from './layouts/AppLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute';
-import LandingPage from './pages/LandingPage';
-import FeedPage from './pages/FeedPage';
-import VenuePage from './pages/VenuePage';
-import CheckInPage from './pages/CheckInPage';
-import DashboardPage from './pages/DashboardPage';
-import OnboardingPage from './pages/OnboardingPage';
-import WelcomePage from './pages/WelcomePage';
-import SetupPage from './pages/SetupPage';
-import BoardPage from './pages/BoardPage';
-import BoardPostPage from './pages/BoardPostPage';
-import BoardNewPage from './pages/BoardNewPage';
-import BoardMinePage from './pages/BoardMinePage';
-import JobsPage from './pages/JobsPage';
-import RegularCardPage from './pages/RegularCardPage';
-import QRCheckInPage from './pages/QRCheckInPage';
-import CountriesPage from './pages/CountriesPage';
-import CheckInBrowsePage from './pages/CheckInBrowsePage';
-import ExplorePage from './pages/ExplorePage';
-import CreatePost   from './pages/CreatePost';
-import ProfilePage      from './pages/ProfilePage';
-import EditProfile      from './pages/EditProfile';
-import PrivacySettings       from './pages/PrivacySettings';
-import Help                  from './pages/Help';
-import EmergencyContacts     from './pages/EmergencyContacts';
-import VenueDashboard        from './pages/VenueDashboard';
-import VenueHours            from './pages/VenueHours';
-import VenueQRCode           from './pages/VenueQRCode';
-import VenueAnalytics        from './pages/VenueAnalytics';
-import VenueUpdates          from './pages/VenueUpdates';
-import VenuePhotos           from './pages/VenuePhotos';
-import VenueEvents           from './pages/VenueEvents';
-import VenueEditDetails      from './pages/VenueEditDetails';
-import AlertsPage            from './pages/AlertsPage';
-import CreatePage            from './pages/CreatePage';
-import VenueBoostPage        from './pages/VenueBoostPage';
-import NeighbourhoodPage     from './pages/NeighbourhoodPage';
-import OwnerDashboard        from './pages/OwnerDashboard';
-import HousingPage           from './pages/HousingPage';
+
+// ── Lazy page imports — each route gets its own chunk ────────────────────────
+const LandingPage          = lazy(() => import('./pages/LandingPage'));
+const FeedPage             = lazy(() => import('./pages/FeedPage'));
+const VenuePage            = lazy(() => import('./pages/VenuePage'));
+const CheckInPage          = lazy(() => import('./pages/CheckInPage'));
+const DashboardPage        = lazy(() => import('./pages/DashboardPage'));
+const OnboardingPage       = lazy(() => import('./pages/OnboardingPage'));
+const WelcomePage          = lazy(() => import('./pages/WelcomePage'));
+const SetupPage            = lazy(() => import('./pages/SetupPage'));
+const BoardPage            = lazy(() => import('./pages/BoardPage'));
+const BoardPostPage        = lazy(() => import('./pages/BoardPostPage'));
+const BoardNewPage         = lazy(() => import('./pages/BoardNewPage'));
+const BoardMinePage        = lazy(() => import('./pages/BoardMinePage'));
+const JobsPage             = lazy(() => import('./pages/JobsPage'));
+const RegularCardPage      = lazy(() => import('./pages/RegularCardPage'));
+const QRCheckInPage        = lazy(() => import('./pages/QRCheckInPage'));
+const CountriesPage        = lazy(() => import('./pages/CountriesPage'));
+const CheckInBrowsePage    = lazy(() => import('./pages/CheckInBrowsePage'));
+const ExplorePage          = lazy(() => import('./pages/ExplorePage'));
+const CreatePost           = lazy(() => import('./pages/CreatePost'));
+const ProfilePage          = lazy(() => import('./pages/ProfilePage'));
+const EditProfile          = lazy(() => import('./pages/EditProfile'));
+const PrivacySettings      = lazy(() => import('./pages/PrivacySettings'));
+const Help                 = lazy(() => import('./pages/Help'));
+const EmergencyContacts    = lazy(() => import('./pages/EmergencyContacts'));
+const VenueDashboard       = lazy(() => import('./pages/VenueDashboard'));
+const VenueHours           = lazy(() => import('./pages/VenueHours'));
+const VenueQRCode          = lazy(() => import('./pages/VenueQRCode'));
+const VenueAnalytics       = lazy(() => import('./pages/VenueAnalytics'));
+const VenueUpdates         = lazy(() => import('./pages/VenueUpdates'));
+const VenuePhotos          = lazy(() => import('./pages/VenuePhotos'));
+const VenueEvents          = lazy(() => import('./pages/VenueEvents'));
+const VenueEditDetails     = lazy(() => import('./pages/VenueEditDetails'));
+const AlertsPage           = lazy(() => import('./pages/AlertsPage'));
+const CreatePage           = lazy(() => import('./pages/CreatePage'));
+const VenueBoostPage       = lazy(() => import('./pages/VenueBoostPage'));
+const NeighbourhoodPage    = lazy(() => import('./pages/NeighbourhoodPage'));
+const OwnerDashboard       = lazy(() => import('./pages/OwnerDashboard'));
+const HousingPage          = lazy(() => import('./pages/HousingPage'));
+
+// ── Page loader — shown while a lazy chunk is fetching ───────────────────────
+function PageLoader() {
+  return (
+    <div style={{
+      minHeight: '100dvh',
+      background: '#0D1117',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <div style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        border: '2.5px solid rgba(255,255,255,0.08)',
+        borderTopColor: '#39D98A',
+        animation: 'spin 0.7s linear infinite',
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -72,81 +98,83 @@ export default function App() {
     <AuthProvider>
       <LocationProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Root redirect */}
-          <Route path="/" element={<RootRoute />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Root redirect */}
+            <Route path="/" element={<RootRoute />} />
 
-          {/* ── Public standalone — own layout, no AppLayout chrome ── */}
-          <Route path="/about"    element={<LandingPage />} />
-          <Route path="/waitlist" element={<Navigate to="/welcome" replace />} />
+            {/* ── Public standalone — own layout, no AppLayout chrome ── */}
+            <Route path="/about"    element={<LandingPage />} />
+            <Route path="/waitlist" element={<Navigate to="/welcome" replace />} />
 
-          {/* ── Auth screens — bare AuthLayout ── */}
-          <Route element={<AuthLayout />}>
-            <Route path="/welcome" element={<WelcomePage />} />
-            <Route path="/setup"   element={<SetupPage />} />
-            <Route path="/login"   element={<Navigate to="/welcome" replace />} />
-          </Route>
+            {/* ── Auth screens — bare AuthLayout ── */}
+            <Route element={<AuthLayout />}>
+              <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/setup"   element={<SetupPage />} />
+              <Route path="/login"   element={<Navigate to="/welcome" replace />} />
+            </Route>
 
-          {/* ── App shell — AppLayout with top/bottom nav ── */}
-          <Route element={<AppLayout />}>
+            {/* ── App shell — AppLayout with top/bottom nav ── */}
+            <Route element={<AppLayout />}>
 
-            {/* ── Protected: require sign-in before the page renders ── */}
-            <Route path="/feed"    element={<Auth><FeedPage /></Auth>} />
-            <Route path="/onboarding" element={<Auth><OnboardingPage /></Auth>} />
+              {/* ── Protected: require sign-in before the page renders ── */}
+              <Route path="/feed"    element={<Auth><FeedPage /></Auth>} />
+              <Route path="/onboarding" element={<Auth><OnboardingPage /></Auth>} />
 
-            {/* Board — read (/:id) stays public; write actions require auth */}
-            <Route path="/board"      element={<Auth><BoardPage /></Auth>} />
-            <Route path="/board/mine" element={<Auth><BoardMinePage /></Auth>} />
-            <Route path="/board/new"  element={<Auth><BoardNewPage /></Auth>} />
-            <Route path="/board/:id"  element={<BoardPostPage />} />
+              {/* Board — read (/:id) stays public; write actions require auth */}
+              <Route path="/board"      element={<Auth><BoardPage /></Auth>} />
+              <Route path="/board/mine" element={<Auth><BoardMinePage /></Auth>} />
+              <Route path="/board/new"  element={<Auth><BoardNewPage /></Auth>} />
+              <Route path="/board/:id"  element={<BoardPostPage />} />
 
-            {/* Profile + settings */}
-            <Route path="/profile"      element={<Auth><ProfilePage /></Auth>} />
-            <Route path="/profile/edit" element={<Auth><EditProfile /></Auth>} />
-            <Route path="/settings/privacy"            element={<Auth><PrivacySettings /></Auth>} />
-            <Route path="/settings/notifications"      element={<Navigate to="/profile" replace />} />
-            <Route path="/settings/emergency-contacts" element={<Auth><EmergencyContacts /></Auth>} />
+              {/* Profile + settings */}
+              <Route path="/profile"      element={<Auth><ProfilePage /></Auth>} />
+              <Route path="/profile/edit" element={<Auth><EditProfile /></Auth>} />
+              <Route path="/settings/privacy"            element={<Auth><PrivacySettings /></Auth>} />
+              <Route path="/settings/notifications"      element={<Navigate to="/profile" replace />} />
+              <Route path="/settings/emergency-contacts" element={<Auth><EmergencyContacts /></Auth>} />
 
-            {/* Skills — all routes redirect into Board; /skills/:id preserves the ID */}
-            <Route path="/skills"          element={<Navigate to="/board" replace />} />
-            <Route path="/skills/browse"   element={<Navigate to="/board" replace />} />
-            <Route path="/skills/new"      element={<Navigate to="/board/new?cat=services" replace />} />
-            <Route path="/skills/edit/:id" element={<Navigate to="/board" replace />} />
-            <Route path="/skills/:id"      element={<SkillToBoard />} />
+              {/* Skills — all routes redirect into Board; /skills/:id preserves the ID */}
+              <Route path="/skills"          element={<Navigate to="/board" replace />} />
+              <Route path="/skills/browse"   element={<Navigate to="/board" replace />} />
+              <Route path="/skills/new"      element={<Navigate to="/board/new?cat=services" replace />} />
+              <Route path="/skills/edit/:id" element={<Navigate to="/board" replace />} />
+              <Route path="/skills/:id"      element={<SkillToBoard />} />
 
-            {/* Posts */}
-            <Route path="/post/new" element={<Auth><CreatePost /></Auth>} />
+              {/* Posts */}
+              <Route path="/post/new" element={<Auth><CreatePost /></Auth>} />
 
-            {/* Owner dashboard suite */}
-            <Route path="/owner"            element={<Auth><OwnerDashboard /></Auth>} />
-            <Route path="/dashboard"        element={<Auth><DashboardPage /></Auth>} />
-            <Route path="/venue/dashboard"  element={<Auth><VenueDashboard /></Auth>} />
-            <Route path="/venue/hours"      element={<Auth><VenueHours /></Auth>} />
-            <Route path="/venue/edit"       element={<Auth><VenueEditDetails /></Auth>} />
-            <Route path="/venue/qr-code"    element={<Auth><VenueQRCode /></Auth>} />
-            <Route path="/venue/analytics"  element={<Auth><VenueAnalytics /></Auth>} />
-            <Route path="/venue/updates"    element={<Auth><VenueUpdates /></Auth>} />
-            <Route path="/venue/photos"     element={<Auth><VenuePhotos /></Auth>} />
-            <Route path="/venue/events"     element={<Auth><VenueEvents /></Auth>} />
-            <Route path="/venue/boost"      element={<Auth><VenueBoostPage /></Auth>} />
+              {/* Owner dashboard suite */}
+              <Route path="/owner"            element={<Auth><OwnerDashboard /></Auth>} />
+              <Route path="/dashboard"        element={<Auth><DashboardPage /></Auth>} />
+              <Route path="/venue/dashboard"  element={<Auth><VenueDashboard /></Auth>} />
+              <Route path="/venue/hours"      element={<Auth><VenueHours /></Auth>} />
+              <Route path="/venue/edit"       element={<Auth><VenueEditDetails /></Auth>} />
+              <Route path="/venue/qr-code"    element={<Auth><VenueQRCode /></Auth>} />
+              <Route path="/venue/analytics"  element={<Auth><VenueAnalytics /></Auth>} />
+              <Route path="/venue/updates"    element={<Auth><VenueUpdates /></Auth>} />
+              <Route path="/venue/photos"     element={<Auth><VenuePhotos /></Auth>} />
+              <Route path="/venue/events"     element={<Auth><VenueEvents /></Auth>} />
+              <Route path="/venue/boost"      element={<Auth><VenueBoostPage /></Auth>} />
 
-            {/* ── Public app pages — no sign-in required ── */}
-            <Route path="/venue/:slug"          element={<VenuePage />} />
-            <Route path="/venue/:slug/checkin"  element={<CheckInPage />} />
-            <Route path="/checkin/:venueId"     element={<QRCheckInPage />} />
-            <Route path="/explore"              element={<ExplorePage />} />
-            <Route path="/neighbourhood"        element={<NeighbourhoodPage />} />
-            <Route path="/checkin"              element={<CheckInBrowsePage />} />
-            <Route path="/housing"              element={<HousingPage />} />
-            <Route path="/jobs"                 element={<JobsPage />} />
-            <Route path="/card/:name"           element={<RegularCardPage />} />
-            <Route path="/countries"            element={<CountriesPage />} />
-            <Route path="/help"                 element={<Help />} />
-            <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
-            <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
-            <Route path="/search" element={<Navigate to="/checkin" replace />} />
-          </Route>
-        </Routes>
+              {/* ── Public app pages — no sign-in required ── */}
+              <Route path="/venue/:slug"          element={<VenuePage />} />
+              <Route path="/venue/:slug/checkin"  element={<CheckInPage />} />
+              <Route path="/checkin/:venueId"     element={<QRCheckInPage />} />
+              <Route path="/explore"              element={<ExplorePage />} />
+              <Route path="/neighbourhood"        element={<NeighbourhoodPage />} />
+              <Route path="/checkin"              element={<CheckInBrowsePage />} />
+              <Route path="/housing"              element={<HousingPage />} />
+              <Route path="/jobs"                 element={<JobsPage />} />
+              <Route path="/card/:name"           element={<RegularCardPage />} />
+              <Route path="/countries"            element={<CountriesPage />} />
+              <Route path="/help"                 element={<Help />} />
+              <Route path="/alerts"              element={<Auth><AlertsPage /></Auth>} />
+              <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
+              <Route path="/search" element={<Navigate to="/checkin" replace />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
       </LocationProvider>
     </AuthProvider>
