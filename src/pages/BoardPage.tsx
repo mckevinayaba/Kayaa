@@ -30,7 +30,7 @@ import { getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
 
-// ── Sub-type detection (housing) ──────────────────────────────────────────────
+// ── Sub-type detection ────────────────────────────────────────────────────────
 
 function detectHousingType(post: BoardPost): string {
   const t = `${post.title} ${post.description ?? ''}`.toLowerCase();
@@ -38,6 +38,23 @@ function detectHousingType(post: BoardPost): string {
   if (/short.?stay|per night|nightly|weekend|daily/.test(t)) return 'Short stay';
   if (/room|bachelor|flatlet|sharing|single room|double room/.test(t)) return 'Room';
   return 'Rental';
+}
+
+type JobIntent = 'hiring' | 'available' | 'task';
+
+function detectJobIntent(post: BoardPost): JobIntent {
+  const t = `${post.title} ${post.description ?? ''}`.toLowerCase();
+  if (/looking for work|available for|seeking.*work|open to work|lfw:|need.*job|seeking.*position|want.*work|i.*available|hire me/.test(t)) return 'available';
+  if (/task needed:|task:|need help:|help needed:|quick.*task|need.*someone|need.*a.*cleaner|need.*a.*plumber|need.*a.*person|looking.*for.*someone/.test(t)) return 'task';
+  return 'hiring';
+}
+
+type ServiceIntent = 'offering' | 'seeking';
+
+function detectServiceIntent(post: BoardPost): ServiceIntent {
+  const t = `${post.title} ${post.description ?? ''}`.toLowerCase();
+  if (/need help|looking for|wanted:|help needed|need a |seeking.*service|need.*someone/.test(t)) return 'seeking';
+  return 'offering';
 }
 
 // ── Category config ───────────────────────────────────────────────────────────
@@ -125,29 +142,47 @@ function WhatsAppCTA({ post, accent }: { post: BoardPost; accent: string }) {
 
 // ── Type-specific cards ───────────────────────────────────────────────────────
 
+const JOB_INTENT_CFG: Record<JobIntent, { label: string; color: string; bg: string; border: string }> = {
+  hiring:    { label: '💼 Hiring',         color: '#A78BFA', bg: '#161B22',                    border: 'rgba(167,139,250,0.18)' },
+  available: { label: '🙋 Looking for work', color: '#34D399', bg: 'rgba(52,211,153,0.05)',   border: 'rgba(52,211,153,0.2)'  },
+  task:      { label: '⚡ Quick task',      color: '#F59E0B', bg: 'rgba(245,158,11,0.05)',    border: 'rgba(245,158,11,0.2)'  },
+};
+
+const SVC_INTENT_CFG: Record<ServiceIntent, { label: string; color: string }> = {
+  offering: { label: '🔧 Offering',  color: '#60A5FA' },
+  seeking:  { label: '🔍 Seeking',   color: '#FBBF24' },
+};
+
 function JobCard({ post, isMine, onMarkResolved }: {
   post: BoardPost;
   isMine: boolean;
   onMarkResolved: (id: string) => void;
 }) {
   const navigate = useNavigate();
+  const intent = detectJobIntent(post);
+  const cfg    = JOB_INTENT_CFG[intent];
+
   return (
     <div
       onClick={() => navigate(`/board/${post.id}`)}
       style={{
-        background: '#161B22',
-        border: '1px solid rgba(167,139,250,0.18)',
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
         borderRadius: '14px',
         padding: '14px',
         cursor: 'pointer',
-        borderLeft: '3px solid #A78BFA',
+        borderLeft: `3px solid ${cfg.color}`,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <Briefcase size={13} color="#A78BFA" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#A78BFA' }}>
-            Job
+          <Briefcase size={13} color={cfg.color} />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            color: cfg.color, background: `${cfg.color}18`,
+            padding: '1px 8px', borderRadius: '10px',
+          }}>
+            {cfg.label}
           </span>
         </div>
         <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
@@ -177,7 +212,7 @@ function JobCard({ post, isMine, onMarkResolved }: {
           {post.price != null && (
             <span style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700,
-              color: '#A78BFA', background: 'rgba(167,139,250,0.12)',
+              color: cfg.color, background: `${cfg.color}18`,
               padding: '2px 8px', borderRadius: '10px',
             }}>
               R{post.price.toLocaleString()}/mo
@@ -198,7 +233,7 @@ function JobCard({ post, isMine, onMarkResolved }: {
         )}
       </div>
 
-      <WhatsAppCTA post={post} accent="#A78BFA" />
+      <WhatsAppCTA post={post} accent={cfg.color} />
     </div>
   );
 }
@@ -209,6 +244,9 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
   onMarkResolved: (id: string) => void;
 }) {
   const navigate = useNavigate();
+  const svcIntent = detectServiceIntent(post);
+  const svcCfg   = SVC_INTENT_CFG[svcIntent];
+
   return (
     <div
       onClick={() => navigate(`/board/${post.id}`)}
@@ -223,9 +261,13 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <Wrench size={13} color="#60A5FA" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#60A5FA' }}>
-            Service
+          <Wrench size={13} color={svcCfg.color} />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            color: svcCfg.color, background: `${svcCfg.color}18`,
+            padding: '1px 8px', borderRadius: '10px',
+          }}>
+            {svcCfg.label}
           </span>
         </div>
         <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>

@@ -76,11 +76,11 @@ function timeAgo(iso: string): string {
 
 function completeness(venue: Venue): { score: number; items: { label: string; done: boolean; path: string }[] } {
   const items = [
-    { label: 'Add a photo',         done: !!(venue.coverImage || (venue.galleryImages?.length ?? 0) > 0), path: '/venue/photos' },
-    { label: 'Write a description', done: !!(venue.description?.trim().length > 20),                       path: '/venue/edit' },
-    { label: 'Add phone or WhatsApp',done: !!(venue.phoneNumber || venue.whatsappNumber),                  path: '/venue/edit' },
-    { label: 'Set opening hours',   done: !!(venue.openHours || venue.ownerHours),                        path: '/venue/hours' },
-    { label: 'Claim your listing',  done: !!venue.ownerClaimed,                                            path: '' },
+    { label: 'Add a photo — places with a photo get 3× more taps',         done: !!(venue.coverImage || (venue.galleryImages?.length ?? 0) > 0), path: '/venue/photos' },
+    { label: 'Write a description — help neighbours know what to expect',   done: !!(venue.description?.trim().length > 20),                       path: '/venue/edit' },
+    { label: 'Add WhatsApp or phone — let customers contact you directly',  done: !!(venue.phoneNumber || venue.whatsappNumber),                   path: '/venue/edit' },
+    { label: 'Set opening hours — so neighbours know when you\'re open',    done: !!(venue.openHours || venue.ownerHours),                         path: '/venue/hours' },
+    { label: 'Claim your listing — verify you\'re the owner',               done: !!venue.ownerClaimed,                                             path: '' },
   ];
   const done = items.filter(i => i.done).length;
   return { score: Math.round((done / items.length) * 100), items };
@@ -249,6 +249,41 @@ function OverviewTab({
           </Link>
         </div>
       </div>
+
+      {/* ── Today's priority — the single most important next action ─── */}
+      {score < 100 && (() => {
+        const topItem = items.find(i => !i.done);
+        if (!topItem) return null;
+        return (
+          <div style={{
+            background: 'rgba(57,217,138,0.06)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            borderRadius: '14px', padding: '14px 16px',
+            marginBottom: '12px',
+            display: 'flex', alignItems: 'center', gap: '12px',
+          }}>
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>⚡</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: 'rgba(57,217,138,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                Today's priority
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F0F6FC' }}>
+                {topItem.label}
+              </div>
+            </div>
+            {topItem.path && (
+              <a href={topItem.path} style={{
+                flexShrink: 0, padding: '8px 14px', borderRadius: '10px',
+                background: '#39D98A', color: '#000',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+                textDecoration: 'none', whiteSpace: 'nowrap',
+              }}>
+                Do it →
+              </a>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Completeness checklist ────────────────────────────────────── */}
       {score < 100 && (

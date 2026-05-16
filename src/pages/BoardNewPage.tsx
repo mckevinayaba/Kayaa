@@ -113,6 +113,8 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
 
 // ─── Step 2: Details form ─────────────────────────────────────────────────────
 
+type JobSubType = 'hiring' | 'available' | 'task';
+type ServiceSubType = 'offering' | 'seeking';
 type HousingSubType = 'room' | 'rental' | 'short_stay' | 'lodge';
 
 const HOUSING_SUB_TYPES: { key: HousingSubType; label: string; emoji: string; hint: string }[] = [
@@ -120,6 +122,17 @@ const HOUSING_SUB_TYPES: { key: HousingSubType; label: string; emoji: string; hi
   { key: 'rental',     label: 'Rental',      emoji: '🏡', hint: 'Full house, apartment or cottage to rent' },
   { key: 'short_stay', label: 'Short stay',  emoji: '🌙', hint: 'Nightly or weekend rate' },
   { key: 'lodge',      label: 'Lodge/Guest', emoji: '🏨', hint: 'Lodge, guesthouse, B&B' },
+];
+
+const JOB_SUB_TYPES: { key: JobSubType; label: string; emoji: string; color: string; hint: string; titleHint: string }[] = [
+  { key: 'hiring',    label: 'Hiring',              emoji: '💼', color: '#A78BFA', hint: 'Post a job opening or vacancy',       titleHint: 'e.g. Hiring a cashier for a spaza shop' },
+  { key: 'available', label: 'Looking for work',    emoji: '🙋', color: '#34D399', hint: 'I\'m available — let me find work',   titleHint: 'e.g. Looking for work: experienced barber' },
+  { key: 'task',      label: 'Quick task / Gig',   emoji: '⚡', color: '#F59E0B', hint: 'One-off task, not a full-time job',   titleHint: 'e.g. Need someone to paint a fence this weekend' },
+];
+
+const SERVICE_SUB_TYPES: { key: ServiceSubType; label: string; emoji: string; color: string; hint: string; titleHint: string }[] = [
+  { key: 'offering', label: 'Offering a service',  emoji: '🔧', color: '#60A5FA', hint: 'Tell neighbours what you do',  titleHint: 'e.g. Professional plumber — fast, affordable' },
+  { key: 'seeking',  label: 'Need a service',       emoji: '🔍', color: '#FBBF24', hint: 'Find someone to help you',    titleHint: 'e.g. Need a reliable electrician in Soweto' },
 ];
 
 interface FormData {
@@ -130,6 +143,8 @@ interface FormData {
   images: string[];
   isUrgent: boolean;
   housingSubType: HousingSubType;
+  jobSubType: JobSubType;
+  serviceSubType: ServiceSubType;
 }
 
 function DetailsForm({
@@ -151,9 +166,17 @@ function DetailsForm({
 
   const isSafety   = category === 'safety';
   const isHousing  = category === 'accommodation';
+  const isJob      = category === 'jobs';
+  const isService  = category === 'services';
   const showPrice  = category === 'for_sale';
-  const showRate   = category === 'services' || category === 'jobs';
+  const showRate   = (isJob && formData.jobSubType !== 'task') || isService;
   const isShortStay = isHousing && (formData.housingSubType === 'short_stay' || formData.housingSubType === 'lodge');
+
+  const activeSub = isJob
+    ? JOB_SUB_TYPES.find(s => s.key === formData.jobSubType)!
+    : isService
+      ? SERVICE_SUB_TYPES.find(s => s.key === formData.serviceSubType)!
+      : null;
 
   async function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -201,6 +224,80 @@ function DetailsForm({
                 >
                   <div style={{ fontSize: '18px', marginBottom: '4px' }}>{sub.emoji}</div>
                   <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? '#34D399' : 'var(--color-text)', marginBottom: '2px' }}>
+                    {sub.label}
+                  </div>
+                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
+                    {sub.hint}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Jobs: sub-type picker */}
+      {isJob && (
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            What are you posting? *
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {JOB_SUB_TYPES.map(sub => {
+              const active = formData.jobSubType === sub.key;
+              return (
+                <button
+                  key={sub.key}
+                  onClick={() => setFormData(prev => ({ ...prev, jobSubType: sub.key }))}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '12px 14px', borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
+                    background: active ? `${sub.color}12` : 'var(--color-surface)',
+                    border: `1px solid ${active ? sub.color : 'var(--color-border)'}`,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span style={{ fontSize: '22px', flexShrink: 0 }}>{sub.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: active ? sub.color : 'var(--color-text)', marginBottom: '2px' }}>
+                      {sub.label}
+                    </div>
+                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+                      {sub.hint}
+                    </div>
+                  </div>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${active ? sub.color : 'rgba(255,255,255,0.15)'}`, background: active ? sub.color : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {active && <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#000' }} />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Services: sub-type picker */}
+      {isService && (
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            What are you posting? *
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {SERVICE_SUB_TYPES.map(sub => {
+              const active = formData.serviceSubType === sub.key;
+              return (
+                <button
+                  key={sub.key}
+                  onClick={() => setFormData(prev => ({ ...prev, serviceSubType: sub.key }))}
+                  style={{
+                    flex: 1, padding: '14px 10px', borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
+                    background: active ? `${sub.color}12` : 'var(--color-surface)',
+                    border: `1px solid ${active ? sub.color : 'var(--color-border)'}`,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <div style={{ fontSize: '22px', marginBottom: '6px' }}>{sub.emoji}</div>
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? sub.color : 'var(--color-text)', marginBottom: '3px' }}>
                     {sub.label}
                   </div>
                   <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
@@ -275,7 +372,11 @@ function DetailsForm({
           type="text"
           value={formData.title}
           onChange={e => setFormData(prev => ({ ...prev, title: e.target.value.slice(0, 80) }))}
-          placeholder={isSafety ? 'e.g. Armed robbery at Vilakazi St' : 'Short, clear title'}
+          placeholder={
+            isSafety   ? 'e.g. Armed robbery at Vilakazi St' :
+            activeSub  ? activeSub.titleHint :
+            'Short, clear title'
+          }
           style={{
             width: '100%', boxSizing: 'border-box',
             background: 'var(--color-surface)',
@@ -300,9 +401,13 @@ function DetailsForm({
           onChange={e => setFormData(prev => ({ ...prev, description: e.target.value.slice(0, 500) }))}
           placeholder={
             isSafety    ? 'Describe what happened, location, any suspects...' :
-            isHousing   ? 'Size, availability, what's included, house rules...' :
+            isHousing   ? 'Size, availability, what\'s included, house rules...' :
+            isJob && formData.jobSubType === 'available' ? 'Your experience, skills, availability — convince them to hire you...' :
+            isJob && formData.jobSubType === 'task'      ? 'What needs doing, when, budget, any requirements...' :
+            isJob       ? 'Role details, requirements, what you\'re offering...' :
+            isService && formData.serviceSubType === 'seeking' ? 'What do you need, your area, timeline, budget...' :
+            isService   ? 'What you offer, your experience, area you cover...' :
             category === 'lost_found' ? 'Describe the item, where it was last seen...' :
-            category === 'jobs' ? 'Role details, requirements, location...' :
             'More details (optional)'
           }
           rows={4}
@@ -375,7 +480,9 @@ function DetailsForm({
       {showRate && (
         <div style={{ marginBottom: '14px' }}>
           <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {category === 'jobs' ? 'Salary / Rate (optional)' : 'Rate / Price (optional)'}
+            {isJob && formData.jobSubType === 'available' ? 'Expected rate / salary (optional)' :
+             isJob ? 'Salary / Rate offered (optional)' :
+             'Rate / Price (optional)'}
           </label>
           <input
             type="number"
@@ -627,7 +734,8 @@ export default function BoardNewPage() {
     }
   }, [searchParams]);
   const [formData, setFormData] = useState<FormData>({
-    title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false, housingSubType: 'rental',
+    title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false,
+    housingSubType: 'rental', jobSubType: 'hiring', serviceSubType: 'offering',
   });
   const [submitting, setSubmitting] = useState(false);
 

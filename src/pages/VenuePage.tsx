@@ -1062,10 +1062,10 @@ type CompletenessMissing = {
 };
 
 const COMPLETENESS_ITEMS: CompletenessMissing[] = [
-  { key: 'photo',       label: 'No photos yet',               ownerPath: '/venue/photos',    ownerCta: 'Add photos'        },
-  { key: 'description', label: 'No description',              ownerPath: '/venue/edit',       ownerCta: 'Write description' },
-  { key: 'contact',     label: 'No contact details',          ownerPath: '/venue/edit',       ownerCta: 'Add contact'       },
-  { key: 'hours',       label: 'No opening hours',            ownerPath: '/venue/hours',      ownerCta: 'Set hours'         },
+  { key: 'photo',       label: 'Add photos — places with a photo get 3× more taps', ownerPath: '/venue/photos', ownerCta: 'Add photos'        },
+  { key: 'description', label: 'Write a description — help neighbours know what to expect',       ownerPath: '/venue/edit',   ownerCta: 'Write it'          },
+  { key: 'contact',     label: 'Add WhatsApp or phone — let customers reach you directly',        ownerPath: '/venue/edit',   ownerCta: 'Add contact'       },
+  { key: 'hours',       label: 'Set opening hours — so neighbours know when you\'re open',        ownerPath: '/venue/hours',  ownerCta: 'Set hours'         },
 ];
 
 function ListingCompletenessPanel({
@@ -2406,6 +2406,44 @@ export default function VenuePage() {
 
       {/* ── Sticky bottom CTA ─────────────────────────────────────────────── */}
       <StickyCheckinBar venue={venue} />
+
+      {/* ── Owner action bar — shown only to the venue owner ─────────────── */}
+      {!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId) && (
+        <div style={{
+          position: 'fixed', bottom: '64px', left: 0, right: 0, zIndex: 45,
+          background: 'rgba(22,27,34,0.97)',
+          borderTop: '1px solid rgba(57,217,138,0.25)',
+          backdropFilter: 'blur(16px)',
+          padding: '10px 16px',
+          display: 'flex', gap: '8px', alignItems: 'center',
+        }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: '#39D98A', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
+            Your place
+          </span>
+          <div style={{ flex: 1, display: 'flex', gap: '6px' }}>
+            {[
+              { label: '✏️ Edit',    path: '/venue/edit'    },
+              { label: '📣 Update',  path: '/owner'         },
+              { label: '📊 Stats',   path: '/owner'         },
+            ].map(a => (
+              <button
+                key={a.label}
+                onClick={() => { window.location.href = a.path; }}
+                style={{
+                  flex: 1, padding: '8px 6px', borderRadius: '10px',
+                  background: 'rgba(57,217,138,0.1)',
+                  border: '1px solid rgba(57,217,138,0.2)',
+                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+                  color: '#39D98A', cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Lightbox ──────────────────────────────────────────────────────── */}
       {lightboxIdx !== null && galleryImages.length > 0 && (
