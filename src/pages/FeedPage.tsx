@@ -1909,8 +1909,8 @@ export default function FeedPage() {
       {/* Stories strip — only when there is something to show */}
       {stories.length > 0 && <StoriesStrip stories={stories} />}
 
-      {/* Neighbourhood Moments strip — 24h local visual context */}
-      {(moments.length > 0 || !!user) && (
+      {/* Neighbourhood Moments strip — only when real moments exist */}
+      {moments.length > 0 && (
         <MomentsStrip
           moments={moments}
           neighbourhood={suburb || areaLabel}
