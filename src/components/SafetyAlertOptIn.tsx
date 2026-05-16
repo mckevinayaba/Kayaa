@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -71,7 +71,7 @@ export function SafetyAlertOptIn({ suburb, compact }: Props) {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '5px',
           height: '36px', padding: '0 12px', flexShrink: 0,
-          background: optedIn ? 'rgba(57,217,138,0.12)' : '#161B22',
+          background: optedIn ? 'rgba(57,217,138,0.12)' : 'var(--color-surface)',
           border: `1px solid ${optedIn ? 'rgba(57,217,138,0.3)' : 'rgba(255,255,255,0.08)'}`,
           borderRadius: '18px', cursor: saving ? 'default' : 'pointer',
           fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,

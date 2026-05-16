@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, X, CheckCircle } from 'lucide-react';
 import { createBoardPost, uploadBoardImage, getInteractiveUserId } from '../lib/api';
@@ -45,7 +45,7 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 function inputStyle(focused?: boolean): React.CSSProperties {
   return {
     width: '100%', boxSizing: 'border-box',
-    background: '#161B22',
+    background: 'var(--color-surface)',
     border: `1px solid ${focused ? '#39D98A' : 'rgba(255,255,255,0.08)'}`,
     borderRadius: '12px', padding: '13px 14px',
     color: '#fff', fontSize: '15px',
@@ -248,7 +248,7 @@ export default function PostSkill() {
                     display: 'flex', alignItems: 'center', gap: '5px',
                     padding: '7px 12px', borderRadius: '20px',
                     border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                    background: active ? '#39D98A' : '#161B22',
+                    background: active ? '#39D98A' : 'var(--color-surface)',
                     color: active ? '#000' : 'rgba(255,255,255,0.6)',
                     fontSize: '12px', fontWeight: active ? 700 : 500,
                     fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
@@ -381,7 +381,7 @@ export default function PostSkill() {
                 disabled={uploading}
                 style={{
                   width: 76, height: 76, borderRadius: '10px',
-                  background: '#161B22',
+                  background: 'var(--color-surface)',
                   border: '1px dashed rgba(255,255,255,0.12)',
                   cursor: uploading ? 'default' : 'pointer',
                   display: 'flex', flexDirection: 'column',
@@ -411,7 +411,7 @@ export default function PostSkill() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '10px 14px', borderRadius: '10px',
-          background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
         }}>
           <span style={{ fontSize: '14px' }}>📍</span>
           <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * QuickAddPlace — 30-second community place submission.
  *
  * Any user can add a missing place in three fields:
@@ -169,7 +169,7 @@ export default function QuickAddPlace({
       {/* Sheet */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 301,
-        background: '#161B22',
+        background: 'var(--color-surface)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '20px 20px 0 0',
         padding: '24px 20px 48px',

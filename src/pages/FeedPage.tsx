@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+﻿import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
@@ -513,7 +513,7 @@ function EmptyState({ neighbourhood, onCompose, onAddPlace }: {
             onClick={action}
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
-              background: '#161B22', border: `1px solid rgba(255,255,255,0.07)`,
+              background: 'var(--color-surface)', border: `1px solid rgba(255,255,255,0.07)`,
               borderRadius: '14px', padding: '14px 16px', cursor: 'pointer',
               textAlign: 'left', width: '100%',
             }}
@@ -653,7 +653,7 @@ function NewPlaceBanner({ venues, areaLabel }: { venues: Venue[]; areaLabel: str
       style={{
         position: 'fixed', bottom: '72px', left: '12px', right: '12px',
         zIndex: 60,
-        background: '#161B22',
+        background: 'var(--color-surface)',
         border: '1px solid rgba(57,217,138,0.35)',
         borderRadius: '14px', padding: '12px 14px',
         display: 'flex', alignItems: 'center', gap: '12px',
@@ -1222,7 +1222,7 @@ function UtilityPillStrip({ areaLabel, suburb }: { areaLabel: string; suburb: st
   const pillBase: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', gap: '5px',
     height: '36px', padding: '0 12px', flexShrink: 0,
-    background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '18px', cursor: 'pointer',
     fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
     color: 'rgba(255,255,255,0.55)',
@@ -1812,7 +1812,7 @@ export default function FeedPage() {
       {/* Area search input — shown when user taps Change in the GPS banner */}
       {showAreaSearch && (
         <div style={{
-          background: '#161B22', border: '1px solid rgba(57,217,138,0.25)',
+          background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.25)',
           borderRadius: '14px', padding: '14px 16px', marginBottom: '14px',
         }}>
           <div style={{

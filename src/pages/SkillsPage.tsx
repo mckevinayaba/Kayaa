@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Search, PenSquare, ChevronRight } from 'lucide-react';
 import { getBoardPosts, type BoardPost } from '../lib/api';
@@ -64,7 +64,7 @@ function SkillCard({ post }: { post: BoardPost }) {
       style={{ display: 'block', textDecoration: 'none' }}
     >
       <div style={{
-        background: '#161B22',
+        background: 'var(--color-surface)',
         border: '1px solid #21262D',
         borderLeft: '3px solid #39D98A',
         borderRadius: '10px',
@@ -139,7 +139,7 @@ function SkillCard({ post }: { post: BoardPost }) {
 
 function SkillSkeleton() {
   return (
-    <div style={{ background: '#161B22', border: '1px solid #21262D', borderLeft: '3px solid #21262D', borderRadius: '10px', padding: '16px 20px', marginBottom: '12px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderLeft: '3px solid #21262D', borderRadius: '10px', padding: '16px 20px', marginBottom: '12px' }}>
       <div style={{ height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '60%', marginBottom: '8px' }} />
       <div style={{ height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', width: '30%', marginBottom: '12px' }} />
       <div style={{ height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', width: '90%', marginBottom: '6px' }} />

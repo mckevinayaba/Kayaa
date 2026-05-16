@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Shield, ThumbsUp, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -120,7 +120,7 @@ export function SafetyRating({ placeId, rating, totalReviews, showDetails = fals
 
   return (
     <div style={{
-      background: '#161B22',
+      background: 'var(--color-surface)',
       border: '1px solid #21262D',
       borderRadius: '14px',
       padding: '16px',

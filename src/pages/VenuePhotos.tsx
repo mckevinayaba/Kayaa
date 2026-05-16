@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Upload, Trash2, Check, X, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,7 +26,7 @@ function PhotoCard({
   const [confirm, setConfirm] = useState(false);
 
   return (
-    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '1', background: '#161B22' }}>
+    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '1', background: 'var(--color-surface)' }}>
       <img
         src={photo.url}
         alt="Venue photo"
@@ -128,7 +128,7 @@ function UploadSlot({ onUpload }: { onUpload: (file: File) => void }) {
       onDrop={e => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }}
       style={{
         aspectRatio: '1', borderRadius: '12px', cursor: 'pointer',
-        border: `2px dashed ${dragging ? '#39D98A' : '#30363D'}`,
+        border: `2px dashed ${dragging ? '#39D98A' : 'var(--color-border)'}`,
         background: dragging ? 'rgba(57,217,138,0.05)' : 'rgba(255,255,255,0.02)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px',
         transition: 'all 0.15s',
@@ -340,7 +340,7 @@ export default function VenuePhotos() {
           ].map(tip => (
             <span key={tip} style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)',
-              background: '#161B22', border: '1px solid #21262D', borderRadius: '20px',
+              background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '20px',
               padding: '4px 10px',
             }}>
               {tip}
@@ -376,7 +376,7 @@ export default function VenuePhotos() {
         {venueId && photos.length === 0 && !uploading && (
           <div style={{
             textAlign: 'center', padding: '48px 24px',
-            background: '#161B22', border: '1px dashed #30363D',
+            background: 'var(--color-surface)', border: '1px dashed #30363D',
             borderRadius: '16px',
           }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📷</div>

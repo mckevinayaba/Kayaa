@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 
 interface PlaceShareModalProps {
@@ -120,7 +120,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '480px',
-          background: '#161B22',
+          background: 'var(--color-surface)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '20px 20px 0 0',
           overflow: 'hidden',

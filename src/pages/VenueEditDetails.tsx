@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, FileText, Phone, MessageCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -57,7 +57,7 @@ export default function VenueEditDetails() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box',
-    background: '#161B22', border: '1px solid #30363D',
+    background: 'var(--color-surface)', border: '1px solid #30363D',
     borderRadius: '10px', padding: '12px 14px',
     fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
     color: '#F0F6FC', outline: 'none',
@@ -193,7 +193,7 @@ export default function VenueEditDetails() {
 
         {/* ── Venue name (read-only context) ──────────────────────────── */}
         <div style={{
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '14px', padding: '12px 16px',
           marginBottom: '24px',
           display: 'flex', alignItems: 'center', gap: '10px',
@@ -219,7 +219,7 @@ export default function VenueEditDetails() {
         {/* ── Open / Closed toggle ─────────────────────────────────────── */}
         <div style={{
           background: isOpen ? 'rgba(57,217,138,0.06)' : 'rgba(255,255,255,0.03)',
-          border: `1px solid ${isOpen ? 'rgba(57,217,138,0.25)' : '#21262D'}`,
+          border: `1px solid ${isOpen ? 'rgba(57,217,138,0.25)' : 'var(--color-border)'}`,
           borderRadius: '14px', padding: '16px',
           marginBottom: '24px',
           display: 'flex', alignItems: 'center', gap: '14px',

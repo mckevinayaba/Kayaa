@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Copy, Check, Share2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -187,7 +187,7 @@ export default function VenueQRCode() {
         {/* ── URL chip ─────────────────────────────────────────────────── */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '12px', padding: '10px 14px', marginBottom: '20px',
         }}>
           <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -240,7 +240,7 @@ export default function VenueQRCode() {
 
         {/* ── Placement tips ─────────────────────────────────────────────── */}
         <div style={{
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '14px', padding: '16px',
         }}>
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '10px' }}>

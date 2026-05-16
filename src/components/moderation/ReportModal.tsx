@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Flag, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -163,8 +163,8 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
                 onClick={() => setReason(r)}
                 style={{
                   textAlign: 'left', padding: '12px 14px',
-                  background: reason === r ? 'rgba(239,68,68,0.12)' : '#161B22',
-                  border: `1px solid ${reason === r ? '#EF4444' : '#21262D'}`,
+                  background: reason === r ? 'rgba(239,68,68,0.12)' : 'var(--color-surface)',
+                  border: `1px solid ${reason === r ? '#EF4444' : 'var(--color-border)'}`,
                   borderRadius: '10px',
                   fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
                   color: reason === r ? '#F0F6FC' : 'rgba(255,255,255,0.65)',
@@ -188,7 +188,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
             placeholder="Provide more context to help us review…"
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#161B22', border: '1px solid #21262D',
+              background: 'var(--color-surface)', border: '1px solid #21262D',
               borderRadius: '10px', padding: '12px',
               color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
               outline: 'none', resize: 'none',

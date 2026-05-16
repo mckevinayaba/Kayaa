@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -64,7 +64,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{
-      background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: '14px', overflow: 'hidden',
     }}>
       <button
@@ -149,7 +149,7 @@ export default function Help() {
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
               padding: '14px 16px', borderRadius: '14px',
-              background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
               textDecoration: 'none',
             }}
           >
@@ -172,7 +172,7 @@ export default function Help() {
             {HELP_TOPICS.map(topic => (
               <div
                 key={topic.title}
-                style={{ padding: '14px 16px', background: '#161B22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px' }}
+                style={{ padding: '14px 16px', background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px' }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
                   <span style={{ fontSize: '28px', lineHeight: 1, flexShrink: 0 }}>{topic.icon}</span>

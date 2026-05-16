@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Shield, Users, Send, X, Plus, Trash2, Phone } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -214,8 +214,8 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
                   <div key={c.id} style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '12px',
-                    background: active ? 'rgba(57,217,138,0.1)' : '#161B22',
-                    border: `1px solid ${active ? 'rgba(57,217,138,0.4)' : '#21262D'}`,
+                    background: active ? 'rgba(57,217,138,0.1)' : 'var(--color-surface)',
+                    border: `1px solid ${active ? 'rgba(57,217,138,0.4)' : 'var(--color-border)'}`,
                     borderRadius: '12px', cursor: 'pointer',
                     transition: 'border-color 0.15s',
                   }}
@@ -225,7 +225,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
                     <div style={{
                       width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0,
                       background: active ? '#39D98A' : 'transparent',
-                      border: `2px solid ${active ? '#39D98A' : '#30363D'}`,
+                      border: `2px solid ${active ? '#39D98A' : 'var(--color-border)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {active && <span style={{ color: '#000', fontSize: '11px', fontWeight: 900 }}>✓</span>}
@@ -261,7 +261,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
               })}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '24px', background: '#161B22', borderRadius: '12px', marginBottom: '12px' }}>
+            <div style={{ textAlign: 'center', padding: '24px', background: 'var(--color-surface)', borderRadius: '12px', marginBottom: '12px' }}>
               <Users size={32} color="rgba(255,255,255,0.2)" style={{ marginBottom: '8px' }} />
               <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>No emergency contacts yet</div>
               <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>Add a contact below to get started</div>

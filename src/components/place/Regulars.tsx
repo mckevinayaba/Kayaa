@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -77,7 +77,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
       </h2>
 
       <div style={{
-        background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '12px', padding: '16px',
       }}>
         {/* Count line */}

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { X, Image } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { createUserPost, uploadUserPostImage } from '../lib/api';
@@ -85,7 +85,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
       <div
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80,
-          background: '#161B22',
+          background: 'var(--color-surface)',
           border: `2px solid ${accentBorder}`,
           borderRadius: '20px 20px 0 0',
           padding: '20px 16px 32px',
@@ -157,7 +157,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
             rows={5}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#0D1117', border: `1px solid ${content.length > 0 ? accentBorder + '60' : '#21262D'}`,
+              background: '#0D1117', border: `1px solid ${content.length > 0 ? accentBorder + '60' : 'var(--color-border)'}`,
               borderRadius: '12px', padding: '14px', paddingBottom: '30px',
               color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '15px',
               lineHeight: 1.6, outline: 'none', resize: 'vertical',

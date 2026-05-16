@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Check, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -111,8 +111,8 @@ function DayRow({
 
   return (
     <div style={{
-      background: slot.closed ? 'rgba(255,255,255,0.02)' : '#161B22',
-      border: `1px solid ${slot.closed ? '#21262D' : 'rgba(57,217,138,0.15)'}`,
+      background: slot.closed ? 'rgba(255,255,255,0.02)' : 'var(--color-surface)',
+      border: `1px solid ${slot.closed ? 'var(--color-border)' : 'rgba(57,217,138,0.15)'}`,
       borderRadius: '14px', padding: '14px', opacity: slot.closed ? 0.6 : 1,
     }}>
       {/* Header row */}
@@ -138,7 +138,7 @@ function DayRow({
             onClick={() => onChange({ ...slot, closed: !slot.closed })}
             style={{
               width: '40px', height: '22px', borderRadius: '11px',
-              background: slot.closed ? '#30363D' : 'rgba(57,217,138,0.3)',
+              background: slot.closed ? 'var(--color-border)' : 'rgba(57,217,138,0.3)',
               border: `1px solid ${slot.closed ? '#444' : 'rgba(57,217,138,0.5)'}`,
               position: 'relative', cursor: 'pointer', transition: 'all 0.2s',
             }}
@@ -307,7 +307,7 @@ export default function VenueHours() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
                   padding: '6px 12px', borderRadius: '20px',
-                  background: '#161B22', border: '1px solid #30363D',
+                  background: 'var(--color-surface)', border: '1px solid #30363D',
                   fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
                   color: 'rgba(255,255,255,0.6)', cursor: 'pointer', whiteSpace: 'nowrap',
                 }}

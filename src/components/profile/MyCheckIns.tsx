@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,7 +65,7 @@ export function MyCheckIns({ history }: MyCheckInsProps) {
             key={item.venueId}
             onClick={() => navigate(`/venue/${item.venueSlug}`)}
             style={{
-              background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '14px', padding: '14px 16px',
               display: 'flex', alignItems: 'center', gap: '14px',
               cursor: 'pointer',

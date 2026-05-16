@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Check, X, Calendar } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,7 +43,7 @@ function EventCard({
 
   return (
     <div style={{
-      background: '#161B22', border: `1px solid ${past ? '#21262D' : 'rgba(244,114,182,0.2)'}`,
+      background: 'var(--color-surface)', border: `1px solid ${past ? 'var(--color-border)' : 'rgba(244,114,182,0.2)'}`,
       borderRadius: '14px', padding: '14px', marginBottom: '10px',
       opacity: past ? 0.6 : 1,
     }}>
@@ -52,7 +52,7 @@ function EventCard({
         <div style={{
           width: '44px', flexShrink: 0, textAlign: 'center',
           background: past ? 'rgba(255,255,255,0.04)' : 'rgba(244,114,182,0.1)',
-          border: `1px solid ${past ? '#21262D' : 'rgba(244,114,182,0.25)'}`,
+          border: `1px solid ${past ? 'var(--color-border)' : 'rgba(244,114,182,0.25)'}`,
           borderRadius: '10px', padding: '6px 4px',
         }}>
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: past ? 'rgba(255,255,255,0.4)' : '#F472B6', lineHeight: 1 }}>
@@ -172,7 +172,7 @@ function CreateEventForm({
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid rgba(244,114,182,0.25)',
+      background: 'var(--color-surface)', border: '1px solid rgba(244,114,182,0.25)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '14px' }}>
@@ -437,7 +437,7 @@ export default function VenueEvents() {
             {upcoming.length === 0 && !showForm ? (
               <div style={{
                 textAlign: 'center', padding: '48px 24px',
-                background: '#161B22', border: '1px dashed #30363D',
+                background: 'var(--color-surface)', border: '1px dashed #30363D',
                 borderRadius: '16px', marginBottom: '16px',
               }}>
                 <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>

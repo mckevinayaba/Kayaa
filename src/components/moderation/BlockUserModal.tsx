@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, UserX, VolumeX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -119,8 +119,8 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
               style={{
                 display: 'flex', alignItems: 'flex-start', gap: '12px',
                 padding: '14px',
-                background: action === 'mute' ? 'rgba(249,115,22,0.1)' : '#161B22',
-                border: `1px solid ${action === 'mute' ? '#F97316' : '#21262D'}`,
+                background: action === 'mute' ? 'rgba(249,115,22,0.1)' : 'var(--color-surface)',
+                border: `1px solid ${action === 'mute' ? '#F97316' : 'var(--color-border)'}`,
                 borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
                 transition: 'border-color 0.15s',
               }}
@@ -142,8 +142,8 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
               style={{
                 display: 'flex', alignItems: 'flex-start', gap: '12px',
                 padding: '14px',
-                background: action === 'block' ? 'rgba(239,68,68,0.1)' : '#161B22',
-                border: `1px solid ${action === 'block' ? '#EF4444' : '#21262D'}`,
+                background: action === 'block' ? 'rgba(239,68,68,0.1)' : 'var(--color-surface)',
+                border: `1px solid ${action === 'block' ? '#EF4444' : 'var(--color-border)'}`,
                 borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
                 transition: 'border-color 0.15s',
               }}

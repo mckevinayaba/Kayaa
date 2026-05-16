@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MessageCircle, Phone, Share2,
@@ -171,7 +171,7 @@ export default function SkillDetail() {
       <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
         {/* ── Hero card ──────────────────────────────────────────────────────── */}
-        <div style={{ background: '#161B22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
             <div style={{
               width: 56, height: 56, borderRadius: '14px', flexShrink: 0,
@@ -218,7 +218,7 @@ export default function SkillDetail() {
             {/* Main photo */}
             <div style={{
               width: '100%', height: '220px',
-              background: '#161B22', borderRadius: '14px', overflow: 'hidden',
+              background: 'var(--color-surface)', borderRadius: '14px', overflow: 'hidden',
               marginBottom: '8px', position: 'relative',
             }}>
               <img
@@ -247,7 +247,7 @@ export default function SkillDetail() {
                     style={{
                       flexShrink: 0, width: 56, height: 56, borderRadius: '8px',
                       overflow: 'hidden', border: i === imgIdx ? '2px solid #39D98A' : '2px solid transparent',
-                      padding: 0, cursor: 'pointer', background: '#161B22',
+                      padding: 0, cursor: 'pointer', background: 'var(--color-surface)',
                     }}
                   >
                     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -283,7 +283,7 @@ export default function SkillDetail() {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '14px 0', borderRadius: '14px',
-                background: '#161B22', border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)',
                 textDecoration: 'none',
                 fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
               }}
@@ -295,7 +295,7 @@ export default function SkillDetail() {
           {!waUrl && !post.contactWhatsapp && (
             <div style={{
               padding: '14px 0', borderRadius: '14px',
-              background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
               textAlign: 'center',
               fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)',
             }}>
@@ -318,7 +318,7 @@ export default function SkillDetail() {
 
         {/* ── Meta info ──────────────────────────────────────────────────────── */}
         <div style={{
-          background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: '14px', overflow: 'hidden',
         }}>
           {[

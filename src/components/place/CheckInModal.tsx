@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Globe, Lock, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -108,7 +108,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
         }}
       >
         <div style={{
-          background: '#161B22', border: '1px solid rgba(57,217,138,0.25)',
+          background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.25)',
           borderRadius: '20px', padding: '40px 32px', textAlign: 'center',
           width: '100%', maxWidth: '360px',
         }}>
@@ -145,7 +145,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '480px',
-          background: '#161B22',
+          background: 'var(--color-surface)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '20px 20px 0 0',
           overflow: 'hidden',

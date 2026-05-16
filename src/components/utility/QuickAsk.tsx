@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { MessageCircle, Send, CheckCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -67,7 +67,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
 
   if (postedId) {
     return (
-      <div style={{ background: '#161B22', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '20px 0', gap: '10px',
@@ -112,7 +112,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
   // ── Main form ─────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ background: '#161B22', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>

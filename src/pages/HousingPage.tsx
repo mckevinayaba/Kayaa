@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HousingPage — /housing
  *
  * Dedicated surface for accommodation listings pulled from the Board.
@@ -79,7 +79,7 @@ function HousingCard({ post }: { post: BoardPost }) {
 
   return (
     <div style={{
-      background: '#161B22',
+      background: 'var(--color-surface)',
       border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: '16px',
       overflow: 'hidden',
@@ -200,7 +200,7 @@ function HousingCard({ post }: { post: BoardPost }) {
 
 function HousingSkeleton() {
   return (
-    <div style={{ background: '#161B22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', marginBottom: '12px', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', marginBottom: '12px', overflow: 'hidden' }}>
       <div style={{ height: '160px', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
       <div style={{ padding: '14px 16px' }}>
         <div style={{ height: '16px', width: '70%', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', marginBottom: '8px' }} />

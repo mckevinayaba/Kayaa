@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BarChart3, Users, TrendingUp, TrendingDown, Zap, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -61,7 +61,7 @@ function SummaryCard({ report }: { report: CommunityReportData }) {
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid #21262D',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -103,7 +103,7 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid #21262D',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
@@ -157,7 +157,7 @@ function HourlyHeatmap({ hours }: { hours: number[] }) {
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid #21262D',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
@@ -204,7 +204,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid #21262D',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -230,7 +230,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
               display: 'flex', alignItems: 'center', gap: '12px',
               padding: '10px 12px', borderRadius: '10px',
               background: r.isLapsed ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${r.isLapsed ? 'rgba(251,191,36,0.12)' : '#21262D'}`,
+              border: `1px solid ${r.isLapsed ? 'rgba(251,191,36,0.12)' : 'var(--color-border)'}`,
             }}>
               {/* Rank */}
               <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: 'rgba(255,255,255,0.25)', width: '18px', textAlign: 'right', flexShrink: 0 }}>
@@ -324,7 +324,7 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
 
   return (
     <div style={{
-      background: '#161B22', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid #21262D',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -515,7 +515,7 @@ export default function VenueAnalytics() {
         }}>
           {/* Today */}
           <div style={{
-            background: '#161B22', border: '1px solid rgba(57,217,138,0.15)',
+            background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.15)',
             borderRadius: '14px', padding: '14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
@@ -531,7 +531,7 @@ export default function VenueAnalytics() {
 
           {/* This week — with trend badge if comparison data exists */}
           <div style={{
-            background: '#161B22', border: '1px solid rgba(96,165,250,0.15)',
+            background: 'var(--color-surface)', border: '1px solid rgba(96,165,250,0.15)',
             borderRadius: '14px', padding: '14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>

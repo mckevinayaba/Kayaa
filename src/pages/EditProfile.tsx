@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Edit Profile page — stores display preferences in localStorage.
  * No Supabase auth required; uses the anonymous visitor ID system.
  *
@@ -43,7 +43,7 @@ const SA_CITIES = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: '#161B22', border: '1px solid rgba(255,255,255,0.1)',
+  background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '12px', padding: '13px 14px',
   color: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
   outline: 'none',

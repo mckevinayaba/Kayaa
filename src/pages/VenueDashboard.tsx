@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BarChart3, Users, Eye, Star, TrendingUp, TrendingDown,
@@ -59,7 +59,7 @@ function StatTile({
 }) {
   return (
     <div style={{
-      background: '#161B22', border: `1px solid ${accent}25`,
+      background: 'var(--color-surface)', border: `1px solid ${accent}25`,
       borderRadius: '14px', padding: '14px 12px',
       display: 'flex', flexDirection: 'column', gap: '6px',
     }}>
@@ -125,7 +125,7 @@ function ActionButton({
         padding: '14px 16px', borderRadius: '14px', textDecoration: 'none',
         background: premium
           ? 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(249,115,22,0.08))'
-          : '#161B22',
+          : 'var(--color-surface)',
         border: premium
           ? '1px solid rgba(251,191,36,0.3)'
           : '1px solid #21262D',
@@ -358,7 +358,7 @@ export default function VenueDashboard() {
         {/* ── Venue identity card ─────────────────────────────────────────── */}
         <div style={{
           marginTop: '16px', marginBottom: '20px',
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '16px', padding: '16px',
           display: 'flex', alignItems: 'center', gap: '14px',
         }}>
@@ -503,7 +503,7 @@ export default function VenueDashboard() {
 
         {/* ── Weekly rhythm card ──────────────────────────────────────────── */}
         <div style={{
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '16px', padding: '16px', marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -544,7 +544,7 @@ export default function VenueDashboard() {
 
         {/* ── Recent visitors ─────────────────────────────────────────────── */}
         <div style={{
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '16px', padding: '16px', marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>

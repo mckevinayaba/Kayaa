@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import type { CheckInHistoryItem } from './MyCheckIns';
 
 // A "regular" = you've visited a place 3+ times
@@ -46,7 +46,7 @@ export function MyRegulars({ history }: MyRegularsProps) {
             key={item.venueId}
             onClick={() => navigate(`/venue/${item.venueSlug}`)}
             style={{
-              background: '#161B22', border: `1px solid ${color}25`,
+              background: 'var(--color-surface)', border: `1px solid ${color}25`,
               borderRadius: '14px', padding: '14px 16px',
               display: 'flex', alignItems: 'center', gap: '14px',
               cursor: 'pointer',

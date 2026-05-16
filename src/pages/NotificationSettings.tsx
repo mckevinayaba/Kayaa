@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Notification Settings — toggle preferences stored in localStorage.
  * No Supabase auth required.
  *
@@ -55,7 +55,7 @@ function ToggleRow({
     <div style={{
       display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px',
       padding: '14px 16px', borderRadius: '14px',
-      background: highlight ? 'rgba(57,217,138,0.06)' : '#161B22',
+      background: highlight ? 'rgba(57,217,138,0.06)' : 'var(--color-surface)',
       border: `1px solid ${highlight ? 'rgba(57,217,138,0.2)' : 'rgba(255,255,255,0.07)'}`,
     }}>
       <div style={{ flex: 1 }}>

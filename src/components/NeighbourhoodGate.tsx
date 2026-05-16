@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { useLocationContext } from '../contexts/LocationContext';
 import AreaSelector from './AreaSelector';
@@ -76,7 +76,7 @@ export default function NeighbourhoodGate({ onDone }: Props) {
       {/* Sheet */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        background: '#161B22',
+        background: 'var(--color-surface)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '20px 20px 0 0',
         padding: '12px 24px 44px',

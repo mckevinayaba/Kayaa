@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Shield, Phone } from 'lucide-react';
 import {
@@ -47,7 +47,7 @@ export default function EmergencyContacts() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box',
-    background: '#161B22', border: '1px solid #30363D',
+    background: 'var(--color-surface)', border: '1px solid #30363D',
     borderRadius: '10px', padding: '12px 14px',
     color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
     outline: 'none',
@@ -106,7 +106,7 @@ export default function EmergencyContacts() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '14px',
-                  background: '#161B22',
+                  background: 'var(--color-surface)',
                   border: '1px solid #21262D',
                   borderRadius: '14px',
                 }}
@@ -162,7 +162,7 @@ export default function EmergencyContacts() {
         {showAddForm ? (
           <div style={{
             padding: '16px',
-            background: '#161B22',
+            background: 'var(--color-surface)',
             border: '1px solid rgba(57,217,138,0.2)',
             borderRadius: '14px',
             display: 'flex', flexDirection: 'column', gap: '10px',

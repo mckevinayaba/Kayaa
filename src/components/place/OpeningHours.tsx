@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
           Hours
         </h2>
         <div style={{
-          background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '12px', padding: '16px',
           display: 'flex', alignItems: 'flex-start', gap: '12px',
         }}>
@@ -104,7 +104,7 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
         Hours
       </h2>
 
-      <div style={{ background: '#161B22', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden' }}>
 
         {/* Summary row — tap to expand */}
         <button

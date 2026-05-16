@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -97,7 +97,7 @@ export function MyPosts({ visitorId }: MyPostsProps) {
         <div
           key={post.id}
           style={{
-            background: '#161B22', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: '14px', padding: '14px 16px',
           }}
         >

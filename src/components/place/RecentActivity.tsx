@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { MapPin, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -119,7 +119,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
               key={a.id}
               style={{
                 display: 'flex', gap: '12px', padding: '14px',
-                background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '12px',
               }}
             >

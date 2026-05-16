@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+﻿import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Map, List, SlidersHorizontal, X, Users } from 'lucide-react';
 import { getAllVenues } from '../lib/api';
@@ -333,7 +333,7 @@ export default function ExplorePage() {
         {/* Map view — lazy-loaded to keep leaflet CSS out of the global bundle */}
         {view === 'map' && (
           <div style={{ height: '100%', padding: '12px 16px' }}>
-            <Suspense fallback={<div style={{ width: '100%', height: '100%', background: '#161B22', borderRadius: '16px' }} />}>
+            <Suspense fallback={<div style={{ width: '100%', height: '100%', background: 'var(--color-surface)', borderRadius: '16px' }} />}>
               <MapView
                 venues={filtered}
                 userLat={userLat}

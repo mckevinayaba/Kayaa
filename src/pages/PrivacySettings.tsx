@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Privacy Settings — toggle visibility preferences, stored in localStorage.
  * Saved key: "kayaa_privacy"
  * Shape: { showCheckins, showRegulars, showPosts, allowMessages }
@@ -48,7 +48,7 @@ function ToggleRow({
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px',
-      padding: '14px 16px', background: '#161B22',
+      padding: '14px 16px', background: 'var(--color-surface)',
       border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px',
     }}>
       <div style={{ flex: 1 }}>

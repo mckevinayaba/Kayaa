@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { Calendar, MapPin, Users, Clock, Plus, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getVisitorId } from '../../lib/api';
@@ -290,7 +290,7 @@ export function EventsCalendar() {
   const filtered = events; // server-side filter already applied
 
   return (
-    <div style={{ background: '#161B22', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>

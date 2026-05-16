@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import { Search, Package, MapPin, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import {
   searchNearbyStock,
@@ -46,8 +46,8 @@ function UpdateForm({
             onClick={() => setInStock(val)}
             style={{
               flex: 1, padding: '8px',
-              background: inStock === val ? (val ? 'rgba(57,217,138,0.2)' : 'rgba(239,68,68,0.2)') : '#161B22',
-              border: `1px solid ${inStock === val ? (val ? '#39D98A' : '#EF4444') : '#30363D'}`,
+              background: inStock === val ? (val ? 'rgba(57,217,138,0.2)' : 'rgba(239,68,68,0.2)') : 'var(--color-surface)',
+              border: `1px solid ${inStock === val ? (val ? '#39D98A' : '#EF4444') : 'var(--color-border)'}`,
               borderRadius: '8px',
               fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700,
               color: inStock === val ? (val ? '#39D98A' : '#EF4444') : 'rgba(255,255,255,0.5)',
@@ -199,7 +199,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
         onClick={() => setOpen(true)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          background: '#161B22', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid #21262D',
           borderRadius: '12px', padding: '12px 14px',
           cursor: 'pointer', textAlign: 'left',
         }}
@@ -254,7 +254,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
   }, [area]);
 
   return (
-    <div style={{ background: '#161B22', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
