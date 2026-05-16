@@ -1651,6 +1651,10 @@ export default function FeedPage() {
   // ── Nudge visibility ─────────────────────────────────────────────────────
   const suburbNudgeKey = (suburb || 'global').toLowerCase().replace(/\s+/g, '_');
 
+  // "Welcome" — shown once to new users, dismissed to localStorage via existing nudge system
+  const showWelcomeHint =
+    !!user && !loading && !dismissedNudges.has('welcome_hint');
+
   // "Add a place" — show inline after 2nd card when area has < 15 places
   const showAddPlaceNudge =
     !loading && !isFiltered && filteredVenues.length > 0 && filteredVenues.length < 15 &&
@@ -2037,6 +2041,47 @@ export default function FeedPage() {
 
       {/* Push permission banner — only shows after neighbourhood is known */}
       <PushBanner />
+
+      {/* ── Welcome hint — shown once to new users, fully dismissable ── */}
+      {showWelcomeHint && (
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: '10px',
+          background: 'rgba(57,217,138,0.06)',
+          border: '1px solid rgba(57,217,138,0.15)',
+          borderRadius: '14px',
+          padding: '12px 14px',
+          marginBottom: '16px',
+        }}>
+          <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontSize: '13px', color: '#F0F6FC',
+              margin: '0 0 3px',
+            }}>
+              Welcome to {suburb ? `${suburb}` : 'your neighbourhood'}
+            </p>
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '12px', color: 'rgba(255,255,255,0.45)',
+              margin: 0, lineHeight: 1.55,
+            }}>
+              Explore nearby places, share moments, and stay on top of local alerts.
+            </p>
+          </div>
+          <button
+            onClick={() => dismissNudge('welcome_hint')}
+            aria-label="Dismiss welcome hint"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'rgba(255,255,255,0.3)', padding: '2px',
+              flexShrink: 0, fontSize: '16px', lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* ── Utility pill strip (load shedding · water · safety alerts · stock · tools) ── */}
       <UtilityPillStrip areaLabel={areaLabel} suburb={suburb} />

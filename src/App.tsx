@@ -18,7 +18,7 @@ const CheckInPage          = lazy(() => import('./pages/CheckInPage'));
 const DashboardPage        = lazy(() => import('./pages/DashboardPage'));
 const OnboardingPage       = lazy(() => import('./pages/OnboardingPage'));
 const WelcomePage          = lazy(() => import('./pages/WelcomePage'));
-const SetupPage            = lazy(() => import('./pages/SetupPage'));
+// SetupPage removed — "What brings you here?" chooser deleted. /setup → /feed.
 const BoardPage            = lazy(() => import('./pages/BoardPage'));
 const BoardPostPage        = lazy(() => import('./pages/BoardPostPage'));
 const BoardNewPage         = lazy(() => import('./pages/BoardNewPage'));
@@ -116,7 +116,8 @@ export default function App() {
             {/* ── Auth screens — bare AuthLayout ── */}
             <Route element={<AuthLayout />}>
               <Route path="/welcome" element={<WelcomePage />} />
-              <Route path="/setup"   element={<SetupPage />} />
+              {/* /setup was the "What brings you here?" chooser — removed, now goes straight to feed */}
+              <Route path="/setup"   element={<Navigate to="/feed" replace />} />
               <Route path="/login"   element={<Navigate to="/welcome" replace />} />
             </Route>
 

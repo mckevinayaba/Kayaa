@@ -75,7 +75,7 @@ export default function WelcomePage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error,         setError]         = useState('');
 
-  // Already signed in → feed (setup guard will redirect to /setup if needed)
+  // Already signed in → go straight to the feed
   if (user) return <Navigate to="/feed" replace />;
 
   // ── Google handler ──────────────────────────────────────────────────────────

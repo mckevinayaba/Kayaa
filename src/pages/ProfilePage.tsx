@@ -346,7 +346,6 @@ export default function ProfilePage() {
             <button
               onClick={async () => {
                 await signOut();
-                localStorage.removeItem('kayaa_setup_done');
                 window.location.href = '/welcome';
               }}
               style={{

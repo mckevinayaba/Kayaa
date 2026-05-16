@@ -75,7 +75,6 @@ export default function AppLayout() {
   async function handleSignOut() {
     setProfileOpen(false);
     await signOut();
-    localStorage.removeItem('kayaa_setup_done');
     window.location.href = '/welcome';
   }
 
