@@ -73,6 +73,16 @@ const SECTIONS: Section[] = [
     heading: 'Community',
     tiles: [
       {
+        emoji:  '✦',
+        label:  'Share a Moment',
+        sub:    'A photo or short clip of what the neighbourhood looks like right now. Gone in 24 hours.',
+        lands:  'Moments strip · Home',
+        color:  '#39D98A',
+        bg:     'rgba(57,217,138,0.07)',
+        border: 'rgba(57,217,138,0.2)',
+        to:     '/moments/new',
+      },
+      {
         emoji:  '✍️',
         label:  'Share a neighbourhood update',
         sub:    'News, spotted, local event or question for neighbours',

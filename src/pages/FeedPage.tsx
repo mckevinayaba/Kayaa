@@ -16,8 +16,9 @@ import {
   getUserPostsForFeed, getSafetyAlerts,
   likePost, unlikePost, getUserLikedPosts,
   getPromotedVenuesForFeed,
+  getMoments,
 } from '../lib/api';
-import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost } from '../lib/api';
+import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost, NeighbourhoodMoment } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Venue, Event, Story } from '../types';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
@@ -27,6 +28,7 @@ import StoryViewer from '../components/StoryViewer';
 import ActivityMoment from '../components/ActivityMoment';
 import EventRail from '../components/EventRail';
 import StoriesStrip from '../components/StoriesStrip';
+import MomentsStrip from '../components/MomentsStrip';
 import TrendingRail from '../components/TrendingRail';
 import HappeningTonight from '../components/HappeningTonight';
 import MostLovedRail from '../components/MostLovedRail';
@@ -1305,6 +1307,7 @@ export default function FeedPage() {
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
+  const [moments, setMoments] = useState<NeighbourhoodMoment[]>([]);
   const [promotedVenues, setPromotedVenues] = useState<Venue[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
 
@@ -1508,7 +1511,8 @@ export default function FeedPage() {
       getUserPostsForFeed(suburb || city || ''),
       getSafetyAlerts(suburb || city || ''),
       getPromotedVenuesForFeed(suburb || undefined),
-    ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa, pv]) => {
+      getMoments(suburb || city || ''),
+    ]).then(([v, e, s, tr, tn, np, ml, act, bp, up, sa, pv, mom]) => {
       const venues = v as Venue[];
       setRawVenues(venues);
       setPromotedVenues((pv as Venue[]) ?? []);
@@ -1528,6 +1532,7 @@ export default function FeedPage() {
       const posts = up as UserPost[];
       setUserPosts(posts);
       setSafetyAlerts(sa as UserPost[]);
+      setMoments((mom as NeighbourhoodMoment[]) ?? []);
       setLoading(false);
       setRefreshing(false);
       refreshingRef.current = false;
@@ -2013,6 +2018,15 @@ export default function FeedPage() {
 
       {/* Stories strip with "+" compose bubble */}
       <StoriesStrip stories={stories} />
+
+      {/* Neighbourhood Moments strip — 24h local visual context */}
+      {(moments.length > 0 || !!user) && (
+        <MomentsStrip
+          moments={moments}
+          neighbourhood={suburb || areaLabel}
+          showAdd={!!user}
+        />
+      )}
 
       {/* Post bar — single primary action + 3 compact secondary shortcuts */}
       <PostBar

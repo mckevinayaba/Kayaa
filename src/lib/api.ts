@@ -2521,3 +2521,128 @@ export async function toggleBoardPostLike(postId: string, visitorId: string): Pr
   } catch { /* localStorage state is source of truth */ }
   return nowLiked;
 }
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEIGHBOURHOOD MOMENTS
+//
+// Lightweight 24-hour local media posts.
+// Not Board (no listings). Not Alerts (no danger). Not venue Stories (not place-bound).
+// Moments = vibe, live context, local texture — what the area feels like right now.
+//
+// SQL migration required (run once in Supabase SQL editor):
+//   CREATE TABLE IF NOT EXISTS neighbourhood_moments (
+//     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+//     user_id     uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+//     neighbourhood text NOT NULL,
+//     caption     text NOT NULL CHECK (char_length(caption) <= 120),
+//     media_url   text NOT NULL,
+//     media_type  text NOT NULL CHECK (media_type IN ('photo','video')),
+//     venue_name  text,
+//     expires_at  timestamptz NOT NULL DEFAULT (now() + interval '24 hours'),
+//     created_at  timestamptz NOT NULL DEFAULT now(),
+//     is_anonymous boolean NOT NULL DEFAULT false
+//   );
+//   CREATE INDEX IF NOT EXISTS idx_moments_neighbourhood ON neighbourhood_moments(neighbourhood);
+//   CREATE INDEX IF NOT EXISTS idx_moments_expires ON neighbourhood_moments(expires_at);
+//   ALTER TABLE neighbourhood_moments ENABLE ROW LEVEL SECURITY;
+//   CREATE POLICY "moments_select" ON neighbourhood_moments FOR SELECT USING (expires_at > now());
+//   CREATE POLICY "moments_insert" ON neighbourhood_moments FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+//   CREATE POLICY "moments_delete" ON neighbourhood_moments FOR DELETE USING (auth.uid() = user_id);
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface NeighbourhoodMoment {
+  id:           string;
+  userId:       string | null;   // null when anonymous
+  neighbourhood: string;
+  caption:      string;
+  mediaUrl:     string;
+  mediaType:    'photo' | 'video';
+  venueName?:   string;
+  expiresAt:    string;
+  createdAt:    string;
+  isAnonymous:  boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbMoment(row: any): NeighbourhoodMoment {
+  return {
+    id:           row.id,
+    userId:       row.user_id ?? null,
+    neighbourhood: row.neighbourhood,
+    caption:      row.caption,
+    mediaUrl:     row.media_url,
+    mediaType:    row.media_type as 'photo' | 'video',
+    venueName:    row.venue_name ?? undefined,
+    expiresAt:    row.expires_at,
+    createdAt:    row.created_at,
+    isAnonymous:  row.is_anonymous ?? false,
+  };
+}
+
+/** Fetch non-expired moments for a neighbourhood (newest first, max 40). */
+export async function getMoments(neighbourhood: string): Promise<NeighbourhoodMoment[]> {
+  if (!neighbourhood) return [];
+  try {
+    const { data, error } = await supabase
+      .from('neighbourhood_moments')
+      .select('*')
+      .eq('neighbourhood', neighbourhood)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(40);
+    if (error || !data) return [];
+    return data.map(dbMoment);
+  } catch { return []; }
+}
+
+/**
+ * Upload a moment photo or video.
+ * Photo: max 20 MB.  Video: max 50 MB.
+ * Both stored in venue-media bucket under moments/{userId}/.
+ */
+export async function uploadMomentMedia(
+  userId: string,
+  file: File,
+): Promise<{ url: string; mediaType: 'photo' | 'video' }> {
+  const mediaType: 'photo' | 'video' = file.type.startsWith('video/') ? 'video' : 'photo';
+  const ext  = file.name.split('.').pop() ?? (mediaType === 'video' ? 'mp4' : 'jpg');
+  const path = `moments/${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('venue-media')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw new Error(error.message);
+  const { data: { publicUrl } } = supabase.storage.from('venue-media').getPublicUrl(path);
+  return { url: publicUrl, mediaType };
+}
+
+/** Create a neighbourhood moment. Expires 24 hours from creation. */
+export async function createMoment(
+  userId: string,
+  data: {
+    neighbourhood: string;
+    caption:       string;
+    mediaUrl:      string;
+    mediaType:     'photo' | 'video';
+    venueName?:    string;
+    isAnonymous?:  boolean;
+  },
+): Promise<{ error: string | null }> {
+  try {
+    const isAnon   = data.isAnonymous ?? false;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const { error } = await supabase.from('neighbourhood_moments').insert({
+      user_id:      isAnon ? null : userId,
+      neighbourhood: data.neighbourhood,
+      caption:      data.caption.trim().slice(0, 120),
+      media_url:    data.mediaUrl,
+      media_type:   data.mediaType,
+      venue_name:   data.venueName?.trim() || null,
+      expires_at:   expiresAt,
+      is_anonymous: isAnon,
+    });
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: String(e) };
+  }
+}
