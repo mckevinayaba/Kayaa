@@ -42,7 +42,7 @@ export default function AppLayout() {
   const navigate        = useNavigate();
   const { user, signOut } = useAuth();
   const {
-    displaySuburb, displayCity,
+    displaySuburb,
     isDetecting, detectionError,
     manualOverride, setManualOverride,
   } = useNeighbourhood();
