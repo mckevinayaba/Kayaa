@@ -290,9 +290,16 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
-          📍 {post.neighbourhood}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            📍 {post.neighbourhood}
+          </span>
+          {post.videoUrl && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(96,165,250,0.7)', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
+              🎬 Video
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {post.price != null && (
             <span style={{
@@ -380,9 +387,16 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
-          📍 {post.neighbourhood}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            📍 {post.neighbourhood}
+          </span>
+          {post.videoUrl && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(52,211,153,0.7)', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
+              🎬 Video
+            </span>
+          )}
+        </div>
         {isMine && post.status === 'active' && (
           <button
             onClick={e => { e.stopPropagation(); onMarkTaken(post.id); }}
@@ -511,6 +525,7 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
             📍 {post.neighbourhood}
           </span>
           {post.images.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>}
+          {post.videoUrl && <span style={{ fontSize: '11px', color: 'rgba(57,217,138,0.6)', background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '20px', padding: '1px 7px' }}>🎬 Video</span>}
           {post.commentsCount > 0 && <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 💬 {post.commentsCount}</span>}
         </div>
 

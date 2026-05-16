@@ -27,6 +27,11 @@ type VideoUploadState =
   | { status: 'uploading'; localUrl: string }
   | { status: 'done'; localUrl: string; remoteUrl: string };
 
+function formatDuration(secs: number): string {
+  if (secs < 60) return `${Math.round(secs)}s`;
+  return `${Math.floor(secs / 60)}m ${Math.round(secs % 60)}s`;
+}
+
 function VideoUpload({
   currentUrl,
   onUploaded,
@@ -42,11 +47,14 @@ function VideoUpload({
       ? { status: 'done', localUrl: currentUrl, remoteUrl: currentUrl }
       : { status: 'idle' },
   );
+  // Duration read from onLoadedMetadata — null until available
+  const [duration, setDuration] = useState<number | null>(null);
 
   // Sync if parent clears the URL
   useEffect(() => {
     if (!currentUrl && (state.status === 'done' || state.status === 'uploading')) {
       setState({ status: 'idle' });
+      setDuration(null);
     }
   }, [currentUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -58,15 +66,16 @@ function VideoUpload({
     const ALLOWED_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
     const ALLOWED_EXT = /\.(mp4|mov|webm)$/i;
     if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXT.test(file.name)) {
-      setState({ status: 'error', msg: 'Only MP4, MOV, or WebM videos are supported.' });
+      setState({ status: 'error', msg: 'Unsupported format. Use an MP4 or MOV file from your camera roll.' });
       return;
     }
 
     if (file.size > VIDEO_MAX_BYTES) {
-      setState({ status: 'error', msg: 'That video is too large. Try a shorter clip — 10 to 20 seconds works best.' });
+      setState({ status: 'error', msg: 'That video is too large. Try a shorter clip — 20 seconds or less works best.' });
       return;
     }
 
+    setDuration(null);
     const localUrl = URL.createObjectURL(file);
     setState({ status: 'uploading', localUrl });
 
@@ -77,6 +86,7 @@ function VideoUpload({
       onUploaded(remoteUrl);
     } catch {
       URL.revokeObjectURL(localUrl);
+      setDuration(null);
       setState({ status: 'error', msg: 'Upload failed. Check your connection and try again.' });
     }
 
@@ -88,11 +98,16 @@ function VideoUpload({
       URL.revokeObjectURL(state.localUrl);
     }
     setState({ status: 'idle' });
+    setDuration(null);
     onRemove();
     if (inputRef.current) inputRef.current.value = '';
   }
 
   const previewUrl = (state.status === 'done' || state.status === 'uploading') ? state.localUrl : '';
+
+  // Derive duration feedback
+  const durationLabel = duration !== null ? formatDuration(duration) : null;
+  const durationWarn  = duration !== null && duration > 25; // gentle nudge above 25s
 
   return (
     <div>
@@ -127,10 +142,10 @@ function VideoUpload({
           </div>
           <div>
             <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
-              Add short video
+              Add a short video
             </div>
             <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.45 }}>
-              Walkthrough, item condition, or service proof · MP4 / MOV
+              Show the room, item condition, or service clearly
             </div>
           </div>
         </button>
@@ -143,18 +158,18 @@ function VideoUpload({
           border: '1px solid rgba(239,68,68,0.22)',
           borderRadius: '12px', padding: '14px 16px',
         }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171', margin: '0 0 8px', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171', margin: '0 0 10px', lineHeight: 1.5 }}>
             {state.msg}
           </p>
           <button
-            onClick={() => { setState({ status: 'idle' }); inputRef.current?.click(); }}
+            onClick={() => { setState({ status: 'idle' }); }}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.4)', padding: 0,
             }}
           >
-            Try a different file →
+            ← Try a different file
           </button>
         </div>
       )}
@@ -167,6 +182,10 @@ function VideoUpload({
             preload="metadata"
             playsInline
             controls={state.status === 'done'}
+            onLoadedMetadata={e => {
+              const d = (e.currentTarget as HTMLVideoElement).duration;
+              if (d && isFinite(d)) setDuration(d);
+            }}
             style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', display: 'block' }}
           />
 
@@ -190,7 +209,7 @@ function VideoUpload({
             </div>
           )}
 
-          {/* Remove button */}
+          {/* Remove button — always visible when done */}
           {state.status === 'done' && (
             <button
               onClick={handleRemove}
@@ -201,6 +220,7 @@ function VideoUpload({
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: 0,
               }}
+              title="Remove video"
             >
               <X size={12} color="#fff" />
             </button>
@@ -208,11 +228,23 @@ function VideoUpload({
         </div>
       )}
 
-      {/* Done confirmation */}
+      {/* Done status row — duration + soft length nudge */}
       {state.status === 'done' && (
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', margin: '6px 0 0', lineHeight: 1 }}>
-          ✓ Video ready · Keep it under 20 seconds for best results
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '7px', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A' }}>
+            ✓ Video ready
+          </span>
+          {durationLabel && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+              · {durationLabel}
+            </span>
+          )}
+          {durationWarn && (
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#F59E0B' }}>
+              · Under 20 seconds works best
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -743,7 +775,7 @@ function DetailsForm({
         </label>
         {VIDEO_CATS.includes(category) && (
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px', lineHeight: 1.45 }}>
-            Add photos or a short video — short clips build trust faster than long descriptions.
+            Photos and video help people trust what they're seeing before they message you.
           </p>
         )}
 
@@ -790,10 +822,12 @@ function DetailsForm({
         {/* Short video — Phase 1 categories only */}
         {VIDEO_CATS.includes(category) && (
           <div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>
-              Short video
-              <span style={{ marginLeft: '7px', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: '10px', color: 'rgba(255,255,255,0.22)' }}>
-                optional · 10–20 seconds
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+                Short video
+              </span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.32)', marginLeft: '8px' }}>
+                Optional · best under 20 seconds
               </span>
             </div>
             <VideoUpload
