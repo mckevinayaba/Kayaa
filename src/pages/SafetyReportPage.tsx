@@ -486,7 +486,7 @@ function DetailsScreen({
                   src={mediaPreview}
                   maxHeight={220}
                   borderRadius={12}
-                  label="Evidence clip preview"
+                  label="Attached clip"
                 />
               ) : (
                 <img
@@ -530,7 +530,7 @@ function DetailsScreen({
                   Photo
                 </span>
                 <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
-                  max 20 MB
+                  up to 20 MB
                 </span>
               </button>
               <button
@@ -562,7 +562,7 @@ function DetailsScreen({
                   Video
                 </span>
                 <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
-                  max 50 MB · 60 s
+                  up to 60 sec
                 </span>
               </button>
             </div>
@@ -576,9 +576,15 @@ function DetailsScreen({
           />
           <p style={{
             fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-            color: 'rgba(255,255,255,0.2)', margin: '6px 0 0', lineHeight: 1.5,
+            color: 'rgba(255,255,255,0.25)', margin: '6px 0 0', lineHeight: 1.5,
           }}>
-            Photos and short video clips help neighbours identify suspects or hazards.
+            Add a photo or short clip if it helps explain what happened.
+          </p>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.15)', margin: '4px 0 0', lineHeight: 1.5,
+          }}>
+            Only share media that's relevant and safe to post. Avoid showing victims, minors, or private details.
           </p>
         </div>
 
@@ -648,6 +654,27 @@ function DetailsScreen({
         borderTop: '1px solid rgba(255,255,255,0.06)',
         background: '#0D1117',
       }}>
+        {/* Compact emergency reminder */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          marginBottom: '10px', padding: '8px 12px',
+          borderRadius: '10px',
+          background: 'rgba(239,68,68,0.05)',
+          border: '1px solid rgba(239,68,68,0.12)',
+        }}>
+          <span style={{ fontSize: '14px', flexShrink: 0 }}>🚨</span>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.3)', margin: 0, lineHeight: 1.5,
+          }}>
+            In immediate danger? Call{' '}
+            <a href="tel:10111" style={{ color: '#EF4444', textDecoration: 'none', fontWeight: 700 }}>10111</a>
+            {' '}(Police) or{' '}
+            <a href="tel:112" style={{ color: '#EF4444', textDecoration: 'none', fontWeight: 700 }}>112</a>
+            {' '}(Emergency).
+          </p>
+        </div>
+
         <button
           onClick={handleSubmit}
           disabled={!canSubmit || submitting}

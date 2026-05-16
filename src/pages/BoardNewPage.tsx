@@ -1011,11 +1011,17 @@ export default function BoardNewPage() {
   // Pre-select category from query param (e.g. ?cat=services from "Post Your Skills" CTA)
   useEffect(() => {
     const cat = searchParams.get('cat') as BoardCategory | null;
-    if (cat && ['for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation','safety'].includes(cat)) {
+    if (!cat) return;
+    // Safety incidents always go to the dedicated report flow
+    if (cat === 'safety') {
+      navigate('/report/safety', { replace: true });
+      return;
+    }
+    if (['for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation'].includes(cat)) {
       setCategory(cat);
       setStep(2);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
   const [formData, setFormData] = useState<FormData>({
     title: '', description: '', price: '', contactWhatsapp: '', images: [], videoUrl: '',
     isUrgent: false, housingSubType: 'rental', jobSubType: 'hiring', serviceSubType: 'offering',
@@ -1055,6 +1061,11 @@ export default function BoardNewPage() {
   }
 
   function selectCategory(cat: BoardCategory) {
+    // Safety incidents get their own dedicated flow — not the generic board form
+    if (cat === 'safety') {
+      navigate('/report/safety');
+      return;
+    }
     setCategory(cat);
     setStep(2);
   }
