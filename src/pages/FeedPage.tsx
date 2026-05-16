@@ -2226,7 +2226,12 @@ export default function FeedPage() {
           {establishedCards.length > 0 && (() => {
             const activeNowEmpty = sortMode === 'active_now' &&
               applySortMode(establishedCards, 'active_now', suburb).length === 0;
-            const displayEstablished = activeNowEmpty
+            const trendingEmpty = sortMode === 'trending' &&
+              applySortMode(establishedCards, 'trending', suburb).length === 0;
+            const newPlacesEmpty = sortMode === 'new_places' &&
+              applySortMode(establishedCards, 'new_places', suburb).length === 0;
+            const sortEmpty = activeNowEmpty || trendingEmpty || newPlacesEmpty;
+            const displayEstablished = sortEmpty
               ? applySortMode(establishedCards, 'for_you', suburb)
               : applySortMode(establishedCards, sortMode, suburb);
 
@@ -2298,14 +2303,17 @@ export default function FeedPage() {
                   );
                 })()}
 
-                {/* Fallback note — shown when active_now yields nothing */}
-                {activeNowEmpty && (
+                {/* Fallback note — shown when the selected sort mode yields nothing */}
+                {sortEmpty && (
                   <p style={{
                     fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
                     color: 'rgba(255,255,255,0.3)', margin: '-4px 0 12px',
                     fontStyle: 'italic',
                   }}>
-                    No check-ins in the last 2 hours — showing all places
+                    {activeNowEmpty  ? 'No check-ins in the last 2 hours — showing all places'
+                    : trendingEmpty  ? 'Nothing trending yet — showing all places'
+                    : newPlacesEmpty ? 'No new places in the last 30 days — showing all places'
+                    : null}
                   </p>
                 )}
 
