@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import { NeighbourhoodProvider } from './contexts/NeighbourhoodContext';
@@ -24,8 +24,6 @@ import QRCheckInPage from './pages/QRCheckInPage';
 import CountriesPage from './pages/CountriesPage';
 import CheckInBrowsePage from './pages/CheckInBrowsePage';
 import ExplorePage from './pages/ExplorePage';
-import SkillDetail   from './pages/SkillDetail';
-import PostSkill     from './pages/PostSkill';
 import CreatePost   from './pages/CreatePost';
 import ProfilePage      from './pages/ProfilePage';
 import EditProfile      from './pages/EditProfile';
@@ -60,6 +58,12 @@ function RootRoute() {
 // Keeps route definitions below clean for routes that need auth.
 function Auth({ children }: { children: React.ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
+}
+
+// Redirects /skills/:id → /board/:id so old share links still resolve
+function SkillToBoard() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/board/${id ?? ''}`} replace />;
 }
 
 export default function App() {
@@ -103,12 +107,12 @@ export default function App() {
             <Route path="/settings/notifications"      element={<Navigate to="/profile" replace />} />
             <Route path="/settings/emergency-contacts" element={<Auth><EmergencyContacts /></Auth>} />
 
-            {/* Skills — /skills and /skills/browse redirect to /board; detail + create still work */}
+            {/* Skills — all routes redirect into Board; /skills/:id preserves the ID */}
             <Route path="/skills"          element={<Navigate to="/board" replace />} />
             <Route path="/skills/browse"   element={<Navigate to="/board" replace />} />
-            <Route path="/skills/new"      element={<Auth><PostSkill /></Auth>} />
-            <Route path="/skills/edit/:id" element={<Auth><PostSkill /></Auth>} />
-            <Route path="/skills/:id"      element={<SkillDetail />} />
+            <Route path="/skills/new"      element={<Navigate to="/board/new?cat=services" replace />} />
+            <Route path="/skills/edit/:id" element={<Navigate to="/board" replace />} />
+            <Route path="/skills/:id"      element={<SkillToBoard />} />
 
             {/* Posts */}
             <Route path="/post/new" element={<Auth><CreatePost /></Auth>} />

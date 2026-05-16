@@ -39,13 +39,23 @@ const SECTIONS: Section[] = [
     tiles: [
       {
         emoji:  '💼',
-        label:  'Post a job or service',
-        sub:    'Hire someone, offer your skill, or post a quick task',
-        lands:  'Board → Jobs & Services',
+        label:  'Post a job',
+        sub:    'Hire someone, post a task, or find help for a project',
+        lands:  'Board → Jobs',
         color:  '#A78BFA',
         bg:     'rgba(167,139,250,0.07)',
         border: 'rgba(167,139,250,0.2)',
         to:     '/board/new?cat=jobs',
+      },
+      {
+        emoji:  '🔧',
+        label:  'Offer a skill or service',
+        sub:    'Share what you do — barber, tutor, cleaner, mechanic, chef…',
+        lands:  'Board → Services',
+        color:  '#60A5FA',
+        bg:     'rgba(96,165,250,0.07)',
+        border: 'rgba(96,165,250,0.2)',
+        to:     '/board/new?cat=services',
       },
       {
         emoji:  '🏠',
