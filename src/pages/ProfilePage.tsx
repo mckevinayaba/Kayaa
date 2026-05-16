@@ -49,6 +49,9 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const visitorId  = getVisitorId();
 
+  // OAuth profile photo (Google, GitHub, etc.)
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+
   // DB history for authenticated users; falls back to localStorage for anonymous
   const [dbHistory, setDbHistory]   = useState<CheckInHistoryItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
@@ -119,12 +122,21 @@ export default function ProfilePage() {
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{
               width: '80px', height: '80px', borderRadius: '50%',
-              background: `${BADGE_COLOR[topBadgeTier]}18`,
+              background: avatarUrl ? 'transparent' : `${BADGE_COLOR[topBadgeTier]}18`,
               border: `2.5px solid ${BADGE_COLOR[topBadgeTier]}40`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '36px',
+              fontSize: '36px', overflow: 'hidden',
             }}>
-              {BADGE_ICON[topBadgeTier]}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Profile photo"
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              ) : (
+                BADGE_ICON[topBadgeTier]
+              )}
             </div>
             {/* Tier badge pill */}
             <div style={{
