@@ -477,6 +477,13 @@ export default function NeighbourhoodPage() {
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '22px' }}>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
+          color: 'rgba(57,217,138,0.6)', margin: '0 0 4px',
+        }}>
+          Find a Place
+        </p>
         <h1 style={{
           fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
           color: 'var(--color-text)', margin: '0 0 4px', lineHeight: 1.2,
@@ -486,7 +493,7 @@ export default function NeighbourhoodPage() {
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
           {totalPlaces === 0
             ? 'No places listed yet — be the first to add one'
-            : `${totalPlaces} place${totalPlaces !== 1 ? 's' : ''} across ${totalPresent} categor${totalPresent !== 1 ? 'ies' : 'y'}`
+            : `${totalPlaces} place${totalPlaces !== 1 ? 's' : ''} across ${totalPresent} categor${totalPresent !== 1 ? 'ies' : 'y'} — tap a type to explore`
           }
         </p>
       </div>

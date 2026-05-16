@@ -1103,37 +1103,40 @@ function GatewayStrip() {
   const navigate = useNavigate();
 
   const tiles = [
-    { emoji: '💼', label: 'Jobs',    sub: 'Hiring now',  color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'           },
-    { emoji: '🏠', label: 'Housing', sub: 'Rooms & rent', color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing'         },
-    { emoji: '🔔', label: 'Alerts',  sub: 'Live status', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'          },
+    { emoji: '💼', label: 'Jobs',    sub: 'Hiring now',   color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'   },
+    { emoji: '🏠', label: 'Housing', sub: 'Rooms & rent',  color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing' },
+    { emoji: '🔔', label: 'Alerts',  sub: 'Live status',   color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'  },
   ];
 
   return (
-    <div style={{
-      display: 'flex', gap: '8px',
-      padding: '0 0 14px',
-    }}>
-      {tiles.map(t => (
-        <button
-          key={t.to}
-          onClick={() => navigate(t.to)}
-          style={{
-            flex: 1,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: '5px',
-            padding: '12px 8px',
-            borderRadius: '14px',
-            background: t.bg,
-            border: `1px solid ${t.border}`,
-            cursor: 'pointer',
-            WebkitTapHighlightColor: 'transparent',
-          } as React.CSSProperties}
-        >
-          <span style={{ fontSize: '20px', lineHeight: 1 }}>{t.emoji}</span>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color }}>{t.label}</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.sub}</span>
-        </button>
-      ))}
+    <div style={{ marginBottom: '4px' }}>
+      <p style={{
+        fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+        textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: 'rgba(255,255,255,0.3)', margin: '0 0 8px',
+      }}>
+        Explore
+      </p>
+      <div style={{ display: 'flex', gap: '8px', paddingBottom: '14px' }}>
+        {tiles.map(t => (
+          <button
+            key={t.to}
+            onClick={() => navigate(t.to)}
+            style={{
+              flex: 1,
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '5px', padding: '12px 8px',
+              borderRadius: '14px',
+              background: t.bg, border: `1px solid ${t.border}`,
+              cursor: 'pointer', WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            <span style={{ fontSize: '20px', lineHeight: 1 }}>{t.emoji}</span>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color }}>{t.label}</span>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.sub}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1889,6 +1892,17 @@ export default function FeedPage() {
           </button>
         </ScopeNote>
       )}
+
+      {/* ── Section divider: Places near you ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
+          color: 'rgba(255,255,255,0.3)', margin: 0,
+        }}>
+          Places near you
+        </p>
+      </div>
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: '16px' }}>

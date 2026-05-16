@@ -1,6 +1,24 @@
+/**
+ * BoardPage — /board
+ *
+ * The neighbourhood opportunity board.
+ * One clear job: jobs, services, housing, and local notices.
+ *
+ * Architecture:
+ *   1. Safety banner   — urgent safety posts alert at top
+ *   2. Header          — title + area + "My posts" shortcut
+ *   3. Tab bar         — All | Jobs | Services | Housing | Notices
+ *   4. Secondary pills — For Sale · Free · Events · Lost & Found · Ask (shown when 'all' active)
+ *   5. Type-specific cards — Jobs, Services, Housing, Notices, Generic
+ *   6. FAB             — + Post (always visible)
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, AlertTriangle, X, MessageCircle, ChevronRight } from 'lucide-react';
+import {
+  Plus, AlertTriangle, X, MessageCircle, ChevronRight,
+  Briefcase, Wrench, Home, Megaphone, ArrowRight,
+} from 'lucide-react';
 import NudgeCard from '../components/NudgeCard';
 import {
   getBoardPosts,
@@ -12,22 +30,29 @@ import { getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
 
-// ─── Category config ──────────────────────────────────────────────────────────
+// ── Sub-type detection (housing) ──────────────────────────────────────────────
+
+function detectHousingType(post: BoardPost): string {
+  const t = `${post.title} ${post.description ?? ''}`.toLowerCase();
+  if (/lodge|guesthouse|guest house|bed.and.break|b&b/.test(t)) return 'Lodge';
+  if (/short.?stay|per night|nightly|weekend|daily/.test(t)) return 'Short stay';
+  if (/room|bachelor|flatlet|sharing|single room|double room/.test(t)) return 'Room';
+  return 'Rental';
+}
+
+// ── Category config ───────────────────────────────────────────────────────────
 
 export const BOARD_CATEGORIES: { key: BoardCategory; label: string; emoji: string; color: string }[] = [
-  // Opportunities — anchored first so they're visible without scrolling
-  { key: 'jobs',           label: 'Jobs',           emoji: '💼',  color: '#A78BFA' },
-  { key: 'services',       label: 'Services',       emoji: '🔧',  color: '#60A5FA' },
-  { key: 'accommodation',  label: 'Housing / Rent', emoji: '🏠',  color: '#34D399' },
-  // Classifieds
-  { key: 'for_sale',       label: 'For Sale',       emoji: '🛍️',  color: '#F5A623' },
-  { key: 'free',           label: 'Free',           emoji: '🎁',  color: '#39D98A' },
-  // Community
-  { key: 'events',         label: 'Events',         emoji: '🎉',  color: '#FB923C' },
-  { key: 'announcements',  label: 'Announcements',  emoji: '📢',  color: '#34D399' },
-  { key: 'lost_found',     label: 'Lost & Found',   emoji: '🔍',  color: '#F472B6' },
-  { key: 'ask',            label: 'Ask',            emoji: '❓',  color: '#94A3B8' },
-  { key: 'safety',         label: 'Safety',         emoji: '🚨',  color: '#EF4444' },
+  { key: 'jobs',          label: 'Jobs',           emoji: '💼', color: '#A78BFA' },
+  { key: 'services',      label: 'Services',       emoji: '🔧', color: '#60A5FA' },
+  { key: 'accommodation', label: 'Housing / Rent', emoji: '🏠', color: '#34D399' },
+  { key: 'for_sale',      label: 'For Sale',       emoji: '🛍️', color: '#F5A623' },
+  { key: 'free',          label: 'Free',           emoji: '🎁', color: '#39D98A' },
+  { key: 'events',        label: 'Events',         emoji: '🎉', color: '#FB923C' },
+  { key: 'announcements', label: 'Announcements',  emoji: '📢', color: '#F59E0B' },
+  { key: 'lost_found',    label: 'Lost & Found',   emoji: '🔍', color: '#F472B6' },
+  { key: 'ask',           label: 'Ask',            emoji: '❓', color: '#94A3B8' },
+  { key: 'safety',        label: 'Safety',         emoji: '🚨', color: '#EF4444' },
 ];
 
 function getCategoryConfig(key: string) {
@@ -36,7 +61,20 @@ function getCategoryConfig(key: string) {
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ── Primary tabs ──────────────────────────────────────────────────────────────
+
+const PRIMARY_TABS = [
+  { key: 'all',          label: 'All',     color: '#39D98A' },
+  { key: 'jobs',         label: 'Jobs',    color: '#A78BFA' },
+  { key: 'services',     label: 'Services',color: '#60A5FA' },
+  { key: 'accommodation',label: 'Housing', color: '#34D399' },
+  { key: 'announcements',label: 'Notices', color: '#F59E0B' },
+] as const;
+
+// Secondary pills (shown inline when "all" is active)
+const SECONDARY_CATS = ['for_sale', 'free', 'events', 'lost_found', 'ask'];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatAge(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -58,46 +96,345 @@ function getMineIds(): string[] {
   catch { return []; }
 }
 
-// ─── Post card ────────────────────────────────────────────────────────────────
+function WhatsAppCTA({ post, accent }: { post: BoardPost; accent: string }) {
+  if (!post.contactWhatsapp) return null;
+  const num = post.contactWhatsapp.replace(/\D/g, '');
+  const msg = encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`);
+  return (
+    <a
+      href={`https://wa.me/${num}?text=${msg}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={e => e.stopPropagation()}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+        marginTop: '10px', padding: '10px',
+        background: 'rgba(37,211,102,0.1)',
+        border: '1px solid rgba(37,211,102,0.25)',
+        borderRadius: '10px',
+        color: '#25D366',
+        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+        textDecoration: 'none',
+      }}
+    >
+      <MessageCircle size={13} />
+      Contact on WhatsApp
+    </a>
+  );
+}
 
-function PostCard({
-  post,
-  isMine,
-  onMarkTaken,
-  onMarkResolved,
-}: {
+// ── Type-specific cards ───────────────────────────────────────────────────────
+
+function JobCard({ post, isMine, onMarkResolved }: {
+  post: BoardPost;
+  isMine: boolean;
+  onMarkResolved: (id: string) => void;
+}) {
+  const navigate = useNavigate();
+  return (
+    <div
+      onClick={() => navigate(`/board/${post.id}`)}
+      style={{
+        background: '#161B22',
+        border: '1px solid rgba(167,139,250,0.18)',
+        borderRadius: '14px',
+        padding: '14px',
+        cursor: 'pointer',
+        borderLeft: '3px solid #A78BFA',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <Briefcase size={13} color="#A78BFA" />
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#A78BFA' }}>
+            Job
+          </span>
+        </div>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          {formatAge(post.createdAt)}
+        </span>
+      </div>
+
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+        {post.title}
+      </div>
+
+      {post.description && (
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          margin: '0 0 8px', lineHeight: 1.55,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        } as React.CSSProperties}>
+          {post.description}
+        </p>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            📍 {post.neighbourhood}
+          </span>
+          {post.price != null && (
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700,
+              color: '#A78BFA', background: 'rgba(167,139,250,0.12)',
+              padding: '2px 8px', borderRadius: '10px',
+            }}>
+              R{post.price.toLocaleString()}/mo
+            </span>
+          )}
+        </div>
+        {isMine && post.status === 'active' && (
+          <button
+            onClick={e => { e.stopPropagation(); onMarkResolved(post.id); }}
+            style={{
+              background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
+              padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
+              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            }}
+          >
+            Resolve
+          </button>
+        )}
+      </div>
+
+      <WhatsAppCTA post={post} accent="#A78BFA" />
+    </div>
+  );
+}
+
+function ServiceCard({ post, isMine, onMarkResolved }: {
+  post: BoardPost;
+  isMine: boolean;
+  onMarkResolved: (id: string) => void;
+}) {
+  const navigate = useNavigate();
+  return (
+    <div
+      onClick={() => navigate(`/board/${post.id}`)}
+      style={{
+        background: '#161B22',
+        border: '1px solid rgba(96,165,250,0.18)',
+        borderRadius: '14px',
+        padding: '14px',
+        cursor: 'pointer',
+        borderLeft: '3px solid #60A5FA',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <Wrench size={13} color="#60A5FA" />
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#60A5FA' }}>
+            Service
+          </span>
+        </div>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          {formatAge(post.createdAt)}
+        </span>
+      </div>
+
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+        {post.title}
+      </div>
+
+      {post.description && (
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          margin: '0 0 8px', lineHeight: 1.55,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        } as React.CSSProperties}>
+          {post.description}
+        </p>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          📍 {post.neighbourhood}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {post.price != null && (
+            <span style={{
+              fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 700, color: '#60A5FA',
+            }}>
+              R{post.price.toLocaleString()}
+            </span>
+          )}
+          {isMine && post.status === 'active' && (
+            <button
+              onClick={e => { e.stopPropagation(); onMarkResolved(post.id); }}
+              style={{
+                background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
+                padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
+                cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              }}
+            >
+              Resolve
+            </button>
+          )}
+        </div>
+      </div>
+
+      <WhatsAppCTA post={post} accent="#60A5FA" />
+    </div>
+  );
+}
+
+function HousingListCard({ post, isMine, onMarkTaken }: {
+  post: BoardPost;
+  isMine: boolean;
+  onMarkTaken: (id: string) => void;
+}) {
+  const navigate = useNavigate();
+  const subType  = detectHousingType(post);
+  const isShort  = subType === 'Short stay' || subType === 'Lodge';
+  const priceLabel = post.price != null
+    ? `R${post.price.toLocaleString()}${isShort ? '/night' : '/month'}`
+    : 'Price on request';
+
+  return (
+    <div
+      onClick={() => navigate(`/board/${post.id}`)}
+      style={{
+        background: '#161B22',
+        border: '1px solid rgba(52,211,153,0.18)',
+        borderRadius: '14px',
+        padding: '14px',
+        cursor: 'pointer',
+        borderLeft: '3px solid #34D399',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <Home size={13} color="#34D399" />
+          <span style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            color: '#34D399', background: 'rgba(52,211,153,0.12)',
+            padding: '1px 8px', borderRadius: '10px',
+          }}>
+            {subType}
+          </span>
+        </div>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          {formatAge(post.createdAt)}
+        </span>
+      </div>
+
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+        {post.title}
+      </div>
+
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#34D399', marginBottom: '6px' }}>
+        {priceLabel}
+      </div>
+
+      {post.description && (
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          margin: '0 0 8px', lineHeight: 1.55,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        } as React.CSSProperties}>
+          {post.description}
+        </p>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          📍 {post.neighbourhood}
+        </span>
+        {isMine && post.status === 'active' && (
+          <button
+            onClick={e => { e.stopPropagation(); onMarkTaken(post.id); }}
+            style={{
+              background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
+              padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
+              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+            }}
+          >
+            Mark taken
+          </button>
+        )}
+      </div>
+
+      <WhatsAppCTA post={post} accent="#34D399" />
+    </div>
+  );
+}
+
+function NoticeCard({ post }: { post: BoardPost }) {
+  const navigate = useNavigate();
+  return (
+    <div
+      onClick={() => navigate(`/board/${post.id}`)}
+      style={{
+        background: 'rgba(245,158,11,0.05)',
+        border: '1px solid rgba(245,158,11,0.2)',
+        borderRadius: '14px',
+        padding: '14px',
+        cursor: 'pointer',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <Megaphone size={13} color="#F59E0B" />
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#F59E0B' }}>
+            Notice
+          </span>
+        </div>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          {formatAge(post.createdAt)}
+        </span>
+      </div>
+
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px', lineHeight: 1.3 }}>
+        {post.title}
+      </div>
+
+      {post.description && (
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)',
+          margin: '0 0 8px', lineHeight: 1.6,
+          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        } as React.CSSProperties}>
+          {post.description}
+        </p>
+      )}
+
+      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+        📍 {post.neighbourhood}
+      </span>
+    </div>
+  );
+}
+
+function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
   post: BoardPost;
   isMine: boolean;
   onMarkTaken: (id: string) => void;
   onMarkResolved: (id: string) => void;
 }) {
   const navigate = useNavigate();
-  const cat = getCategoryConfig(post.category);
+  const cat   = getCategoryConfig(post.category);
   const fresh = isSafetyFresh(post);
-  const safetyStyle = fresh
-    ? { borderLeft: '3px solid #EF4444', background: 'rgba(239,68,68,0.06)' }
-    : {};
 
   return (
     <div
       onClick={() => navigate(`/board/${post.id}`)}
       style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        background: fresh ? 'rgba(239,68,68,0.06)' : 'var(--color-surface)',
+        border: `1px solid ${fresh ? 'rgba(239,68,68,0.3)' : 'var(--color-border)'}`,
         borderRadius: '14px',
         padding: '14px',
         cursor: 'pointer',
-        position: 'relative',
-        ...safetyStyle,
+        ...(fresh ? { borderLeft: '3px solid #EF4444' } : {}),
       }}
     >
-      {/* Category badge + age */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <span style={{
           fontSize: '11px', fontWeight: 700,
           color: fresh ? '#EF4444' : cat.color,
           background: fresh ? 'rgba(239,68,68,0.12)' : `${cat.color}18`,
           padding: '2px 8px', borderRadius: '20px',
+          fontFamily: 'DM Sans, sans-serif',
         }}>
           {cat.emoji} {cat.label}
         </span>
@@ -106,109 +443,53 @@ function PostCard({
         </span>
       </div>
 
-      {/* Title */}
-      <div style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700,
-        fontSize: '14px', color: 'var(--color-text)',
-        marginBottom: post.description ? '4px' : '8px',
-        lineHeight: 1.35,
-      }}>
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: post.description ? '4px' : '8px', lineHeight: 1.35 }}>
         {post.title}
       </div>
 
-      {/* Description preview */}
       {post.description && (
         <p style={{
-          fontSize: '13px', color: 'var(--color-muted)',
-          margin: '0 0 10px', lineHeight: 1.55,
+          fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 10px', lineHeight: 1.55,
           fontFamily: 'DM Sans, sans-serif',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
           {post.description}
         </p>
       )}
 
-      {/* Price */}
       {post.price != null && (
-        <div style={{
-          fontSize: '15px', fontWeight: 700,
-          color: '#39D98A', marginBottom: '10px',
-          fontFamily: 'DM Sans, sans-serif',
-        }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: '#39D98A', marginBottom: '10px', fontFamily: 'DM Sans, sans-serif' }}>
           R{post.price.toLocaleString()}
         </div>
       )}
 
-      {/* Footer row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
             📍 {post.neighbourhood}
           </span>
-          {post.images.length > 0 && (
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>
-          )}
-          {post.likesCount > 0 && (
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· ❤️ {post.likesCount}</span>
-          )}
-          {post.commentsCount > 0 && (
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 💬 {post.commentsCount}</span>
-          )}
+          {post.images.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>}
+          {post.commentsCount > 0 && <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 💬 {post.commentsCount}</span>}
         </div>
 
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-          {/* WhatsApp contact button */}
           {post.contactWhatsapp && (
             <a
               href={`https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                background: '#25D366', color: '#000',
-                borderRadius: '20px', padding: '5px 10px',
-                fontSize: '11px', fontWeight: 700,
-                fontFamily: 'DM Sans, sans-serif', textDecoration: 'none',
-              }}
+              target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#25D366', color: '#000', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif', textDecoration: 'none' }}
             >
               <MessageCircle size={12} /> WhatsApp
             </a>
           )}
-
-          {/* Owner quick-actions */}
           {isMine && post.status === 'active' && (
-            <>
-              {post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation' ? (
-                <button
-                  onClick={() => onMarkTaken(post.id)}
-                  style={{
-                    background: 'var(--color-border)', color: 'var(--color-muted)',
-                    border: 'none', borderRadius: '20px', padding: '5px 10px',
-                    fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                  }}
-                >
-                  Mark taken
-                </button>
-              ) : (
-                <button
-                  onClick={() => onMarkResolved(post.id)}
-                  style={{
-                    background: 'var(--color-border)', color: 'var(--color-muted)',
-                    border: 'none', borderRadius: '20px', padding: '5px 10px',
-                    fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                  }}
-                >
-                  Resolve
-                </button>
-              )}
-            </>
+            <button
+              onClick={() => (post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation') ? onMarkTaken(post.id) : onMarkResolved(post.id)}
+              style={{ background: 'var(--color-border)', color: 'var(--color-muted)', border: 'none', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+            >
+              {post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation' ? 'Mark taken' : 'Resolve'}
+            </button>
           )}
-
           <ChevronRight size={14} color="var(--color-muted)" />
         </div>
       </div>
@@ -216,7 +497,40 @@ function PostCard({
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+
+function PostSkeleton() {
+  return (
+    <div style={{ background: '#161B22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ width: '60px', height: '18px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px' }} />
+        <div style={{ width: '40px', height: '18px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px' }} />
+      </div>
+      <div style={{ width: '80%', height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', marginBottom: '8px' }} />
+      <div style={{ width: '100%', height: '13px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', marginBottom: '4px' }} />
+      <div style={{ width: '65%', height: '13px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px' }} />
+    </div>
+  );
+}
+
+// ── Smart card dispatcher ─────────────────────────────────────────────────────
+
+function PostCard({ post, isMine, onMarkTaken, onMarkResolved }: {
+  post: BoardPost;
+  isMine: boolean;
+  onMarkTaken: (id: string) => void;
+  onMarkResolved: (id: string) => void;
+}) {
+  if (post.category === 'jobs')          return <JobCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
+  if (post.category === 'services')      return <ServiceCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
+  if (post.category === 'accommodation') return <HousingListCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} />;
+  if (post.category === 'announcements' || (post as { category: string }).category === 'announcer') {
+    return <NoticeCard post={post} />;
+  }
+  return <GenericCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} onMarkResolved={onMarkResolved} />;
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function BoardPage() {
   const navigate = useNavigate();
@@ -224,27 +538,33 @@ export default function BoardPage() {
   const display = suburb || city;
   const { selectedCountry } = useCountry();
 
-  const [posts,      setPosts]      = useState<BoardPost[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [expanded,   setExpanded]   = useState(false);
-  const [activeTab,  setActiveTab]  = useState<string>('all');
-  const [mineIds,    setMineIds]    = useState<string[]>([]);
+  const [posts,           setPosts]           = useState<BoardPost[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [expanded,        setExpanded]        = useState(false);
+  const [activeTab,       setActiveTab]       = useState<string>('all');
+  const [secondaryFilter, setSecondaryFilter] = useState<string | null>(null);
+  const [mineIds,         setMineIds]         = useState<string[]>([]);
   const [safetyDismissed, setSafetyDismissed] = useState(false);
-  const [userId, setUserId] = useState('');
+  const [userId,          setUserId]          = useState('');
 
   useEffect(() => {
     getInteractiveUserId().then(setUserId);
     setMineIds(getMineIds());
   }, []);
 
+  // When primary tab changes reset secondary filter
+  useEffect(() => { setSecondaryFilter(null); }, [activeTab]);
+
   useEffect(() => {
     setLoading(true);
-    getBoardPosts(suburb, city, activeTab === 'all' ? undefined : activeTab, selectedCountry.code).then(({ posts: p, expanded: e }) => {
+    // Resolve which category to fetch
+    const fetchCat = secondaryFilter ?? (activeTab === 'all' ? undefined : activeTab);
+    getBoardPosts(suburb, city, fetchCat, selectedCountry.code).then(({ posts: p, expanded: e }) => {
       setPosts(p);
       setExpanded(e);
       setLoading(false);
     });
-  }, [suburb, city, activeTab, selectedCountry.code]);
+  }, [suburb, city, activeTab, secondaryFilter, selectedCountry.code]);
 
   const freshSafetyPosts = posts.filter(isSafetyFresh);
   const showSafetyBanner = freshSafetyPosts.length > 0 && !safetyDismissed;
@@ -259,16 +579,19 @@ export default function BoardPage() {
     await updateBoardPostStatus(id, 'resolved', userId);
   }
 
+  // Current active label for empty states
+  const activeLabel = secondaryFilter
+    ? getCategoryConfig(secondaryFilter).label
+    : PRIMARY_TABS.find(t => t.key === activeTab)?.label ?? 'All';
+
   return (
     <div style={{ paddingBottom: '140px', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
-      {/* Safety banner */}
+      {/* ── Safety banner ── */}
       {showSafetyBanner && (
         <div style={{
-          background: 'rgba(239,68,68,0.12)',
-          borderBottom: '1px solid rgba(239,68,68,0.3)',
-          padding: '12px 16px',
-          display: 'flex', alignItems: 'flex-start', gap: '10px',
+          background: 'rgba(239,68,68,0.12)', borderBottom: '1px solid rgba(239,68,68,0.3)',
+          padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px',
         }}>
           <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: '1px' }} />
           <div style={{ flex: 1 }}>
@@ -279,190 +602,210 @@ export default function BoardPage() {
               {freshSafetyPosts[0].title}
             </div>
           </div>
-          <button
-            onClick={() => setSafetyDismissed(true)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0 }}
-          >
-            <X size={16} color="#EF4444" />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => navigate('/alerts')}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#EF4444', fontWeight: 700 }}
+            >
+              Alerts →
+            </button>
+            <button
+              onClick={() => setSafetyDismissed(true)}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0 }}
+            >
+              <X size={16} color="#EF4444" />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-          <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
-            fontSize: '22px', color: 'var(--color-text)', margin: 0,
-          }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', margin: 0 }}>
             Board
           </h1>
           <button
             onClick={() => navigate('/board/mine')}
             style={{
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
+              background: 'transparent', border: '1px solid var(--color-border)',
               borderRadius: '20px', padding: '6px 12px',
-              fontSize: '12px', fontWeight: 600,
-              color: 'var(--color-muted)', cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)',
+              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
             }}
           >
             My posts
           </button>
         </div>
-
-        {/* Board purpose + live count */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: '12px', padding: '12px 14px', marginBottom: '14px',
-        }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
-            Jobs, services, housing and local listings for {display || 'your neighbourhood'}.
-          </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: '6px 0 0' }}>
-            {loading ? '…' : `${posts.length} active post${posts.length !== 1 ? 's' : ''}`}
-            {expanded && !loading && (
-              <span style={{ color: '#F5A623' }}> · showing nearby area</span>
-            )}
-          </p>
-        </div>
-      </div>
-
-      {/* ── Opportunities quick-access ────────────────────────────────────────── */}
-      <div style={{ padding: '14px 16px 0' }}>
-        <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
-          color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
-          letterSpacing: '0.07em', margin: '0 0 10px',
-        }}>
-          Opportunities
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.38)', margin: '0 0 16px', lineHeight: 1.5 }}>
+          Local jobs, services, housing and notices
+          {display ? ` · ${display}` : ''}
+          {expanded && !loading && (
+            <span style={{ color: '#F5A623' }}> · expanded area</span>
+          )}
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '6px' }}>
-          {[
-            { key: 'jobs',          emoji: '💼', label: 'Jobs',    color: '#A78BFA' },
-            { key: 'services',      emoji: '🔧', label: 'Services',color: '#60A5FA' },
-            { key: 'accommodation', emoji: '🏠', label: 'Housing', color: '#34D399' },
-          ].map(opp => {
-            const count = loading ? null : posts.filter(p => p.category === opp.key).length;
-            const active = activeTab === opp.key;
-            return (
-              <button
-                key={opp.key}
-                onClick={() => setActiveTab(opp.key)}
-                style={{
-                  background: active ? `${opp.color}18` : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${active ? `${opp.color}40` : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius: '14px', padding: '12px 8px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.15s',
-                }}
-              >
-                <span style={{ fontSize: '20px', lineHeight: 1 }}>{opp.emoji}</span>
-                <span style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
-                  color: active ? opp.color : '#F0F6FC',
-                }}>
-                  {opp.label}
-                </span>
-                {count !== null && count > 0 && (
-                  <span style={{
-                    fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
-                    color: opp.color, background: `${opp.color}15`,
-                    borderRadius: '10px', padding: '1px 6px',
-                  }}>
-                    {count}
-                  </span>
-                )}
-                {count === 0 && !loading && (
-                  <span style={{
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
-                    color: 'rgba(255,255,255,0.2)',
-                  }}>
-                    Post first
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
-      {/* Category filter strip */}
+      {/* ── Primary tab bar ── */}
       <div style={{
-        display: 'flex', gap: '6px',
+        display: 'flex', gap: '0',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
         overflowX: 'auto', scrollbarWidth: 'none',
-        padding: '14px 16px 0',
+        paddingLeft: '16px',
         WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
-        {/* All pill */}
-        <button
-          onClick={() => setActiveTab('all')}
-          style={{
-            flexShrink: 0, padding: '6px 14px',
-            borderRadius: '20px',
-            border: activeTab === 'all' ? 'none' : '1px solid var(--color-border)',
-            background: activeTab === 'all' ? '#39D98A' : 'var(--color-surface)',
-            color: activeTab === 'all' ? '#000' : 'var(--color-muted)',
-            fontSize: '12px', fontWeight: 700,
-            fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
-          }}
-        >
-          All
-        </button>
-
-        {BOARD_CATEGORIES.map(cat => {
-          const active = activeTab === cat.key;
-          const isSafety = cat.key === 'safety';
+        {PRIMARY_TABS.map(tab => {
+          const active = activeTab === tab.key && secondaryFilter === null;
           return (
             <button
-              key={cat.key}
-              onClick={() => setActiveTab(cat.key)}
+              key={tab.key}
+              onClick={() => { setActiveTab(tab.key); setSecondaryFilter(null); }}
               style={{
-                flexShrink: 0, padding: '6px 12px',
-                borderRadius: '20px',
-                border: active ? 'none' : `1px solid ${isSafety ? 'rgba(239,68,68,0.3)' : 'var(--color-border)'}`,
-                background: active
-                  ? (isSafety ? '#EF4444' : cat.color)
-                  : (isSafety ? 'rgba(239,68,68,0.08)' : 'var(--color-surface)'),
-                color: active ? '#000' : (isSafety ? '#EF4444' : 'var(--color-muted)'),
-                fontSize: '12px', fontWeight: 600,
-                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                flexShrink: 0,
+                padding: '10px 14px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: active ? `2px solid ${tab.color}` : '2px solid transparent',
+                color: active ? tab.color : 'rgba(255,255,255,0.4)',
+                fontFamily: 'DM Sans, sans-serif',
+                fontWeight: active ? 700 : 500,
+                fontSize: '13px',
+                cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                transition: 'color 0.15s, border-color 0.15s',
               }}
             >
-              {cat.emoji} {cat.label}
+              {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* Feed */}
-      <div style={{ padding: '14px 16px 0' }}>
+      {/* ── Housing deep-link banner (shown when Housing tab is active) ── */}
+      {activeTab === 'accommodation' && secondaryFilter === null && (
+        <div style={{ padding: '12px 16px 0' }}>
+          <button
+            onClick={() => navigate('/housing')}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 14px',
+              background: 'rgba(52,211,153,0.07)',
+              border: '1px solid rgba(52,211,153,0.2)',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '18px' }}>🏠</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#34D399' }}>
+                  Full housing board
+                </div>
+                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', marginTop: '1px' }}>
+                  Rooms · Rentals · Short stays · Lodges
+                </div>
+              </div>
+            </div>
+            <ArrowRight size={16} color="#34D399" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Secondary category pills (visible when 'all' is active) ── */}
+      {activeTab === 'all' && (
+        <div style={{
+          display: 'flex', gap: '6px', padding: '10px 16px 0',
+          overflowX: 'auto', scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+        } as React.CSSProperties}>
+          {SECONDARY_CATS.map(key => {
+            const cat    = getCategoryConfig(key);
+            const active = secondaryFilter === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setSecondaryFilter(active ? null : key)}
+                style={{
+                  flexShrink: 0, padding: '5px 12px',
+                  borderRadius: '20px',
+                  border: `1px solid ${active ? cat.color : 'rgba(255,255,255,0.1)'}`,
+                  background: active ? `${cat.color}18` : 'rgba(255,255,255,0.04)',
+                  color: active ? cat.color : 'rgba(255,255,255,0.45)',
+                  fontSize: '12px', fontWeight: active ? 700 : 500,
+                  fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {cat.emoji} {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Feed ── */}
+      <div style={{ padding: '12px 16px 0' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
-            Loading…
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
           </div>
         ) : posts.length === 0 ? (
-          <div style={{ paddingTop: '16px' }}>
-            {activeTab === 'all' ? (
+          <div style={{ paddingTop: '8px' }}>
+            {activeTab === 'all' && !secondaryFilter ? (
               <NudgeCard
                 emoji="📌"
                 title={`Nothing posted in ${display || 'your area'} yet`}
-                body="Be the first — share something for sale, ask a question, post a safety alert or announce an event."
+                body="Be the first — share a job, list a room, offer a service or post a community notice."
                 ctaLabel="Post something"
                 onCta={() => navigate('/board/new')}
               />
+            ) : activeTab === 'jobs' ? (
+              <NudgeCard
+                emoji="💼"
+                title="No jobs posted yet"
+                body={`No job listings in ${display || 'your area'} yet. Know of a position? Post it and help your neighbours find work.`}
+                ctaLabel="Post a job"
+                onCta={() => navigate('/board/new')}
+                accent="#A78BFA"
+              />
+            ) : activeTab === 'services' ? (
+              <NudgeCard
+                emoji="🔧"
+                title="No services listed"
+                body={`No services in ${display || 'your area'} yet. Do you fix, clean, build, teach or care? Let your neighbourhood know.`}
+                ctaLabel="List your service"
+                onCta={() => navigate('/board/new')}
+                accent="#60A5FA"
+              />
+            ) : activeTab === 'accommodation' ? (
+              <NudgeCard
+                emoji="🏠"
+                title="No housing listings"
+                body={`No rooms or rentals posted in ${display || 'your area'} yet. Know a place to stay? Post it.`}
+                ctaLabel="Post a listing"
+                onCta={() => navigate('/board/new')}
+                accent="#34D399"
+              />
+            ) : activeTab === 'announcements' ? (
+              <NudgeCard
+                emoji="📢"
+                title="No notices posted"
+                body={`Nothing announced in ${display || 'your area'} yet. Have something to share with your neighbours?`}
+                ctaLabel="Post a notice"
+                onCta={() => navigate('/board/new')}
+                accent="#F59E0B"
+              />
             ) : (
               <NudgeCard
-                emoji={getCategoryConfig(activeTab).emoji}
-                title={`No ${getCategoryConfig(activeTab).label} posts in ${display || 'your area'}`}
+                emoji={getCategoryConfig(secondaryFilter ?? activeTab).emoji}
+                title={`No ${activeLabel} posts in ${display || 'your area'}`}
                 body="Nothing here yet — you could be the first to post in this category."
-                ctaLabel={`Post ${getCategoryConfig(activeTab).label}`}
+                ctaLabel={`Post ${activeLabel}`}
                 onCta={() => navigate('/board/new')}
-                accent={getCategoryConfig(activeTab).color}
+                accent={getCategoryConfig(secondaryFilter ?? activeTab).color}
               />
             )}
           </div>
@@ -477,29 +820,24 @@ export default function BoardPage() {
                 onMarkResolved={handleMarkResolved}
               />
             ))}
+            <p style={{ textAlign: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px', marginBottom: 0 }}>
+              {posts.length} post{posts.length !== 1 ? 's' : ''} · {display || 'your area'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* FAB */}
+      {/* ── FAB ── */}
       <button
         onClick={() => navigate('/board/new')}
         style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '20px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          background: '#39D98A',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(57,217,138,0.4)',
-          zIndex: 50,
+          position: 'fixed', bottom: '80px', right: '20px',
+          width: '56px', height: '56px', borderRadius: '50%',
+          background: '#39D98A', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(57,217,138,0.4)', zIndex: 50,
         }}
+        aria-label="Post something"
       >
         <Plus size={24} color="#000" strokeWidth={2.5} />
       </button>

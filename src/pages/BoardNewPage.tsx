@@ -27,34 +27,52 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
         Choose a category to get started
       </p>
 
-      {/* Post Your Skills hero card — full-width, above the grid */}
-      <button
-        onClick={() => onSelect('services')}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
-          background: 'linear-gradient(135deg, rgba(96,165,250,0.14) 0%, rgba(57,217,138,0.08) 100%)',
-          border: '1px solid rgba(96,165,250,0.3)',
-          borderRadius: '16px', padding: '18px 16px',
-          cursor: 'pointer', textAlign: 'left', marginBottom: '10px',
-          boxShadow: '0 2px 12px rgba(96,165,250,0.1)',
-        }}
-      >
-        <div style={{ fontSize: '32px', flexShrink: 0 }}>🔧</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px', color: 'var(--color-text)', marginBottom: '3px' }}>
-            Post Your Skills
+      {/* Hero cards — Services + Housing, side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+        <button
+          onClick={() => onSelect('services')}
+          style={{
+            display: 'flex', flexDirection: 'column', gap: '8px',
+            background: 'linear-gradient(135deg, rgba(96,165,250,0.14) 0%, rgba(57,217,138,0.06) 100%)',
+            border: '1px solid rgba(96,165,250,0.3)',
+            borderRadius: '16px', padding: '16px',
+            cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <div style={{ fontSize: '28px' }}>🔧</div>
+          <div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
+              Offer a Service
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#60A5FA' }}>
+              Barber · tutor · plumber
+            </div>
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.4 }}>
-            Barber · mechanic · DJ · tutor · cleaner · caterer · plumber
+        </button>
+        <button
+          onClick={() => onSelect('accommodation')}
+          style={{
+            display: 'flex', flexDirection: 'column', gap: '8px',
+            background: 'linear-gradient(135deg, rgba(52,211,153,0.14) 0%, rgba(52,211,153,0.04) 100%)',
+            border: '1px solid rgba(52,211,153,0.3)',
+            borderRadius: '16px', padding: '16px',
+            cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <div style={{ fontSize: '28px' }}>🏠</div>
+          <div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
+              List a Place
+            </div>
+            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#34D399' }}>
+              Room · rental · short stay
+            </div>
           </div>
-        </div>
-        <span style={{ fontSize: '12px', fontWeight: 700, color: '#60A5FA', background: 'rgba(96,165,250,0.12)', padding: '3px 8px', borderRadius: '20px', flexShrink: 0, fontFamily: 'DM Sans, sans-serif' }}>
-          Services
-        </span>
-      </button>
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {BOARD_CATEGORIES.filter(c => c.key !== 'services').map(cat => {
+        {BOARD_CATEGORIES.filter(c => c.key !== 'services' && c.key !== 'accommodation').map(cat => {
           const isSafety = cat.key === 'safety';
           return (
             <button
@@ -95,6 +113,15 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
 
 // ─── Step 2: Details form ─────────────────────────────────────────────────────
 
+type HousingSubType = 'room' | 'rental' | 'short_stay' | 'lodge';
+
+const HOUSING_SUB_TYPES: { key: HousingSubType; label: string; emoji: string; hint: string }[] = [
+  { key: 'room',       label: 'Room',        emoji: '🛏️', hint: 'Single/double room, bachelor flat, flatlet' },
+  { key: 'rental',     label: 'Rental',      emoji: '🏡', hint: 'Full house, apartment or cottage to rent' },
+  { key: 'short_stay', label: 'Short stay',  emoji: '🌙', hint: 'Nightly or weekend rate' },
+  { key: 'lodge',      label: 'Lodge/Guest', emoji: '🏨', hint: 'Lodge, guesthouse, B&B' },
+];
+
 interface FormData {
   title: string;
   description: string;
@@ -102,6 +129,7 @@ interface FormData {
   contactWhatsapp: string;
   images: string[];
   isUrgent: boolean;
+  housingSubType: HousingSubType;
 }
 
 function DetailsForm({
@@ -121,9 +149,11 @@ function DetailsForm({
   const { suburb: s, city: c } = useLocation();
   const suburb = s || c || 'your area';
 
-  const isSafety = category === 'safety';
-  const showPrice = category === 'for_sale';
-  const showRate = category === 'services' || category === 'jobs';
+  const isSafety   = category === 'safety';
+  const isHousing  = category === 'accommodation';
+  const showPrice  = category === 'for_sale';
+  const showRate   = category === 'services' || category === 'jobs';
+  const isShortStay = isHousing && (formData.housingSubType === 'short_stay' || formData.housingSubType === 'lodge');
 
   async function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -148,6 +178,40 @@ function DetailsForm({
 
   return (
     <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
+
+      {/* Housing: sub-type picker + hint */}
+      {isHousing && (
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Type of listing *
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+            {HOUSING_SUB_TYPES.map(sub => {
+              const active = formData.housingSubType === sub.key;
+              return (
+                <button
+                  key={sub.key}
+                  onClick={() => setFormData(prev => ({ ...prev, housingSubType: sub.key }))}
+                  style={{
+                    padding: '12px 10px', borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
+                    background: active ? 'rgba(52,211,153,0.12)' : 'var(--color-surface)',
+                    border: `1px solid ${active ? '#34D399' : 'var(--color-border)'}`,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>{sub.emoji}</div>
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? '#34D399' : 'var(--color-text)', marginBottom: '2px' }}>
+                    {sub.label}
+                  </div>
+                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
+                    {sub.hint}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Services: Post Your Skills hint */}
       {category === 'services' && (
@@ -235,7 +299,8 @@ function DetailsForm({
           value={formData.description}
           onChange={e => setFormData(prev => ({ ...prev, description: e.target.value.slice(0, 500) }))}
           placeholder={
-            isSafety ? 'Describe what happened, location, any suspects...' :
+            isSafety    ? 'Describe what happened, location, any suspects...' :
+            isHousing   ? 'Size, availability, what's included, house rules...' :
             category === 'lost_found' ? 'Describe the item, where it was last seen...' :
             category === 'jobs' ? 'Role details, requirements, location...' :
             'More details (optional)'
@@ -255,6 +320,32 @@ function DetailsForm({
           {500 - formData.description.length} left
         </div>
       </div>
+
+      {/* Price (housing) */}
+      {isHousing && (
+        <div style={{ marginBottom: '14px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {isShortStay ? 'Rate per night (R)' : 'Monthly rent (R)'}
+          </label>
+          <input
+            type="number"
+            value={formData.price}
+            onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))}
+            placeholder={isShortStay ? 'e.g. 350' : 'e.g. 3500'}
+            min="0"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--color-surface)', border: '1px solid rgba(52,211,153,0.25)',
+              borderRadius: '12px', padding: '13px 14px',
+              color: 'var(--color-text)', fontSize: '15px',
+              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+            }}
+          />
+          <div style={{ fontSize: '11px', color: '#34D399', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+            {isShortStay ? 'Per night / nightly rate' : 'Per calendar month — leave blank if negotiable'}
+          </div>
+        </div>
+      )}
 
       {/* Price (for_sale) */}
       {showPrice && (
@@ -536,7 +627,7 @@ export default function BoardNewPage() {
     }
   }, [searchParams]);
   const [formData, setFormData] = useState<FormData>({
-    title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false,
+    title: '', description: '', price: '', contactWhatsapp: '', images: [], isUrgent: false, housingSubType: 'rental',
   });
   const [submitting, setSubmitting] = useState(false);
 
