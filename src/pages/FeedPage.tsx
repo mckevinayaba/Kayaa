@@ -17,8 +17,9 @@ import {
   likePost, unlikePost, getUserLikedPosts,
   getPromotedVenuesForFeed,
   getMoments,
+  getBoardPosts,
 } from '../lib/api';
-import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost, NeighbourhoodMoment } from '../lib/api';
+import type { TrendingVenue, TonightEvent, ActivityItem, NeighbourhoodPost, VibeType, VenueStory24, UserPost, NeighbourhoodMoment, BoardPost } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { Venue, Event, Story } from '../types';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
@@ -1166,6 +1167,151 @@ function UtilityPillStrip({ suburb }: { suburb: string }) {
   );
 }
 
+// ─── Jobs rail ───────────────────────────────────────────────────────────────
+
+function JobsRail({ posts, suburb }: { posts: BoardPost[]; suburb: string }) {
+  const navigate = useNavigate();
+  const areaLabel = suburb || 'your area';
+
+  function jobBadge(post: BoardPost): { label: string; color: string } {
+    const t = `${post.title} ${post.description ?? ''}`.toLowerCase();
+    if (/looking for work|available for|seeking.*work|open to work|lfw:|need.*job|hire me|i am available/.test(t))
+      return { label: 'Available', color: '#39D98A' };
+    if (/task needed:|need help:|help needed:|quick.*task|need.*someone/.test(t))
+      return { label: 'Task', color: '#60A5FA' };
+    return { label: 'Hiring', color: '#A78BFA' };
+  }
+
+  return (
+    <div style={{ marginBottom: '28px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
+          color: 'rgba(255,255,255,0.3)', margin: 0,
+        }}>
+          💼 Jobs &amp; Skills
+        </p>
+        <button
+          onClick={() => navigate('/board?cat=jobs')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontWeight: 600, color: '#FBBF24',
+          }}
+        >
+          Browse all →
+        </button>
+      </div>
+
+      {posts.length === 0 ? (
+        /* Empty state — always visible, signals the mission */
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '12px',
+          background: 'rgba(251,191,36,0.05)',
+          border: '1px dashed rgba(251,191,36,0.2)',
+          borderRadius: '14px', padding: '14px 16px',
+        }}>
+          <span style={{ fontSize: '22px', flexShrink: 0 }}>🏗️</span>
+          <div style={{ flex: 1 }}>
+            <p style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontSize: '13px', color: 'var(--color-text)', margin: '0 0 2px',
+            }}>
+              No jobs posted in {areaLabel} yet
+            </p>
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              color: 'rgba(255,255,255,0.38)', margin: 0,
+            }}>
+              Hiring, available for work, or offering a skill?
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/board/new?cat=jobs')}
+            style={{
+              flexShrink: 0,
+              background: 'rgba(251,191,36,0.1)',
+              border: '1px solid rgba(251,191,36,0.25)',
+              borderRadius: '10px', padding: '8px 14px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+              color: '#FBBF24', cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            Post
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {posts.map(post => {
+            const badge = jobBadge(post);
+            return (
+              <div
+                key={post.id}
+                onClick={() => navigate('/board?cat=jobs')}
+                style={{
+                  background: 'var(--color-surface)',
+                  border: '1px solid rgba(251,191,36,0.1)',
+                  borderRadius: '12px', padding: '12px 14px',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                }}
+              >
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  background: `${badge.color}15`,
+                  border: `1px solid ${badge.color}30`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '16px', flexShrink: 0,
+                }}>
+                  💼
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                    <span style={{
+                      fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700,
+                      color: badge.color, background: `${badge.color}15`,
+                      padding: '1px 7px', borderRadius: '20px',
+                    }}>
+                      {badge.label}
+                    </span>
+                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+                      {post.neighbourhood}
+                    </span>
+                  </div>
+                  <p style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                    color: 'var(--color-text)', margin: 0,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {post.title || post.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          {/* Post a job CTA at bottom */}
+          <button
+            onClick={() => navigate('/board/new?cat=jobs')}
+            style={{
+              width: '100%', background: 'transparent',
+              border: '1px dashed rgba(251,191,36,0.15)', borderRadius: '12px',
+              padding: '10px', cursor: 'pointer', textAlign: 'center',
+              color: 'rgba(251,191,36,0.5)',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            + Post a job or skill in {areaLabel}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
@@ -1191,6 +1337,7 @@ export default function FeedPage() {
   const [rawMostLoved, setRawMostLoved] = useState<Venue[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
+  const [jobPosts,   setJobPosts]   = useState<BoardPost[]>([]);
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [safetyAlerts, setSafetyAlerts] = useState<UserPost[]>([]);
   const [moments, setMoments] = useState<NeighbourhoodMoment[]>([]);
@@ -1422,6 +1569,11 @@ export default function FeedPage() {
       setLoading(false);
       setRefreshing(false);
       refreshingRef.current = false;
+
+      // Fetch jobs from the board separately (different table — board_posts)
+      getBoardPosts(suburb || '', city || '', 'jobs')
+        .then(result => setJobPosts(result.posts.slice(0, 3)))
+        .catch(() => {});
 
       // Load which posts the current user has liked
       if (user && posts.length > 0) {
@@ -1971,6 +2123,9 @@ export default function FeedPage() {
 
       {/* ── Safety alert opt-in pill ── */}
       <UtilityPillStrip suburb={suburb} />
+
+      {/* ── Jobs & Skills — core opportunity mission, always visible ── */}
+      <JobsRail posts={jobPosts} suburb={suburb || areaLabel} />
 
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (

@@ -1,4 +1,4 @@
-import { MapPin, MessageSquare } from 'lucide-react';
+import { MapPin, MessageSquare, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PostBarProps {
@@ -79,20 +79,20 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
         </button>
 
         <button
-          onClick={() => navigate('/board/new?cat=ask')}
+          onClick={() => navigate('/board/new?cat=jobs')}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '9px 12px',
-            background: 'rgba(96,165,250,0.07)',
-            border: '1px solid rgba(96,165,250,0.15)',
+            background: 'rgba(251,191,36,0.07)',
+            border: '1px solid rgba(251,191,36,0.18)',
             borderRadius: '12px', cursor: 'pointer',
             fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-            fontSize: '12px', color: 'rgba(96,165,250,0.8)',
+            fontSize: '12px', color: 'rgba(251,191,36,0.85)',
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          <MessageSquare size={13} color="#60A5FA" />
-          Ask
+          <Briefcase size={13} color="#FBBF24" />
+          Work
         </button>
 
         <button
