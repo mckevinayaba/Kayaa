@@ -1097,6 +1097,47 @@ function HeroVenueCard({ venue }: { venue: Venue }) {
   );
 }
 
+// ─── Gateway strip ────────────────────────────────────────────────────────────
+
+function GatewayStrip() {
+  const navigate = useNavigate();
+
+  const tiles = [
+    { emoji: '💼', label: 'Jobs',    sub: 'Hiring now',  color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)', to: '/board'           },
+    { emoji: '🏠', label: 'Housing', sub: 'Rooms & rent', color: '#34D399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.18)',  to: '/housing'         },
+    { emoji: '🔔', label: 'Alerts',  sub: 'Live status', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.18)',  to: '/alerts'          },
+  ];
+
+  return (
+    <div style={{
+      display: 'flex', gap: '8px',
+      padding: '0 0 14px',
+    }}>
+      {tiles.map(t => (
+        <button
+          key={t.to}
+          onClick={() => navigate(t.to)}
+          style={{
+            flex: 1,
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: '5px',
+            padding: '12px 8px',
+            borderRadius: '14px',
+            background: t.bg,
+            border: `1px solid ${t.border}`,
+            cursor: 'pointer',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}
+        >
+          <span style={{ fontSize: '20px', lineHeight: 1 }}>{t.emoji}</span>
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: t.color }}>{t.label}</span>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.sub}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Utility pill strip ───────────────────────────────────────────────────────
 
 function UtilityPillStrip({ areaLabel, suburb }: { areaLabel: string; suburb: string }) {
@@ -1832,6 +1873,9 @@ export default function FeedPage() {
 
       {/* ── Utility pill strip (load shedding · water · safety alerts · stock · tools) ── */}
       <UtilityPillStrip areaLabel={areaLabel} suburb={suburb} />
+
+      {/* ── Gateway strip — Jobs, Housing, Alerts shortcuts ── */}
+      <GatewayStrip />
 
       {/* Sparse local banner: shown when this_neighbourhood has results but few */}
       {sparseLocal && (

@@ -28,6 +28,7 @@ import {
 import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
 import type { Venue, Event, Post, Story } from '../types';
 import StoriesStrip from '../components/StoriesStrip';
+import HonourButton from '../components/HonourButton';
 import { haversineKm } from '../lib/geocode';
 import { StockChecker } from '../components/utility/StockChecker';
 import { QueueStatus }  from '../components/utility/QueueStatus';
@@ -2294,6 +2295,9 @@ export default function VenuePage() {
 
         {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
+
+        {/* ── Honour this place ─────────────────────────────────────────────── */}
+        <HonourButton venueId={venue.id} venueName={venue.name} />
 
         {/* ── Listing completeness — prompts owner or unclaimed CTA ─────────── */}
         <ListingCompletenessPanel

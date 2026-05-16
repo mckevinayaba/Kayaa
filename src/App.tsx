@@ -45,6 +45,7 @@ import CreatePage            from './pages/CreatePage';
 import VenueBoostPage        from './pages/VenueBoostPage';
 import NeighbourhoodPage     from './pages/NeighbourhoodPage';
 import OwnerDashboard        from './pages/OwnerDashboard';
+import HousingPage           from './pages/HousingPage';
 
 // ── Root redirect ────────────────────────────────────────────────────────────
 // Signed-in → /feed.  Unauthenticated → landing page.
@@ -132,6 +133,7 @@ export default function App() {
             <Route path="/explore"              element={<ExplorePage />} />
             <Route path="/neighbourhood"        element={<NeighbourhoodPage />} />
             <Route path="/checkin"              element={<CheckInBrowsePage />} />
+            <Route path="/housing"              element={<HousingPage />} />
             <Route path="/jobs"                 element={<JobsPage />} />
             <Route path="/card/:name"           element={<RegularCardPage />} />
             <Route path="/countries"            element={<CountriesPage />} />
