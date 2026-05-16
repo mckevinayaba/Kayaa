@@ -1350,10 +1350,16 @@ export default function FeedPage() {
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [search, setSearch] = useState('');
-  const [sortMode, _setSortMode] = useState<SortMode>(() => {
+  const [sortMode, setSortMode] = useState<SortMode>(() => {
     const saved = localStorage.getItem('kayaa_feed_sort') as SortMode | null;
     return saved ?? 'active_now';
   });
+
+  function handleSortChange(mode: SortMode) {
+    setSortMode(mode);
+    localStorage.setItem('kayaa_feed_sort', mode);
+    // visibleCount is reset by the existing useEffect that watches sortMode
+  }
 
   // Scope: starts at 'nearby' (safe default); set to smart default after data loads.
   // manualScope tracks whether the user explicitly picked a scope this session.
@@ -2226,7 +2232,7 @@ export default function FeedPage() {
 
             return (
               <>
-                <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <h2 style={{
                     fontFamily: 'Syne, sans-serif', fontWeight: 800,
                     fontSize: '16px', color: 'var(--color-text)',
@@ -2241,6 +2247,67 @@ export default function FeedPage() {
                     {establishedCards.length} place{establishedCards.length !== 1 ? 's' : ''}
                   </span>
                 </div>
+
+                {/* ── Sort mode strip ─────────────────────────────────────── */}
+                {(() => {
+                  const SORT_OPTS: { mode: SortMode; emoji: string; label: string }[] = [
+                    { mode: 'active_now',  emoji: '🔥', label: 'Active'   },
+                    { mode: 'for_you',     emoji: '✨', label: 'For You'  },
+                    { mode: 'trending',    emoji: '📈', label: 'Rising'   },
+                    { mode: 'most_loved',  emoji: '⭐', label: 'Loved'    },
+                    { mode: 'new_places',  emoji: '🆕', label: 'New'      },
+                  ];
+                  const pillBase: React.CSSProperties = {
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    height: '30px', padding: '0 11px', flexShrink: 0,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '100px', cursor: 'pointer',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+                    color: 'rgba(255,255,255,0.45)',
+                    WebkitTapHighlightColor: 'transparent',
+                    transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                  };
+                  const pillActive: React.CSSProperties = {
+                    ...pillBase,
+                    background: 'rgba(57,217,138,0.1)',
+                    border: '1px solid rgba(57,217,138,0.28)',
+                    color: '#39D98A',
+                  };
+                  return (
+                    <div style={{
+                      display: 'flex', gap: '6px',
+                      overflowX: 'auto', scrollbarWidth: 'none',
+                      marginLeft: '-16px', paddingLeft: '16px',
+                      marginRight: '-16px', paddingRight: '16px',
+                      paddingBottom: '2px', marginBottom: '14px',
+                      WebkitOverflowScrolling: 'touch',
+                    } as React.CSSProperties}>
+                      {SORT_OPTS.map(({ mode, emoji, label }) => (
+                        <button
+                          key={mode}
+                          onClick={() => handleSortChange(mode)}
+                          style={sortMode === mode ? pillActive : pillBase}
+                          aria-pressed={sortMode === mode}
+                        >
+                          <span style={{ fontSize: '12px', lineHeight: 1 }}>{emoji}</span>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Fallback note — shown when active_now yields nothing */}
+                {activeNowEmpty && (
+                  <p style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                    color: 'rgba(255,255,255,0.3)', margin: '-4px 0 12px',
+                    fontStyle: 'italic',
+                  }}>
+                    No check-ins in the last 2 hours — showing all places
+                  </p>
+                )}
 
                 {displayEstablished.slice(0, visibleCount - 1).map((venue, i) => {
                   const showActivity = ACTIVITY_AFTER.has(i) && activityIdx < activity.length;
