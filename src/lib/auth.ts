@@ -5,9 +5,10 @@ export async function signInWithEmail(email: string) {
     email,
     options: {
       shouldCreateUser: true,
-      // After tapping the magic link, land on /setup.
-      // SetupPage handles returning users instantly (kayaa_setup_done check).
-      emailRedirectTo: `${window.location.origin}/setup`,
+      // Land on /feed so the auth tokens in the URL hash are processed before
+      // any React Router navigation can strip them. /setup used to be the
+      // target but that redirect now strips the hash before AuthContext runs.
+      emailRedirectTo: `${window.location.origin}/feed`,
     },
   });
 }
@@ -16,8 +17,9 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      // After Google auth, land on /setup (same bypass logic as email link)
-      redirectTo: `${window.location.origin}/setup`,
+      // Same reason — land directly on /feed so the PKCE ?code= param
+      // survives long enough for Supabase's detectSessionInUrl to exchange it.
+      redirectTo: `${window.location.origin}/feed`,
     },
   });
 }
