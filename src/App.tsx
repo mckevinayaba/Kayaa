@@ -7,8 +7,10 @@ import { LocationProvider } from './contexts/LocationContext';
 import AppLayout from './layouts/AppLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import ChunkErrorBoundary from './components/ChunkErrorBoundary';
 
 // ── Lazy page imports — each route gets its own chunk ────────────────────────
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const LandingPage          = lazy(() => import('./pages/LandingPage'));
 const FeedPage             = lazy(() => import('./pages/FeedPage'));
 const VenuePage            = lazy(() => import('./pages/VenuePage'));
@@ -98,6 +100,7 @@ export default function App() {
     <AuthProvider>
       <LocationProvider>
       <BrowserRouter>
+        <ChunkErrorBoundary>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Root redirect */}
@@ -173,8 +176,12 @@ export default function App() {
               <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
               <Route path="/search" element={<Navigate to="/checkin" replace />} />
             </Route>
+
+            {/* ── Catch-all: any unmatched URL → 404 ── */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
+        </ChunkErrorBoundary>
       </BrowserRouter>
       </LocationProvider>
     </AuthProvider>

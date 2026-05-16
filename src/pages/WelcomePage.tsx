@@ -308,66 +308,89 @@ export default function WelcomePage() {
       {/* Auth options */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-        {/* Google button */}
-        <button
-          onClick={handleGoogle}
-          disabled={googleLoading || emailLoading}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '10px', width: '100%', minHeight: '54px',
-            background: '#ffffff', color: '#1a1a1a',
-            border: 'none', borderRadius: '14px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '16px',
-            cursor: googleLoading ? 'default' : 'pointer',
-            opacity: googleLoading ? 0.7 : 1,
-            transition: 'opacity 0.15s',
-          }}
-        >
-          {googleLoading ? (
-            <span style={{ fontSize: '14px', color: '#666' }}>Connecting…</span>
-          ) : (
-            <>
-              <GoogleG />
-              Continue with Google
-            </>
+        {/* Google button — primary, dominant */}
+        <div>
+          <button
+            onClick={handleGoogle}
+            disabled={googleLoading || emailLoading}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '10px', width: '100%', minHeight: '56px',
+              background: '#ffffff', color: '#1a1a1a',
+              border: 'none', borderRadius: '14px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '16px',
+              cursor: googleLoading ? 'default' : 'pointer',
+              opacity: googleLoading ? 0.7 : 1,
+              transition: 'opacity 0.15s',
+              position: 'relative',
+            }}
+          >
+            {googleLoading ? (
+              <span style={{ fontSize: '14px', color: '#666' }}>Connecting…</span>
+            ) : (
+              <>
+                <GoogleG />
+                Continue with Google
+              </>
+            )}
+          </button>
+          {/* "Quickest" label — tells new users which path to pick */}
+          {!googleLoading && (
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '12px', color: 'rgba(57,217,138,0.8)',
+              textAlign: 'center', margin: '6px 0 0',
+              fontWeight: 600,
+            }}>
+              ⚡ One tap — no password, no waiting
+            </p>
           )}
-        </button>
+        </div>
 
         {/* Divider */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '4px 0',
+          padding: '2px 0',
         }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
           <span style={{
-            fontSize: '12px', color: 'rgba(255,255,255,0.3)',
+            fontSize: '12px', color: 'rgba(255,255,255,0.25)',
             fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
           }}>
             or
           </span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
         </div>
 
-        {/* Email option */}
+        {/* Email option — secondary, visually quieter */}
         {step === 'welcome' ? (
-          <button
-            onClick={() => { setStep('email'); setError(''); }}
-            disabled={googleLoading}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '10px', width: '100%', minHeight: '54px',
-              background: '#161B22',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '14px',
-              color: 'rgba(255,255,255,0.75)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '16px',
-              cursor: 'pointer',
-              transition: 'border-color 0.15s',
-            }}
-          >
-            <EmailIcon />
-            Continue with email
-          </button>
+          <div>
+            <button
+              onClick={() => { setStep('email'); setError(''); }}
+              disabled={googleLoading}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: '10px', width: '100%', minHeight: '50px',
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '14px',
+                color: 'rgba(255,255,255,0.5)',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+                cursor: 'pointer',
+                transition: 'border-color 0.15s',
+              }}
+            >
+              <EmailIcon />
+              Continue with email
+            </button>
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '11px', color: 'rgba(255,255,255,0.22)',
+              textAlign: 'center', margin: '5px 0 0',
+            }}>
+              We'll email you a sign-in link — no password needed
+            </p>
+          </div>
         ) : (
           /* Email input — inline expansion */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
