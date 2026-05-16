@@ -889,9 +889,34 @@ export default function OnboardingPage() {
       <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
         Tell us about your place
       </h1>
-      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: hasDraft ? '12px' : '28px' }}>
+      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
         Every great neighbourhood spot deserves its own page.
       </p>
+
+      {/* Owner hook card */}
+      <div style={{
+        background: 'rgba(57,217,138,0.05)',
+        border: '1px solid rgba(57,217,138,0.18)',
+        borderLeft: '3px solid rgba(57,217,138,0.55)',
+        borderRadius: '0 14px 14px 0',
+        padding: '16px 18px',
+        marginBottom: hasDraft ? '16px' : '28px',
+      }}>
+        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 10px' }}>
+          You run a place people already return to.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+          {[
+            '📍 Get found by people in your neighbourhood',
+            '🤝 Turn walk-ins into known regulars',
+            "📊 See who keeps coming back — and who's drifted",
+          ].map(item => (
+            <p key={item} style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.65)', margin: 0, lineHeight: 1.5 }}>
+              {item}
+            </p>
+          ))}
+        </div>
+      </div>
 
       {/* Draft resume banner */}
       {hasDraft && (

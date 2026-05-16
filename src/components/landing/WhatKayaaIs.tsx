@@ -42,9 +42,16 @@ const PLACE_STORIES = [
 ];
 
 const AREAS = [
-  "Sandton", "Rosebank", "Fourways", "Randburg", "Braamfontein",
-  "Hillbrow", "Maboneng", "Soweto", "Alexandra", "Tembisa",
-  "Khayelitsha", "Mitchells Plain",
+  // South Africa
+  "Sandton", "Braamfontein", "Hillbrow", "Soweto", "Khayelitsha",
+  // Lagos
+  "Yaba", "Surulere", "Mushin", "Ikeja",
+  // Nairobi
+  "Westlands", "Kibera", "Eastleigh",
+  // Accra
+  "Osu", "Labadi", "Nima",
+  // Kampala
+  "Kabalagala", "Wandegeya",
 ];
 
 const NOT_ITEMS = [
@@ -54,7 +61,7 @@ const NOT_ITEMS = [
   },
   {
     label: "Not a global directory.",
-    body: "This is built around neighbourhood visibility and local relevance.",
+    body: "This is built around neighbourhood visibility, one street at a time. The fact that it matters in many cities does not make it global — it makes it local, everywhere.",
   },
   {
     label: "Not a chain showcase.",
@@ -307,7 +314,7 @@ export function WhatKayaaIs() {
             Not to the neighbourhood. To everyone else.
           </p>
           <p style={{ ...BODY, fontStyle: "italic", color: "rgba(240,246,252,0.45)" }}>
-            The same thing is happening in —
+            The same thing is happening across the continent —
           </p>
           <div className="wki-areas">
             {AREAS.map((a) => (
@@ -316,6 +323,12 @@ export function WhatKayaaIs() {
           </div>
           <p style={{ ...BODY, marginTop: 28 }}>
             Different streets. The same wound.
+          </p>
+          <p style={{ ...BODY, color: "rgba(240,246,252,0.55)", fontSize: 15 }}>
+            This is not a South African problem. From Johannesburg to Lagos,
+            from Nairobi to Accra — the neighbourhood economy is the backbone
+            of most cities on this continent. And in almost every one of them,
+            the places doing the most are still the ones being seen the least.
           </p>
         </div>
 

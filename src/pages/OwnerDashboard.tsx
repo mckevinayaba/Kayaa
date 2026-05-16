@@ -197,8 +197,25 @@ function OverviewTab({
   const emoji = catEmoji(venue.category);
   const coverUrl = venue.coverImage ?? (venue.galleryImages?.[0] ?? '');
 
+  const todayCount = stats?.todayCount ?? 0;
+  const motivationalLine = todayCount === 0
+    ? 'Your page is live. Your neighbourhood is looking.'
+    : todayCount === 1
+    ? '1 person checked in today. That\'s trust made visible.'
+    : `${todayCount} people checked in today. Your community is real.`;
+
   return (
     <div>
+      {/* ── Motivational header ───────────────────────────────────────── */}
+      <div style={{ marginBottom: '16px', paddingBottom: '14px', borderBottom: '1px solid var(--color-border)' }}>
+        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: '0 0 4px' }}>
+          {motivationalLine}
+        </p>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          Every check-in is someone vouching for you.
+        </p>
+      </div>
+
       {/* ── Identity card ─────────────────────────────────────────────── */}
       <div style={{
         background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px',

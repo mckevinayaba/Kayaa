@@ -1,12 +1,12 @@
 ﻿import { useNavigate } from "react-router-dom";
 
 const FEATURES = [
-  "See who your real regulars are",
-  "Know who hasn't visited in 14+ days",
-  "Send a WhatsApp nudge in one tap",
-  "Download your Community Proof Report",
-  "Post events and stories to your regulars",
-  "Get discovered by people nearby",
+  "See who your real regulars are — by name and visit count",
+  "Know who hasn't been back in 14+ days before you lose them",
+  "Get a WhatsApp alert every time someone checks in",
+  "Share updates that reach people who already love your place",
+  "Get discovered by new people searching your neighbourhood",
+  "Download proof of your community — for investors, landlords, or partners",
 ];
 
 const STATS = [
@@ -81,14 +81,23 @@ export function ForOwners() {
               margin: "0 0 24px",
             }}
           >
-            Your community
+            Be found.
             <br />
-            is real.
+            <span style={{ color: "#39D98A" }}>Be trusted.</span>
             <br />
-            Now make it
-            <br />
-            visible.
+            Be returned to.
           </h2>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 16,
+              color: "#6B7280",
+              lineHeight: 1.7,
+              margin: "0 0 12px",
+            }}
+          >
+            The people already walking past your place don't know you yet. Kayaa changes that.
+          </p>
           <p
             style={{
               fontFamily: "var(--font-body)",
@@ -99,7 +108,7 @@ export function ForOwners() {
               whiteSpace: "pre-line",
             }}
           >
-            {`You already know your regulars by face. You know who comes every Saturday. You know who disappeared three weeks ago.\n\nkayaa gives that knowledge a record — so you can reach them when it's quiet, and prove your community exists to anyone who needs to see it.`}
+            {`You already know your regulars by face. You know who comes every Saturday. You know who disappeared three weeks ago.\n\nEvery check-in is someone vouching for you. kayaa gives that loyalty a record — so you can reach people when it's quiet, and prove your community exists to anyone who needs to see it.`}
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -151,7 +160,7 @@ export function ForOwners() {
               cursor: "pointer",
             }}
           >
-            Add your place — it's free →
+            Claim your place — it's free →
           </button>
         </div>
 

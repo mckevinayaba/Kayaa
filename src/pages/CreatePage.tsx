@@ -168,6 +168,17 @@ export default function CreatePage() {
             {section.heading}
           </p>
 
+          {/* Owner hook for Places section */}
+          {section.heading === 'Places' && (
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              color: 'rgba(255,255,255,0.45)', margin: '-4px 0 10px',
+              lineHeight: 1.5,
+            }}>
+              Run a shop, salon, spaza, or church? Your community is already looking for you.
+            </p>
+          )}
+
           {/* Tiles */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {section.tiles.map(tile => (
