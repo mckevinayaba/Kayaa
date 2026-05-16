@@ -25,8 +25,6 @@ import {
 } from '../lib/api';
 import type {
   UtilityCategory,
-  PowerIssueType,
-  WaterIssueType,
   UtilityIssueType,
 } from '../lib/api';
 
@@ -94,11 +92,11 @@ export default function UtilityReportPage() {
   const navigate    = useNavigate();
   const { type }    = useParams<{ type: string }>();
   const { user }    = useAuth();
-  const { suburb, city } = useNeighbourhood();
+  const { displaySuburb, displayCity } = useNeighbourhood();
 
   const category   = (type === 'water' ? 'water' : 'power') as UtilityCategory;
   const theme      = THEME[category];
-  const neighbourhood = suburb || city || '';
+  const neighbourhood = displaySuburb || displayCity || '';
 
   // ── step state ──
   const [step,        setStep]        = useState<Step>('pick');
