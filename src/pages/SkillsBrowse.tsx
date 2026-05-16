@@ -54,7 +54,7 @@ function SkillCard({ post }: { post: BoardPost }) {
       onClick={() => navigate(`/skills/${post.id}`)}
       style={{
         background: 'var(--color-surface)',
-        border: '1px solid #21262D',
+        border: '1px solid var(--color-border)',
         borderRadius: '14px',
         padding: '16px',
         cursor: 'pointer',
@@ -146,7 +146,7 @@ function SkillCard({ post }: { post: BoardPost }) {
 
 function SkillSkeleton() {
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '14px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
       <div style={{ height: '20px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '35%', marginBottom: '8px' }} />
       <div style={{ height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '70%', marginBottom: '6px' }} />
       <div style={{ height: '13px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', width: '90%', marginBottom: '4px' }} />

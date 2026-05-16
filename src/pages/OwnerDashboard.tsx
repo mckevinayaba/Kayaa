@@ -123,7 +123,7 @@ function LinkRow({ to, emoji, label, sub, accent = '#39D98A' }: {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '13px',
         padding: '13px 14px', background: 'var(--color-surface)',
-        border: '1px solid #21262D', borderRadius: '14px',
+        border: '1px solid var(--color-border)', borderRadius: '14px',
       }}>
         {emoji && (
           <div style={{
@@ -201,7 +201,7 @@ function OverviewTab({
     <div>
       {/* ── Identity card ─────────────────────────────────────────────── */}
       <div style={{
-        background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px',
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px',
         overflow: 'hidden', marginBottom: '16px',
       }}>
         {/* Cover strip */}
@@ -288,7 +288,7 @@ function OverviewTab({
       {/* ── Completeness checklist ────────────────────────────────────── */}
       {score < 100 && (
         <div style={{
-          background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px',
           padding: '16px', marginBottom: '16px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -516,7 +516,7 @@ function ProfileTab({ venue, venueId, onVenueUpdate }: {
       </div>
 
       {/* ── Edit form ───────────────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
         <SectionTitle>Edit details</SectionTitle>
 
         {saved && (
@@ -564,7 +564,7 @@ function ProfileTab({ venue, venueId, onVenueUpdate }: {
       </div>
 
       {/* ── Photos ─────────────────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <SectionTitle>Photos</SectionTitle>
           <Link to="/venue/photos" style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', textDecoration: 'none' }}>
@@ -607,7 +607,7 @@ function ProfileTab({ venue, venueId, onVenueUpdate }: {
       </div>
 
       {/* ── Hours ────────────────────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <SectionTitle>Opening hours</SectionTitle>
           <Link to="/venue/hours" style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', textDecoration: 'none' }}>
@@ -884,7 +884,7 @@ function UpdateCard({ update, onDelete }: { update: VenueUpdate; onDelete: (id: 
   const cfg = UPDATE_TYPES.find(t => t.key === update.type) ?? UPDATE_TYPES[4];
 
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '14px', padding: '14px', marginBottom: '10px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px', marginBottom: '10px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         <div style={{
           width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
@@ -969,7 +969,7 @@ function ActivityTab({ venueId, stats, weekViews }: {
       </div>
 
       {/* ── Recent check-ins ─────────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <SectionTitle>Recent check-ins</SectionTitle>
           <CheckSquare size={15} color="rgba(57,217,138,0.5)" />
@@ -1082,7 +1082,7 @@ function SettingsTab({ venue, venueId, onVenueUpdate }: {
   return (
     <div>
       {/* ── Open / Closed toggle ────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
@@ -1161,7 +1161,7 @@ function SettingsTab({ venue, venueId, onVenueUpdate }: {
       </div>
 
       {/* ── Danger zone / support ────────────────────────────────────── */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px' }}>
         <SectionTitle>Support</SectionTitle>
         <a
           href="mailto:hello@kayaa.app?subject=Issue%20with%20my%20place"
@@ -1267,7 +1267,7 @@ export default function OwnerDashboard() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '10px 16px',
         display: 'flex', alignItems: 'center', gap: '10px',
       }}>
@@ -1302,7 +1302,7 @@ export default function OwnerDashboard() {
       <div style={{
         display: 'flex', overflowX: 'auto', gap: '4px',
         padding: '10px 12px 0', scrollbarWidth: 'none',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
       }}>
         <style>{`.tab-scroll::-webkit-scrollbar{display:none}`}</style>
         {TABS.map(t => (

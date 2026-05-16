@@ -236,7 +236,7 @@ export function QueueStatus() {
   }, []);
 
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -298,7 +298,7 @@ export function QueueStatus() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '12px',
-                  background: '#0D1117', border: '1px solid #21262D', borderRadius: '10px',
+                  background: '#0D1117', border: '1px solid var(--color-border)', borderRadius: '10px',
                   cursor: 'pointer', textAlign: 'left',
                 }}
               >

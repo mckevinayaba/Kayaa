@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { onWaitlistOpen } from "../../lib/waitlist-store";
 
@@ -200,8 +200,8 @@ export function WaitlistModal() {
       >
         <div
           style={{
-            background: "#161B22",
-            border: "1px solid #21262D",
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
             borderRadius: 20,
             width: "100%",
             maxWidth: 500,
@@ -212,7 +212,7 @@ export function WaitlistModal() {
           }}
         >
           {/* Progress bar */}
-          <div style={{ height: 3, background: "#21262D", borderRadius: "20px 20px 0 0" }}>
+          <div style={{ height: 3, background: "var(--color-border)", borderRadius: "20px 20px 0 0" }}>
             <div style={{
               height: "100%",
               width: `${progress}%`,
@@ -315,7 +315,7 @@ export function WaitlistModal() {
                           onClick={() => setUserType(opt.v)}
                           style={{
                             background: userType === opt.v ? "rgba(57,217,138,0.08)" : "#0D1117",
-                            border: `1.5px solid ${userType === opt.v ? "#39D98A" : "#21262D"}`,
+                            border: `1.5px solid ${userType === opt.v ? "#39D98A" : "var(--color-border)"}`,
                             borderRadius: 12,
                             padding: "16px 18px",
                             cursor: "pointer",
@@ -380,7 +380,7 @@ export function WaitlistModal() {
                               style={{
                                 padding: "6px 14px",
                                 background: placeType === t ? "rgba(57,217,138,0.12)" : "#0D1117",
-                                border: `1px solid ${placeType === t ? "#39D98A" : "#21262D"}`,
+                                border: `1px solid ${placeType === t ? "#39D98A" : "var(--color-border)"}`,
                                 borderRadius: 999,
                                 fontFamily: "var(--font-body)", fontSize: 12,
                                 color: placeType === t ? "#39D98A" : "rgba(255,255,255,0.6)",
@@ -478,7 +478,7 @@ export function WaitlistModal() {
                       onClick={() => { setStep(s => s - 1); setError(""); }}
                       style={{
                         background: "transparent",
-                        border: "1px solid #21262D",
+                        border: "1px solid var(--color-border)",
                         color: "rgba(255,255,255,0.5)",
                         fontFamily: "var(--font-body)", fontSize: 14,
                         padding: "12px 22px", borderRadius: 10, cursor: "pointer",
@@ -516,7 +516,7 @@ export function WaitlistModal() {
 const inputSt: React.CSSProperties = {
   width: "100%",
   background: "#0D1117",
-  border: "1px solid #21262D",
+  border: "1px solid var(--color-border)",
   borderRadius: 10,
   padding: "13px 16px",
   color: "#F0F6FC",

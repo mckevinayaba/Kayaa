@@ -375,7 +375,7 @@ export default function VenueEvents() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>
@@ -481,7 +481,7 @@ export default function VenueEvents() {
                   onClick={() => setShowPast(v => !v)}
                   style={{
                     width: '100%', padding: '10px', marginTop: '8px',
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid #21262D',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)',
                     borderRadius: '10px', cursor: 'pointer',
                     fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
                     color: 'rgba(255,255,255,0.35)',

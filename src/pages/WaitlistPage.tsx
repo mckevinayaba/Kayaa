@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 const inputStyle: React.CSSProperties = {
   width: '100%',
   minHeight: '50px',
-  background: '#161B22',
+  background: 'var(--color-surface)',
   border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '12px',
   padding: '0 16px',
@@ -277,7 +277,7 @@ export default function WaitlistPage() {
                           flex: 1, minHeight: '46px',
                           background: form.user_type === opt.value
                             ? 'rgba(57,217,138,0.1)'
-                            : '#161B22',
+                            : 'var(--color-surface)',
                           border: `1.5px solid ${form.user_type === opt.value
                             ? '#39D98A'
                             : 'rgba(255,255,255,0.1)'}`,

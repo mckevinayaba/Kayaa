@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { MapPin, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -296,7 +296,7 @@ export default function SetupPage() {
             placeholder="Type your suburb or area…"
             style={{
               width: '100%', minHeight: '50px',
-              background: '#161B22',
+              background: 'var(--color-surface)',
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '12px', padding: '0 16px',
               color: '#F0F6FC', fontSize: '15px',
@@ -435,7 +435,7 @@ export default function SetupPage() {
               style={{
                 display: 'flex', alignItems: 'flex-start', gap: '14px',
                 padding: '16px 18px', borderRadius: '16px', textAlign: 'left',
-                background: active ? 'rgba(57,217,138,0.08)' : '#161B22',
+                background: active ? 'rgba(57,217,138,0.08)' : 'var(--color-surface)',
                 border: `1.5px solid ${active ? '#39D98A' : 'rgba(255,255,255,0.08)'}`,
                 cursor: 'pointer',
                 transition: 'all 0.15s',

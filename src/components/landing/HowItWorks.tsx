@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 
 const STEPS = [
   {
@@ -81,7 +81,7 @@ export function HowItWorks() {
       style={{
         background: "#0D1117",
         padding: "clamp(64px, 10vw, 100px) 6%",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
       }}
     >
       <style>{`
@@ -128,8 +128,8 @@ export function HowItWorks() {
             ref={(el) => { cardRefs.current[i] = el; }}
             className="kayaa-hiw-card"
             style={{
-              background: "#161B22",
-              border: "1px solid #21262D",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
               borderRadius: 16,
               padding: "36px 28px",
               transition: "border-color 0.25s ease, box-shadow 0.25s ease",

@@ -99,7 +99,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
                   title={r.name}
                   style={{
                     width: '44px', height: '44px', borderRadius: '50%',
-                    border: '2px solid #161B22',
+                    border: '2px solid var(--color-surface)',
                     background: `${color}1A`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
@@ -117,7 +117,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
             {count > 8 && (
               <div style={{
                 width: '44px', height: '44px', borderRadius: '50%',
-                border: '2px solid #161B22',
+                border: '2px solid var(--color-surface)',
                 background: 'rgba(255,255,255,0.06)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,

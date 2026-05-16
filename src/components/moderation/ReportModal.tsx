@@ -123,7 +123,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
       <div style={SHEET_STYLE} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #21262D' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Flag size={18} color="#EF4444" />
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
@@ -188,7 +188,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
             placeholder="Provide more context to help us review…"
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: 'var(--color-surface)', border: '1px solid #21262D',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               borderRadius: '10px', padding: '12px',
               color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
               outline: 'none', resize: 'none',
@@ -231,7 +231,7 @@ const OVERLAY_STYLE: React.CSSProperties = {
 const SHEET_STYLE: React.CSSProperties = {
   width: '100%', maxWidth: '480px',
   background: '#0D1117',
-  border: '1px solid #21262D',
+  border: '1px solid var(--color-border)',
   borderTop: '1px solid #30363D',
   borderRadius: '20px 20px 0 0',
 };

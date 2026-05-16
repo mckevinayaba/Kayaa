@@ -107,7 +107,7 @@ export default function EmergencyContacts() {
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '14px',
                   background: 'var(--color-surface)',
-                  border: '1px solid #21262D',
+                  border: '1px solid var(--color-border)',
                   borderRadius: '14px',
                 }}
               >

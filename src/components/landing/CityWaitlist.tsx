@@ -1,9 +1,9 @@
-export function CityWaitlist() {
+﻿export function CityWaitlist() {
   return (
     <section
       style={{
         background: "#0D1117",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
         padding: "clamp(64px, 10vw, 100px) 6%",
         position: "relative",
         overflow: "hidden",

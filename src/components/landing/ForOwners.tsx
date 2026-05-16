@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 
 const FEATURES = [
   "See who your real regulars are",
@@ -27,9 +27,9 @@ export function ForOwners() {
   return (
     <section
       style={{
-        background: "#161B22",
-        borderTop: "1px solid #21262D",
-        borderBottom: "1px solid #21262D",
+        background: "var(--color-surface)",
+        borderTop: "1px solid var(--color-border)",
+        borderBottom: "1px solid var(--color-border)",
         padding: "100px 6%",
       }}
     >
@@ -162,7 +162,7 @@ export function ForOwners() {
               maxWidth: 300,
               margin: "0 auto",
               background: "#0A0E14",
-              border: "1px solid #21262D",
+              border: "1px solid var(--color-border)",
               borderRadius: 24,
               padding: 20,
               boxShadow:
@@ -236,8 +236,8 @@ export function ForOwners() {
                 <div
                   key={s.label}
                   style={{
-                    background: "#161B22",
-                    border: "1px solid #21262D",
+                    background: "var(--color-surface)",
+                    border: "1px solid var(--color-border)",
                     borderRadius: 8,
                     padding: "10px 12px",
                   }}
@@ -295,7 +295,7 @@ export function ForOwners() {
                     key={r.name}
                     style={{
                       background: "rgba(255,255,255,0.02)",
-                      border: "1px solid #21262D",
+                      border: "1px solid var(--color-border)",
                       borderRadius: 6,
                       padding: "8px 10px",
                       display: "flex",
@@ -352,7 +352,7 @@ export function ForOwners() {
 
             <div
               style={{
-                borderTop: "1px solid #21262D",
+                borderTop: "1px solid var(--color-border)",
                 marginTop: 14,
                 paddingTop: 10,
                 display: "flex",

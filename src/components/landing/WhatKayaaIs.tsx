@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 
 // ── Shared text styles ────────────────────────────────────────────────────────
 const LABEL: React.CSSProperties = {
@@ -123,7 +123,7 @@ export function WhatKayaaIs() {
       id="about"
       style={{
         background: "#0D1117",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
         position: "relative",
       }}
     >
@@ -243,8 +243,8 @@ export function WhatKayaaIs() {
           margin-top: 32px;
         }
         .wki-helps-card {
-          background: #161B22;
-          border: 1px solid #21262D;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: 14px;
           padding: 24px;
         }

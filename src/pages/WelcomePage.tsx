@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -143,7 +143,7 @@ export default function WelcomePage() {
 
         {/* Steps */}
         <div style={{
-          background: '#161B22', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '16px', padding: '16px 20px',
           marginBottom: '28px', width: '100%', textAlign: 'left',
         }}>
@@ -209,7 +209,7 @@ export default function WelcomePage() {
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
               gap: '6px', minHeight: '54px',
-              background: '#161B22', color: 'rgba(255,255,255,0.75)',
+              background: 'var(--color-surface)', color: 'rgba(255,255,255,0.75)',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: '14px', textDecoration: 'none',
               fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '15px',
@@ -404,7 +404,7 @@ export default function WelcomePage() {
               autoComplete="email"
               style={{
                 width: '100%', minHeight: '54px',
-                background: '#161B22',
+                background: 'var(--color-surface)',
                 border: `1px solid ${error ? '#F87171' : 'rgba(255,255,255,0.15)'}`,
                 borderRadius: '14px', padding: '0 16px',
                 color: '#F0F6FC', fontSize: '16px',

@@ -184,7 +184,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
       <div style={SHEET} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #21262D' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Shield size={18} color="#39D98A" />
             <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
@@ -330,7 +330,7 @@ const OVERLAY: React.CSSProperties = {
 const SHEET: React.CSSProperties = {
   width: '100%', maxWidth: '480px',
   background: '#0D1117',
-  border: '1px solid #21262D',
+  border: '1px solid var(--color-border)',
   borderRadius: '20px 20px 0 0',
 };
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import type { Map as LeafletMap, Marker } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Venue } from '../../types';
@@ -125,7 +125,7 @@ export default function MapView({
         const icon = L.divIcon({
           html: `<div style="
             width:40px;height:40px;border-radius:50%;
-            background:#161B22;
+            background:var(--color-surface);
             border:3px solid ${ring};
             display:flex;align-items:center;justify-content:center;
             font-size:18px;
@@ -145,7 +145,7 @@ export default function MapView({
           maxWidth: 200,
         }).setContent(`
           <div style="
-            background:#161B22;color:#fff;
+            background:var(--color-surface);color:#fff;
             padding:10px 12px;border-radius:10px;
             border:1px solid rgba(255,255,255,0.08);
             font-family:'DM Sans',sans-serif;

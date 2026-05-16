@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 export function ResearchBrief() {
@@ -58,8 +58,8 @@ export function ResearchBrief() {
         }
         .kayaa-story-input {
           width: 100%;
-          background: #161B22;
-          border: 1px solid #21262D;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: 8px;
           padding: 14px 16px;
           font-family: var(--font-body);
@@ -134,8 +134,8 @@ export function ResearchBrief() {
           className="reveal reveal-delay-1"
           style={{
             textAlign: "left",
-            background: "#161B22",
-            border: "1px solid #21262D",
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
             borderLeft: "3px solid #39D98A",
             borderRadius: 10,
             padding: "20px 24px",

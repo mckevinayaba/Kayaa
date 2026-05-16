@@ -1,4 +1,4 @@
-const PLACES = [
+﻿const PLACES = [
   {
     name: "KOSES General Dealer",
     type: "Spaza Shop",
@@ -55,7 +55,7 @@ export function PlacesGallery() {
       style={{
         background: "#0A0E14",
         padding: "clamp(64px, 10vw, 100px) 6%",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
       }}
     >
       <style>{`
@@ -72,7 +72,7 @@ export function PlacesGallery() {
           aspect-ratio: 4/5;
           border-radius: 12px;
           overflow: hidden;
-          background: #161B22;
+          background: var(--color-surface);
           transition: transform 0.3s ease;
           cursor: pointer;
         }

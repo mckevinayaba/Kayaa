@@ -176,7 +176,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
         {/* Image preview / add photo */}
         {imageUrl ? (
           <div style={{ position: 'relative', marginBottom: '12px' }}>
-            <img src={imageUrl} alt="Post image" style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #21262D' }} />
+            <img src={imageUrl} alt="Post image" style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--color-border)' }} />
             <button
               onClick={() => setImageUrl(null)}
               style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}

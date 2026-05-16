@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Search } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
@@ -106,7 +106,7 @@ export default function AppLayout() {
       {profileOpen && user && (
         <div style={{
           position: 'fixed', top: '60px', right: '16px', zIndex: 51,
-          background: '#161B22',
+          background: 'var(--color-surface2)',
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '16px',
           minWidth: '220px',

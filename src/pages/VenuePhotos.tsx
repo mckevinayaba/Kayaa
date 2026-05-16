@@ -290,7 +290,7 @@ export default function VenuePhotos() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>
@@ -340,7 +340,7 @@ export default function VenuePhotos() {
           ].map(tip => (
             <span key={tip} style={{
               fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)',
-              background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '20px',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px',
               padding: '4px 10px',
             }}>
               {tip}
@@ -396,7 +396,7 @@ export default function VenuePhotos() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '13px', borderRadius: '12px', textDecoration: 'none',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid #21262D',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
               fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.5)',
             }}
           >

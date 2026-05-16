@@ -199,7 +199,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
         onClick={() => setOpen(true)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '12px', padding: '12px 14px',
           cursor: 'pointer', textAlign: 'left',
         }}
@@ -254,7 +254,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
   }, [area]);
 
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>

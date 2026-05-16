@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Zap, TrendingUp, Star, CheckCircle2 } from 'lucide-react';
 
 // ─── Plan config ──────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ export default function VenueBoostPage() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, type CSSProperties } from "react";
+﻿import { useEffect, useState, useCallback, useRef, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
 type Slide = {
@@ -341,7 +341,7 @@ export function HeroCarousel() {
               bottom: "12%",
               right: "6%",
               background: "rgba(13,17,23,0.9)",
-              border: "1px solid #21262D",
+              border: "1px solid var(--color-border)",
               borderBottom: "2px solid #39D98A",
               borderRadius: 4,
               padding: "20px 24px",

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 
 function Tile({
   label,
@@ -16,7 +16,7 @@ function Tile({
       className={`reveal reveal-delay-${delay} kayaa-proof-tile`}
       style={{
         background: "#0A0E14",
-        border: "1px solid #21262D",
+        border: "1px solid var(--color-border)",
         borderRadius: 16,
         padding: 20,
         display: "flex",
@@ -40,7 +40,7 @@ function Tile({
       <div
         style={{
           background: "#0D1117",
-          border: "1px solid #21262D",
+          border: "1px solid var(--color-border)",
           borderRadius: 10,
           padding: 14,
           minHeight: 280,
@@ -82,7 +82,7 @@ export function AppProof() {
       style={{
         background: "#0D1117",
         padding: "100px 6%",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
       }}
     >
       <style>{`
@@ -142,8 +142,8 @@ export function AppProof() {
             <div
               key={v.name}
               style={{
-                background: "#161B22",
-                border: "1px solid #21262D",
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
                 borderRadius: 8,
                 padding: "10px 12px",
                 display: "flex",
@@ -189,7 +189,7 @@ export function AppProof() {
               height: 70,
               borderRadius: 8,
               background: "linear-gradient(135deg,#21262D,#0D1117)",
-              border: "1px solid #21262D",
+              border: "1px solid var(--color-border)",
             }}
           />
           <div>
@@ -202,8 +202,8 @@ export function AppProof() {
           </div>
           <div
             style={{
-              background: "#161B22",
-              border: "1px solid #21262D",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
               borderLeft: "2px solid #39D98A",
               borderRadius: 6,
               padding: "8px 10px",
@@ -262,8 +262,8 @@ export function AppProof() {
             <div
               key={p.title}
               style={{
-                background: "#161B22",
-                border: "1px solid #21262D",
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
                 borderRadius: 8,
                 padding: "10px 12px",
               }}

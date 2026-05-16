@@ -1,4 +1,4 @@
-const COUNTERS = [
+﻿const COUNTERS = [
   { n: "47", label: "Places listed" },
   { n: "6", label: "Suburbs covered" },
   { n: "312", label: "Check-ins this week" },
@@ -31,7 +31,7 @@ export function SocialProof() {
       style={{
         background: "#0D1117",
         padding: "80px 6%",
-        borderTop: "1px solid #21262D",
+        borderTop: "1px solid var(--color-border)",
       }}
     >
       <style>{`
@@ -90,8 +90,8 @@ export function SocialProof() {
             key={q.name}
             className={`reveal reveal-delay-${i + 1}`}
             style={{
-              background: "#161B22",
-              border: "1px solid #21262D",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
               borderLeft: "3px solid #39D98A",
               borderRadius: 10,
               padding: 24,

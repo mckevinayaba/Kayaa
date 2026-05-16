@@ -134,7 +134,7 @@ export default function VenueQRCode() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>
@@ -187,7 +187,7 @@ export default function VenueQRCode() {
         {/* ── URL chip ─────────────────────────────────────────────────── */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '12px', padding: '10px 14px', marginBottom: '20px',
         }}>
           <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -240,7 +240,7 @@ export default function VenueQRCode() {
 
         {/* ── Placement tips ─────────────────────────────────────────────── */}
         <div style={{
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '14px', padding: '16px',
         }}>
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '10px' }}>

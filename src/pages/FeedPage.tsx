@@ -820,7 +820,7 @@ function UserPostCard({ post, liked, onLike }: UserPostCardProps) {
 
       {/* Image */}
       {post.imageUrl && (
-        <img src={post.imageUrl} alt="Post" loading="lazy" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px', border: '1px solid #21262D' }} />
+        <img src={post.imageUrl} alt="Post" loading="lazy" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px', border: '1px solid var(--color-border)' }} />
       )}
 
       {/* Footer */}

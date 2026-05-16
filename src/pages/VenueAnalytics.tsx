@@ -61,7 +61,7 @@ function SummaryCard({ report }: { report: CommunityReportData }) {
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -79,7 +79,7 @@ function SummaryCard({ report }: { report: CommunityReportData }) {
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid #21262D', paddingTop: '12px' }}>
+      <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
         <div>
           <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
             {report.busiestDay}
@@ -103,7 +103,7 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
@@ -157,7 +157,7 @@ function HourlyHeatmap({ hours }: { hours: number[] }) {
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
@@ -204,7 +204,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -324,7 +324,7 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -484,7 +484,7 @@ export default function VenueAnalytics() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>

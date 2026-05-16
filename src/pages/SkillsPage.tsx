@@ -65,7 +65,7 @@ function SkillCard({ post }: { post: BoardPost }) {
     >
       <div style={{
         background: 'var(--color-surface)',
-        border: '1px solid #21262D',
+        border: '1px solid var(--color-border)',
         borderLeft: '3px solid #39D98A',
         borderRadius: '10px',
         padding: '16px 20px',
@@ -139,7 +139,7 @@ function SkillCard({ post }: { post: BoardPost }) {
 
 function SkillSkeleton() {
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderLeft: '3px solid #21262D', borderRadius: '10px', padding: '16px 20px', marginBottom: '12px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderLeft: '3px solid var(--color-border)', borderRadius: '10px', padding: '16px 20px', marginBottom: '12px' }}>
       <div style={{ height: '16px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', width: '60%', marginBottom: '8px' }} />
       <div style={{ height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', width: '30%', marginBottom: '12px' }} />
       <div style={{ height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', width: '90%', marginBottom: '6px' }} />

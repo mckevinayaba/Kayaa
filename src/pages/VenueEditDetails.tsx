@@ -154,7 +154,7 @@ export default function VenueEditDetails() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -193,7 +193,7 @@ export default function VenueEditDetails() {
 
         {/* ── Venue name (read-only context) ──────────────────────────── */}
         <div style={{
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '14px', padding: '12px 16px',
           marginBottom: '24px',
           display: 'flex', alignItems: 'center', gap: '10px',

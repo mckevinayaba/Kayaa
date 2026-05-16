@@ -57,7 +57,7 @@ function UpdateCard({
 
   return (
     <div style={{
-      background: 'var(--color-surface)', border: '1px solid #21262D',
+      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '14px', padding: '14px', marginBottom: '10px',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
@@ -375,7 +375,7 @@ export default function VenueUpdates() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.94)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', gap: '12px',
       }}>

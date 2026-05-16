@@ -67,7 +67,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
 
   if (postedId) {
     return (
-      <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px' }}>
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '20px 0', gap: '10px',
@@ -112,7 +112,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
   // ── Main form ─────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid #21262D', borderRadius: '16px', padding: '16px' }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>

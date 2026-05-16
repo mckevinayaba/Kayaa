@@ -128,7 +128,7 @@ function ActionButton({
           : 'var(--color-surface)',
         border: premium
           ? '1px solid rgba(251,191,36,0.3)'
-          : '1px solid #21262D',
+          : '1px solid var(--color-border)',
       }}
     >
       <div style={{
@@ -325,7 +325,7 @@ export default function VenueDashboard() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
         background: 'rgba(13,17,23,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #21262D',
+        borderBottom: '1px solid var(--color-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -358,7 +358,7 @@ export default function VenueDashboard() {
         {/* ── Venue identity card ─────────────────────────────────────────── */}
         <div style={{
           marginTop: '16px', marginBottom: '20px',
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '16px', padding: '16px',
           display: 'flex', alignItems: 'center', gap: '14px',
         }}>
@@ -503,7 +503,7 @@ export default function VenueDashboard() {
 
         {/* ── Weekly rhythm card ──────────────────────────────────────────── */}
         <div style={{
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '16px', padding: '16px', marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -544,7 +544,7 @@ export default function VenueDashboard() {
 
         {/* ── Recent visitors ─────────────────────────────────────────────── */}
         <div style={{
-          background: 'var(--color-surface)', border: '1px solid #21262D',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '16px', padding: '16px', marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
