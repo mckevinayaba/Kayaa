@@ -913,7 +913,7 @@ export default function OnboardingPage() {
         Tell us about your business
       </h1>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-        Every great business deserves to be found.
+        Every business deserves to be found.
       </p>
 
       {/* Owner hook card */}
