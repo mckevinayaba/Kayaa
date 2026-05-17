@@ -119,8 +119,8 @@ const SECTIONS: Section[] = [
     tiles: [
       {
         emoji:  '🏪',
-        label:  'Add a place',
-        sub:    'Register a shop, salon, spaza, church, carwash or venue',
+        label:  'Add your business',
+        sub:    'Is your business on Kayaa? Add it free in 2 minutes.',
         lands:  'Discover',
         color:  '#F5A623',
         bg:     'rgba(245,166,35,0.07)',
@@ -129,8 +129,8 @@ const SECTIONS: Section[] = [
       },
       {
         emoji:  '✨',
-        label:  'Honour a place',
-        sub:    'Find a local place you love and tap ✨ Honour on its page',
+        label:  'Honour a business',
+        sub:    'Found a business you love? Honour it and let the community know.',
         lands:  'Venue page · Discover',
         color:  '#F59E0B',
         bg:     'rgba(245,158,11,0.07)',

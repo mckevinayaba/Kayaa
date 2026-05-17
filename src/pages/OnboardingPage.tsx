@@ -46,7 +46,7 @@ function fileExt(file: File): string {
 // ─── Shared components ────────────────────────────────────────────────────────
 
 function StepIndicator({ current }: { current: 1 | 2 | 3 | 4 }) {
-  const labels = ['Your place', 'Media', 'About you', "You're live"];
+  const labels = ['Your business', 'Media', 'About you', "You're live"];
   return (
     <div style={{ marginBottom: '28px' }}>
       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -910,10 +910,10 @@ export default function OnboardingPage() {
       <StepIndicator current={1} />
 
       <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
-        Tell us about your place
+        Tell us about your business
       </h1>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-        Every great neighbourhood spot deserves its own page.
+        Every great local business deserves to be found.
       </p>
 
       {/* Owner hook card */}
