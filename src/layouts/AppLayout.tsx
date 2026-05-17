@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin, Search, Home, Compass, LayoutGrid, Plus, Bell } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import AreaSelector from '../components/AreaSelector';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,11 +28,11 @@ function getAvatarUrl(user: ReturnType<typeof useAuth>['user']): string {
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: '/feed',          emoji: '🏠', label: 'Home'     },
-  { to: '/neighbourhood', emoji: '🏘️', label: 'Discover' },
-  { to: '/board',         emoji: '📋', label: 'Board'    },
-  { to: '/create',        emoji: '➕', label: 'Create'   },
-  { to: '/alerts',        emoji: '🔔', label: 'Alerts'   },
+  { to: '/feed',          Icon: Home,       label: 'Home'    },
+  { to: '/neighbourhood', Icon: Compass,    label: 'Discover'},
+  { to: '/board',         Icon: LayoutGrid, label: 'Board'   },
+  { to: '/create',        Icon: Plus,       label: ''        },
+  { to: '/alerts',        Icon: Bell,       label: 'Alerts'  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -291,63 +291,84 @@ export default function AppLayout() {
       {/* Bottom mobile nav */}
       <nav aria-label="Main navigation" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        /* Warm dark — not pure cold black */
         background: 'rgba(14,17,24,0.97)',
         backdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid #1a2030',
         display: 'flex', justifyContent: 'space-around', alignItems: 'center',
         height: '64px',
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: '4px', paddingRight: '4px',
       }}>
-        {navItems.map(({ to, emoji, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={{ flex: 1, textDecoration: 'none' }}
-          >
-            {({ isActive }) => (
-              <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: '3px', padding: '6px 4px',
-                position: 'relative',
-              }}>
-                {/* Active pill background — sits behind the emoji */}
-                {isActive && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '4px',
-                    width: '44px', height: '30px',
-                    borderRadius: '100px',
-                    background: 'rgba(57,217,138,0.12)',
-                    border: '1px solid rgba(57,217,138,0.18)',
-                    animation: 'kFadeUp 0.2s ease both',
-                  }} />
-                )}
+        {navItems.map(({ to, Icon, label }) => {
+          const isCreate = to === '/create';
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              style={{ flex: 1, textDecoration: 'none' }}
+            >
+              {({ isActive }) => (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  gap: '3px', padding: '6px 4px',
+                  position: 'relative',
+                }}>
+                  {/* Active pill background */}
+                  {isActive && !isCreate && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '4px',
+                      width: '44px', height: '30px',
+                      borderRadius: '100px',
+                      background: 'rgba(57,217,138,0.12)',
+                      border: '1px solid rgba(57,217,138,0.18)',
+                      animation: 'kFadeUp 0.2s ease both',
+                    }} />
+                  )}
 
-                <span style={{
-                  fontSize: '21px', lineHeight: 1,
-                  position: 'relative', zIndex: 1,
-                  transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                  display: 'block',
-                }}>
-                  {emoji}
-                </span>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: isActive ? 700 : 400,
-                  fontFamily: 'DM Sans, sans-serif',
-                  letterSpacing: '0.01em',
-                  color: isActive ? '#39D98A' : 'rgba(240,246,252,0.38)',
-                  transition: 'color 0.15s',
-                }}>
-                  {label}
-                </span>
-              </div>
-            )}
-          </NavLink>
-        ))}
+                  {/* Create tab: green circle */}
+                  {isCreate ? (
+                    <div style={{
+                      width: '40px', height: '40px', borderRadius: '50%',
+                      background: '#39D98A',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative', zIndex: 1,
+                      boxShadow: '0 2px 12px rgba(57,217,138,0.4)',
+                    }}>
+                      <Icon size={20} color="#0D1117" strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <div style={{
+                      position: 'relative', zIndex: 1,
+                      transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+                      transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                    }}>
+                      <Icon
+                        size={22}
+                        color={isActive ? '#39D98A' : '#444444'}
+                        strokeWidth={isActive ? 2 : 1.5}
+                      />
+                    </div>
+                  )}
+
+                  {/* Label — hidden for Create tab */}
+                  {!isCreate && (
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: isActive ? 700 : 400,
+                      fontFamily: 'DM Sans, sans-serif',
+                      letterSpacing: '0.01em',
+                      color: isActive ? '#39D98A' : '#444444',
+                      transition: 'color 0.15s',
+                    }}>
+                      {label}
+                    </span>
+                  )}
+                </div>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
     </div>
   );

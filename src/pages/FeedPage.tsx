@@ -8,12 +8,12 @@ import NeighbourhoodGate from '../components/NeighbourhoodGate';
 import PostComposer from '../components/PostComposer';
 import {
   getAllVenues,
-  getNeighbourhoodPosts,
   getHeadingThereCountsBatch, getVibeWinnersBatch,
   getActiveStoryVenuesBatch,
   getBoardPosts,
+  getLocalJobs,
 } from '../lib/api';
-import type { NeighbourhoodPost, VibeType, BoardPost } from '../lib/api';
+import type { VibeType, BoardPost, LocalJob } from '../lib/api';
 import type { Venue } from '../types';
 import VenueCard from '../components/VenueCard';
 import PostBar from '../components/feed/PostBar';
@@ -28,6 +28,16 @@ type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
 const LOCAL_THRESHOLD = 3;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -185,9 +195,8 @@ export default function FeedPage() {
 
   // Raw data from API
   const [rawVenues, setRawVenues] = useState<Venue[]>([]);
-  const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
-  const [jobPosts,   setJobPosts]   = useState<BoardPost[]>([]);
-  const [housingPosts, setHousingPosts] = useState<BoardPost[]>([]);
+  const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
+  const [jobPosts,   setJobPosts]   = useState<LocalJob[]>([]);
 
   const [showComposer,    setShowComposer]    = useState(false);
   const [quickAddOpen,    setQuickAddOpen]    = useState(false);
@@ -207,9 +216,6 @@ export default function FeedPage() {
   const [headingCounts, setHeadingCounts] = useState<Record<string, number>>({});
   const [vibeWinners, setVibeWinners] = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
   const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
-
-  // Scope (manualScope drives manual area override)
-  const [manualScope, setManualScope] = useState<FeedScope | null>(null);
 
   const [showAreaGate, setShowAreaGate] = useState(false);
 
@@ -247,11 +253,6 @@ export default function FeedPage() {
     setShowAreaSearch(true);
     setAreaSearchQuery('');
   }
-
-  // Reset manual scope override when user changes area
-  useEffect(() => {
-    setManualScope(null);
-  }, [areaLabel]);
 
   // Online/offline detection
   useEffect(() => {
@@ -309,60 +310,52 @@ export default function FeedPage() {
   }, []);
 
   useEffect(() => {
-    Promise.all([
-      getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined, city: city || undefined }),
-      getNeighbourhoodPosts(suburb || city || ''),
-    ]).then(([v, bp]) => {
-      const venues = v as Venue[];
-      setRawVenues(venues);
-      try {
-        localStorage.setItem('kayaa_cached_venues', JSON.stringify(venues.slice(0, 50)));
-        localStorage.setItem('kayaa_venues_cached_at', new Date().toISOString());
-      } catch { /* storage full — noop */ }
-      setBoardPosts((bp as NeighbourhoodPost[]).slice(0, 1));
-      setLoading(false);
-      setRefreshing(false);
-      refreshingRef.current = false;
+    getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined, city: city || undefined })
+      .then(v => {
+        const venues = v as Venue[];
+        setRawVenues(venues);
+        try {
+          localStorage.setItem('kayaa_cached_venues', JSON.stringify(venues.slice(0, 50)));
+          localStorage.setItem('kayaa_venues_cached_at', new Date().toISOString());
+        } catch { /* storage full — noop */ }
+        setLoading(false);
+        setRefreshing(false);
+        refreshingRef.current = false;
 
-      // Jobs fetch
-      getBoardPosts(suburb || '', city || '', 'jobs')
-        .then(result => {
-          const localJobs = result.posts.filter(p =>
-            suburb ? p.neighbourhood.toLowerCase() === suburb.toLowerCase() : true
-          ).slice(0, 1);
-          setJobPosts(localJobs);
-        })
-        .catch(() => {});
+        // Board fetch — board_posts table, last 7 days, LIMIT 1
+        if (suburb) {
+          getBoardPosts(suburb, city || '')
+            .then(result => {
+              const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+              const recent = result.posts
+                .filter(p => new Date(p.createdAt).getTime() > sevenDaysAgo)
+                .slice(0, 1);
+              setBoardPosts(recent);
+            })
+            .catch(() => {});
+        }
 
-      // Housing fetch
-      getBoardPosts(suburb || '', city || '', 'accommodation')
-        .then(result => {
-          const localHousing = result.posts.filter(p =>
-            suburb ? p.neighbourhood.toLowerCase() === suburb.toLowerCase() : true
-          ).slice(0, 1);
-          setHousingPosts(localHousing);
-        })
-        .catch(() => {});
+        // Jobs fetch — local_jobs table, exact suburb match
+        if (suburb) {
+          getLocalJobs(suburb)
+            .then(jobs => setJobPosts(jobs.slice(0, 1)))
+            .catch(() => {});
+        }
 
-      // Smart default scope
-      if (!manualScope) {
-        // (scope selection removed — feed always uses suburb-strict filtering)
-      }
-
-      // Batch-load interactivity data
-      const venueIds = venues.map(vv => vv.id);
-      if (venueIds.length > 0) {
-        Promise.all([
-          getHeadingThereCountsBatch(venueIds),
-          getVibeWinnersBatch(venueIds),
-          getActiveStoryVenuesBatch(venueIds),
-        ]).then(([hc, vw, as_]) => {
-          setHeadingCounts(hc);
-          setVibeWinners(vw);
-          setActiveStoryVenueIds(as_);
-        }).catch(() => {/* non-critical */});
-      }
-    }).catch(() => { setRefreshing(false); refreshingRef.current = false; });
+        // Batch-load interactivity data
+        const venueIds = venues.map(vv => vv.id);
+        if (venueIds.length > 0) {
+          Promise.all([
+            getHeadingThereCountsBatch(venueIds),
+            getVibeWinnersBatch(venueIds),
+            getActiveStoryVenuesBatch(venueIds),
+          ]).then(([hc, vw, as_]) => {
+            setHeadingCounts(hc);
+            setVibeWinners(vw);
+            setActiveStoryVenueIds(as_);
+          }).catch(() => {/* non-critical */});
+        }
+      }).catch(() => { setRefreshing(false); refreshingRef.current = false; });
   }, [areaLabel, selectedCountry.code, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Computed: places near you (suburb-strict, max 5) ───────────────────────
@@ -699,134 +692,7 @@ export default function FeedPage() {
       />
       <PushBanner />
 
-      {/* Section 5: From the Board */}
-      {boardPosts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-              From the Board
-            </p>
-            <button onClick={() => navigate('/board')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>
-              See all →
-            </button>
-          </div>
-          {boardPosts.map(post => {
-            const catColors: Record<string, string> = {
-              announcement: '#F59E0B',
-              lost_found: '#F472B6',
-              question: '#60A5FA',
-              recommendation: '#39D98A',
-              event: '#FB923C',
-              general: 'rgba(255,255,255,0.3)',
-            };
-            const cat = (post as { category?: string }).category || 'general';
-            const color = catColors[cat] ?? catColors.general;
-            const labelMap: Record<string, string> = {
-              announcement: 'Announcement', lost_found: 'Lost & Found',
-              question: 'Question', recommendation: 'Recommendation',
-              event: 'Event', general: 'General',
-            };
-            return (
-              <div key={post.id} onClick={() => navigate('/board')}
-                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                  borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
-                <div style={{ marginBottom: '6px' }}>
-                  <span style={{
-                    display: 'inline-block', fontFamily: 'DM Sans, sans-serif',
-                    fontSize: '10px', fontWeight: 700,
-                    color, background: `${color}18`,
-                    borderRadius: '20px', padding: '2px 8px',
-                  }}>
-                    {labelMap[cat] ?? cat}
-                  </span>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
-                  lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden' } as React.CSSProperties}>
-                  {(post as { title?: string }).title || post.content}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Section 6: Jobs & Skills */}
-      {jobPosts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-              💼 Jobs &amp; Skills
-            </p>
-            <button onClick={() => navigate('/board?cat=jobs')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#FBBF24' }}>
-              Browse all →
-            </button>
-          </div>
-          {jobPosts.map(post => (
-            <div key={post.id} onClick={() => navigate('/board?cat=jobs')}
-              style={{ background: 'var(--color-surface)',
-                border: '1px solid rgba(251,191,36,0.1)',
-                borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
-                lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                overflow: 'hidden' } as React.CSSProperties}>
-                {post.title || post.description}
-              </p>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-                color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
-                {post.neighbourhood}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Section 7: Housing */}
-      {housingPosts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-              🏠 Housing
-            </p>
-            <button onClick={() => navigate('/housing')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#34D399' }}>
-              Browse all →
-            </button>
-          </div>
-          {housingPosts.map(post => (
-            <div key={post.id} onClick={() => navigate('/housing')}
-              style={{ background: 'var(--color-surface)',
-                border: '1px solid rgba(52,211,153,0.1)',
-                borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
-                lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                overflow: 'hidden' } as React.CSSProperties}>
-                {post.title || post.description}
-              </p>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-                color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
-                {post.neighbourhood}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Section 8: Welcome card */}
+      {/* Section 5: Welcome card (first visit, dismissible) */}
       {showWelcomeHint && (
         <div style={{
           display: 'flex', alignItems: 'flex-start', gap: '10px',
@@ -834,7 +700,7 @@ export default function FeedPage() {
           border: '1px solid rgba(57,217,138,0.15)',
           borderRadius: '14px',
           padding: '12px 14px',
-          marginBottom: '16px',
+          marginBottom: '20px',
         }}>
           <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -843,7 +709,7 @@ export default function FeedPage() {
               fontSize: '13px', color: '#F0F6FC',
               margin: '0 0 3px',
             }}>
-              👋 Welcome to {suburb || 'your neighbourhood'}
+              Welcome to {suburb || 'your neighbourhood'}
             </p>
             <p style={{
               fontFamily: 'DM Sans, sans-serif',
@@ -867,6 +733,118 @@ export default function FeedPage() {
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* Section 6: From the Board */}
+      {boardPosts.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              From the Board
+            </p>
+            <button onClick={() => navigate('/board')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>
+              See all →
+            </button>
+          </div>
+          {boardPosts.map(post => {
+            const catColors: Record<string, string> = {
+              safety: '#EF4444',
+              announcement: '#39D98A',
+              lost_found: '#60A5FA',
+              event: '#A78BFA',
+              question: '#60A5FA',
+              recommendation: '#39D98A',
+              general: 'rgba(255,255,255,0.3)',
+            };
+            const cat = post.category || 'general';
+            const color = catColors[cat] ?? catColors.general;
+            const labelMap: Record<string, string> = {
+              safety: 'Safety', announcement: 'Announcement',
+              lost_found: 'Lost & Found', event: 'Event',
+              question: 'Question', recommendation: 'Recommendation',
+              general: 'General',
+            };
+            return (
+              <div key={post.id} onClick={() => navigate('/board')}
+                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                  borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{
+                    display: 'inline-block', fontFamily: 'DM Sans, sans-serif',
+                    fontSize: '10px', fontWeight: 700,
+                    color, background: `${color}18`,
+                    borderRadius: '20px', padding: '2px 8px',
+                  }}>
+                    {labelMap[cat] ?? cat}
+                  </span>
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                    {timeAgo(post.createdAt)}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
+                  lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden' } as React.CSSProperties}>
+                  {post.title || post.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Section 7: Jobs & Skills */}
+      {jobPosts.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              Jobs &amp; Skills{suburb ? ` · ${suburb}` : ''}
+            </p>
+            <button onClick={() => navigate('/jobs')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>
+              Browse all →
+            </button>
+          </div>
+          {jobPosts.map(job => {
+            const isSkill = job.jobType === 'skill_offer';
+            return (
+              <div key={job.id} onClick={() => navigate('/jobs')}
+                style={{ background: 'var(--color-surface)',
+                  border: '1px solid rgba(167,139,250,0.12)',
+                  borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{
+                    fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700,
+                    color: '#A78BFA', background: 'rgba(167,139,250,0.12)',
+                    borderRadius: '20px', padding: '2px 8px',
+                  }}>
+                    {isSkill ? 'Skills' : 'Hiring'}
+                  </span>
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                    {timeAgo(job.createdAt)}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
+                  lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden' } as React.CSSProperties}>
+                  {job.title}
+                </p>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                  color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
+                  {job.neighbourhood} · {timeAgo(job.createdAt)}
+                </p>
+              </div>
+            );
+          })}
         </div>
       )}
 
