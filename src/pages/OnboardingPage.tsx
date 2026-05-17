@@ -10,11 +10,6 @@ import { useCountry } from '../contexts/CountryContext';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const SA_PROVINCES = [
-  'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
-  'Limpopo', 'Mpumalanga', 'North West', 'Free State', 'Northern Cape',
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Deterministic slug — used for display/preview only */
@@ -588,6 +583,7 @@ export default function OnboardingPage() {
   const [hasDraft, setHasDraft] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [finalSlug, setFinalSlug] = useState('');
+  const [showQr, setShowQr] = useState(false);
   const qrWrapRef = useRef<HTMLDivElement>(null);
   // Stable session ID for Storage paths across re-renders
   const sessionId = useRef(`s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
@@ -810,97 +806,141 @@ export default function OnboardingPage() {
 
   // ─── Step 4: Live! ─────────────────────────────────────────────────────────
   if (step === 4) {
+    const waShareText = encodeURIComponent(
+      `${form.venueName} is now on Kayaa. Find us here → https://kayaa.co.za/venue/${finalSlug}`
+    );
+
     return (
       <>
         <style>{`
-          @keyframes scaleIn { from{transform:scale(0.3);opacity:0} to{transform:scale(1);opacity:1} }
-          @keyframes fadeUp  { from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
-          .ob-icon{animation:scaleIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards}
-          .ob-h1  {animation:fadeUp 0.35s ease 0.3s both}
-          .ob-sub {animation:fadeUp 0.35s ease 0.45s both}
-          .ob-slug{animation:fadeUp 0.35s ease 0.55s both}
-          .ob-qr  {animation:fadeUp 0.35s ease 0.65s both}
-          .ob-cta {animation:fadeUp 0.35s ease 0.8s both}
+          @keyframes popIn   { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
+          @keyframes riseUp  { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+          .s4-tick { animation: popIn  0.4s cubic-bezier(0.34,1.56,0.64,1) forwards }
+          .s4-name { animation: riseUp 0.3s ease 0.28s both }
+          .s4-line { animation: riseUp 0.3s ease 0.4s  both }
+          .s4-ctas { animation: riseUp 0.3s ease 0.55s both }
         `}</style>
-        <div style={{ padding: '24px 16px 100px', textAlign: 'center' }}>
-          <StepIndicator current={4} />
-          <div className="ob-icon" style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(57,217,138,0.12)', border: '2px solid var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '36px' }}>🎉</div>
-          <h1 className="ob-h1" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px', color: 'var(--color-text)', marginBottom: '8px' }}>Your business is on Kayaa!</h1>
-          <p className="ob-sub" style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '4px', lineHeight: 1.6 }}>
-            <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{form.venueName}</span>{' '}is now visible to everyone in{' '}
-            <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.suburb || form.city}</span>.
-          </p>
-          <p className="ob-sub" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: '20px', lineHeight: 1.6 }}>
-            When people visit and check in, your business grows more visible. Every check-in is someone saying "I was here."
-          </p>
-          <div className="ob-slug" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '8px 14px', marginBottom: '28px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/</span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'DM Sans, sans-serif' }}>{finalSlug}</span>
+
+        <div style={{ padding: '48px 20px 100px', textAlign: 'center', maxWidth: '380px', margin: '0 auto' }}>
+
+          {/* ── Big green tick ── */}
+          <div className="s4-tick" style={{
+            width: '88px', height: '88px', borderRadius: '50%',
+            background: '#39D98A', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', margin: '0 auto 28px',
+          }}>
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+              <path d="M10 22L18 30L34 14" stroke="#0D1117" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-          <div className="ob-qr" style={{ marginBottom: '28px' }}>
-            <div ref={qrWrapRef} onClick={downloadQR} style={{ display: 'inline-block', padding: '16px', borderRadius: '16px', background: '#fff', cursor: 'pointer', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }} title="Tap to download">
-              <QRCodeCanvas value={qrUrl} size={180} level="M" marginSize={0} />
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '10px' }}>Print this and put it on your counter, mirror, or door</p>
-            <p style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>Tap the QR code to download</p>
-          </div>
-          <div className="ob-cta">
-            {/* Primary CTA: see how it looks */}
+
+          {/* ── Name ── */}
+          <h1 className="s4-name" style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+            color: '#F0F6FC', margin: '0 0 6px', lineHeight: 1.2,
+          }}>
+            {form.venueName}
+          </h1>
+
+          {/* ── One-liner ── */}
+          <p className="s4-line" style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '16px',
+            color: '#39D98A', fontWeight: 600, margin: '0 0 6px',
+          }}>
+            Your place is live.
+          </p>
+          <p className="s4-line" style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            color: 'rgba(255,255,255,0.45)', margin: '0 0 36px', lineHeight: 1.5,
+          }}>
+            People in {form.suburb || form.city || 'your area'} can find you now.
+          </p>
+
+          {/* ── CTAs ── */}
+          <div className="s4-ctas" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+            {/* PRIMARY — see your place */}
             <a
               href={`/venue/${finalSlug}`}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box', marginBottom: '10px' } as React.CSSProperties}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '100%', minHeight: '56px',
+                background: '#39D98A', color: '#0D1117',
+                borderRadius: '16px', textDecoration: 'none',
+                fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px',
+                boxSizing: 'border-box',
+              } as React.CSSProperties}
             >
-              See how your business looks →
+              See your place
             </a>
 
-            {/* Add another business */}
+            {/* SECONDARY — WhatsApp share */}
+            <a
+              href={`https://wa.me/?text=${waShareText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                width: '100%', minHeight: '52px',
+                background: 'rgba(37,211,102,0.08)', color: '#25D366',
+                border: '1.5px solid rgba(37,211,102,0.3)',
+                borderRadius: '16px', textDecoration: 'none',
+                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '15px',
+                boxSizing: 'border-box',
+              } as React.CSSProperties}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Share on WhatsApp
+            </a>
+
+            {/* QR code — collapsed by default, tap to reveal */}
+            <button
+              onClick={() => setShowQr(q => !q)}
+              style={{
+                background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '14px', padding: '14px',
+                width: '100%', cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 600,
+                color: 'rgba(255,255,255,0.5)',
+              }}
+            >
+              {showQr ? 'Hide QR code' : '📱 Get your QR code'}
+            </button>
+
+            {showQr && (
+              <div style={{ background: 'var(--color-surface)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+                <div ref={qrWrapRef} onClick={downloadQR} style={{ display: 'inline-block', padding: '14px', borderRadius: '12px', background: '#fff', cursor: 'pointer' }} title="Tap to save">
+                  <QRCodeCanvas value={qrUrl} size={160} level="M" marginSize={0} />
+                </div>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                  Print this and put it at your counter.<br />Tap to save.
+                </p>
+              </div>
+            )}
+
+            {/* Add another — small, quiet */}
             <button
               onClick={() => { setForm(empty); setStep(1); window.scrollTo(0, 0); try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } }}
-              style={{ width: '100%', minHeight: '48px', background: 'none', color: 'var(--color-muted)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer', marginBottom: '16px' }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                color: 'rgba(255,255,255,0.3)', padding: '8px 0',
+              }}
             >
               Add another business
             </button>
 
-            {/* Sign-in link — only shown if owner provided an email */}
+            {/* Email notice — small, below the fold, only if provided */}
             {form.ownerEmail && (
-              <>
-                <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
-                  <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: '0 0 6px' }}>
-                    Check your email to sign in to Kayaa
-                  </p>
-                  <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.6 }}>
-                    We sent a sign-in link to <strong style={{ color: 'var(--color-text)' }}>{form.ownerEmail}</strong>.
-                    Tap it to open Kayaa and manage your venue.
-                  </p>
-                </div>
-                <a
-                  href="https://mail.google.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'rgba(255,255,255,0.06)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
-                >
-                  Open Gmail
-                </a>
-              </>
+              <p style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, margin: '4px 0 0',
+              }}>
+                We sent a sign-in link to {form.ownerEmail}
+              </p>
             )}
-
-            {/* WhatsApp check-in alerts opt-in */}
-            {(() => {
-              const waNumber = import.meta.env.VITE_KAYAA_WA_NUMBER ?? '27600000000';
-              const waMsg = encodeURIComponent(`Hi, I just registered ${form.venueName} on Kayaa. I want to get check-in alerts on WhatsApp.`);
-              return (
-                <a
-                  href={`https://wa.me/${waNumber}?text=${waMsg}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', minHeight: '48px', background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)', borderRadius: '14px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '15px', color: '#25D366', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box', marginTop: '10px' } as React.CSSProperties}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  Get check-in alerts on WhatsApp
-                </a>
-              );
-            })()}
           </div>
         </div>
       </>
@@ -913,10 +953,10 @@ export default function OnboardingPage() {
       <div style={{ padding: '16px 16px 100px' }}>
         <style>{`@keyframes obSpin { to { transform: rotate(360deg); } }`}</style>
         <StepIndicator current={3} />
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Now about you</h1>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Last step</h1>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
-          So we know who to talk to when{' '}
-          <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.venueName}</span>{' '}goes live.
+          Who runs{' '}
+          <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.venueName}</span>?
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '24px' }}>
@@ -1149,15 +1189,6 @@ export default function OnboardingPage() {
           <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Street address, or just describe it. Any description works.</p>
           <input type="text" value={form.streetAddress} onChange={set('streetAddress')} placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily, Behind the Shell garage" autoComplete="street-address"
             style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
-        </div>
-
-        {/* Province */}
-        <div>
-          <label style={labelStyle}>Province *</label>
-          <select value={form.province} onChange={e => setForm(f => ({ ...f, province: e.target.value }))}
-            style={{ ...inputStyle, appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer' } as React.CSSProperties}>
-            {SA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
         </div>
 
         {/* Description */}

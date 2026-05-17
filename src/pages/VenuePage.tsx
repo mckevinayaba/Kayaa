@@ -2352,18 +2352,17 @@ export default function VenuePage() {
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
 
+        {/* ── One-tap action grid — WhatsApp / Call / Directions visible immediately ── */}
+        <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
+
         {/* ── Quick Stats (regulars · today · week · distance) ──────────────── */}
         <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} />
 
         {/* ── User's personal visit badge ───────────────────────────────────── */}
         <UserVisitBadge venueId={venue.id} />
 
-        {/* ── Honour this place — shown before utility actions so it reads as
-             an emotional signal, not an afterthought ───────────────────────── */}
+        {/* ── Honour this place — shown before social/utility sections ─────── */}
         <HonourButton venueId={venue.id} venueName={venue.name} venueSlug={venue.slug} />
-
-        {/* ── One-tap action grid (Check In · Call · WhatsApp + Directions) ─── */}
-        <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
 
         {/* ── Listing completeness — prompts owner or unclaimed CTA ─────────── */}
         <ListingCompletenessPanel
