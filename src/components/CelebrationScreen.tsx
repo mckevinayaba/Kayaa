@@ -37,9 +37,9 @@ interface MilestoneConfig {
 
 function getMilestone(visitCount: number): MilestoneConfig {
   if (visitCount === 1) return {
-    heading:      (v) => `Welcome to ${v}.`,
-    message:      ()  => "You're now part of this place's story.",
-    subtext:      'Your first visit.',
+    heading:      ()  => 'You showed up! ✓',
+    message:      (v) => `This place knows you were here. Welcome to ${v}.`,
+    subtext:      'First visit.',
     accentColor:  '#39D98A',
     showConfetti: false,
     confettiScale: 0,
@@ -59,8 +59,8 @@ function getMilestone(visitCount: number): MilestoneConfig {
   };
 
   if (visitCount === 5) return {
-    heading:      ()  => "You're a regular now.",
-    message:      (v) => `${v} will know you're one of theirs.`,
+    heading:      ()  => "You're a regular now. 🎉",
+    message:      ()  => '5 visits. They know your face here.',
     subtext:      'Visit 5.',
     accentColor:  '#39D98A',
     showConfetti: true,
@@ -70,9 +70,9 @@ function getMilestone(visitCount: number): MilestoneConfig {
   };
 
   if (visitCount === 10) return {
-    heading:      ()  => 'Ten visits.',
-    message:      (v) => `You've shown up for ${v} again and again.`,
-    subtext:      'That counts.',
+    heading:      ()  => '10 visits! You keep coming back.',
+    message:      ()  => 'That is what being a regular looks like.',
+    subtext:      'Visit 10.',
     accentColor:  '#39D98A',
     showConfetti: true,
     confettiScale: 2,
@@ -128,9 +128,9 @@ function getMilestone(visitCount: number): MilestoneConfig {
 }
 
 const GHOST_CONFIG: MilestoneConfig = {
-  heading:      ()  => "You're in — quietly.",
-  message:      ()  => 'The visit still counted.',
-  subtext:      'Your presence matters, even anonymously.',
+  heading:      ()  => 'Quiet visit done. ✓',
+  message:      ()  => 'You were here. Only you know it.',
+  subtext:      'Ghost mode.',
   accentColor:  'rgba(255,255,255,0.35)',
   showConfetti: false,
   confettiScale: 0,

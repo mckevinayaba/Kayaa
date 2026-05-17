@@ -753,6 +753,7 @@ const VIBE_WINNER_LABEL: Record<VibeType, string> = {
 
 function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentStats: VenueRecentStats; distance: number | null }) {
   const [vibeWinner, setVibeWinner] = useState<VibeType | null>(null);
+  const [showRegularsHint, setShowRegularsHint] = useState(false);
 
   useEffect(() => {
     getVibeSummary(venue.id).then(s => {
@@ -773,9 +774,41 @@ function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentS
     <div style={{ paddingTop: '14px', paddingBottom: '14px', borderBottom: '1px solid var(--color-border)', marginBottom: '14px' }}>
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: vibeWinner ? '8px' : '0' }}>
         {stats.map(s => (
-          <div key={s.label}>
+          <div key={s.label} style={{ position: 'relative' }}>
             <span style={{ fontSize: '17px', color: 'var(--color-text)', fontWeight: 700 }}>{s.value}</span>
             <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> {s.label}</span>
+            {s.label === 'regulars' && (
+              <button
+                onClick={() => setShowRegularsHint(v => !v)}
+                style={{
+                  background: 'none', border: 'none', padding: '0 0 0 4px',
+                  fontSize: '11px', color: 'rgba(255,255,255,0.3)',
+                  cursor: 'pointer', verticalAlign: 'middle', lineHeight: 1,
+                }}
+                aria-label="What are regulars?"
+              >
+                ⓘ
+              </button>
+            )}
+            {s.label === 'regulars' && showRegularsHint && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, zIndex: 20,
+                marginTop: '6px', width: '220px',
+                background: '#161B22', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '10px', padding: '10px 12px',
+                fontSize: '12px', color: 'rgba(255,255,255,0.65)',
+                lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              }}>
+                Regulars are people who visit this place often. 5 visits and you become one.
+                <button
+                  onClick={() => setShowRegularsHint(false)}
+                  style={{ display: 'block', marginTop: '6px', background: 'none', border: 'none', fontSize: '11px', color: '#39D98A', cursor: 'pointer', padding: 0 }}
+                >
+                  Got it
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -1180,7 +1213,7 @@ function ListingCompletenessPanel({
             color: '#FBBF24', textAlign: 'center',
           }}
         >
-          Is this your place? Claim it to complete the listing →
+          Is this your business? Tap to manage it for free on Kayaa →
         </button>
       )}
     </div>
@@ -1508,10 +1541,10 @@ function ClaimCTA({ venue }: { venue: Venue }) {
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: '0 0 2px' }}>
-            Is this your place?
+            Is this your business? 👋
           </p>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
-            Claim it to set your hours, post updates, and own your listing →
+            Let us know and we will give you tools to manage it on Kayaa. Free.
           </p>
         </div>
       </div>
@@ -2113,14 +2146,43 @@ function ContactSection({ venue }: { venue: Venue }) {
 // ─── Sticky check-in bar ──────────────────────────────────────────────────────
 
 function StickyCheckinBar({ venue }: { venue: Venue }) {
+  const [showHint, setShowHint] = useState(() => {
+    try { return !localStorage.getItem('kayaa_checkin_hint_seen'); } catch { return false; }
+  });
+
+  function dismissHint() {
+    try { localStorage.setItem('kayaa_checkin_hint_seen', '1'); } catch { /* ignore */ }
+    setShowHint(false);
+  }
+
   return (
     <div style={{
       position: 'fixed', bottom: '64px', left: 0, right: 0, zIndex: 45,
-      padding: '10px 16px',
+      padding: showHint ? '8px 16px 10px' : '10px 16px',
       background: 'rgba(13,17,23,0.88)', backdropFilter: 'blur(12px)',
       borderTop: '1px solid var(--color-border)',
     }}>
-      <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block' }}>
+      {showHint && (
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          marginBottom: '8px', gap: '8px',
+        }}>
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, margin: 0,
+          }}>
+            Checking in tells Kayaa you visited this place. The more people check in, the more visible this business becomes.
+          </p>
+          <button
+            onClick={dismissHint}
+            style={{ background: 'none', border: 'none', padding: '0 0 0 4px', cursor: 'pointer', flexShrink: 0, color: 'rgba(255,255,255,0.3)', fontSize: '14px', lineHeight: 1 }}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block' }} onClick={dismissHint}>
         <div style={{
           background: '#39D98A', color: '#0D1117',
           borderRadius: '12px', height: '48px',

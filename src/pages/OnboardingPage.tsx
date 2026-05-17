@@ -508,7 +508,7 @@ const empty: FormData = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
-  const { selectedCountry, categoryLabels, callingCode } = useCountry();
+  const { selectedCountry, categoryLabels } = useCountry();
   const { user } = useAuth();
   const venueTypeItems = [
     ...categoryLabels.map(c => ({ emoji: c.emoji, label: c.label })),
@@ -588,6 +588,7 @@ export default function OnboardingPage() {
   async function goStep4() {
     const errs: typeof errors = {};
     if (!form.ownerName.trim())  errs.ownerName  = 'We need your name';
+    if (!form.ownerPhone.trim()) errs.ownerPhone = 'We need your WhatsApp so people can reach your business. Add it here 👆';
     if (!form.ownerEmail.trim()) errs.ownerEmail = 'Add your email so you can sign in';
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -702,10 +703,14 @@ export default function OnboardingPage() {
         `}</style>
         <div style={{ padding: '24px 16px 100px', textAlign: 'center' }}>
           <StepIndicator current={4} />
-          <div className="ob-icon" style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(57,217,138,0.12)', border: '2px solid var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '36px' }}>✓</div>
-          <h1 className="ob-h1" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: 'var(--color-text)', marginBottom: '8px' }}>You're live.</h1>
-          <p className="ob-sub" style={{ fontSize: '16px', color: 'var(--color-muted)', marginBottom: '4px' }}>
-            <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{form.venueName}</span>{' '}is now on Kayaa.
+          <div className="ob-icon" style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(57,217,138,0.12)', border: '2px solid var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '36px' }}>🎉</div>
+          <h1 className="ob-h1" style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px', color: 'var(--color-text)', marginBottom: '8px' }}>Your business is on Kayaa!</h1>
+          <p className="ob-sub" style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '4px', lineHeight: 1.6 }}>
+            <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{form.venueName}</span>{' '}is now visible to everyone in{' '}
+            <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.suburb || form.city}</span>.
+          </p>
+          <p className="ob-sub" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: '20px', lineHeight: 1.6 }}>
+            When people visit and check in, your business grows more visible. Every check-in is someone saying "I was here."
           </p>
           <div className="ob-slug" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '8px 14px', marginBottom: '28px' }}>
             <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/</span>
@@ -719,6 +724,22 @@ export default function OnboardingPage() {
             <p style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>Tap the QR code to download</p>
           </div>
           <div className="ob-cta">
+            {/* Primary CTA: see how it looks */}
+            <a
+              href={`/venue/${finalSlug}`}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box', marginBottom: '10px' } as React.CSSProperties}
+            >
+              See how your business looks →
+            </a>
+
+            {/* Add another business */}
+            <button
+              onClick={() => { setForm(empty); setStep(1); window.scrollTo(0, 0); try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } }}
+              style={{ width: '100%', minHeight: '48px', background: 'none', color: 'var(--color-muted)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer', marginBottom: '16px' }}
+            >
+              Add another business
+            </button>
+
             {/* Magic link was sent in goStep4 — guide owner to check email */}
             <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
@@ -734,7 +755,7 @@ export default function OnboardingPage() {
               href="https://mail.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'rgba(255,255,255,0.06)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
             >
               Open Gmail
             </a>
@@ -781,9 +802,11 @@ export default function OnboardingPage() {
             <p style={errorStyle(!!errors.ownerName)}>{errors.ownerName}</p>
           </div>
           <div>
-            <label style={labelStyle}>Your WhatsApp number</label>
-            <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder={`+${callingCode} 71 000 0000`} autoComplete="tel"
-              style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
+            <label style={labelStyle}>💬 Your WhatsApp number <span style={{ color: '#F87171' }}>*</span></label>
+            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>This is how the community reaches you. WhatsApp only — no email needed.</p>
+            <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder="e.g. 082 123 4567" autoComplete="tel"
+              style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }} />
+            <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
           </div>
           <div>
             <label style={labelStyle}>Your email address</label>
@@ -959,31 +982,26 @@ export default function OnboardingPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
         {/* Venue name */}
         <div>
-          <label style={labelStyle}>What's your place called?</label>
-          <input type="text" value={form.venueName} onChange={set('venueName')} placeholder="e.g. Uncle Dee's Barbershop" autoComplete="organization"
+          <label style={labelStyle}>What is your business called?</label>
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Use the name people know you by.</p>
+          <input type="text" value={form.venueName} onChange={set('venueName')} placeholder="e.g. Sipho's Cuts, Mama Thembi's Kitchen, Corner Spaza" autoComplete="organization"
             style={{ ...inputStyle, border: `1px solid ${errors.venueName ? '#F87171' : 'var(--color-border)'}` }} />
           <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
         </div>
 
         {/* Venue type grid */}
         <div>
-          <label style={labelStyle}>What kind of place is it?</label>
+          <label style={labelStyle}>What kind of business is this?</label>
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '10px', marginTop: '-4px' }}>Tap the one that fits best. Not sure? Pick the closest one.</p>
           <VenueTypeGrid selected={form.venueType} onSelect={v => { setForm(f => ({ ...f, venueType: v })); setErrors(er => ({ ...er, venueType: undefined })); }} items={venueTypeItems} />
           <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
-        </div>
-
-        {/* Street address */}
-        <div>
-          <label style={labelStyle}>Street address <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
-          <input type="text" value={form.streetAddress} onChange={set('streetAddress')} placeholder="e.g. 12 Vilakazi Street" autoComplete="street-address"
-            style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
         </div>
 
         {/* Suburb + City */}
         <div style={{ display: 'flex', gap: '10px' }}>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Suburb *</label>
-            <input type="text" value={form.suburb} onChange={set('suburb')} placeholder="e.g. Orlando West"
+            <label style={labelStyle}>Where is your business? *</label>
+            <input type="text" value={form.suburb} onChange={set('suburb')} placeholder="e.g. Berea, Orlando West, Alex"
               style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }} />
             <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
           </div>
@@ -997,6 +1015,14 @@ export default function OnboardingPage() {
             </datalist>
             <p style={errorStyle(!!errors.city)}>{errors.city}</p>
           </div>
+        </div>
+
+        {/* Street address */}
+        <div>
+          <label style={labelStyle}>How do people find you? <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Street address, or just describe it. Any description works.</p>
+          <input type="text" value={form.streetAddress} onChange={set('streetAddress')} placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily, Behind the Shell garage" autoComplete="street-address"
+            style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
         </div>
 
         {/* Province */}
@@ -1019,14 +1045,14 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Cover photo — REQUIRED */}
+        {/* Cover photo */}
         <div>
           <label style={{ ...labelStyle, color: 'var(--color-text)', fontSize: '15px', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>
-            Add a photo of your place{' '}
+            📸 Show us your business{' '}
             <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
           </label>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
-            Your sign, shopfront, or inside — anything real. You can add one later from your dashboard.
+            A photo helps people recognise your place. Any photo works — we will sort out the size for you.
           </p>
           <CoverPhotoUpload
             sessionId={sessionId.current}
@@ -1055,7 +1081,7 @@ export default function OnboardingPage() {
           transition: 'opacity 0.2s',
         }}
       >
-        Continue →
+        Add my business to Kayaa
         {draftSaved && (
           <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(0,0,0,0.55)' }}>Draft saved ✓</span>
         )}

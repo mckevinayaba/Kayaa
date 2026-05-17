@@ -84,7 +84,6 @@ function venueInScope(
 
 interface SeedBoardPost { id: string; category: string; title: string; time: string }
 interface SeedJob       { id: string; type: 'Hiring' | 'Skills'; title: string; neighbourhood: string; time: string }
-interface SeedVenue     { id: string; name: string; category: string; emoji: string; suburb: string; description?: string; regulars?: number; status?: string }
 interface SeedAlert     { id: string; icon: string; label: string; message: string; isNormal: boolean; time: string }
 
 // One preview board post — announcement, not a safety/crime incident
@@ -99,13 +98,6 @@ const SEED_JOB: SeedJob = {
   id: 'seed-j1', type: 'Hiring',
   title: 'Domestic worker needed — 3 days per week',
   neighbourhood: 'Berea', time: 'Today',
-};
-
-// One preview place for the feed
-const SEED_VENUE: SeedVenue = {
-  id: 'sv1', name: 'City Cuts Barbershop', category: 'Barbershop', emoji: '✂️',
-  suburb: 'Berea', description: 'Barbershop on Claim Street serving the Berea community',
-  regulars: 12, status: 'Open',
 };
 
 // One preview alert for the feed — utility/status, not a crime/safety incident
@@ -150,34 +142,6 @@ function VenueCardSkeleton() {
           <div style={{ height: '11px', width: '22%', background: 'var(--color-surface2)', borderRadius: '4px' }} />
           <div style={{ height: '32px', width: '86px', background: 'var(--color-surface2)', borderRadius: '100px' }} />
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Seed venue cards (display-only — no navigation) ─────────────────────────
-
-function SeedVenueHero({ venue }: { venue: SeedVenue }) {
-  return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '16px 18px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
-        <span style={{ fontSize: '28px', flexShrink: 0 }}>{venue.emoji}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: '#F0F6FC', lineHeight: 1.2 }}>{venue.name}</div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>{venue.category} · {venue.suburb}</div>
-        </div>
-        {venue.status && (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '20px', padding: '2px 8px', flexShrink: 0 }}>
-            {venue.status}
-          </span>
-        )}
-      </div>
-      {venue.description && (
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 10px', lineHeight: 1.55 }}>{venue.description}</p>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>👥 {venue.regulars ?? 0} regulars</span>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>example</span>
       </div>
     </div>
   );
@@ -426,6 +390,11 @@ export default function FeedPage() {
   );
   const showWelcomeHint = !loading && !welcomeDismissed;
 
+  const [placesHintDismissed, setPlacesHintDismissed] = useState(
+    () => localStorage.getItem('kayaa_places_hint_seen') === 'true'
+  );
+  const showPlacesHint = !loading && !placesHintDismissed;
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -563,23 +532,45 @@ export default function FeedPage() {
 
       {/* ── 4. Places near you ──────────────────────────────────────────────── */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Places near you</p>
           <button onClick={() => navigate('/neighbourhood')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>Browse all →</button>
         </div>
+
+        {showPlacesHint && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+              These are the businesses and spots in your area. Tap one to learn more or check in when you visit.
+            </p>
+            <button
+              onClick={() => { localStorage.setItem('kayaa_places_hint_seen', 'true'); setPlacesHintDismissed(true); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: 0, flexShrink: 0, fontSize: '14px', lineHeight: 1 }}
+              aria-label="Dismiss"
+            >×</button>
+          </div>
+        )}
 
         {loading ? (
           <VenueCardSkeleton />
         ) : placesNearYou.length > 0 ? (
           <VenueCard venue={placesNearYou[0]} headingCount={headingCounts[placesNearYou[0].id] ?? 0} vibeWinner={vibeWinners[placesNearYou[0].id] ?? null} hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <SeedVenueHero venue={SEED_VENUE} />
+          <div style={{
+            border: '1.5px dashed rgba(255,255,255,0.10)',
+            borderRadius: '16px', padding: '28px 20px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🗺️</div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+              {suburb || areaLabel} is waiting to be discovered.
+            </div>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
+              Be the first to add a business and put your area on the map.
+            </p>
             <button
               onClick={() => navigate('/onboarding')}
-              style={{ marginTop: '4px', background: 'rgba(57,217,138,0.07)', color: '#39D98A', border: '1px dashed rgba(57,217,138,0.25)', borderRadius: '12px', padding: '12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px', width: '100%', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+              style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
             >
-              + Register the first real place in {suburb || areaLabel}
+              Add the first business
             </button>
           </div>
         )}

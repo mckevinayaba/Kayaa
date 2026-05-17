@@ -13,19 +13,6 @@ import { getLocalJobs } from '../lib/api';
 import type { LocalJob } from '../lib/api';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 
-// ─── Seed data (display-only) ─────────────────────────────────────────────────
-
-interface SeedJob { id: string; type: 'Hiring' | 'Skills'; title: string; description?: string; neighbourhood: string; time: string }
-
-const SEED_JOBS: SeedJob[] = [
-  { id: 'sj1', type: 'Hiring', title: 'Domestic worker needed — 3 days per week',   description: 'Looking for a reliable domestic worker, Mon/Wed/Fri. Live-out. References required.', neighbourhood: 'Berea', time: 'Today'    },
-  { id: 'sj2', type: 'Skills', title: 'I do hair braiding — available weekends',      description: 'Experienced braider. Box braids, cornrows, twists. DM to book.',                        neighbourhood: 'Berea', time: 'Today'    },
-  { id: 'sj3', type: 'Hiring', title: 'Security guard needed — PSIRA registered',     description: 'Night shift position at a residential complex. Must have PSIRA cert.',                  neighbourhood: 'Berea', time: 'Yesterday' },
-  { id: 'sj4', type: 'Skills', title: 'Plumber available — call for quote',           description: 'Licensed plumber. Leaks, burst pipes, geyser installations. Fast response.',              neighbourhood: 'Berea', time: '2 days ago' },
-  { id: 'sj5', type: 'Hiring', title: 'Waitress needed for busy tavern — weekends',   description: 'Experience preferred but not required. Pay plus tips. Start ASAP.',                       neighbourhood: 'Berea', time: '2 days ago' },
-  { id: 'sj6', type: 'Skills', title: 'I do garden work and cleaning — R350 per day', description: 'Available Mon–Sat. Bring my own tools. Reliable and hardworking.',                        neighbourhood: 'Berea', time: '3 days ago' },
-];
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function timeAgo(iso: string): string {
@@ -135,6 +122,9 @@ export default function JobsPage() {
   const [realJobs, setRealJobs] = useState<LocalJob[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [filter,   setFilter]   = useState<Filter>('all');
+  const [jobsHintDismissed, setJobsHintDismissed] = useState(
+    () => { try { return localStorage.getItem('kayaa_jobs_hint_seen') === 'true'; } catch { return false; } }
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -144,27 +134,17 @@ export default function JobsPage() {
       .catch(() => { setLoading(false); });
   }, [suburb]);
 
-  // Normalise to DisplayJob — real first, seed if empty
+  // Normalise to DisplayJob — real listings only
   const allJobs: DisplayJob[] = loading
     ? []
-    : realJobs.length > 0
-      ? realJobs.map(j => ({
-          id: j.id,
-          typeLabel: j.jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
-          title: j.title,
-          description: j.description,
-          neighbourhood: j.neighbourhood,
-          timeDisplay: timeAgo(j.createdAt),
-        }))
-      : SEED_JOBS.map(j => ({
-          id: j.id,
-          typeLabel: j.type,
-          title: j.title,
-          description: j.description,
-          neighbourhood: j.neighbourhood,
-          timeDisplay: j.time,
-          isSeed: true,
-        }));
+    : realJobs.map(j => ({
+        id: j.id,
+        typeLabel: j.jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
+        title: j.title,
+        description: j.description,
+        neighbourhood: j.neighbourhood,
+        timeDisplay: timeAgo(j.createdAt),
+      }));
 
   const filtered = filter === 'all' ? allJobs : allJobs.filter(j => j.typeLabel === filter);
 
@@ -181,15 +161,22 @@ export default function JobsPage() {
         <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px', color: '#FFFFFF', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
           {suburb ? `${suburb} Jobs` : 'Local Jobs'}
         </h1>
-        {isSeedMode && (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 16px' }}>
-            No listings yet — showing examples. Be the first to post.
-          </p>
-        )}
         {!isSeedMode && !loading && (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 16px' }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px' }}>
             {realJobs.length} listing{realJobs.length !== 1 ? 's' : ''} in {suburb || 'your area'}
           </p>
+        )}
+        {!jobsHintDismissed && !loading && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '12px' }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+              Local jobs and skills in {suburb || 'your area'}. Post a job or offer your skills. It's free.
+            </p>
+            <button
+              onClick={() => { try { localStorage.setItem('kayaa_jobs_hint_seen', 'true'); } catch { /* ignore */ } setJobsHintDismissed(true); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: 0, flexShrink: 0, fontSize: '14px', lineHeight: 1 }}
+              aria-label="Dismiss"
+            >×</button>
+          </div>
         )}
       </div>
 
@@ -225,8 +212,20 @@ export default function JobsPage() {
             <JobSkeleton /><JobSkeleton /><JobSkeleton />
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'rgba(255,255,255,0.35)', fontFamily: 'DM Sans, sans-serif', fontSize: '13px' }}>
-            No {filter} listings yet
+          <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>💼</div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+              No local jobs posted yet.
+            </div>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
+              Know someone hiring? Or have a skill to offer?
+            </p>
+            <button
+              onClick={() => navigate('/board/new')}
+              style={{ background: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px' }}
+            >
+              Post a job or skill
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -31,44 +31,6 @@ import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 
-// ── Seed posts (display-only — never saved to Supabase) ──────────────────────
-
-interface SeedPost { id: string; category: string; title: string; time: string; author: string }
-
-// Board shows 3 starter posts when empty — no fake crime/safety incidents
-const BOARD_SEED_POSTS: SeedPost[] = [
-  { id: 'seed-b1', category: 'announcement', title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm', time: '4 hours ago', author: 'City Cuts'        },
-  { id: 'seed-b2', category: 'lost_found',   title: 'Found keys near the corner of Lily Ave — contact to claim',   time: 'Yesterday',   author: 'Community Member' },
-  { id: 'seed-b3', category: 'jobs',         title: 'Domestic worker needed — Mon/Wed/Fri, references required',   time: '2 hours ago', author: 'Berea resident'   },
-];
-
-const SEED_CAT_COLORS: Record<string, string> = {
-  announcement: '#39D98A', lost_found: '#60A5FA', jobs: '#A78BFA',
-  event: '#A78BFA', question: '#60A5FA', general: 'rgba(255,255,255,0.3)',
-};
-const SEED_CAT_LABELS: Record<string, string> = {
-  announcement: 'Announcement', lost_found: 'Lost & Found', jobs: 'Jobs',
-  event: 'Event', question: 'Question', general: 'General',
-};
-
-function SeedPostCard({ post }: { post: SeedPost }) {
-  const color = SEED_CAT_COLORS[post.category] ?? SEED_CAT_COLORS.general;
-  const label = SEED_CAT_LABELS[post.category] ?? post.category;
-  return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.time}</span>
-      </div>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '6px' }}>{post.title}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>— {post.author}</span>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>example</span>
-      </div>
-    </div>
-  );
-}
-
 // ── Sub-type detection ────────────────────────────────────────────────────────
 
 function detectHousingType(post: BoardPost): string {
@@ -644,6 +606,9 @@ export default function BoardPage() {
   const [mineIds,         setMineIds]         = useState<string[]>([]);
   const [safetyDismissed, setSafetyDismissed] = useState(false);
   const [userId,          setUserId]          = useState('');
+  const [boardHintDismissed, setBoardHintDismissed] = useState(
+    () => { try { return localStorage.getItem('kayaa_board_hint_seen') === 'true'; } catch { return false; } }
+  );
 
   useEffect(() => {
     getInteractiveUserId().then(setUserId);
@@ -754,6 +719,20 @@ export default function BoardPage() {
         </div>
       </div>
 
+      {/* ── First-visit hint ── */}
+      {!boardHintDismissed && !loading && (
+        <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+            This is the {display || 'community'} board. Post anything useful — safety alerts, announcements, lost items, or events.
+          </p>
+          <button
+            onClick={() => { try { localStorage.setItem('kayaa_board_hint_seen', 'true'); } catch { /* ignore */ } setBoardHintDismissed(true); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: 0, flexShrink: 0, fontSize: '14px', lineHeight: 1 }}
+            aria-label="Dismiss"
+          >×</button>
+        </div>
+      )}
+
       {/* ── Primary tab bar ── */}
       <div style={{
         display: 'flex', gap: '0',
@@ -863,10 +842,14 @@ export default function BoardPage() {
         ) : posts.length === 0 ? (
           <div style={{ paddingTop: '8px' }}>
             {activeTab === 'all' && !secondaryFilter ? (
-              /* Show seed posts so the board never looks empty */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {BOARD_SEED_POSTS.map(p => <SeedPostCard key={p.id} post={p} />)}
-              </div>
+              <NudgeCard
+                emoji="💬"
+                title={`Nothing posted in ${display || 'your area'} yet.`}
+                body="The conversation starts with you."
+                ctaLabel="Start the first post"
+                onCta={() => navigate('/board/new')}
+                accent="#39D98A"
+              />
             ) : activeTab === 'jobs' ? (
               <NudgeCard
                 emoji="💼"

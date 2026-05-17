@@ -621,7 +621,7 @@ export default function AlertsPage() {
     ? <div style={{ height: '24px', width: '72px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px' }} />
     : safetyItems.length > 0
       ? <StatusPill dot="#EF4444" label={`${safetyItems.length} alert${safetyItems.length > 1 ? 's' : ''}`} color="#EF4444" bg="rgba(239,68,68,0.15)" />
-      : <StatusPill dot="#39D98A" label="All clear" color="#39D98A" bg="rgba(57,217,138,0.12)" />;
+      : <StatusPill dot="#39D98A" label="All quiet" color="#39D98A" bg="rgba(57,217,138,0.12)" />;
 
   const communityBadge = loading
     ? <div style={{ height: '24px', width: '72px', background: 'rgba(255,255,255,0.06)', borderRadius: '12px' }} />
@@ -824,9 +824,9 @@ export default function AlertsPage() {
       }
       return suburb ? (
         <NudgeCard
-          emoji="✅"
-          title={`All clear in ${suburb}`}
-          body="No safety alerts in the last 72 hours. Stay aware and share anything you spot."
+          emoji="✓"
+          title={`All quiet in ${suburb}.`}
+          body={`No safety alerts right now. That's a good thing. ✓`}
           ctaLabel="Report an incident"
           onCta={() => navigate('/report/safety')}
           accent="#39D98A"
