@@ -29,6 +29,7 @@ import {
 import { getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
+import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 
 // ── Sub-type detection ────────────────────────────────────────────────────────
 
@@ -592,6 +593,8 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved }: {
 export default function BoardPage() {
   const navigate = useNavigate();
   const { suburb, city } = useLocation();
+  const { displaySuburb } = useNeighbourhood();
+  const headerSuburb = displaySuburb || suburb || '';
   const display = suburb || city;
   const { selectedCountry } = useCountry();
 
@@ -678,10 +681,27 @@ export default function BoardPage() {
 
       {/* ── Header ── */}
       <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', margin: 0 }}>
-            Board
-          </h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div>
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              color: 'rgba(255,255,255,0.35)', margin: '0 0 4px',
+            }}>
+              Community board
+            </p>
+            <h1 style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px',
+              color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
+            }}>
+              {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
+            </h1>
+            {expanded && !loading && (
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#F5A623', margin: '4px 0 0' }}>
+                expanded area
+              </p>
+            )}
+          </div>
           <button
             onClick={() => navigate('/board/mine')}
             style={{
@@ -694,13 +714,6 @@ export default function BoardPage() {
             My posts
           </button>
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.38)', margin: '0 0 16px', lineHeight: 1.5 }}>
-          Local jobs, services, housing and notices
-          {display ? ` · ${display}` : ''}
-          {expanded && !loading && (
-            <span style={{ color: '#F5A623' }}> · expanded area</span>
-          )}
-        </p>
       </div>
 
       {/* ── Primary tab bar ── */}
@@ -882,6 +895,22 @@ export default function BoardPage() {
             </p>
           </div>
         )}
+
+        {/* Bottom CTA — always visible */}
+        <button
+          onClick={() => navigate('/board/new')}
+          style={{
+            width: '100%', marginTop: '16px',
+            border: '1px dashed rgba(57,217,138,0.25)',
+            borderRadius: '14px', padding: '16px',
+            background: 'transparent', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+            color: 'rgba(57,217,138,0.7)',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}
+        >
+          + Post to the {headerSuburb || 'Community'} Board
+        </button>
       </div>
 
       {/* ── FAB ── */}

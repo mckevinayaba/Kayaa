@@ -1,4 +1,3 @@
-import { MapPin, MessageSquare, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PostBarProps {
@@ -10,108 +9,77 @@ interface PostBarProps {
 export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
   const navigate = useNavigate();
 
+  const buttonBase: React.CSSProperties = {
+    flex: 1,
+    height: '38px',
+    borderRadius: '10px',
+    fontFamily: 'DM Sans, sans-serif',
+    fontSize: '12px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    WebkitTapHighlightColor: 'transparent',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  };
+
   return (
     <div style={{ marginBottom: '28px' }}>
-
-      {/* Primary: compose prompt */}
-      <button
+      {/* Text area */}
+      <div
         onClick={onPost}
         style={{
           width: '100%',
-          display: 'flex', alignItems: 'center', gap: '12px',
-          padding: '16px 16px',
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.09)',
-          borderRadius: '16px',
-          cursor: 'pointer',
-          textAlign: 'left',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '12px',
+          padding: '12px 14px',
           marginBottom: '10px',
+          cursor: 'pointer',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.45)',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        <div style={{
-          width: '34px', height: '34px', borderRadius: '50%',
-          background: 'rgba(57,217,138,0.12)',
-          border: '1.5px solid rgba(57,217,138,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <MessageSquare size={16} color="#39D98A" />
-        </div>
-        <span style={{
-          fontFamily: 'DM Sans, sans-serif',
-          fontSize: '14px',
-          color: 'rgba(255,255,255,0.3)',
-          flex: 1,
-        }}>
-          {suburb ? `What's happening in ${suburb} today?` : "What's happening nearby today?"}
-        </span>
-        <span style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
-          fontSize: '12px', color: '#39D98A',
-          background: 'rgba(57,217,138,0.1)',
-          border: '1px solid rgba(57,217,138,0.2)',
-          borderRadius: '20px',
-          padding: '4px 10px',
-          flexShrink: 0,
-        }}>
-          Post
-        </span>
-      </button>
+        {suburb ? `What's happening in ${suburb} today?` : "What's happening nearby today?"}
+      </div>
 
-      {/* Secondary: compact action pills */}
+      {/* Three equal buttons */}
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={() => navigate('/checkin')}
           style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px 12px',
-            background: 'rgba(57,217,138,0.07)',
-            border: '1px solid rgba(57,217,138,0.15)',
-            borderRadius: '12px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-            fontSize: '12px', color: 'rgba(57,217,138,0.8)',
-            WebkitTapHighlightColor: 'transparent',
+            ...buttonBase,
+            background: 'rgba(57,217,138,0.1)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            color: '#39D98A',
           }}
         >
-          <MapPin size={13} color="#39D98A" />
-          Check In
-        </button>
-
-        <button
-          onClick={() => navigate('/board/new?cat=jobs')}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px 12px',
-            background: 'rgba(251,191,36,0.07)',
-            border: '1px solid rgba(251,191,36,0.18)',
-            borderRadius: '12px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-            fontSize: '12px', color: 'rgba(251,191,36,0.85)',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          <Briefcase size={13} color="#FBBF24" />
-          Work
+          ✓ Check In
         </button>
 
         <button
           onClick={onAddPlace ? onAddPlace : () => navigate('/onboarding')}
           style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px 12px',
-            background: 'rgba(167,139,250,0.07)',
-            border: '1px solid rgba(167,139,250,0.15)',
-            borderRadius: '12px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-            fontSize: '12px', color: 'rgba(167,139,250,0.8)',
-            WebkitTapHighlightColor: 'transparent',
+            ...buttonBase,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            color: 'rgba(255,255,255,0.6)',
           }}
         >
           + Place
         </button>
-      </div>
 
+        <button
+          onClick={onPost}
+          style={{
+            ...buttonBase,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            color: 'rgba(255,255,255,0.6)',
+          }}
+        >
+          💬 Post
+        </button>
+      </div>
     </div>
   );
 }

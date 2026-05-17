@@ -1554,7 +1554,7 @@ function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
         From the owner
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {updates.map(u => {
+        {updates.slice(0, 1).map(u => {
           const cfg = UPDATE_TYPE_CONFIG[u.type] ?? UPDATE_TYPE_CONFIG.general;
           return (
             <div
@@ -2122,11 +2122,12 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
     }}>
       <Link to={`/venue/${venue.slug}/checkin`} style={{ textDecoration: 'none', display: 'block' }}>
         <div style={{
-          background: 'var(--color-accent)', color: '#000',
-          borderRadius: '12px', padding: '14px 20px', textAlign: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          background: '#39D98A', color: '#0D1117',
+          borderRadius: '12px', height: '48px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
         }}>
-          Check in at {venue.name.split("'")[0].trim()}
+          Check in here
         </div>
       </Link>
     </div>

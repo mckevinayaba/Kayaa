@@ -927,28 +927,19 @@ export default function AlertsPage() {
         justifyContent: 'space-between', marginBottom: '12px',
       }}>
         <div>
-          <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
-            fontSize: '22px', color: '#F0F6FC', margin: '0 0 2px',
+          <p style={{
+            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            color: 'rgba(255,255,255,0.35)', margin: '0 0 4px',
           }}>
-            Alerts
+            Neighbourhood alerts
+          </p>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px',
+            color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
+          }}>
+            {suburb ? `${suburb} Alerts` : 'Local Alerts'}
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
-              color: 'rgba(245,158,11,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em',
-            }}>
-              Status
-            </span>
-            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '10px' }}>·</span>
-            <MapPin size={11} color="rgba(255,255,255,0.3)" />
-            <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
-              color: 'rgba(255,255,255,0.35)',
-            }}>
-              {suburb || 'Set your neighbourhood'}
-            </span>
-          </div>
         </div>
         <button
           onClick={load}

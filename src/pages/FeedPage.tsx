@@ -14,7 +14,6 @@ import {
   getBoardPosts,
 } from '../lib/api';
 import type { NeighbourhoodPost, VibeType, BoardPost } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
 import type { Venue } from '../types';
 import VenueCard from '../components/VenueCard';
 import PostBar from '../components/feed/PostBar';
@@ -128,15 +127,14 @@ function ScopeNote({ children }: { children: React.ReactNode }) {
 
 // ─── Utility pill strip ───────────────────────────────────────────────────────
 
-function UtilityPillStrip() {
+function UtilityPillStrip({ suburb }: { suburb: string }) {
   const navigate = useNavigate();
-  const pill: React.CSSProperties = {
+  const pillBase: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
-    height: '36px', padding: '0 14px', flexShrink: 0,
-    background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.08)',
+    height: '34px', padding: '0 14px', flexShrink: 0,
+    background: '#161B22', border: '1px solid #1e2a3a',
     borderRadius: '18px', cursor: 'pointer',
     fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
-    color: 'rgba(255,255,255,0.6)',
     WebkitTapHighlightColor: 'transparent',
   };
   return (
@@ -148,14 +146,23 @@ function UtilityPillStrip() {
         marginRight: '-16px', paddingRight: '16px',
         WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
-        <button style={pill} onClick={() => navigate('/report/utility/power')}>
-          🔌 Load shedding
+        <button
+          style={{ ...pillBase, color: '#39D98A' }}
+          onClick={() => navigate('/report/utility/power')}
+        >
+          ⚡ No load shedding
         </button>
-        <button style={pill} onClick={() => navigate('/report/utility/water')}>
-          💧 Water
+        <button
+          style={{ ...pillBase, color: '#39D98A' }}
+          onClick={() => navigate('/report/utility/water')}
+        >
+          💧 Water normal
         </button>
-        <button style={pill} onClick={() => navigate('/alerts')}>
-          🔔 Alerts
+        <button
+          style={{ ...pillBase, color: 'rgba(255,255,255,0.5)' }}
+          onClick={() => navigate('/alerts')}
+        >
+          🔔 {suburb ? `${suburb} alerts` : 'Local alerts'}
         </button>
       </div>
     </div>
@@ -166,7 +173,6 @@ function UtilityPillStrip() {
 
 export default function FeedPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const {
     displaySuburb: suburb, displayCity: city,
     displayLat: _lat, displayLon: _lon,
@@ -182,23 +188,6 @@ export default function FeedPage() {
   const [boardPosts, setBoardPosts] = useState<NeighbourhoodPost[]>([]);
   const [jobPosts,   setJobPosts]   = useState<BoardPost[]>([]);
   const [housingPosts, setHousingPosts] = useState<BoardPost[]>([]);
-
-  // ── Nudge dismissals (localStorage-backed) ────────────────────────────────
-  const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem('kayaa_nudges_dismissed');
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
-    } catch { return new Set<string>(); }
-  });
-
-  function dismissNudge(key: string) {
-    setDismissedNudges(prev => {
-      const next = new Set(prev);
-      next.add(key);
-      try { localStorage.setItem('kayaa_nudges_dismissed', JSON.stringify([...next])); } catch { /* ignore */ }
-      return next;
-    });
-  }
 
   const [showComposer,    setShowComposer]    = useState(false);
   const [quickAddOpen,    setQuickAddOpen]    = useState(false);
@@ -389,8 +378,10 @@ export default function FeedPage() {
   const sparseLocal = !loading && placesNearYou.length > 0 && placesNearYou.length < LOCAL_THRESHOLD;
 
   // ── Nudge visibility ─────────────────────────────────────────────────────
-  const showWelcomeHint =
-    !!user && !loading && !dismissedNudges.has('welcome_hint');
+  const [welcomeDismissed, setWelcomeDismissed] = useState(
+    () => localStorage.getItem('kayaa_welcome_dismissed') === 'true'
+  );
+  const showWelcomeHint = !loading && !welcomeDismissed;
 
   return (
     <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
@@ -587,23 +578,23 @@ export default function FeedPage() {
       {/* Section 1: Neighbourhood header */}
       <div style={{ marginBottom: '24px' }}>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'DM Sans, sans-serif', fontSize: '9px',
           textTransform: 'uppercase', letterSpacing: '0.12em',
           color: 'rgba(57,217,138,0.6)', margin: '0 0 6px',
         }}>
           {getGreeting()}
         </p>
-        <div onClick={() => setShowAreaGate(true)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
+        <div onClick={() => setShowAreaGate(true)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
           <h1 style={{
             fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            fontSize: 'clamp(36px, 12vw, 48px)', color: '#FFFFFF',
-            letterSpacing: '-0.02em', lineHeight: 1,
+            fontSize: '28px', color: '#FFFFFF',
+            letterSpacing: '-0.02em', lineHeight: 1.05,
             margin: 0,
           }}>
             {areaLabel}
           </h1>
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#9CA3AF', margin: '0 0 10px' }}>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: '#9CA3AF', margin: '0 0 10px' }}>
           {!suburb
             ? 'Set your neighbourhood to see places nearby'
             : rawVenues.length === 0
@@ -614,69 +605,33 @@ export default function FeedPage() {
           const activeNow = rawVenues.filter(v =>
             v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000,
           ).length;
-          const newToday = rawVenues.filter(v =>
-            Date.now() - new Date(v.createdAt).getTime() < 24 * 60 * 60 * 1000,
-          ).length;
-          const anyChip = activeNow > 0 || newToday > 0 || boardPosts.length > 0;
-
+          if (activeNow === 0) return null;
+          const today = new Date();
+          const dateStr = today.toLocaleDateString('en-ZA', {
+            weekday: 'short', day: 'numeric', month: 'short',
+          });
           return (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              {activeNow > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.18)',
-                  borderRadius: '20px', padding: '3px 10px',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A',
-                }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 5px rgba(57,217,138,0.6)' }} />
-                  {activeNow} active now
-                </span>
-              )}
-              {newToday > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)',
-                  borderRadius: '20px', padding: '3px 10px',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA',
-                }}>
-                  🆕 {newToday} new today
-                </span>
-              )}
-              {boardPosts.length > 0 && (
-                <button
-                  onClick={() => navigate('/board')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.18)',
-                    borderRadius: '20px', padding: '3px 10px',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#A78BFA',
-                    cursor: 'pointer',
-                  }}
-                >
-                  📋 Board active
-                </button>
-              )}
-              {!anyChip && (
-                <button
-                  onClick={() => navigate('/neighbourhood')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '20px', padding: '3px 10px',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
-                    color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
-                  }}
-                >
-                  🏘️ Explore {rawVenues.length} place{rawVenues.length !== 1 ? 's' : ''} →
-                </button>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A',
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 5px rgba(57,217,138,0.6)' }} />
+                {activeNow} active now
+              </span>
+              <span style={{
+                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                color: 'rgba(255,255,255,0.4)',
+              }}>
+                {dateStr}
+              </span>
             </div>
           );
         })()}
       </div>
 
       {/* Section 2: Utility pills */}
-      <UtilityPillStrip />
+      <UtilityPillStrip suburb={suburb} />
 
       {/* Section 3: Places near you */}
       <div style={{ marginBottom: '28px' }}>
@@ -759,18 +714,45 @@ export default function FeedPage() {
               See all →
             </button>
           </div>
-          {boardPosts.map(post => (
-            <div key={post.id} onClick={() => navigate('/board')}
-              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
-                lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                overflow: 'hidden' } as React.CSSProperties}>
-                {post.content}
-              </p>
-            </div>
-          ))}
+          {boardPosts.map(post => {
+            const catColors: Record<string, string> = {
+              announcement: '#F59E0B',
+              lost_found: '#F472B6',
+              question: '#60A5FA',
+              recommendation: '#39D98A',
+              event: '#FB923C',
+              general: 'rgba(255,255,255,0.3)',
+            };
+            const cat = (post as { category?: string }).category || 'general';
+            const color = catColors[cat] ?? catColors.general;
+            const labelMap: Record<string, string> = {
+              announcement: 'Announcement', lost_found: 'Lost & Found',
+              question: 'Question', recommendation: 'Recommendation',
+              event: 'Event', general: 'General',
+            };
+            return (
+              <div key={post.id} onClick={() => navigate('/board')}
+                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                  borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{
+                    display: 'inline-block', fontFamily: 'DM Sans, sans-serif',
+                    fontSize: '10px', fontWeight: 700,
+                    color, background: `${color}18`,
+                    borderRadius: '20px', padding: '2px 8px',
+                  }}>
+                    {labelMap[cat] ?? cat}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0,
+                  lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden' } as React.CSSProperties}>
+                  {(post as { title?: string }).title || post.content}
+                </p>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -861,18 +843,21 @@ export default function FeedPage() {
               fontSize: '13px', color: '#F0F6FC',
               margin: '0 0 3px',
             }}>
-              Welcome to {suburb ? `${suburb}` : 'your neighbourhood'}
+              👋 Welcome to {suburb || 'your neighbourhood'}
             </p>
             <p style={{
               fontFamily: 'DM Sans, sans-serif',
               fontSize: '12px', color: 'rgba(255,255,255,0.45)',
               margin: 0, lineHeight: 1.55,
             }}>
-              Explore nearby places, share moments, and stay on top of local alerts.
+              Explore nearby places, check in where you go, and stay on top of local alerts.
             </p>
           </div>
           <button
-            onClick={() => dismissNudge('welcome_hint')}
+            onClick={() => {
+              localStorage.setItem('kayaa_welcome_dismissed', 'true');
+              setWelcomeDismissed(true);
+            }}
             aria-label="Dismiss welcome hint"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
