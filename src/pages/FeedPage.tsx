@@ -3,7 +3,7 @@ import { PenSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { haversineKm } from '../lib/geocode';
-import { getAreaTier, tierScore } from '../lib/areaGroups';
+import { getAreaTier } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
 import PostComposer from '../components/PostComposer';
 import {
@@ -73,10 +73,6 @@ function venueInScope(
   }
 }
 
-function areaScore(venue: Venue, suburb: string, city: string): number {
-  const tier = getAreaTier(venue.neighborhood, venue.city, suburb, city);
-  return tierScore(tier);
-}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -223,8 +219,7 @@ export default function FeedPage() {
   const [vibeWinners, setVibeWinners] = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
   const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
 
-  // Scope
-  const [scope, setScope] = useState<FeedScope>('nearby');
+  // Scope (manualScope drives manual area override)
   const [manualScope, setManualScope] = useState<FeedScope | null>(null);
 
   const [showAreaGate, setShowAreaGate] = useState(false);
@@ -289,16 +284,6 @@ export default function FeedPage() {
     }
   }, []);
 
-  // Infinite scroll
-  useEffect(() => {
-    function onScroll() {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400) {
-        setVisibleCount(c => c + 20);
-      }
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
 
   // Pull-to-refresh
@@ -372,11 +357,7 @@ export default function FeedPage() {
 
       // Smart default scope
       if (!manualScope) {
-        const localCount = venues
-          .filter(isCleanVenue)
-          .filter(u => venueInScope(u, 'this_neighbourhood', suburb, city, userLat, userLon))
-          .length;
-        setScope(localCount >= LOCAL_THRESHOLD ? 'this_neighbourhood' : 'nearby');
+        // (scope selection removed — feed always uses suburb-strict filtering)
       }
 
       // Batch-load interactivity data
