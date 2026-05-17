@@ -12,8 +12,9 @@ import {
   getActiveStoryVenuesBatch,
   getBoardPosts,
   getLocalJobs,
+  getUtilityReports,
 } from '../lib/api';
-import type { VibeType, BoardPost, LocalJob } from '../lib/api';
+import type { VibeType, BoardPost, LocalJob, UtilityReport } from '../lib/api';
 import type { Venue } from '../types';
 import VenueCard from '../components/VenueCard';
 import PostBar from '../components/feed/PostBar';
@@ -24,7 +25,6 @@ import { useCountry } from '../contexts/CountryContext';
 // ─── Scope model ──────────────────────────────────────────────────────────────
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
 
-const LOCAL_THRESHOLD = 3;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,35 +79,46 @@ function venueInScope(
 }
 
 // ─── Seed data (display-only — never saved to Supabase) ──────────────────────
+// Feed shows ONE preview item per section. Full pages show more depth.
+// Safety-sensitive content is excluded from seed data.
 
 interface SeedBoardPost { id: string; category: string; title: string; time: string }
 interface SeedJob       { id: string; type: 'Hiring' | 'Skills'; title: string; neighbourhood: string; time: string }
 interface SeedVenue     { id: string; name: string; category: string; emoji: string; suburb: string; description?: string; regulars?: number; status?: string }
+interface SeedAlert     { id: string; icon: string; label: string; message: string; isNormal: boolean; time: string }
 
-const SEED_BOARD_POSTS: SeedBoardPost[] = [
-  { id: 'seed-b1', category: 'safety',       title: 'Stay alert near Claim Street — suspicious activity reported',      time: '2 hours ago' },
-  { id: 'seed-b2', category: 'announcement', title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm',     time: '4 hours ago' },
-  { id: 'seed-b3', category: 'lost_found',   title: 'Found keys near the corner of Lily Ave — contact to claim',        time: 'Yesterday'   },
-];
+// One preview board post — announcement, not a safety/crime incident
+const SEED_BOARD_POST: SeedBoardPost = {
+  id: 'seed-b1', category: 'announcement',
+  title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm',
+  time: '4 hours ago',
+};
 
-const SEED_JOBS: SeedJob[] = [
-  { id: 'seed-j1', type: 'Hiring', title: 'Domestic worker needed — 3 days per week',  neighbourhood: 'Berea', time: 'Today'     },
-  { id: 'seed-j2', type: 'Skills', title: 'I do hair braiding — available weekends',    neighbourhood: 'Berea', time: 'Today'     },
-  { id: 'seed-j3', type: 'Hiring', title: 'Security guard needed — PSIRA registered',   neighbourhood: 'Berea', time: 'Yesterday' },
-];
+// One preview job for the feed
+const SEED_JOB: SeedJob = {
+  id: 'seed-j1', type: 'Hiring',
+  title: 'Domestic worker needed — 3 days per week',
+  neighbourhood: 'Berea', time: 'Today',
+};
 
-const SEED_VENUES: SeedVenue[] = [
-  { id: 'sv1', name: 'City Cuts Barbershop', category: 'Barbershop', emoji: '✂️', suburb: 'Berea', description: 'Barbershop on Claim Street serving the Berea community', regulars: 12, status: 'Open' },
-  { id: 'sv2', name: 'Langa Hair Salon',     category: 'Salon',      emoji: '💅', suburb: 'Berea' },
-  { id: 'sv3', name: 'Berea Spaza Corner',   category: 'Spaza',      emoji: '🏪', suburb: 'Berea' },
-  { id: 'sv4', name: 'Ekhaya Tavern',        category: 'Tavern',     emoji: '🍺', suburb: 'Berea' },
-  { id: 'sv5', name: 'Grace Gospel Church',  category: 'Church',     emoji: '⛪', suburb: 'Berea' },
-];
+// One preview place for the feed
+const SEED_VENUE: SeedVenue = {
+  id: 'sv1', name: 'City Cuts Barbershop', category: 'Barbershop', emoji: '✂️',
+  suburb: 'Berea', description: 'Barbershop on Claim Street serving the Berea community',
+  regulars: 12, status: 'Open',
+};
+
+// One preview alert for the feed — utility/status, not a crime/safety incident
+const SEED_ALERT: SeedAlert = {
+  id: 'seed-alert-1', icon: '⚡', label: 'Status',
+  message: 'No power or water issues reported in your area',
+  isNormal: true, time: 'Updated just now',
+};
 
 // ─── Normalised display types (real + seed share the same render path) ────────
 
-interface DisplayBoardPost { id: string; category: string; title: string; timeDisplay: string }
-interface DisplayJob       { id: string; typeLabel: 'Hiring' | 'Skills'; title: string; neighbourhood: string; timeDisplay: string }
+interface DisplayBoardPost { id: string; category: string; title: string; timeDisplay: string; isSeed?: boolean }
+interface DisplayJob       { id: string; typeLabel: 'Hiring' | 'Skills'; title: string; neighbourhood: string; timeDisplay: string; isSeed?: boolean }
 
 // ─── Category colour / label maps ────────────────────────────────────────────
 
@@ -172,30 +183,6 @@ function SeedVenueHero({ venue }: { venue: SeedVenue }) {
   );
 }
 
-function SeedVenueMini({ venue }: { venue: SeedVenue }) {
-  return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <span style={{ fontSize: '22px', flexShrink: 0 }}>{venue.emoji}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>{venue.name}</div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>{venue.category} · {venue.suburb}</div>
-      </div>
-      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)', flexShrink: 0 }}>example</span>
-    </div>
-  );
-}
-
-// ─── Honest context note ──────────────────────────────────────────────────────
-
-function ScopeNote({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.14)', borderRadius: '10px', padding: '9px 12px', marginBottom: '12px' }}>
-      <span style={{ fontSize: '13px', lineHeight: 1 }}>📍</span>
-      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.52)', lineHeight: 1.5, margin: 0, fontFamily: 'DM Sans, sans-serif' }}>{children}</p>
-    </div>
-  );
-}
-
 // ─── Utility pill strip ───────────────────────────────────────────────────────
 
 function UtilityPillStrip({ suburb }: { suburb: string }) {
@@ -239,8 +226,10 @@ export default function FeedPage() {
   const [jobPosts,   setJobPosts]   = useState<LocalJob[]>([]);
 
   // Tracks when async section fetches have resolved
-  const [boardLoaded, setBoardLoaded] = useState(false);
-  const [jobsLoaded,  setJobsLoaded]  = useState(false);
+  const [boardLoaded,   setBoardLoaded]   = useState(false);
+  const [jobsLoaded,    setJobsLoaded]    = useState(false);
+  const [alertsLoaded,  setAlertsLoaded]  = useState(false);
+  const [utilityAlert,  setUtilityAlert]  = useState<UtilityReport | null>(null);
 
   const [showComposer, setShowComposer] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -327,6 +316,7 @@ export default function FeedPage() {
     // Reset section-level loaded flags when area/country changes
     setBoardLoaded(false);
     setJobsLoaded(false);
+    setAlertsLoaded(false);
 
     getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined, city: city || undefined })
       .then(v => {
@@ -340,25 +330,41 @@ export default function FeedPage() {
         setRefreshing(false);
         refreshingRef.current = false;
 
-        // Board: board_posts table, last 7 days, LIMIT 3
+        // Board: board_posts table, last 7 days — feed shows 1 preview
         getBoardPosts(suburb || '', city || '')
           .then(result => {
             const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             const recent = result.posts
               .filter(p => new Date(p.createdAt).getTime() > sevenDaysAgo)
-              .slice(0, 3);
+              .slice(0, 1);
             setBoardPosts(recent);
             setBoardLoaded(true);
           })
           .catch(() => { setBoardLoaded(true); });
 
-        // Jobs: local_jobs table, exact suburb match, LIMIT 3
+        // Jobs: local_jobs table, exact suburb match — feed shows 1 preview
         if (suburb) {
           getLocalJobs(suburb)
-            .then(jobs => { setJobPosts(jobs.slice(0, 3)); setJobsLoaded(true); })
+            .then(jobs => { setJobPosts(jobs.slice(0, 1)); setJobsLoaded(true); })
             .catch(() => { setJobsLoaded(true); });
         } else {
           setJobsLoaded(true);
+        }
+
+        // Alerts preview: utility reports — show first active issue or seed status
+        if (suburb) {
+          Promise.all([
+            getUtilityReports(suburb, 'power'),
+            getUtilityReports(suburb, 'water'),
+          ]).then(([powerReps, waterReps]) => {
+            const active = [...powerReps, ...waterReps]
+              .filter(r => !r.issueType.endsWith('_restored'))
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setUtilityAlert(active[0] ?? null);
+            setAlertsLoaded(true);
+          }).catch(() => { setAlertsLoaded(true); });
+        } else {
+          setAlertsLoaded(true);
         }
 
         // Batch interactivity
@@ -369,47 +375,50 @@ export default function FeedPage() {
             .catch(() => {});
         }
       })
-      .catch(() => { setRefreshing(false); refreshingRef.current = false; setBoardLoaded(true); setJobsLoaded(true); });
+      .catch(() => { setRefreshing(false); refreshingRef.current = false; setBoardLoaded(true); setJobsLoaded(true); setAlertsLoaded(true); });
   }, [areaLabel, selectedCountry.code, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Computed ────────────────────────────────────────────────────────────
 
+  // Feed shows ONE preview place; full discover page shows all
   const placesNearYou = useMemo(() => {
-    if (!suburb && !city) return rawVenues.slice(0, 5);
+    if (!suburb && !city) return rawVenues.slice(0, 1);
     return rawVenues
       .filter(v => isCleanVenue(v) && venueInScope(v, 'this_neighbourhood', suburb, city, userLat, userLon))
-      .slice(0, 5);
+      .slice(0, 1);
   }, [rawVenues, suburb, city, userLat, userLon]);
 
-  const sparseLocal = !loading && placesNearYou.length > 0 && placesNearYou.length < LOCAL_THRESHOLD;
+  // sparseLocal note removed — feed intentionally shows one preview place
 
-  // Normalise real board posts → DisplayBoardPost, fall back to seed if empty
+  // Normalise real board post → DisplayBoardPost (1 item for feed preview), fall back to seed
   const displayBoardPosts = useMemo<DisplayBoardPost[]>(() => {
     if (!boardLoaded) return [];
     if (boardPosts.length > 0) {
-      return boardPosts.map(p => ({
-        id: p.id,
-        category: p.category || 'general',
-        title: p.title || p.description || '',
-        timeDisplay: timeAgo(p.createdAt),
-      }));
+      return [{
+        id: boardPosts[0].id,
+        category: boardPosts[0].category || 'general',
+        title: boardPosts[0].title || boardPosts[0].description || '',
+        timeDisplay: timeAgo(boardPosts[0].createdAt),
+        isSeed: false,
+      }];
     }
-    return SEED_BOARD_POSTS.map(p => ({ id: p.id, category: p.category, title: p.title, timeDisplay: p.time }));
+    return [{ id: SEED_BOARD_POST.id, category: SEED_BOARD_POST.category, title: SEED_BOARD_POST.title, timeDisplay: SEED_BOARD_POST.time, isSeed: true }];
   }, [boardLoaded, boardPosts]);
 
-  // Normalise real jobs → DisplayJob, fall back to seed if empty
+  // Normalise real job → DisplayJob (1 item for feed preview), fall back to seed
   const displayJobs = useMemo<DisplayJob[]>(() => {
     if (!jobsLoaded) return [];
     if (jobPosts.length > 0) {
-      return jobPosts.map(j => ({
-        id: j.id,
-        typeLabel: j.jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
-        title: j.title,
-        neighbourhood: j.neighbourhood,
-        timeDisplay: timeAgo(j.createdAt),
-      }));
+      return [{
+        id: jobPosts[0].id,
+        typeLabel: jobPosts[0].jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
+        title: jobPosts[0].title,
+        neighbourhood: jobPosts[0].neighbourhood,
+        timeDisplay: timeAgo(jobPosts[0].createdAt),
+        isSeed: false,
+      }];
     }
-    return SEED_JOBS.map(j => ({ id: j.id, typeLabel: j.type, title: j.title, neighbourhood: j.neighbourhood, timeDisplay: j.time }));
+    return [{ id: SEED_JOB.id, typeLabel: SEED_JOB.type, title: SEED_JOB.title, neighbourhood: SEED_JOB.neighbourhood, timeDisplay: SEED_JOB.time, isSeed: true }];
   }, [jobsLoaded, jobPosts]);
 
   const [welcomeDismissed, setWelcomeDismissed] = useState(
@@ -559,22 +568,13 @@ export default function FeedPage() {
           <button onClick={() => navigate('/neighbourhood')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>Browse all →</button>
         </div>
 
-        {sparseLocal && (
-          <ScopeNote>Only {placesNearYou.length} place{placesNearYou.length === 1 ? '' : 's'} active near {suburb || areaLabel} right now.</ScopeNote>
-        )}
-
         {loading ? (
-          <><VenueCardSkeleton /><VenueCardSkeleton /><VenueCardSkeleton /></>
+          <VenueCardSkeleton />
         ) : placesNearYou.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {placesNearYou.map(venue => (
-              <VenueCard key={venue.id} venue={venue} headingCount={headingCounts[venue.id] ?? 0} vibeWinner={vibeWinners[venue.id] ?? null} hasActiveStory={activeStoryVenueIds.has(venue.id)} />
-            ))}
-          </div>
+          <VenueCard venue={placesNearYou[0]} headingCount={headingCounts[placesNearYou[0].id] ?? 0} vibeWinner={vibeWinners[placesNearYou[0].id] ?? null} hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <SeedVenueHero venue={SEED_VENUES[0]} />
-            {SEED_VENUES.slice(1).map(v => <SeedVenueMini key={v.id} venue={v} />)}
+            <SeedVenueHero venue={SEED_VENUE} />
             <button
               onClick={() => navigate('/onboarding')}
               style={{ marginTop: '4px', background: 'rgba(57,217,138,0.07)', color: '#39D98A', border: '1px dashed rgba(57,217,138,0.25)', borderRadius: '12px', padding: '12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px', width: '100%', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
@@ -597,58 +597,129 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── 6. From the Board (real or seed — always 3 posts) ───────────────── */}
-      {boardLoaded && displayBoardPosts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>From the Board</p>
-            <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>See all →</button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {displayBoardPosts.map(post => {
-              const color = CAT_COLORS[post.category] ?? CAT_COLORS.general;
-              const label = CAT_LABELS[post.category] ?? post.category;
-              return (
-                <div key={post.id} onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ display: 'inline-block', fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                    {post.title}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── 7. Jobs & Skills (real or seed — always 3 listings) ─────────────── */}
-      {jobsLoaded && displayJobs.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-              Jobs &amp; Skills{suburb ? ` · ${suburb}` : ''}
-            </p>
-            <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>Browse all →</button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {displayJobs.map(job => (
-              <div key={job.id} onClick={() => navigate('/jobs')} style={{ background: 'var(--color-surface)', border: '1px solid rgba(167,139,250,0.12)', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: '#A78BFA', background: 'rgba(167,139,250,0.12)', borderRadius: '20px', padding: '2px 8px' }}>{job.typeLabel}</span>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                  {job.title}
-                </p>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>{job.neighbourhood}</p>
+      {/* ── 6. From the Board — ONE preview post (real or starter) ────────── */}
+      {boardLoaded && displayBoardPosts.length > 0 && (() => {
+        const post = displayBoardPosts[0];
+        const color = CAT_COLORS[post.category] ?? CAT_COLORS.general;
+        const label = CAT_LABELS[post.category] ?? post.category;
+        return (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>From the Board</p>
+                {post.isSeed && (
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+                )}
               </div>
-            ))}
+              <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>See all posts →</button>
+            </div>
+            <div onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ display: 'inline-block', fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                {post.title}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
+      {/* ── 7. Jobs & Skills — ONE preview listing (real or starter) ──────── */}
+      {jobsLoaded && displayJobs.length > 0 && (() => {
+        const job = displayJobs[0];
+        const isSkill = job.typeLabel === 'Skills';
+        const badgeColor = isSkill ? '#39D98A' : '#A78BFA';
+        return (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                  Jobs &amp; Skills{suburb ? ` · ${suburb}` : ''}
+                </p>
+                {job.isSeed && (
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+                )}
+              </div>
+              <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>Browse all jobs →</button>
+            </div>
+            <div onClick={() => navigate('/jobs')} style={{ background: 'var(--color-surface)', border: `1px solid ${badgeColor}18`, borderLeft: `3px solid ${badgeColor}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: badgeColor, background: `${badgeColor}18`, borderRadius: '20px', padding: '2px 8px' }}>{isSkill ? '💡 Skills' : '💼 Hiring'}</span>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif' }}>
+                {job.title}
+              </p>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>📍 {job.neighbourhood}</p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 8. Alerts preview — ONE status/utility item (real or starter) ─── */}
+      {alertsLoaded && (() => {
+        const POWER_LABELS: Record<string, { icon: string; label: string }> = {
+          power_out:     { icon: '⚡', label: 'Power out' },
+          load_shedding: { icon: '🔁', label: 'Load shedding' },
+          flickering:    { icon: '💡', label: 'Flickering' },
+          streetlights:  { icon: '🔦', label: 'Streetlights out' },
+        };
+        const WATER_LABELS: Record<string, { icon: string; label: string }> = {
+          no_water:    { icon: '🚱', label: 'No water' },
+          low_pressure:{ icon: '📉', label: 'Low pressure' },
+          dirty_water: { icon: '🟤', label: 'Dirty water' },
+          leak_burst:  { icon: '💧', label: 'Leak / burst pipe' },
+        };
+
+        if (utilityAlert) {
+          const isPower = utilityAlert.category === 'power';
+          const meta = isPower
+            ? (POWER_LABELS[utilityAlert.issueType] ?? { icon: '⚡', label: 'Power issue' })
+            : (WATER_LABELS[utilityAlert.issueType] ?? { icon: '💧', label: 'Water issue' });
+          const color = isPower ? '#FBBF24' : '#60A5FA';
+          return (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
+                <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
+              </div>
+              <div onClick={() => navigate('/alerts')} style={{ background: `${color}08`, border: `1px solid ${color}20`, borderLeft: `3px solid ${color}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{meta.icon} {meta.label}</span>
+                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(utilityAlert.createdAt)}</span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif' }}>
+                  📍 {utilityAlert.areaDetail}
+                  {utilityAlert.reportCount > 1 && <span style={{ color, fontWeight: 700 }}> · {utilityAlert.reportCount} reports</span>}
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        // Starter: calm "all clear" status card — not a fake crime/safety incident
+        return (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
+                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+              </div>
+              <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
+            </div>
+            <div onClick={() => navigate('/alerts')} style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)', borderLeft: '3px solid rgba(57,217,138,0.4)', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '18px', flexShrink: 0 }}>{SEED_ALERT.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13px', color: '#39D98A', margin: '0 0 2px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>{SEED_ALERT.label}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, fontFamily: 'DM Sans, sans-serif' }}>{SEED_ALERT.message}</p>
+              </div>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{SEED_ALERT.time}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Neighbourhood gate */}
       {showAreaGate && <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />}

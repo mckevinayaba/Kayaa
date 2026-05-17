@@ -196,6 +196,108 @@ function HousingCard({ post }: { post: BoardPost }) {
   );
 }
 
+// ── Seed housing listings (display-only — never saved to Supabase) ────────────
+
+interface SeedHousing {
+  id: string; subType: SubType; title: string;
+  price: string; neighbourhood: string; description: string; time: string;
+}
+
+const SEED_HOUSING: SeedHousing[] = [
+  {
+    id: 'sh1', subType: 'room',
+    title: 'Bachelor room to rent — Berea',
+    price: 'R2 800/month',
+    neighbourhood: 'Berea',
+    description: 'Self-contained bachelor room, own entrance. Water and lights included. No smoking.',
+    time: '2 hours ago',
+  },
+  {
+    id: 'sh2', subType: 'rental',
+    title: '2-bedroom flat available — Berea',
+    price: 'R5 500/month',
+    neighbourhood: 'Berea',
+    description: 'Spacious 2-bedroom flat in a quiet complex. Secure parking, fibre-ready.',
+    time: '1 day ago',
+  },
+  {
+    id: 'sh3', subType: 'short_stay',
+    title: 'Short-stay room — R350 per night',
+    price: 'R350/night',
+    neighbourhood: 'Berea',
+    description: 'Clean room with shared kitchen and bathroom. Ideal for visiting workers.',
+    time: '3 days ago',
+  },
+];
+
+const SUB_COLORS_SEED: Record<SubType, string> = {
+  all: '#34D399', room: '#60A5FA', rental: '#34D399', short_stay: '#A78BFA', lodge: '#F59E0B',
+};
+
+function SeedHousingCard({ listing }: { listing: SeedHousing }) {
+  const color  = SUB_COLORS_SEED[listing.subType];
+  const filter = SUB_FILTERS.find(f => f.key === listing.subType)!;
+  return (
+    <div style={{
+      background: 'var(--color-surface)',
+      border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      marginBottom: '12px',
+    }}>
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          background: `${color}18`, border: `1px solid ${color}44`,
+          borderRadius: '20px', padding: '2px 10px', marginBottom: '8px',
+        }}>
+          <span style={{ fontSize: '11px' }}>{filter.emoji}</span>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
+            {filter.label}
+          </span>
+        </div>
+
+        <div style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3,
+        }}>
+          {listing.title}
+        </div>
+
+        <div style={{
+          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontSize: '17px', color, marginBottom: '6px',
+        }}>
+          {listing.price}
+        </div>
+
+        <div style={{
+          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.52)', lineHeight: 1.5,
+          marginBottom: '10px',
+        }}>
+          {listing.description}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <MapPin size={11} color="rgba(255,255,255,0.3)" />
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+              {listing.neighbourhood}
+            </span>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>
+              {listing.time}
+            </span>
+          </div>
+          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>
+            local example
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function HousingSkeleton() {
@@ -326,35 +428,32 @@ export default function HousingPage() {
             <HousingSkeleton />
           </>
         ) : filtered.length === 0 ? (
-          <div style={{
-            textAlign: 'center', padding: '48px 24px',
-            background: 'rgba(52,211,153,0.04)',
-            border: '1px solid rgba(52,211,153,0.12)',
-            borderRadius: '16px',
-          }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>🏠</div>
-            <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700,
-              fontSize: '16px', color: '#F0F6FC', marginBottom: '6px',
-            }}>
-              No {subFilter === 'all' ? '' : SUB_FILTERS.find(f => f.key === subFilter)?.label.toLowerCase() + ' '}listings yet
+          <div>
+            {/* Starter listings so the page never looks empty */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Local examples
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
             </div>
-            <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-              color: 'rgba(255,255,255,0.38)', marginBottom: '18px',
-            }}>
-              Be the first to post a room or rental in {areaLabel}
-            </div>
+            {SEED_HOUSING
+              .filter(l => subFilter === 'all' || l.subType === subFilter)
+              .map(l => <SeedHousingCard key={l.id} listing={l} />)
+            }
+            {/* Post CTA */}
             <button
               onClick={() => navigate('/board/new')}
               style={{
-                padding: '11px 24px', borderRadius: '12px',
-                background: '#34D399', color: '#0D1117',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-                border: 'none', cursor: 'pointer',
-              }}
+                width: '100%', marginTop: '4px',
+                border: '1px dashed rgba(52,211,153,0.25)',
+                borderRadius: '14px', padding: '14px',
+                background: 'transparent', cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+                color: 'rgba(52,211,153,0.7)',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
             >
-              Post a listing
+              + Post a room or rental in {areaLabel}
             </button>
           </div>
         ) : (

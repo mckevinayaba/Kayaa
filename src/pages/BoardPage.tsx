@@ -35,18 +35,19 @@ import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 
 interface SeedPost { id: string; category: string; title: string; time: string; author: string }
 
+// Board shows 3 starter posts when empty — no fake crime/safety incidents
 const BOARD_SEED_POSTS: SeedPost[] = [
-  { id: 'seed-b1', category: 'safety',       title: 'Stay alert near Claim Street — suspicious activity reported',  time: '2 hours ago', author: 'Nomsa M.'        },
-  { id: 'seed-b2', category: 'announcement', title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm', time: '4 hours ago', author: 'City Cuts'        },
-  { id: 'seed-b3', category: 'lost_found',   title: 'Found keys near the corner of Lily Ave — contact to claim',   time: 'Yesterday',   author: 'Community Member' },
+  { id: 'seed-b1', category: 'announcement', title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm', time: '4 hours ago', author: 'City Cuts'        },
+  { id: 'seed-b2', category: 'lost_found',   title: 'Found keys near the corner of Lily Ave — contact to claim',   time: 'Yesterday',   author: 'Community Member' },
+  { id: 'seed-b3', category: 'jobs',         title: 'Domestic worker needed — Mon/Wed/Fri, references required',   time: '2 hours ago', author: 'Berea resident'   },
 ];
 
 const SEED_CAT_COLORS: Record<string, string> = {
-  safety: '#EF4444', announcement: '#39D98A', lost_found: '#60A5FA',
+  announcement: '#39D98A', lost_found: '#60A5FA', jobs: '#A78BFA',
   event: '#A78BFA', question: '#60A5FA', general: 'rgba(255,255,255,0.3)',
 };
 const SEED_CAT_LABELS: Record<string, string> = {
-  safety: 'Safety', announcement: 'Announcement', lost_found: 'Lost & Found',
+  announcement: 'Announcement', lost_found: 'Lost & Found', jobs: 'Jobs',
   event: 'Event', question: 'Question', general: 'General',
 };
 

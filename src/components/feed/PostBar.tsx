@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 
 interface PostBarProps {
-  suburb:    string;
-  onPost:    () => void;
+  suburb:     string;
+  onPost:     () => void;
   onAddPlace?: () => void;
+  onWork?:    () => void;
 }
 
-export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
+export default function PostBar({ suburb, onPost, onAddPlace, onWork }: PostBarProps) {
   const navigate = useNavigate();
 
   const buttonBase: React.CSSProperties = {
@@ -42,8 +43,8 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
         {suburb ? `What's happening in ${suburb} today?` : "What's happening nearby today?"}
       </div>
 
-      {/* Three equal buttons */}
-      <div style={{ display: 'flex', gap: '8px' }}>
+      {/* Four action buttons */}
+      <div style={{ display: 'flex', gap: '6px' }}>
         <button
           onClick={() => navigate('/checkin')}
           style={{
@@ -54,6 +55,18 @@ export default function PostBar({ suburb, onPost, onAddPlace }: PostBarProps) {
           }}
         >
           ✓ Check In
+        </button>
+
+        <button
+          onClick={onWork ? onWork : () => navigate('/jobs')}
+          style={{
+            ...buttonBase,
+            background: 'rgba(167,139,250,0.08)',
+            border: '1px solid rgba(167,139,250,0.18)',
+            color: '#A78BFA',
+          }}
+        >
+          💼 Work
         </button>
 
         <button

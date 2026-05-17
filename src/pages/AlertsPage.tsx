@@ -458,6 +458,40 @@ const FILTERS: { key: FilterType; label: string }[] = [
   { key: 'community', label: '🏘 Community' },
 ];
 
+// ─── Starter alerts (display-only — shown when no real data exists) ───────────
+// Community/utility types only. No fake crime or safety incidents.
+
+function makeStarterAlerts(suburb: string): AlertItem[] {
+  const now = Date.now();
+  return [
+    {
+      id: 'starter-a1',
+      severity:  'normal' as AlertSeverity,
+      category:  'announcement' as AlertCategory,
+      area:      suburb || 'Berea',
+      message:   'Community clean-up this Saturday at the park — all welcome, tools provided',
+      createdAt: new Date(now - 5 * 60 * 60 * 1000).toISOString(),
+      author:    'Residents Group',
+    },
+    {
+      id: 'starter-a2',
+      severity:  'watch' as AlertSeverity,
+      category:  'lost_found' as AlertCategory,
+      area:      suburb || 'Berea',
+      message:   'Lost black wallet near Lily Avenue — if found please call 082 555 1234',
+      createdAt: new Date(now - 22 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 'starter-a3',
+      severity:  'normal' as AlertSeverity,
+      category:  'event' as AlertCategory,
+      area:      suburb || 'Berea',
+      message:   'Neighbourhood watch meeting Friday 18:00 at the community hall — new faces welcome',
+      createdAt: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AlertsPage() {
@@ -818,23 +852,37 @@ export default function AlertsPage() {
           </div>
         );
       }
-      return suburb ? (
-        <NudgeCard
-          emoji="✍️"
-          title={`Nothing shared in ${suburb} this week`}
-          body="Be the first to post — news, events, spotted, lost & found."
-          ctaLabel="Post to Board"
-          onCta={() => navigate('/board/new')}
-          accent="#60A5FA"
-        />
-      ) : (
-        <NudgeCard
-          emoji="📍"
-          title="No neighbourhood set"
-          body="Set your neighbourhood to see community updates for your area."
-          ctaLabel="Browse places"
-          onCta={() => navigate('/feed')}
-        />
+      if (!suburb) {
+        return (
+          <NudgeCard
+            emoji="📍"
+            title="No neighbourhood set"
+            body="Set your neighbourhood to see community updates for your area."
+            ctaLabel="Browse places"
+            onCta={() => navigate('/feed')}
+          />
+        );
+      }
+      // Show starter community examples + post CTA
+      const starters = makeStarterAlerts(suburb);
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Local examples
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+          {starters.map(item => <AlertCard key={item.id} item={item} />)}
+          <NudgeCard
+            emoji="✍️"
+            title={`Nothing shared in ${suburb} this week`}
+            body="Be the first to post — news, events, spotted, lost & found."
+            ctaLabel="Post to Board"
+            onCta={() => navigate('/board/new')}
+            accent="#60A5FA"
+          />
+        </div>
       );
     }
 
@@ -866,26 +914,37 @@ export default function AlertsPage() {
       );
     }
 
-    // Quiet state — nothing active anywhere
+    // Quiet state — show starter community alerts (not fake crime/safety incidents)
     if (allAlerts.length === 0) {
+      const starters = makeStarterAlerts(suburb);
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <NudgeCard
-            emoji="🟢"
-            title={`Quiet in ${suburb} right now`}
-            body="No active safety, community, or service alerts. All systems normal."
-            ctaLabel="Report an incident"
-            onCta={() => navigate('/report/safety')}
-            accent="#39D98A"
-          />
-          <NudgeCard
-            emoji="📋"
-            title="Check the Board"
-            body="Browse local listings, jobs, services and announcements in your area."
-            ctaLabel="Open Board"
-            onCta={() => navigate('/board')}
-            accent="#60A5FA"
-          />
+          {/* Green "all clear" status */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: 'rgba(57,217,138,0.07)',
+            border: '1px solid rgba(57,217,138,0.18)',
+            borderRadius: '12px', padding: '10px 14px',
+          }}>
+            <span style={{ fontSize: '16px' }}>🟢</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700, color: '#39D98A' }}>
+                All clear in {suburb}
+              </div>
+              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                No active safety or service alerts right now
+              </div>
+            </div>
+          </div>
+
+          {/* Starter community examples */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '4px 0 2px' }}>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Local examples
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+          {starters.map(item => <AlertCard key={item.id} item={item} />)}
         </div>
       );
     }
