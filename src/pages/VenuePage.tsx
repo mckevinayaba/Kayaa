@@ -13,26 +13,20 @@ import VideoPlayer from '../components/VideoPlayer';
 import { supabase } from '../lib/supabase';
 import { PlaceShareModal } from '../components/place/ShareModal';
 import { CheckInModal }    from '../components/place/CheckInModal';
-import { SafetyRating }        from '../components/safety/SafetyRating';
-import { SafetyCheckIn }       from '../components/safety/SafetyCheckIn';
 import { ReportModal }         from '../components/moderation/ReportModal';
 import { VerificationBadge }   from '../components/common/VerificationBadge';
 import {
-  getVenueBySlug, getVenueEvents, getVenuePosts, getActiveStories,
+  getVenueBySlug, getVenueEvents, getVenuePosts,
   getVenueRecentStats, getUserVenueScoreLocal, getVisitorId,
   getHeadingThereCount, signalHeadingThere, cancelHeadingThere,
-  getVibeSummary, reportVibe, cancelVibeReport,
+  getVibeSummary,
   getActiveVenueStory, getInteractiveUserId,
   getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
   getVenueRecentCheckIns, recordVenueView, getVenueOwnerUpdates,
 } from '../lib/api';
-import type { VenueRecentStats, VibeSummary, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
-import type { Venue, Event, Post, Story } from '../types';
-import StoriesStrip from '../components/StoriesStrip';
-import HonourButton from '../components/HonourButton';
+import type { VenueRecentStats, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
+import type { Venue, Event, Post } from '../types';
 import { haversineKm } from '../lib/geocode';
-import { StockChecker } from '../components/utility/StockChecker';
-import { QueueStatus }  from '../components/utility/QueueStatus';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1082,140 +1076,85 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
   );
 }
 
-// ─── Listing Completeness Panel ──────────────────────────────────────────────
-// Shown when a place is missing key profile info.
-// • For the venue owner   → links to owner tools to fix each gap
-// • For unclaimed venues  → shows the gaps and nudges the owner to claim
-// • Fully complete places → not rendered at all
+// ─── Owner Next Step Nudge ────────────────────────────────────────────────────
+// Shown only to the verified owner. Shows ONE next step at a time.
+// Calmer, simpler, no lists — just the most impactful thing to do right now.
 
-type CompletenessMissing = {
-  key: 'photo' | 'description' | 'contact' | 'hours';
-  label: string;
-  ownerPath: string;
-  ownerCta: string;
-};
+type NudgeStep = { emoji: string; heading: string; body: string; cta: string; path: string };
 
-const COMPLETENESS_ITEMS: CompletenessMissing[] = [
-  { key: 'photo',       label: 'Add photos — places with a photo get 3× more taps', ownerPath: '/venue/photos', ownerCta: 'Add photos'        },
-  { key: 'description', label: 'Write a description — help neighbours know what to expect',       ownerPath: '/venue/edit',   ownerCta: 'Write it'          },
-  { key: 'contact',     label: 'Add WhatsApp or phone — let customers reach you directly',        ownerPath: '/venue/edit',   ownerCta: 'Add contact'       },
-  { key: 'hours',       label: 'Set opening hours — so neighbours know when you\'re open',        ownerPath: '/venue/hours',  ownerCta: 'Set hours'         },
-];
+function OwnerNextStepNudge({ venue, isOwner }: { venue: Venue; isOwner: boolean }) {
+  if (!isOwner) return null;
 
-function ListingCompletenessPanel({
-  venue,
-  isOwner,
-}: {
-  venue: Venue;
-  isOwner: boolean;
-}) {
-  const missing: CompletenessMissing[] = [];
-
-  const hasPhoto = !!(venue.coverImage || (venue.galleryImages && venue.galleryImages.length > 0));
-  const hasDescription = !!(venue.description && venue.description.trim().length > 20);
+  const hasPhoto   = !!(venue.coverImage || (venue.galleryImages && venue.galleryImages.length > 0));
   const hasContact = !!(venue.phoneNumber || venue.whatsappNumber);
-  const hasHours = !!(venue.openHours || venue.ownerHours);
+  const hasHours   = !!(venue.openHours || venue.ownerHours);
+  const hasDesc    = !!(venue.description && venue.description.trim().length > 20);
 
-  if (!hasPhoto)       missing.push(COMPLETENESS_ITEMS[0]);
-  if (!hasDescription) missing.push(COMPLETENESS_ITEMS[1]);
-  if (!hasContact)     missing.push(COMPLETENESS_ITEMS[2]);
-  if (!hasHours)       missing.push(COMPLETENESS_ITEMS[3]);
+  let step: NudgeStep | null = null;
 
-  // Nothing missing — hide
-  if (missing.length === 0) return null;
+  if (!hasPhoto) step = {
+    emoji: '📸',
+    heading: 'Add a photo',
+    body: 'Places with a photo get 3× more taps from neighbours.',
+    cta: 'Add photo',
+    path: '/venue/photos',
+  };
+  else if (!hasContact) step = {
+    emoji: '💬',
+    heading: 'Add your WhatsApp number',
+    body: 'Let customers message you directly. Most people prefer WhatsApp.',
+    cta: 'Add WhatsApp',
+    path: '/venue/edit',
+  };
+  else if (!hasHours) step = {
+    emoji: '🕐',
+    heading: 'Add your opening hours',
+    body: 'People need to know when you are open before they head out.',
+    cta: 'Set hours',
+    path: '/venue/hours',
+  };
+  else if (!hasDesc) step = {
+    emoji: '✏️',
+    heading: 'Write one line about your place',
+    body: 'A short description helps people know what to expect.',
+    cta: 'Add description',
+    path: '/venue/edit',
+  };
 
-  // Claimed by another owner — they'll fix it themselves; don't show to visitors
-  if (venue.ownerClaimed && !isOwner) return null;
-
-  // Unclaimed with only 1 gap — not worth prompting visitors
-  if (!isOwner && !venue.ownerClaimed && missing.length < 2) return null;
-
-  function scrollToClaim() {
-    const el = document.querySelector('[data-claim-cta]') as HTMLElement | null;
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  if (!step) return null;
 
   return (
     <div style={{
-      marginBottom: '20px',
-      background: 'rgba(251,191,36,0.04)',
-      border: '1px solid rgba(251,191,36,0.18)',
+      marginBottom: '16px',
+      background: 'rgba(57,217,138,0.04)',
+      border: '1px solid rgba(57,217,138,0.18)',
       borderRadius: '14px',
-      overflow: 'hidden',
+      padding: '14px 16px',
+      display: 'flex', alignItems: 'center', gap: '14px',
     }}>
-      {/* Header */}
-      <div style={{
-        padding: '12px 16px 10px',
-        borderBottom: '1px solid rgba(251,191,36,0.1)',
-        display: 'flex', alignItems: 'center', gap: '8px',
-      }}>
-        <span style={{ fontSize: '14px' }}>✏️</span>
-        <span style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
-          color: '#FBBF24',
-        }}>
-          {isOwner ? 'Complete your listing' : 'This listing needs some love'}
-        </span>
-        {/* Completeness bar */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' }}>
-          {COMPLETENESS_ITEMS.map(item => (
-            <div key={item.key} style={{
-              width: '20px', height: '4px', borderRadius: '2px',
-              background: missing.some(m => m.key === item.key)
-                ? 'rgba(251,191,36,0.3)'
-                : 'rgba(57,217,138,0.5)',
-            }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Missing items list */}
-      <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {missing.map(item => (
-          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
-              background: 'rgba(251,191,36,0.5)',
-            }} />
-            <span style={{
-              flex: 1, fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-              color: 'rgba(255,255,255,0.6)',
-            }}>
-              {item.label}
-            </span>
-            {isOwner && (
-              <a
-                href={item.ownerPath}
-                onClick={e => { e.preventDefault(); window.location.href = item.ownerPath; }}
-                style={{
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
-                  color: '#FBBF24', textDecoration: 'none',
-                  padding: '3px 10px', borderRadius: '20px',
-                  border: '1px solid rgba(251,191,36,0.3)',
-                }}
-              >
-                {item.ownerCta} →
-              </a>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* CTA for unclaimed */}
-      {!isOwner && !venue.ownerClaimed && (
-        <button
-          onClick={scrollToClaim}
+      <span style={{ fontSize: '28px', flexShrink: 0 }}>{step.emoji}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 3px' }}>
+          {step.heading}
+        </p>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 10px', lineHeight: 1.5 }}>
+          {step.body}
+        </p>
+        <a
+          href={step.path}
+          onClick={e => { e.preventDefault(); window.location.href = step!.path; }}
           style={{
-            width: '100%', background: 'rgba(251,191,36,0.08)',
-            border: 'none', borderTop: '1px solid rgba(251,191,36,0.1)',
-            padding: '11px 16px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
-            color: '#FBBF24', textAlign: 'center',
+            display: 'inline-block',
+            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#39D98A', textDecoration: 'none',
+            background: 'rgba(57,217,138,0.1)',
+            border: '1px solid rgba(57,217,138,0.25)',
+            borderRadius: '20px', padding: '5px 14px',
           }}
         >
-          Is this your business? Tap to manage it for free on Kayaa →
-        </button>
-      )}
+          {step.cta} →
+        </a>
+      </div>
     </div>
   );
 }
@@ -1626,47 +1565,6 @@ function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
   );
 }
 
-// ─── About Section ────────────────────────────────────────────────────────────
-
-function AboutSection({ venue }: { venue: Venue }) {
-  const year = new Date(venue.createdAt).getFullYear();
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>Quick facts</h2>
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Type</span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.category}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Neighbourhood</span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.neighborhood}, {venue.city}</span>
-          </div>
-          {venue.address && (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Address</span>
-              <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{venue.address}</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-            <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>On Kayaa since</span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>{year}</span>
-          </div>
-          {(venue.regularsCount ?? venue.checkinCount) > 0 && (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', minWidth: '100px' }}>Community</span>
-              <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 600 }}>
-                {(venue.regularsCount ?? venue.checkinCount).toLocaleString()} regulars
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Posts Section ────────────────────────────────────────────────────────────
 
 function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; venueName: string; visitCount: number }) {
@@ -1773,99 +1671,6 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── Vibe Check Section ───────────────────────────────────────────────────────
-
-const VIBE_CONFIG: Record<VibeType, { emoji: string; label: string; color: string }> = {
-  busy:      { emoji: '🔥', label: 'Busy',      color: '#F97316' },
-  chilled:   { emoji: '😌', label: 'Chilled',   color: '#60A5FA' },
-  happening: { emoji: '🎉', label: 'Happening', color: '#A78BFA' },
-};
-
-function VibeCheckSection({ venueId }: { venueId: string }) {
-  const [summary, setSummary] = useState<VibeSummary | null>(null);
-  const [userId, setUserId] = useState<string>('');
-
-  useEffect(() => {
-    getInteractiveUserId().then(uid => {
-      setUserId(uid);
-      getVibeSummary(venueId, uid).then(setSummary);
-    });
-  }, [venueId]);
-
-  async function handleVibeTap(vibe: VibeType) {
-    if (!summary) return;
-    const isSame = summary.userVibe === vibe;
-    const next: VibeSummary = { ...summary };
-    if (isSame) {
-      next[vibe] = Math.max(0, next[vibe] - 1);
-      next.userVibe = null; next.userExpiresAt = null;
-    } else {
-      if (summary.userVibe) next[summary.userVibe] = Math.max(0, next[summary.userVibe] - 1);
-      next[vibe] = next[vibe] + 1;
-      next.userVibe = vibe;
-      next.userExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
-    }
-    const max = Math.max(next.busy, next.chilled, next.happening);
-    next.winning = max >= 2 ? (['busy', 'chilled', 'happening'] as VibeType[]).find(v => next[v] === max) ?? null : null;
-    next.winningCount = max >= 2 ? max : 0;
-    setSummary(next);
-    if (isSame) { await cancelVibeReport(venueId, userId); }
-    else { await reportVibe(venueId, userId, vibe); }
-    getVibeSummary(venueId, userId).then(setSummary);
-  }
-
-  const vibes: VibeType[] = ['busy', 'chilled', 'happening'];
-  const minsLeft = summary?.userExpiresAt
-    ? Math.max(0, Math.round((new Date(summary.userExpiresAt).getTime() - Date.now()) / 60000))
-    : null;
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
-        What's the vibe right now?
-      </h2>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-        {vibes.map(v => {
-          const cfg = VIBE_CONFIG[v];
-          const active = summary?.userVibe === v;
-          return (
-            <button
-              key={v}
-              onClick={() => handleVibeTap(v)}
-              style={{
-                flex: 1, padding: '10px 4px', borderRadius: '20px',
-                background: active ? '#39D98A' : 'var(--color-surface)',
-                border: active ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                color: active ? '#000' : '#fff',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-              }}
-            >
-              <span>{cfg.emoji}</span><span>{cfg.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      {summary && (
-        summary.winning ? (
-          <p style={{ fontSize: '13px', fontWeight: 700, color: VIBE_CONFIG[summary.winning].color, fontFamily: 'Syne, sans-serif', margin: 0 }}>
-            {VIBE_CONFIG[summary.winning].emoji} {VIBE_CONFIG[summary.winning].label} right now — {summary.winningCount} people said so
-          </p>
-        ) : (
-          <p style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', margin: 0 }}>
-            Be the first to report the vibe
-          </p>
-        )
-      )}
-      {summary?.userVibe && minsLeft !== null && minsLeft > 0 && (
-        <p style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '6px', fontFamily: 'DM Sans, sans-serif' }}>
-          Thanks for the update. Expires in {minsLeft} minutes.
-        </p>
-      )}
     </div>
   );
 }
@@ -2062,87 +1867,6 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
   );
 }
 
-// ─── Contact Section ──────────────────────────────────────────────────────────
-
-function ContactSection({ venue }: { venue: Venue }) {
-  const hasContact = !!(venue.phoneNumber || venue.whatsappNumber);
-  if (!hasContact) return null;
-
-  const waUrl = venue.whatsappNumber
-    ? `https://wa.me/${venue.whatsappNumber.replace(/\D/g, '').replace(/^0/, '27')}`
-    : null;
-
-  const contactItems: { key: string; href: string; icon: React.ReactNode; label: string; sub: string; color: string; bg: string }[] = [];
-
-  if (venue.phoneNumber) {
-    contactItems.push({
-      key: 'phone',
-      href: `tel:${venue.phoneNumber}`,
-      icon: <Phone size={18} color="#60A5FA" />,
-      label: venue.phoneNumber,
-      sub: 'Tap to call',
-      color: '#60A5FA',
-      bg: 'rgba(96,165,250,0.08)',
-    });
-  }
-
-  if (waUrl) {
-    contactItems.push({
-      key: 'whatsapp',
-      href: waUrl,
-      icon: <MessageCircle size={18} color="#25D366" />,
-      label: 'WhatsApp',
-      sub: 'Chat with the owner',
-      color: '#25D366',
-      bg: 'rgba(37,211,102,0.08)',
-    });
-  }
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
-        Contact
-      </h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {contactItems.map(item => (
-          <a
-            key={item.key}
-            href={item.href}
-            target={item.key === 'whatsapp' ? '_blank' : undefined}
-            rel={item.key === 'whatsapp' ? 'noopener noreferrer' : undefined}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '14px',
-              padding: '14px 16px', borderRadius: '14px',
-              background: item.bg,
-              border: `1px solid ${item.color}30`,
-              textDecoration: 'none',
-            }}
-          >
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
-              background: `${item.color}15`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {item.icon}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)' }}>
-                {item.label}
-              </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', marginTop: '1px' }}>
-                {item.sub}
-              </div>
-            </div>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: item.color, fontWeight: 700 }}>
-              →
-            </span>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── Sticky check-in bar ──────────────────────────────────────────────────────
 
 function StickyCheckinBar({ venue }: { venue: Venue }) {
@@ -2208,7 +1932,6 @@ export default function VenuePage() {
   const [venue,           setVenue]           = useState<Venue | null>(null);
   const [events,          setEvents]          = useState<Event[]>([]);
   const [posts,           setPosts]           = useState<Post[]>([]);
-  const [stories,         setStories]         = useState<Story[]>([]);
   const [recentStats,     setRecentStats]     = useState<VenueRecentStats>({ monthlyCheckins: 0, weeklyCheckins: 0 });
   const [lightboxIdx,     setLightboxIdx]     = useState<number | null>(null);
   const [videoModalOpen,  setVideoModalOpen]  = useState(false);
@@ -2216,10 +1939,7 @@ export default function VenuePage() {
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
   const [shareOpen,         setShareOpen]         = useState(false);
   const [showCheckInModal,  setShowCheckInModal]  = useState(false);
-  const [showSafetyCheckIn, setShowSafetyCheckIn] = useState(false);
   const [showReportModal,   setShowReportModal]   = useState(false);
-  const [safetyRating,      setSafetyRating]      = useState(0);
-  const [safetyReviews,     setSafetyReviews]     = useState(0);
 
   const [ownerUpdates, setOwnerUpdates] = useState<VenueOwnerUpdate[]>([]);
 
@@ -2244,23 +1964,9 @@ export default function VenuePage() {
       // Load all supplementary data in parallel
       getVenueEvents(v.id).then(setEvents);
       getVenuePosts(v.id).then(setPosts);
-      getActiveStories(v.id).then(setStories);
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
       getVenueOwnerUpdates(v.id).then(setOwnerUpdates);
-
-      // Safety rating from place_safety_summary view
-      supabase
-        .from('place_safety_summary')
-        .select('avg_score, review_count')
-        .eq('place_id', v.id)
-        .maybeSingle()
-        .then(({ data: sr }) => {
-          if (sr) {
-            setSafetyRating(Number(sr.avg_score));
-            setSafetyReviews(Number(sr.review_count));
-          }
-        });
 
       // GPS distance calculation
       if (v.latitude != null && v.longitude != null && navigator.geolocation) {
@@ -2352,107 +2058,56 @@ export default function VenuePage() {
 
       <div style={{ padding: '0 16px', paddingBottom: '100px' }}>
 
-        {/* ── One-tap action grid — WhatsApp / Call / Directions visible immediately ── */}
+        {/* ── A: Main actions — WhatsApp / Call / Check In / Directions ────── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
 
-        {/* ── Quick Stats (regulars · today · week · distance) ──────────────── */}
+        {/* ── B: Quick stats — regulars, today, week, distance ─────────────── */}
         <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} />
 
-        {/* ── User's personal visit badge ───────────────────────────────────── */}
+        {/* ── C: Personal visit badge (only when user has visited) ──────────── */}
         <UserVisitBadge venueId={venue.id} />
 
-        {/* ── Honour this place — shown before social/utility sections ─────── */}
-        <HonourButton venueId={venue.id} venueName={venue.name} venueSlug={venue.slug} />
+        {/* ── D: Opening hours (only when set) ─────────────────────────────── */}
+        <OpeningHoursSection venue={venue} />
 
-        {/* ── Listing completeness — prompts owner or unclaimed CTA ─────────── */}
-        <ListingCompletenessPanel
+        {/* ── E: Description (only when set, no chips/tags clutter) ────────── */}
+        <PlaceStoryPanel venue={venue} />
+
+        {/* ── F: Owner next step — one action at a time, owner only ─────────── */}
+        <OwnerNextStepNudge
           venue={venue}
           isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
         />
 
-        {/* ── Place story — description, trust signals, tags ────────────────── */}
-        <PlaceStoryPanel venue={venue} />
-
-        {/* ── Real-time recent activity ─────────────────────────────────────── */}
+        {/* ── G: Real-time check-in activity (only when data exists) ────────── */}
         <RecentActivityFeed venueId={venue.id} />
 
-        {/* ── Vibe check ───────────────────────────────────────────────────── */}
-        <VibeCheckSection venueId={venue.id} />
-
-        {/* ── Opening hours ────────────────────────────────────────────────── */}
-        <OpeningHoursSection venue={venue} />
-
-        {/* ── Safety rating + check-in ─────────────────────────────────────── */}
-        <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <SafetyRating
-            placeId={venue.id}
-            rating={safetyRating}
-            totalReviews={safetyReviews}
-            showDetails
-          />
-          <button
-            onClick={() => setShowSafetyCheckIn(true)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              padding: '13px',
-              background: 'rgba(57,217,138,0.08)',
-              border: '1px solid rgba(57,217,138,0.2)',
-              borderRadius: '14px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
-              color: '#39D98A', cursor: 'pointer',
-            }}
-          >
-            🛡️ Safety Check-in — let family know I'm here
-          </button>
-        </div>
-
-        {/* ── Location map + address ───────────────────────────────────────── */}
-        <LocationSection venue={venue} distance={distance} />
-
-        {/* ── Contact (phone + WhatsApp) ────────────────────────────────────── */}
-        <ContactSection venue={venue} />
-
-        {/* ── Stock checker (Spaza Shops only) ─────────────────────────────── */}
-        {/spaza|duka|kiosk|provision/i.test(venue.category) && (
-          <div style={{ marginBottom: '20px' }}>
-            <StockChecker area={`${venue.neighborhood}, ${venue.city}`} />
-          </div>
-        )}
-
-        {/* ── Queue status (Clinics / service venues only) ───────────────────── */}
-        {/clinic|hospital|health|home.?affair|sassa|police|post.?office/i.test(venue.category) && (
-          <div style={{ marginBottom: '20px' }}>
-            <QueueStatus />
-          </div>
-        )}
-
-        {/* ── Gallery strip (2+ images) ─────────────────────────────────────── */}
+        {/* ── H: Gallery strip (only when 2+ images exist) ─────────────────── */}
         {galleryImages.length >= 2 && (
           <GalleryStrip venue={venue} onImageClick={idx => setLightboxIdx(idx)} />
         )}
 
-        {/* ── Intro video ──────────────────────────────────────────────────── */}
+        {/* ── I: Intro video (only when uploaded) ──────────────────────────── */}
         {venue.introVideo && <VideoCard venue={venue} />}
 
-        {/* ── Text stories (legacy) ────────────────────────────────────────── */}
-        {stories.length > 0 && <StoriesStrip stories={stories} />}
-
-        {/* ── Upcoming events with RSVP ─────────────────────────────────────── */}
-        <EventsSection events={events} />
-
-        {/* ── Owner updates (hidden when none exist) ────────────────────────── */}
+        {/* ── J: Owner updates (only when posted) ──────────────────────────── */}
         <OwnerUpdatesSection updates={ownerUpdates} />
 
-        {/* ── Community posts ──────────────────────────────────────────────── */}
-        <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} venueSlug={venue.slug} />
+        {/* ── K: Events (only when events exist — no empty state) ──────────── */}
+        {events.length > 0 && <EventsSection events={events} />}
 
-        {/* ── About ────────────────────────────────────────────────────────── */}
-        <AboutSection venue={venue} />
+        {/* ── L: Community posts (only when posts exist — no empty state) ───── */}
+        {posts.length > 0 && (
+          <PostsSection posts={posts} venueName={venue.name} venueId={venue.id} venueSlug={venue.slug} />
+        )}
 
-        {/* ── Claim this place — shown when unclaimed ───────────────────────── */}
+        {/* ── M: Location / address + directions ───────────────────────────── */}
+        <LocationSection venue={venue} distance={distance} />
+
+        {/* ── N: Claim CTA (only when unclaimed) ───────────────────────────── */}
         <ClaimCTA venue={venue} />
 
-        {/* ── Report issue ─────────────────────────────────────────────────── */}
+        {/* ── Report issue — quiet, below the fold ─────────────────────────── */}
         <button
           onClick={() => setShowReportModal(true)}
           style={{
@@ -2532,15 +2187,6 @@ export default function VenuePage() {
           venueName={venue.name}
           venueCategory={venue.category}
           onClose={() => setStoryViewerOpen(false)}
-        />
-      )}
-
-      {/* ── Safety check-in modal ─────────────────────────────────────────── */}
-      {showSafetyCheckIn && (
-        <SafetyCheckIn
-          placeId={venue.id}
-          placeName={venue.name}
-          onClose={() => setShowSafetyCheckIn(false)}
         />
       )}
 
