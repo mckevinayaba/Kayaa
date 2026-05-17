@@ -31,6 +31,43 @@ import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 
+// ── Seed posts (display-only — never saved to Supabase) ──────────────────────
+
+interface SeedPost { id: string; category: string; title: string; time: string; author: string }
+
+const BOARD_SEED_POSTS: SeedPost[] = [
+  { id: 'seed-b1', category: 'safety',       title: 'Stay alert near Claim Street — suspicious activity reported',  time: '2 hours ago', author: 'Nomsa M.'        },
+  { id: 'seed-b2', category: 'announcement', title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm', time: '4 hours ago', author: 'City Cuts'        },
+  { id: 'seed-b3', category: 'lost_found',   title: 'Found keys near the corner of Lily Ave — contact to claim',   time: 'Yesterday',   author: 'Community Member' },
+];
+
+const SEED_CAT_COLORS: Record<string, string> = {
+  safety: '#EF4444', announcement: '#39D98A', lost_found: '#60A5FA',
+  event: '#A78BFA', question: '#60A5FA', general: 'rgba(255,255,255,0.3)',
+};
+const SEED_CAT_LABELS: Record<string, string> = {
+  safety: 'Safety', announcement: 'Announcement', lost_found: 'Lost & Found',
+  event: 'Event', question: 'Question', general: 'General',
+};
+
+function SeedPostCard({ post }: { post: SeedPost }) {
+  const color = SEED_CAT_COLORS[post.category] ?? SEED_CAT_COLORS.general;
+  const label = SEED_CAT_LABELS[post.category] ?? post.category;
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.time}</span>
+      </div>
+      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '6px' }}>{post.title}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>— {post.author}</span>
+        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>example</span>
+      </div>
+    </div>
+  );
+}
+
 // ── Sub-type detection ────────────────────────────────────────────────────────
 
 function detectHousingType(post: BoardPost): string {
@@ -825,13 +862,10 @@ export default function BoardPage() {
         ) : posts.length === 0 ? (
           <div style={{ paddingTop: '8px' }}>
             {activeTab === 'all' && !secondaryFilter ? (
-              <NudgeCard
-                emoji="📌"
-                title={`Nothing posted in ${display || 'your area'} yet`}
-                body="Be the first — share a job, list a room, offer a service or post a community notice."
-                ctaLabel="Post something"
-                onCta={() => navigate('/board/new')}
-              />
+              /* Show seed posts so the board never looks empty */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {BOARD_SEED_POSTS.map(p => <SeedPostCard key={p.id} post={p} />)}
+              </div>
             ) : activeTab === 'jobs' ? (
               <NudgeCard
                 emoji="💼"
