@@ -321,6 +321,7 @@ export async function createVenue(data: {
   province?: string;
   country_code?: string;
   owner_user_id?: string;
+  is_active?: boolean;
   // lat/lng: pass when live geocoding is wired up
   latitude?: number;
   longitude?: number;
@@ -335,14 +336,38 @@ export async function createVenue(data: {
     .select()
     .single();
 
-  // If optional columns don't exist yet (migration pending), retry without them
-  if (error && (error.message.includes('country_code') || error.message.includes('owner_user_id') || error.code === '42703')) {
-    const { country_code: _cc, owner_user_id: _oui, ...rest } = data;
+  if (error) {
+    console.error('[Kayaa API] createVenue first attempt failed:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+  }
+
+  // If optional columns don't exist yet (migration pending), retry without them.
+  // Also catches column-not-found errors (42703) for any optional field.
+  if (error && (
+    error.message.includes('country_code') ||
+    error.message.includes('owner_user_id') ||
+    error.message.includes('is_active') ||
+    error.code === '42703'
+  )) {
+    console.log('[Kayaa API] Retrying without optional columns (migration pending)...');
+    const { country_code: _cc, owner_user_id: _oui, is_active: _ia, ...rest } = data;
     const { data: row2, error: error2 } = await supabase
       .from('venues')
       .insert(rest)
       .select()
       .single();
+    if (error2) {
+      console.error('[Kayaa API] createVenue retry also failed:', {
+        code: error2.code,
+        message: error2.message,
+        details: error2.details,
+        hint: error2.hint,
+      });
+    }
     return { row: row2, error: error2 };
   }
 

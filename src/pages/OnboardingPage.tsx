@@ -659,17 +659,6 @@ export default function OnboardingPage() {
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    // ── Check 1: Auth session ─────────────────────────────────────────────
-    // RLS on venues table requires an authenticated user to INSERT.
-    // If the user is anonymous, the insert will be rejected with 42501.
-    // We check before submitting so the error message is clear and immediate.
-    if (!user) {
-      console.warn('[Kayaa] Venue creation attempted without active session.');
-      setErrors({ submit: 'Sign in first to add your business. No account yet? Sign up free — it only takes a minute.' });
-      setSubmitting(false);
-      return;
-    }
-
     setSubmitting(true); setErrors({});
 
     const suburb = form.suburb.trim();
@@ -683,6 +672,10 @@ export default function OnboardingPage() {
     // All gallery images: cover is slot 0, additional slots 1–7
     const allGallery = [form.coverImageUrl, ...form.galleryImages].filter(Boolean);
 
+    // owner_user_id is optional — the form works without authentication.
+    // The owner claims their business later via the magic link sent to their email.
+    // is_active: true ensures the venue immediately appears in the feed.
+    // All feed queries filter on is_active = true so we must set it explicitly.
     const venuePayload = {
       name: form.venueName.trim(),
       type: form.venueType,
@@ -695,19 +688,20 @@ export default function OnboardingPage() {
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
       intro_video: form.introVideoUrl || undefined,
       country_code: selectedCountry.code,
-      owner_user_id: user.id,
+      owner_user_id: user?.id || undefined,
+      is_active: true,
     };
 
-    // ── Check 2: Log exact payload ────────────────────────────────────────
+    // Log exact payload so any failure can be diagnosed in the browser console
     console.log('[Kayaa] Submitting venue payload:', JSON.stringify(venuePayload, null, 2));
-    console.log('[Kayaa] Auth user ID:', user.id);
+    console.log('[Kayaa] Auth user:', user?.id ?? 'anonymous (no session)');
 
     // First attempt
     const firstAttempt = await createVenue(venuePayload);
     let venueRow = firstAttempt.row;
     let venueErr = firstAttempt.error;
 
-    // If slug collision (extremely rare with random suffix), auto-retry once with a fresh slug
+    // Slug collision (extremely rare): auto-retry once with a fresh slug
     if (venueErr?.code === '23505' && venueErr.message?.includes('slug')) {
       const retrySlug = toSlug(form.venueName);
       setFinalSlug(retrySlug);
@@ -717,34 +711,61 @@ export default function OnboardingPage() {
     }
 
     if (venueErr || !venueRow) {
-      // ── Detailed diagnostic logging ───────────────────────────────────
-      console.error('[Kayaa] Venue creation failed');
-      console.error('[Kayaa] Error code:', venueErr?.code);
-      console.error('[Kayaa] Error message:', venueErr?.message);
-      console.error('[Kayaa] Error details:', JSON.stringify(venueErr));
-      console.error('[Kayaa] Payload sent:', JSON.stringify(venuePayload));
+      // ── Full diagnostic log — check browser console (F12) for details ─
+      console.error('[Kayaa] ❌ Venue creation failed');
+      console.error('[Kayaa] Error code    :', venueErr?.code ?? 'none');
+      console.error('[Kayaa] Error message :', venueErr?.message ?? 'null row returned (RLS silent block?)');
+      console.error('[Kayaa] Full error    :', JSON.stringify(venueErr ?? null));
+      console.error('[Kayaa] Payload sent  :', JSON.stringify(venuePayload));
 
-      // ── Map error to a helpful user message ───────────────────────────
-      let msg = 'Something went wrong.';
-      if (venueErr) {
-        const code = venueErr.code ?? '';
-        const message = (venueErr.message ?? '').toLowerCase();
+      // ── If null error + null row = silent RLS block ───────────────────
+      // Supabase returns PGRST116 when INSERT is blocked by Row Level Security
+      // and the policy produces zero rows. Fix: run this SQL in Supabase:
+      //
+      //   CREATE POLICY "Allow venue registration"
+      //   ON public.venues FOR INSERT
+      //   TO anon, authenticated
+      //   WITH CHECK (true);
+      //
+      if (!venueErr) {
+        console.error('[Kayaa] No error returned but row is null.');
+        console.error('[Kayaa] This is almost always a Supabase RLS (Row Level Security) block.');
+        console.error('[Kayaa] Run this SQL in Supabase → SQL Editor:');
+        console.error(`
+  CREATE POLICY "Allow venue registration"
+  ON public.venues FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (true);
+        `);
+      }
 
-        if (code === '42501' || message.includes('permission denied') || message.includes('policy')) {
-          msg = 'You need to be signed in to add a business. Sign in and try again.';
-        } else if (code === '23505') {
-          msg = 'This business may already be on Kayaa. Check if it exists first.';
-        } else if (code === '23502') {
-          msg = 'Some required information is missing. Please check your details and try again.';
-        } else if (message.includes('whatsapp') || message.includes('phone')) {
-          msg = 'Check your WhatsApp number and try again.';
-        } else if (message.includes('auth') || message.includes('jwt') || message.includes('token')) {
-          msg = 'Your session expired. Sign in again and try again.';
-        } else if (message.includes('failed to fetch') || message.includes('network')) {
-          msg = 'No internet connection. Please check your connection and try again.';
-        } else {
-          msg = `Something went wrong: ${venueErr.message}`;
-        }
+      // ── Map to user-facing message ────────────────────────────────────
+      const code    = venueErr?.code ?? '';
+      const message = (venueErr?.message ?? '').toLowerCase();
+      let msg: string;
+
+      if (!venueErr) {
+        // Silent RLS block — no error object, no row
+        msg = 'Could not save your business. This is a database permissions issue — please contact Kayaa support. (Error: RLS block)';
+      } else if (code === 'PGRST116' || message.includes('0 rows') || message.includes('multiple (or no)')) {
+        // PGRST116 = Supabase couldn't return a row — almost always RLS
+        msg = 'Could not save your business. Database permissions error (PGRST116). Please contact Kayaa support.';
+      } else if (code === '42501' || message.includes('permission denied') || message.includes('rls') || message.includes('policy')) {
+        msg = 'Database permission denied. Please contact Kayaa support.';
+      } else if (code === '23505') {
+        msg = 'A business with this name or link already exists on Kayaa. Try a slightly different name.';
+      } else if (code === '23502') {
+        // NOT NULL constraint — log which column failed
+        console.error('[Kayaa] Missing required column. Check which field is NOT NULL in the venues table.');
+        msg = `A required field is missing. Details: ${venueErr.message}`;
+      } else if (code === '42703') {
+        console.error('[Kayaa] Column does not exist in venues table. Check the payload for wrong column names.');
+        msg = `Column not found in database. Details: ${venueErr.message}`;
+      } else if (message.includes('failed to fetch') || message.includes('network') || message.includes('networkerror')) {
+        msg = 'No internet connection. Check your signal and try again.';
+      } else {
+        // Show the raw error so it can be diagnosed
+        msg = `Submission failed — ${venueErr.message} (code: ${code || 'unknown'})`;
       }
 
       setErrors({ submit: msg });
