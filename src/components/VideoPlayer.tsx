@@ -136,7 +136,7 @@ export default function VideoPlayer({
     position: 'relative',
     borderRadius,
     overflow: 'hidden',
-    background: '#000',
+    background: '#0D1117',
     cursor: 'pointer',
     ...(aspectRatio ? { aspectRatio } : { maxHeight }),
   };

@@ -130,12 +130,12 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               }} />
             </>
           ) : (
-            /* Emoji fallback — gradient + large category emoji */
+            /* Emoji fallback — dark background, centered emoji */
             <div style={{
               position: 'absolute', inset: 0,
-              background: `linear-gradient(135deg, ${color}22 0%, ${color}08 100%)`,
+              background: '#0D1117',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '56px',
+              fontSize: '52px',
             }}>
               {emoji}
             </div>

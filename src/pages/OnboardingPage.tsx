@@ -133,6 +133,36 @@ function errorStyle(show: boolean): React.CSSProperties {
 
 // ─── Cover Photo Upload ───────────────────────────────────────────────────────
 
+/** Compress an image to max 1280px on the longest side, JPEG 80%. */
+async function compressImage(file: File, maxPx = 1280, quality = 0.8): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          const name = file.name.replace(/\.\w+$/, '') + '.jpg';
+          resolve(new File([blob], name, { type: 'image/jpeg' }));
+        },
+        'image/jpeg',
+        quality,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
 interface CoverPhotoUploadProps {
   sessionId: string;
   onUploaded: (url: string) => void;
@@ -141,95 +171,132 @@ interface CoverPhotoUploadProps {
 
 function CoverPhotoUpload({ sessionId, onUploaded, currentUrl }: CoverPhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string>(currentUrl || '');
+  const [uploaded, setUploaded] = useState(!!currentUrl);
 
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) { setError('Please select an image file.'); return; }
     if (file.size > 10 * 1024 * 1024) { setError('File too large. Maximum 10MB.'); return; }
 
     setError('');
-    setUploading(true);
-    setPreview(URL.createObjectURL(file)); // show local preview immediately
+    setProcessing(true);
+    setUploaded(false);
 
     try {
-      const path = `covers/${sessionId}/cover.${fileExt(file)}`;
-      const url = await uploadVenueFile(path, file);
+      const compressed = await compressImage(file);
+      const localUrl = URL.createObjectURL(compressed);
+      setPreview(localUrl);
+
+      const path = `covers/${sessionId}/cover.jpg`;
+      const url = await uploadVenueFile(path, compressed);
       onUploaded(url);
+      setUploaded(true);
     } catch {
       setError('Upload failed. Tap to try again.');
       setPreview('');
     } finally {
-      setUploading(false);
+      setProcessing(false);
     }
   }
 
   return (
     <div>
-      <style>{`@keyframes progScan { 0%{left:-45%} 100%{left:100%} }`}</style>
+      <style>{`@keyframes obSpin { to { transform: rotate(360deg); } }`}</style>
       <input
         ref={inputRef} type="file" accept="image/*"
         style={{ display: 'none' }}
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
       />
 
       <div
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !processing && inputRef.current?.click()}
         style={{
-          minHeight: '200px', borderRadius: '16px', overflow: 'hidden',
+          height: '200px', borderRadius: '12px', overflow: 'hidden',
           border: `1.5px dashed ${error ? '#F87171' : preview ? '#39D98A' : '#333'}`,
           background: preview ? 'transparent' : '#1a1a1a',
-          position: 'relative', cursor: 'pointer',
+          position: 'relative', cursor: processing ? 'default' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
-        {preview ? (
-          <>
-            <img src={preview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)' }} />
+        {/* Preview image — always cover */}
+        {preview && (
+          <img
+            src={preview} alt=""
+            style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center', display: 'block',
+            }}
+          />
+        )}
+
+        {/* Scrim for overlay legibility */}
+        {preview && (
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)' }} />
+        )}
+
+        {/* Processing spinner overlay */}
+        {processing && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: preview ? 'rgba(13,17,23,0.5)' : '#1a1a1a',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '10px',
+          }}>
             <div style={{
-              position: 'absolute', bottom: '12px', left: '12px',
-              background: 'rgba(57,217,138,0.9)', color: '#000',
-              fontSize: '11px', fontWeight: 700, padding: '4px 10px',
-              borderRadius: '20px', fontFamily: 'Syne, sans-serif',
-            }}>
-              Cover photo ✓
-            </div>
-          </>
-        ) : (
+              width: '28px', height: '28px', borderRadius: '50%',
+              border: '3px solid rgba(57,217,138,0.25)',
+              borderTopColor: '#39D98A',
+              animation: 'obSpin 0.8s linear infinite',
+            }} />
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+              Sorting your photo...
+            </span>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!preview && !processing && (
           <div style={{ textAlign: 'center', padding: '32px 20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📷</div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              Tap to add your place photo
+              Tap to add a photo of your business
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
               JPG, PNG or HEIC · Max 10MB
             </div>
           </div>
         )}
-      </div>
 
-      {/* Progress bar */}
-      {uploading && (
-        <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px', position: 'relative' }}>
+        {/* ✓ Photo ready — bottom right */}
+        {preview && uploaded && !processing && (
           <div style={{
-            position: 'absolute', top: 0, height: '100%', width: '45%',
-            background: '#39D98A', borderRadius: '2px',
-            animation: 'progScan 1.2s ease-in-out infinite',
-          }} />
-        </div>
-      )}
+            position: 'absolute', bottom: '10px', right: '10px',
+            background: 'rgba(57,217,138,0.92)', color: '#000',
+            fontSize: '11px', fontWeight: 700, padding: '4px 10px',
+            borderRadius: '20px', fontFamily: 'Syne, sans-serif',
+          }}>
+            ✓ Photo ready
+          </div>
+        )}
 
-      {/* Change link after upload */}
-      {preview && !uploading && (
-        <button
-          onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}
-          style={{ background: 'none', border: 'none', color: 'var(--color-accent)', fontSize: '13px', cursor: 'pointer', marginTop: '8px', padding: 0 }}
-        >
-          Change photo
-        </button>
-      )}
+        {/* Change photo — bottom left overlay */}
+        {preview && !processing && (
+          <button
+            onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}
+            style={{
+              position: 'absolute', bottom: '10px', left: '10px',
+              background: 'rgba(13,17,23,0.72)', border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '20px', padding: '4px 10px',
+              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+              color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
+            }}
+          >
+            Change photo
+          </button>
+        )}
+      </div>
 
       {error && <p style={{ fontSize: '12px', color: '#F87171', marginTop: '6px' }}>{error}</p>}
     </div>
@@ -589,7 +656,6 @@ export default function OnboardingPage() {
     const errs: typeof errors = {};
     if (!form.ownerName.trim())  errs.ownerName  = 'We need your name';
     if (!form.ownerPhone.trim()) errs.ownerPhone = 'We need your WhatsApp so people can reach your business. Add it here 👆';
-    if (!form.ownerEmail.trim()) errs.ownerEmail = 'Add your email so you can sign in';
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
@@ -670,7 +736,7 @@ export default function OnboardingPage() {
       if (coords) updateVenueCoords(venueId, coords.lat, coords.lng).catch(() => {});
     }).catch(() => {});
 
-    signInWithEmail(form.ownerEmail.trim()).catch(() => {});
+    if (form.ownerEmail.trim()) signInWithEmail(form.ownerEmail.trim()).catch(() => {});
 
     setSubmitting(false);
     setStep(4);
@@ -740,25 +806,29 @@ export default function OnboardingPage() {
               Add another business
             </button>
 
-            {/* Magic link was sent in goStep4 — guide owner to check email */}
-            <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
-              <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: '0 0 6px' }}>
-                Check your email to sign in to Kayaa
-              </p>
-              <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.6 }}>
-                We sent a sign-in link to <strong style={{ color: 'var(--color-text)' }}>{form.ownerEmail}</strong>.
-                Tap it to open Kayaa and manage your venue.
-              </p>
-            </div>
-            <a
-              href="https://mail.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'rgba(255,255,255,0.06)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
-            >
-              Open Gmail
-            </a>
+            {/* Sign-in link — only shown if owner provided an email */}
+            {form.ownerEmail && (
+              <>
+                <div style={{ background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '16px', padding: '18px 16px', marginBottom: '16px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '28px', marginBottom: '10px' }}>✉️</div>
+                  <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', margin: '0 0 6px' }}>
+                    Check your email to sign in to Kayaa
+                  </p>
+                  <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.6 }}>
+                    We sent a sign-in link to <strong style={{ color: 'var(--color-text)' }}>{form.ownerEmail}</strong>.
+                    Tap it to open Kayaa and manage your venue.
+                  </p>
+                </div>
+                <a
+                  href="https://mail.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '52px', background: 'rgba(255,255,255,0.06)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' } as React.CSSProperties}
+                >
+                  Open Gmail
+                </a>
+              </>
+            )}
 
             {/* WhatsApp check-in alerts opt-in */}
             {(() => {
@@ -803,13 +873,14 @@ export default function OnboardingPage() {
           </div>
           <div>
             <label style={labelStyle}>💬 Your WhatsApp number <span style={{ color: '#F87171' }}>*</span></label>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>This is how the community reaches you. WhatsApp only — no email needed.</p>
+            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>So we can reach you about your business on Kayaa. We will never share your number.</p>
             <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder="e.g. 082 123 4567" autoComplete="tel"
               style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }} />
             <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
           </div>
           <div>
-            <label style={labelStyle}>Your email address</label>
+            <label style={labelStyle}>Email address (optional)</label>
+            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Optional — for account recovery and updates from Kayaa.</p>
             <input type="email" value={form.ownerEmail} onChange={set('ownerEmail')} placeholder="you@example.com" autoComplete="email"
               style={{ ...inputStyle, border: `1px solid ${errors.ownerEmail ? '#F87171' : 'var(--color-border)'}` }} />
             <p style={errorStyle(!!errors.ownerEmail)}>{errors.ownerEmail}</p>

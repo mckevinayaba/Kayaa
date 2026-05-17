@@ -18,6 +18,7 @@ import {
 import { getInteractiveUserId, getVisitorId } from '../lib/api';
 import { BOARD_CATEGORIES } from './BoardPage';
 import { PlaceShareModal } from '../components/place/ShareModal';
+import VideoPlayer from '../components/VideoPlayer';
 
 function formatAge(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -247,31 +248,15 @@ export default function BoardPostPage() {
           </div>
         )}
 
-        {/* Video — tap-to-play, no autoplay, preload metadata only */}
+        {/* Video — tap-to-play, no autoplay */}
         {post.videoUrl && (
           <div style={{ marginBottom: '18px' }}>
-            <div style={{
-              borderRadius: '14px', overflow: 'hidden',
-              background: '#000', lineHeight: 0,
-            }}>
-              <video
-                src={post.videoUrl}
-                controls
-                preload="metadata"
-                playsInline
-                style={{
-                  width: '100%', maxHeight: '420px',
-                  objectFit: 'contain', display: 'block',
-                }}
-              />
-            </div>
-            <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
-              color: 'rgba(255,255,255,0.28)', margin: '6px 0 0',
-              display: 'flex', alignItems: 'center', gap: '4px',
-            }}>
-              🎬 Tap to play
-            </p>
+            <VideoPlayer
+              src={post.videoUrl}
+              maxHeight={420}
+              borderRadius={14}
+              label="Tap to play"
+            />
           </div>
         )}
 
