@@ -659,6 +659,17 @@ export default function OnboardingPage() {
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
+    // ── Check 1: Auth session ─────────────────────────────────────────────
+    // RLS on venues table requires an authenticated user to INSERT.
+    // If the user is anonymous, the insert will be rejected with 42501.
+    // We check before submitting so the error message is clear and immediate.
+    if (!user) {
+      console.warn('[Kayaa] Venue creation attempted without active session.');
+      setErrors({ submit: 'Sign in first to add your business. No account yet? Sign up free — it only takes a minute.' });
+      setSubmitting(false);
+      return;
+    }
+
     setSubmitting(true); setErrors({});
 
     const suburb = form.suburb.trim();
@@ -672,7 +683,7 @@ export default function OnboardingPage() {
     // All gallery images: cover is slot 0, additional slots 1–7
     const allGallery = [form.coverImageUrl, ...form.galleryImages].filter(Boolean);
 
-    const venueData = {
+    const venuePayload = {
       name: form.venueName.trim(),
       type: form.venueType,
       slug,
@@ -684,34 +695,58 @@ export default function OnboardingPage() {
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
       intro_video: form.introVideoUrl || undefined,
       country_code: selectedCountry.code,
-      owner_user_id: user?.id,
+      owner_user_id: user.id,
     };
 
+    // ── Check 2: Log exact payload ────────────────────────────────────────
+    console.log('[Kayaa] Submitting venue payload:', JSON.stringify(venuePayload, null, 2));
+    console.log('[Kayaa] Auth user ID:', user.id);
+
     // First attempt
-    const firstAttempt = await createVenue(venueData);
+    const firstAttempt = await createVenue(venuePayload);
     let venueRow = firstAttempt.row;
     let venueErr = firstAttempt.error;
 
     // If slug collision (extremely rare with random suffix), auto-retry once with a fresh slug
-    if (venueErr?.code === '23505') {
+    if (venueErr?.code === '23505' && venueErr.message?.includes('slug')) {
       const retrySlug = toSlug(form.venueName);
       setFinalSlug(retrySlug);
-      const retry = await createVenue({ ...venueData, slug: retrySlug });
+      const retry = await createVenue({ ...venuePayload, slug: retrySlug });
       venueRow = retry.row;
       venueErr = retry.error;
     }
 
     if (venueErr || !venueRow) {
-      let msg = 'Could not create your place. Please try again.';
+      // ── Detailed diagnostic logging ───────────────────────────────────
+      console.error('[Kayaa] Venue creation failed');
+      console.error('[Kayaa] Error code:', venueErr?.code);
+      console.error('[Kayaa] Error message:', venueErr?.message);
+      console.error('[Kayaa] Error details:', JSON.stringify(venueErr));
+      console.error('[Kayaa] Payload sent:', JSON.stringify(venuePayload));
+
+      // ── Map error to a helpful user message ───────────────────────────
+      let msg = 'Something went wrong.';
       if (venueErr) {
-        if (venueErr.code === '23505') {
-          msg = 'Unable to generate a unique link for your place. Please try again.';
-        } else if (venueErr.code === '23502') {
-          msg = 'Some required information is missing. Please check your details.';
-        } else if (venueErr.message?.includes('Failed to fetch') || venueErr.message?.includes('network')) {
+        const code = venueErr.code ?? '';
+        const message = (venueErr.message ?? '').toLowerCase();
+
+        if (code === '42501' || message.includes('permission denied') || message.includes('policy')) {
+          msg = 'You need to be signed in to add a business. Sign in and try again.';
+        } else if (code === '23505') {
+          msg = 'This business may already be on Kayaa. Check if it exists first.';
+        } else if (code === '23502') {
+          msg = 'Some required information is missing. Please check your details and try again.';
+        } else if (message.includes('whatsapp') || message.includes('phone')) {
+          msg = 'Check your WhatsApp number and try again.';
+        } else if (message.includes('auth') || message.includes('jwt') || message.includes('token')) {
+          msg = 'Your session expired. Sign in again and try again.';
+        } else if (message.includes('failed to fetch') || message.includes('network')) {
           msg = 'No internet connection. Please check your connection and try again.';
+        } else {
+          msg = `Something went wrong: ${venueErr.message}`;
         }
       }
+
       setErrors({ submit: msg });
       setSubmitting(false);
       return;
