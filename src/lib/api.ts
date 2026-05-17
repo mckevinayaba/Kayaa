@@ -317,8 +317,8 @@ export async function createVenue(data: {
   location: string;
   description?: string;
   opening_hours?: string;
+  // address and country_code may not exist in all DB instances — stripped on retry if absent
   address?: string;
-  province?: string;
   country_code?: string;
   owner_user_id?: string;
   is_active?: boolean;
@@ -345,23 +345,41 @@ export async function createVenue(data: {
     });
   }
 
-  // If optional columns don't exist yet (migration pending), retry without them.
-  // Also catches column-not-found errors (42703) for any optional field.
-  if (error && (
-    error.message.includes('country_code') ||
-    error.message.includes('owner_user_id') ||
-    error.message.includes('is_active') ||
-    error.code === '42703'
-  )) {
-    console.log('[Kayaa API] Retrying without optional columns (migration pending)...');
-    const { country_code: _cc, owner_user_id: _oui, is_active: _ia, ...rest } = data;
+  // Retry without optional columns that may not exist in this DB instance.
+  // Triggers on:
+  //   42703  — column does not exist (PostgreSQL)
+  //   PGRST204 — column not found in PostgREST schema cache
+  // Any column mentioned by name in the error message is a candidate for stripping.
+  const isColumnError = error && (
+    error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    error.message?.includes('country_code') ||
+    error.message?.includes('owner_user_id') ||
+    error.message?.includes('is_active') ||
+    error.message?.includes('address') ||
+    error.message?.includes('province')   // province column removed from payload but kept as guard
+  );
+
+  if (isColumnError) {
+    console.log('[Kayaa API] Column mismatch detected. Retrying with core fields only...');
+    // Keep only the columns that definitely exist in every Kayaa DB instance
+    const corePayload = {
+      name:        data.name,
+      type:        data.type,
+      slug:        data.slug,
+      location:    data.location,
+      description: data.description,
+      cover_image: data.cover_image,
+      gallery_images: data.gallery_images,
+      intro_video: data.intro_video,
+    };
     const { data: row2, error: error2 } = await supabase
       .from('venues')
-      .insert(rest)
+      .insert(corePayload)
       .select()
       .single();
     if (error2) {
-      console.error('[Kayaa API] createVenue retry also failed:', {
+      console.error('[Kayaa API] createVenue core retry also failed:', {
         code: error2.code,
         message: error2.message,
         details: error2.details,

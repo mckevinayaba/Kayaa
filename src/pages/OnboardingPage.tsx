@@ -681,8 +681,7 @@ export default function OnboardingPage() {
       type: form.venueType,
       slug,
       location: `${suburb}, ${city}`,
-      address: fullAddress,
-      province: form.province,
+      address: fullAddress,            // fullAddress already contains province e.g. "Berea, Johannesburg, Gauteng"
       description: form.description.trim() || undefined,
       cover_image: form.coverImageUrl || undefined,
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
