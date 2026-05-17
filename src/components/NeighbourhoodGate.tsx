@@ -127,7 +127,7 @@ export default function NeighbourhoodGate({ onDone }: Props) {
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
                 {displayArea
                   ? 'Show places in this neighbourhood and nearby?'
-                  : 'Choose your suburb to see local places.'}
+                  : 'Choose your suburb to see places.'}
               </p>
             </div>
 

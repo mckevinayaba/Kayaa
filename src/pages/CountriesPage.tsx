@@ -214,7 +214,7 @@ export default function CountriesPage() {
           Built for African neighbourhoods
         </h3>
         <p style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.7, margin: 0 }}>
-          From the barbershop on the corner to the shisanyama behind the church — every recurring place people return to deserves a living community page. kayaa puts local places on the map, one neighbourhood at a time.
+          From the barbershop on the corner to the shisanyama behind the church — every recurring place people return to deserves a living community page. kayaa puts places on the map, one neighbourhood at a time.
         </p>
       </div>
     </div>

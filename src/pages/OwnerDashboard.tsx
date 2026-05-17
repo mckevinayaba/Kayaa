@@ -440,7 +440,7 @@ function OverviewTab({
         <Sparkles size={18} color="rgba(57,217,138,0.7)" style={{ flexShrink: 0, marginTop: '1px' }} />
         <div>
           <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', marginBottom: '4px' }}>
-            Kayaa is where {venue.neighborhood} finds local places
+            Kayaa is where {venue.neighborhood} finds places
           </div>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.6 }}>
             Every check-in and update makes your place more visible to neighbours nearby.

@@ -164,7 +164,7 @@ function UtilityPillStrip({ suburb }: { suburb: string }) {
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <button style={{ ...pillBase, color: '#39D98A' }} onClick={() => navigate('/report/utility/power')}>⚡ No load shedding</button>
         <button style={{ ...pillBase, color: '#39D98A' }} onClick={() => navigate('/report/utility/water')}>💧 Water normal</button>
-        <button style={{ ...pillBase, color: 'rgba(255,255,255,0.5)' }} onClick={() => navigate('/alerts')}>🔔 {suburb ? `${suburb} alerts` : 'Local alerts'}</button>
+        <button style={{ ...pillBase, color: 'rgba(255,255,255,0.5)' }} onClick={() => navigate('/alerts')}>🔔 {suburb ? `${suburb} alerts` : 'Alerts'}</button>
       </div>
     </div>
   );
@@ -582,7 +582,7 @@ export default function FeedPage() {
           <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>Explore nearby places, check in where you go, and stay on top of local alerts.</p>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>Explore nearby places, check in where you go, and stay on top of alerts.</p>
           </div>
           <button onClick={() => { localStorage.setItem('kayaa_welcome_dismissed', 'true'); setWelcomeDismissed(true); }} aria-label="Dismiss welcome hint" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>

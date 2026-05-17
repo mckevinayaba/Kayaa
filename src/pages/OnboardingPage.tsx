@@ -913,7 +913,7 @@ export default function OnboardingPage() {
         Tell us about your business
       </h1>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-        Every great local business deserves to be found.
+        Every great business deserves to be found.
       </p>
 
       {/* Owner hook card */}
@@ -1000,7 +1000,7 @@ export default function OnboardingPage() {
         {/* Suburb + City */}
         <div style={{ display: 'flex', gap: '10px' }}>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Where is your business? *</label>
+            <label style={labelStyle}>Where is your business or place? *</label>
             <input type="text" value={form.suburb} onChange={set('suburb')} placeholder="e.g. Berea, Orlando West, Alex"
               style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }} />
             <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
@@ -1019,7 +1019,7 @@ export default function OnboardingPage() {
 
         {/* Street address */}
         <div>
-          <label style={labelStyle}>How do people find you? <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
+          <label style={labelStyle}>Describe where it is <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
           <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Street address, or just describe it. Any description works.</p>
           <input type="text" value={form.streetAddress} onChange={set('streetAddress')} placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily, Behind the Shell garage" autoComplete="street-address"
             style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
@@ -1036,7 +1036,7 @@ export default function OnboardingPage() {
 
         {/* Description */}
         <div>
-          <label style={labelStyle}>Describe your place in one line <span style={{ fontWeight: 400 }}>(optional)</span></label>
+          <label style={labelStyle}>Describe your business or place <span style={{ fontWeight: 400 }}>(optional)</span></label>
           <textarea value={form.description} onChange={set('description')} placeholder="e.g. Best fades in Soweto, open 7 days a week" maxLength={200}
             style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', lineHeight: 1.5, border: `1px solid ${errors.description ? '#F87171' : 'var(--color-border)'}` }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '4px' }}>

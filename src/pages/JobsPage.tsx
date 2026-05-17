@@ -156,7 +156,7 @@ export default function JobsPage() {
       {/* ── Header ── */}
       <div style={{ padding: '16px 16px 0' }}>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>
-          Jobs & Skills
+          {suburb ? `${suburb} · Jobs & Skills` : 'Jobs & Skills'}
         </p>
         <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px', color: '#FFFFFF', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
           {suburb ? `${suburb} Jobs` : 'Local Jobs'}
@@ -169,7 +169,7 @@ export default function JobsPage() {
         {!jobsHintDismissed && !loading && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '12px' }}>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
-              Local jobs and skills in {suburb || 'your area'}. Post a job or offer your skills. It's free.
+              Jobs and skills in {suburb || 'your area'}. Post a job or offer your skills. It's free.
             </p>
             <button
               onClick={() => { try { localStorage.setItem('kayaa_jobs_hint_seen', 'true'); } catch { /* ignore */ } setJobsHintDismissed(true); }}
@@ -215,7 +215,7 @@ export default function JobsPage() {
           <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>💼</div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              No local jobs posted yet.
+              No jobs posted yet.
             </div>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Know someone hiring? Or have a skill to offer?

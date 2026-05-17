@@ -997,7 +997,7 @@ export default function AlertsPage() {
             fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px',
             color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
           }}>
-            {suburb ? `${suburb} Alerts` : 'Local Alerts'}
+            {suburb ? `${suburb} Alerts` : 'Alerts'}
           </h1>
         </div>
         <button

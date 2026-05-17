@@ -54,8 +54,8 @@ export default function RegularCardPage() {
   const otherCount = checkins.length - 1;
 
   const shareText = topPlace
-    ? `I'm a regular at ${topPlace.venueName}${otherCount > 0 ? ` and ${otherCount} other neighbourhood place${otherCount > 1 ? 's' : ''}` : ''} on Kayaa. Find local places near you — https://kayaa.co.za`
-    : `I'm building my neighbourhood card on Kayaa. Find local places near you — https://kayaa.co.za`;
+    ? `I'm a regular at ${topPlace.venueName}${otherCount > 0 ? ` and ${otherCount} other neighbourhood place${otherCount > 1 ? 's' : ''}` : ''} on Kayaa. Find places near you — https://kayaa.co.za`
+    : `I'm building my neighbourhood card on Kayaa. Find places near you — https://kayaa.co.za`;
 
   const shareHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
