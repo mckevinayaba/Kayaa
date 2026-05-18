@@ -54,9 +54,12 @@ function SkillCard({ post }: { post: BoardPost }) {
   const rate = formatRate(post);
   const emoji = skillEmoji(post);
   const waText = encodeURIComponent(`Hi, I saw your "${post.title}" listing on kayaa. I'm interested.`);
-  const waUrl  = post.contactWhatsapp
-    ? `https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${waText}`
-    : null;
+  const waUrl  = (() => {
+    if (!post.contactWhatsapp) return null;
+    const digits = post.contactWhatsapp.replace(/\D/g, '');
+    const num = digits.startsWith('0') && digits.length === 10 ? '27' + digits.slice(1) : digits;
+    return num.length >= 9 ? `https://wa.me/${num}?text=${waText}` : null;
+  })();
 
   return (
     <Link

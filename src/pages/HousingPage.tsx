@@ -72,7 +72,9 @@ function HousingCard({ post }: { post: BoardPost }) {
 
   function openWhatsApp() {
     if (!post.contactWhatsapp) return;
-    const num = post.contactWhatsapp.replace(/\D/g, '');
+    const digits = post.contactWhatsapp.replace(/\D/g, '');
+    const num = digits.startsWith('0') && digits.length === 10 ? '27' + digits.slice(1) : digits;
+    if (!num || num.length < 9) return;
     const msg = encodeURIComponent(`Hi, I saw your listing on Kayaa: "${post.title}"`);
     window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
   }

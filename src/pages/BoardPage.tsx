@@ -88,6 +88,19 @@ function getCategoryConfig(key: string) {
   };
 }
 
+// ── WhatsApp number normaliser ───────────────────────────────────────────────
+// Converts any stored number to international format without leading + or spaces.
+// South African local numbers: 0821234567 → 27821234567
+// Already-international numbers (27…, 1…, etc.) returned unchanged.
+// Returns null when the raw string can't be normalised to ≥10 digits.
+function formatWaNumber(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits || digits.length < 9) return null;
+  if (digits.startsWith('0') && digits.length === 10) return '27' + digits.slice(1);
+  if (digits.length >= 10) return digits;
+  return null;
+}
+
 // ── Geographic scope ─────────────────────────────────────────────────────────
 
 type GeoScope = 'my_area' | 'nearby' | 'everywhere';
@@ -135,7 +148,16 @@ function getMineIds(): string[] {
 
 function WhatsAppCTA({ post }: { post: BoardPost }) {
   if (!post.contactWhatsapp) return null;
-  const num = post.contactWhatsapp.replace(/\D/g, '');
+  const num = formatWaNumber(post.contactWhatsapp);
+  if (!num) return (
+    <div style={{
+      marginTop: '10px', padding: '7px', textAlign: 'center',
+      fontFamily: 'Inter, sans-serif', fontSize: '11px',
+      color: 'rgba(255,255,255,0.22)',
+    }}>
+      WhatsApp unavailable
+    </div>
+  );
   const msg = encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`);
   return (
     <a
@@ -211,7 +233,12 @@ function getReactionConfig(category: string): { emoji: string; label: string } |
 
 /** Whether a "Follow updates" toggle makes sense for this post type. */
 function isFollowable(category: string): boolean {
-  return ['safety', 'lost_found', 'ask'].includes(category);
+  return category === 'safety';
+}
+
+/** Whether a "Reply" shortcut belongs in the action bar for this post type. */
+function hasReplyAction(category: string): boolean {
+  return category === 'lost_found' || category === 'ask';
 }
 
 function isFollowedLocally(postId: string): boolean {
@@ -233,9 +260,10 @@ function toggleFollowLocally(postId: string): boolean {
 
 // ── Post action bar (reactions · share · follow) ──────────────────────────────
 
-function PostActionBar({ post }: { post: BoardPost }) {
+function PostActionBar({ post, onToggleReplies }: { post: BoardPost; onToggleReplies?: () => void }) {
   const reactionCfg = getReactionConfig(post.category);
   const followable  = isFollowable(post.category);
+  const replyable   = hasReplyAction(post.category);
 
   const [reacted,      setReacted]      = useState(() => isBoardPostLikedLocally(post.id));
   const [count,        setCount]        = useState(post.likesCount);
@@ -276,9 +304,12 @@ function PostActionBar({ post }: { post: BoardPost }) {
     } catch { /* noop */ }
   }
 
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(
-    `${post.title} — ${post.neighbourhood}\nhttps://kayaa.co.za/board/${post.id}`,
-  )}`;
+  // Share fallback: if post has a contact number, open direct chat; otherwise use share sheet
+  const directNum  = post.contactWhatsapp ? formatWaNumber(post.contactWhatsapp) : null;
+  const shareText  = `${post.title} — ${post.neighbourhood}\nhttps://kayaa.co.za/board/${post.id}`;
+  const waUrl = directNum
+    ? `https://wa.me/${directNum}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`
+    : `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: '5px',
@@ -317,7 +348,7 @@ function PostActionBar({ post }: { post: BoardPost }) {
           </span>
         </button>
 
-        {/* Follow updates */}
+        {/* Follow updates — Safety only */}
         {followable && (
           <button onClick={handleFollow} style={{
             ...btnBase,
@@ -330,6 +361,16 @@ function PostActionBar({ post }: { post: BoardPost }) {
               color: following ? '#A78BFA' : 'rgba(255,255,255,0.4)',
             }}>
               {following ? 'Following' : 'Follow updates'}
+            </span>
+          </button>
+        )}
+
+        {/* Reply — Lost & Found and Ask */}
+        {replyable && (
+          <button onClick={onToggleReplies} style={btnBase}>
+            <span style={{ fontSize: '13px' }}>💬</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
+              Reply
             </span>
           </button>
         )}
@@ -752,15 +793,19 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
         </div>
 
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-          {post.contactWhatsapp && (
-            <a
-              href={`https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#25D366', color: '#000', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', textDecoration: 'none' }}
-            >
-              <MessageCircle size={12} /> WhatsApp
-            </a>
-          )}
+          {post.contactWhatsapp && (() => {
+            const wn = formatWaNumber(post.contactWhatsapp);
+            if (!wn) return null;
+            return (
+              <a
+                href={`https://wa.me/${wn}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#25D366', color: '#000', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', textDecoration: 'none' }}
+              >
+                <MessageCircle size={12} /> WhatsApp
+              </a>
+            );
+          })()}
           {isMine && post.status === 'active' && (
             <button
               onClick={() => (post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation') ? onMarkTaken(post.id) : onMarkResolved(post.id)}
@@ -1219,7 +1264,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
           onToggleReplies={onToggleExpand}
           repliesOpen={isExpanded}
         />
-        <PostActionBar post={post} />
+        <PostActionBar post={post} onToggleReplies={onToggleExpand} />
         {isExpanded && (
           <InlineReplySection
             postId={post.id}
@@ -1251,7 +1296,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
   return (
     <div style={{ borderRadius: '14px', overflow: 'hidden' }}>
       {card}
-      <PostActionBar post={post} />
+      <PostActionBar post={post} onToggleReplies={onToggleExpand} />
       <InlineReplySection
         postId={post.id}
         commentsCount={post.commentsCount}

@@ -126,9 +126,12 @@ export default function SkillDetail() {
   const emoji = skillEmoji(post.title, post.description);
   const rate  = rateLabel(post);
   const waText = encodeURIComponent(`Hi, I saw your "${post.title}" listing on Kayaa. I'm interested.`);
-  const waUrl  = post.contactWhatsapp
-    ? `https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${waText}`
-    : null;
+  const waUrl  = (() => {
+    if (!post.contactWhatsapp) return null;
+    const digits = post.contactWhatsapp.replace(/\D/g, '');
+    const num = digits.startsWith('0') && digits.length === 10 ? '27' + digits.slice(1) : digits;
+    return num.length >= 9 ? `https://wa.me/${num}?text=${waText}` : null;
+  })();
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '100px' }}>

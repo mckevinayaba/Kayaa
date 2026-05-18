@@ -20,6 +20,14 @@ import { BOARD_CATEGORIES } from './BoardPage';
 import { PlaceShareModal } from '../components/place/ShareModal';
 import VideoPlayer from '../components/VideoPlayer';
 
+function formatWaNumber(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits || digits.length < 9) return null;
+  if (digits.startsWith('0') && digits.length === 10) return '27' + digits.slice(1);
+  if (digits.length >= 10) return digits;
+  return null;
+}
+
 function formatAge(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
@@ -315,9 +323,9 @@ export default function BoardPostPage() {
         )}
 
         {/* WhatsApp CTA */}
-        {post.contactWhatsapp && post.status === 'active' && (
+        {post.contactWhatsapp && post.status === 'active' && formatWaNumber(post.contactWhatsapp) && (
           <a
-            href={`https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board (${post.neighbourhood})`)}`}
+            href={`https://wa.me/${formatWaNumber(post.contactWhatsapp)}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board (${post.neighbourhood})`)}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{
