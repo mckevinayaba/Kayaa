@@ -7,6 +7,7 @@ import { createVenue, createVenueOwner, updateVenueCoords, uploadVenueFile } fro
 import { signInWithEmail } from '../lib/auth';
 import { geocodeAddress } from '../lib/geocode';
 import { useCountry } from '../contexts/CountryContext';
+import { PRIMARY_CATEGORIES, getPrimaryCategory, type PrimaryKey } from '../config/categoryLabels';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -60,29 +61,58 @@ function StepIndicator({ current }: { current: 1 | 2 | 3 | 4 }) {
   );
 }
 
-function VenueTypeGrid({ selected, onSelect, items }: {
-  selected: string; onSelect: (label: string) => void;
-  items: { emoji: string; label: string }[];
-}) {
+// ─── Two-step category picker ─────────────────────────────────────────────────
+
+function PrimaryCategoryGrid({
+  selected, onSelect,
+}: { selected: PrimaryKey | ''; onSelect: (key: PrimaryKey) => void }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-      {items.map(({ emoji, label }) => {
-        const isSelected = selected === label;
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+      {PRIMARY_CATEGORIES.map(({ key, label, emoji }) => {
+        const isSelected = selected === key;
         return (
-          <button key={label} onClick={() => onSelect(label)} style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', gap: '6px', padding: '14px 8px',
+          <button key={key} onClick={() => onSelect(key)} style={{
+            display: 'flex', flexDirection: 'row', alignItems: 'center',
+            gap: '10px', padding: '14px 14px',
             borderRadius: '14px',
             background: isSelected ? 'rgba(57,217,138,0.08)' : 'var(--color-surface)',
             border: `1.5px solid ${isSelected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-            cursor: 'pointer', transition: 'all 0.15s', minHeight: '80px',
+            cursor: 'pointer', transition: 'all 0.15s',
+            textAlign: 'left',
           }}>
-            <span style={{ fontSize: '26px', lineHeight: 1 }}>{emoji}</span>
+            <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{emoji}</span>
             <span style={{
-              fontSize: '11px', fontWeight: 600, textAlign: 'center', lineHeight: 1.2,
-              color: isSelected ? 'var(--color-accent)' : 'var(--color-muted)',
+              fontSize: '12px', fontWeight: 600, lineHeight: 1.3,
+              color: isSelected ? 'var(--color-accent)' : 'var(--color-text)',
               transition: 'color 0.15s',
             }}>{label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function SubtypeChips({
+  subtypes, selected, onSelect,
+}: { subtypes: string[]; selected: string; onSelect: (s: string) => void }) {
+  return (
+    <div style={{
+      display: 'flex', flexWrap: 'wrap', gap: '7px',
+      marginTop: '12px',
+    }}>
+      {subtypes.map(sub => {
+        const isSelected = selected === sub;
+        return (
+          <button key={sub} onClick={() => onSelect(sub)} style={{
+            padding: '7px 14px', borderRadius: '20px',
+            border: `1.5px solid ${isSelected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+            background: isSelected ? 'rgba(57,217,138,0.1)' : 'var(--color-surface)',
+            color: isSelected ? 'var(--color-accent)' : 'var(--color-muted)',
+            fontSize: '13px', fontWeight: 600, fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}>
+            {sub}
           </button>
         );
       })}
@@ -570,13 +600,11 @@ const empty: FormData = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
-  const { selectedCountry, categoryLabels } = useCountry();
+  const { selectedCountry } = useCountry();
   const { user } = useAuth();
-  const venueTypeItems = [
-    ...categoryLabels.map(c => ({ emoji: c.emoji, label: c.label })),
-    { emoji: '➕', label: 'Other' },
-  ];
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  // Two-step category picker state
+  const [primaryCat, setPrimaryCat] = useState<PrimaryKey | ''>('');
   const [form, setForm] = useState<FormData>(empty);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'cover' | 'submit', string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -635,7 +663,12 @@ export default function OnboardingPage() {
     if (!form.venueName.trim())                   errs.venueName = 'Give your place a name';
     else if (form.venueName.trim().length < 3)    errs.venueName = 'Name must be at least 3 characters';
     else if (/^\d+$/.test(form.venueName.trim())) errs.venueName = 'Name cannot be numbers only';
-    if (!form.venueType)                          errs.venueType = 'Pick a type for your place';
+    if (!primaryCat)                               errs.venueType = 'Pick a category for your place';
+    else if (!form.venueType) {
+      const cat = PRIMARY_CATEGORIES.find(c => c.key === primaryCat);
+      if (cat && cat.subtypes.length > 0)        errs.venueType = 'Pick a specific type';
+      else                                        errs.venueType = 'Pick a type for your place';
+    }
     if (!form.suburb.trim())                      errs.suburb    = 'Add the suburb your place is in';
     else if (form.suburb.trim().length < 3)       errs.suburb    = 'Enter a specific suburb, not just a city';
     if (!form.city.trim())                        errs.city      = 'Add the city';
@@ -1127,7 +1160,15 @@ export default function OnboardingPage() {
               onClick={() => {
                 try {
                   const raw = localStorage.getItem(DRAFT_KEY);
-                  if (raw) setForm(JSON.parse(raw) as FormData);
+                  if (raw) {
+                    const parsed = JSON.parse(raw) as FormData;
+                    setForm(parsed);
+                    // Restore primary category from saved venueType
+                    if (parsed.venueType) {
+                      const pk = getPrimaryCategory(parsed.venueType) as PrimaryKey;
+                      setPrimaryCat(pk);
+                    }
+                  }
                 } catch { /* ignore */ }
                 setHasDraft(false);
               }}
@@ -1155,11 +1196,63 @@ export default function OnboardingPage() {
           <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
         </div>
 
-        {/* Venue type grid */}
+        {/* Two-step category picker */}
         <div>
           <label style={labelStyle}>What kind of business is this?</label>
-          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '10px', marginTop: '-4px' }}>Tap the one that fits best. Not sure? Pick the closest one.</p>
-          <VenueTypeGrid selected={form.venueType} onSelect={v => { setForm(f => ({ ...f, venueType: v })); setErrors(er => ({ ...er, venueType: undefined })); }} items={venueTypeItems} />
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '10px', marginTop: '-4px' }}>
+            Pick the closest category, then the specific type if needed.
+          </p>
+
+          {/* Step A — primary category */}
+          <PrimaryCategoryGrid
+            selected={primaryCat}
+            onSelect={key => {
+              setPrimaryCat(key);
+              // Auto-set venueType to primary label if no subtypes; clear otherwise
+              const cat = PRIMARY_CATEGORIES.find(c => c.key === key)!;
+              if (cat.subtypes.length === 0 && key !== 'other') {
+                setForm(f => ({ ...f, venueType: cat.label }));
+              } else {
+                setForm(f => ({ ...f, venueType: '' }));
+              }
+              setErrors(er => ({ ...er, venueType: undefined }));
+            }}
+          />
+
+          {/* Step B — subtype chips (only when primary has subtypes) */}
+          {primaryCat && primaryCat !== 'other' && (() => {
+            const cat = PRIMARY_CATEGORIES.find(c => c.key === primaryCat)!;
+            if (cat.subtypes.length === 0) return null;
+            return (
+              <div style={{ marginTop: '4px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '8px 0 0' }}>
+                  Which type best describes it?
+                </p>
+                <SubtypeChips
+                  subtypes={cat.subtypes}
+                  selected={form.venueType}
+                  onSelect={sub => {
+                    setForm(f => ({ ...f, venueType: sub }));
+                    setErrors(er => ({ ...er, venueType: undefined }));
+                  }}
+                />
+              </div>
+            );
+          })()}
+
+          {/* Step B — free text for "Other" */}
+          {primaryCat === 'other' && (
+            <div style={{ marginTop: '12px' }}>
+              <input
+                type="text"
+                value={form.venueType}
+                onChange={e => { setForm(f => ({ ...f, venueType: e.target.value })); setErrors(er => ({ ...er, venueType: undefined })); }}
+                placeholder="e.g. Driving School, Music Studio, Photography Studio…"
+                style={{ ...inputStyle, border: `1px solid ${errors.venueType ? '#F87171' : 'var(--color-border)'}` }}
+              />
+            </div>
+          )}
+
           <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
         </div>
 

@@ -5,12 +5,29 @@ import type { Venue, OwnerHours, DayHours } from '../types';
 // to the right emoji. Never falls back to 📍 (looks like a Leaflet pin).
 
 const EXACT_EMOJI: Record<string, string> = {
+  // Food & Drink
   Barbershop: '✂️', Shisanyama: '🔥', Tavern: '🍺', Café: '☕', Cafe: '☕',
-  Church: '⛪', Carwash: '🚗', 'Spaza Shop': '🏪', Salon: '💅',
+  Restaurant: '🍽️', 'Fast Food': '🍟', 'Coffee Shop': '☕', Takeaway: '🍟',
+  // Beauty & Grooming
+  Salon: '💅', 'Beauty Studio': '💅', Nails: '💅',
+  // Retail
+  'Spaza Shop': '🏪', Tuckshop: '🏪', Boutique: '👗', 'General Retail': '🏪', 'Small Shop': '🏪',
+  // Auto
+  'Car Wash': '🚗', Carwash: '🚗', Mechanic: '🔧', 'Tyre Shop': '🔧', 'Repair Shop': '🔧',
+  // Services
+  Plumber: '🔩', Electrician: '⚡', Cleaner: '🧹', Handyman: '🛠️', 'Moving Service': '📦',
+  // Health & Wellness
+  Gym: '💪', Clinic: '🏥', Pharmacy: '💊', Wellness: '🧘',
+  // Community & Faith
+  Church: '⛪', 'Faith Centre': '⛪', 'Community Organisation': '🤝',
+  // Professional & Business
+  Insurance: '📋', Legal: '⚖️', Accounting: '📊', Startup: '🚀', Agency: '💼', Office: '🏢',
+  // Stay & Property
+  'Room Rental': '🏠', 'Short Stay': '🛏️', Guesthouse: '🏨', Property: '🏠',
+  // Legacy / misc
   Tutoring: '📚', 'Sports Ground': '⚽', 'Home Business': '🏠',
   'Live Music Venue': '🎵', 'Community Space': '🤝', Market: '🛒',
-  Mechanic: '🔧', Gym: '💪', Clinic: '🏥', Pharmacy: '💊',
-  Restaurant: '🍽️', 'Fast Food': '🍟', Bakery: '🥖',
+  Bakery: '🥖',
 };
 
 const FUZZY_EMOJI: [string, RegExp][] = [
@@ -21,19 +38,28 @@ const FUZZY_EMOJI: [string, RegExp][] = [
   ['☕', /caf[eé]|coffee|tea\s*room/i],
   ['⛪', /church|kanisa|[eé]glise|chapel|faith|fellowship|mosque|temple|prayer/i],
   ['🚗', /carwash|car.?wash|valet/i],
-  ['🏪', /spaza|duka|kiosk|provision|boutique|alimentation|corner.?shop|tuck.?shop/i],
+  ['🏪', /spaza|duka|kiosk|provision|corner.?shop|tuck.?shop/i],
   ['📚', /tutor|school|educat|class|learn/i],
   ['⚽', /sport.*ground|playing.*field|pitch|soccer/i],
   ['💪', /gym|fitness|yoga|crossfit|workout/i],
-  ['🏠', /home.?bus/i],
+  ['🏠', /home.?bus|room.?rent|short.?stay/i],
   ['🎵', /music|live.*ven|concert|jazz|band/i],
-  ['🤝', /community|social|centre|center/i],
+  ['🤝', /community|social|centre|center|organisation/i],
   ['🛒', /market|bazaar|mall/i],
-  ['🔧', /mechanic|auto.*repair|garage|workshop/i],
+  ['🔧', /mechanic|auto.*repair|garage|workshop|tyre/i],
   ['🏥', /clinic|hospital|health|medical/i],
   ['💊', /pharmacy|chemist|drug/i],
   ['🍽️', /restaurant|diner|eatery/i],
   ['🍟', /fast.?food|takeaway|take.?out|takeout/i],
+  ['🚀', /startup|tech|launch/i],
+  ['💼', /insurance|legal|account|agenc|office|professional/i],
+  ['👗', /boutique|fashion|cloth/i],
+  ['⚡', /electric/i],
+  ['🔩', /plumb/i],
+  ['🧹', /clean/i],
+  ['🛠️', /handyman|repair.*home/i],
+  ['📦', /moving|remov/i],
+  ['🏨', /lodge|guesthouse|hotel|hostel|b.*b/i],
 ];
 
 export function getCategoryEmoji(category: string): string {
