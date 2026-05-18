@@ -203,6 +203,101 @@ function NoVenueState() {
   );
 }
 
+// ─── Monday Owner Digest ──────────────────────────────────────────────────────
+
+function MondayDigestCard({ stats, ownerName }: { stats: DashStats; ownerName: string }) {
+  const prevWeekEst = Math.round((stats.dailyAvg ?? 0) * 7);
+  const thisWeek    = stats.weekCheckins;
+  const diff        = thisWeek - prevWeekEst;
+  const isZero      = thisWeek === 0;
+
+  let encouragement = '';
+  if (!isZero && prevWeekEst > 0) {
+    if (diff > prevWeekEst * 0.05)       encouragement = 'More people came this week than last. Keep it up.';
+    else if (diff < -(prevWeekEst * 0.05)) encouragement = 'A quieter week — it happens. Your regulars will be back.';
+    else                                   encouragement = 'Steady week. Consistency builds loyalty.';
+  }
+
+  function scrollToVisitors() {
+    document.getElementById('visitors-section')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  return (
+    <div style={{
+      marginTop: '16px', marginBottom: '20px',
+      background: 'linear-gradient(135deg, rgba(57,217,138,0.07) 0%, rgba(57,217,138,0.02) 100%)',
+      border: '1px solid rgba(57,217,138,0.22)',
+      borderRadius: '16px', padding: '16px',
+    }}>
+      {/* Greeting */}
+      <p style={{
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
+        color: '#F0F6FC', margin: '0 0 12px',
+      }}>
+        Good morning {ownerName} 👋
+      </p>
+
+      {/* Stats lines */}
+      {isZero ? (
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.45)', margin: '0 0 14px', lineHeight: 1.5,
+        }}>
+          No check-ins yet this week. Share your QR code to get your first visitors.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+            ✓ <strong style={{ color: '#39D98A' }}>{thisWeek}</strong>{' '}
+            {thisWeek === 1 ? 'person' : 'people'} checked in this week
+          </span>
+          {stats.newFacesCount > 0 && (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+              ✓ <strong style={{ color: '#39D98A' }}>{stats.newFacesCount}</strong>{' '}
+              new {stats.newFacesCount === 1 ? 'face' : 'faces'}
+            </span>
+          )}
+          {stats.regularsCount > 0 && (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+              ✓ <strong style={{ color: '#39D98A' }}>{stats.regularsCount}</strong>{' '}
+              regular{stats.regularsCount !== 1 ? 's' : ''} came back
+            </span>
+          )}
+          {stats.lapsedCount > 0 && (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(245,166,35,0.85)' }}>
+              ⚠ <strong>{stats.lapsedCount}</strong>{' '}
+              regular{stats.lapsedCount !== 1 ? 's' : ''} haven't been in for 14+ days
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Encouragement line */}
+      {encouragement && (
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
+          color: 'rgba(255,255,255,0.38)', margin: '0 0 14px', fontStyle: 'italic',
+        }}>
+          {encouragement}
+        </p>
+      )}
+
+      {/* CTA */}
+      <button
+        onClick={scrollToVisitors}
+        style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+          color: '#39D98A', background: 'rgba(57,217,138,0.1)',
+          border: '1px solid rgba(57,217,138,0.2)', borderRadius: '8px',
+          padding: '7px 14px', cursor: 'pointer',
+        }}
+      >
+        See your visitors →
+      </button>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VenueDashboard() {
@@ -354,6 +449,17 @@ export default function VenueDashboard() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       <div style={{ padding: '0 16px' }}>
+
+        {/* ── Monday Owner Digest ─────────────────────────────────────────── */}
+        {stats && new Date().getDay() === 1 && (
+          <MondayDigestCard
+            stats={stats}
+            ownerName={
+              (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0]
+              ?? (user?.email?.split('@')[0] ?? 'there')
+            }
+          />
+        )}
 
         {/* ── Venue identity card ─────────────────────────────────────────── */}
         <div style={{
@@ -543,7 +649,7 @@ export default function VenueDashboard() {
         </div>
 
         {/* ── Recent visitors ─────────────────────────────────────────────── */}
-        <div style={{
+        <div id="visitors-section" style={{
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '16px', padding: '16px', marginBottom: '20px',
         }}>
