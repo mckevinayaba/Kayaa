@@ -13,18 +13,23 @@
  *   6. FAB             — + Post (always visible)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, AlertTriangle, X, MessageCircle, ChevronRight,
-  Briefcase, Wrench, Home, Megaphone, ArrowRight,
+  Briefcase, Wrench, Home, Megaphone, ArrowRight, Send,
 } from 'lucide-react';
 import NudgeCard from '../components/NudgeCard';
 import {
   getBoardPosts,
   updateBoardPostStatus,
+  getBoardPostComments,
+  addBoardPostComment,
+  reportBoardPostComment,
+  getVisitorId,
   type BoardPost,
   type BoardCategory,
+  type BoardPostComment,
 } from '../lib/api';
 import { getInteractiveUserId } from '../lib/api';
 import { useCountry } from '../contexts/CountryContext';
@@ -565,6 +570,306 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
   );
 }
 
+// ── Ask card ──────────────────────────────────────────────────────────────────
+
+function AskCard({ post, replyCount, onToggleReplies, repliesOpen }: {
+  post: BoardPost;
+  replyCount: number;
+  onToggleReplies: () => void;
+  repliesOpen: boolean;
+}) {
+  return (
+    <div style={{
+      background: 'rgba(148,115,250,0.05)',
+      border: '1px solid rgba(148,115,250,0.22)',
+      borderRadius: '14px',
+      borderLeft: '3px solid #A78BFA',
+      overflow: 'hidden',
+    }}>
+      <div style={{ padding: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{
+            fontSize: '11px', fontWeight: 700, color: '#A78BFA',
+            background: 'rgba(167,139,250,0.14)', padding: '2px 9px',
+            borderRadius: '20px', fontFamily: 'Inter, sans-serif',
+          }}>
+            ❓ Ask
+          </span>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontFamily: 'Inter, sans-serif' }}>
+            {formatAge(post.createdAt)}
+          </span>
+        </div>
+
+        <div style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
+          fontSize: '15px', color: '#F0F6FC',
+          marginBottom: '10px', lineHeight: 1.4,
+        }}>
+          {post.title}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'Inter, sans-serif' }}>
+            📍 {post.neighbourhood}
+          </span>
+          <button
+            onClick={onToggleReplies}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
+              fontWeight: 700,
+              color: replyCount > 0 ? '#A78BFA' : 'rgba(255,255,255,0.35)',
+              padding: 0,
+            }}
+          >
+            <MessageCircle size={13} />
+            {replyCount > 0
+              ? `${replyCount} neighbour${replyCount !== 1 ? 's' : ''} answered`
+              : 'Be the first to reply'}
+            {repliesOpen ? ' ↑' : ' →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Inline reply section ──────────────────────────────────────────────────────
+
+/** "Nomsa Mahlangu" → "Nomsa M." · null → "Neighbour" */
+function formatDisplayName(raw: string | null): string {
+  if (!raw || !raw.trim()) return 'Neighbour';
+  const parts = raw.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+}
+
+type ReportState = 'idle' | 'asking' | 'done';
+
+function ReplyItem({ reply, onReport }: {
+  reply: BoardPostComment & { hidden?: boolean };
+  onReport: (id: string, reason: 'spam' | 'harmful') => void;
+}) {
+  const [reportState, setReportState] = useState<ReportState>('idle');
+  if (reply.hidden) return null;
+
+  return (
+    <div style={{
+      padding: '10px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+          {formatDisplayName(reply.visitorName)}
+        </span>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          {formatAge(reply.createdAt)}
+        </span>
+      </div>
+
+      <p style={{
+        fontFamily: 'Inter, sans-serif', fontSize: '14px',
+        color: 'rgba(240,246,252,0.82)', margin: '0 0 6px', lineHeight: 1.5,
+      }}>
+        {reply.content}
+      </p>
+
+      {/* Report */}
+      {reportState === 'idle' && (
+        <button
+          onClick={() => setReportState('asking')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.2)', padding: 0,
+          }}
+        >
+          Report
+        </button>
+      )}
+      {reportState === 'asking' && (
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            Report this reply?
+          </span>
+          {(['spam', 'harmful'] as const).map(reason => (
+            <button
+              key={reason}
+              onClick={() => { onReport(reply.id, reason); setReportState('done'); }}
+              style={{
+                padding: '3px 10px', borderRadius: '20px',
+                border: '1px solid rgba(239,68,68,0.3)',
+                background: 'rgba(239,68,68,0.08)',
+                color: '#EF4444',
+                fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {reason === 'spam' ? 'Spam' : 'Harmful'}
+            </button>
+          ))}
+          <button
+            onClick={() => setReportState('idle')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', fontSize: '11px', fontFamily: 'Inter, sans-serif' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      {reportState === 'done' && (
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+          Reported — thanks
+        </span>
+      )}
+    </div>
+  );
+}
+
+interface InlineReplySectionProps {
+  postId: string;
+  commentsCount: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  accent?: string;
+  /** When true the toggle-bar row is hidden (card already has its own toggle) */
+  noToggleBar?: boolean;
+}
+
+function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = '#39D98A', noToggleBar = false }: InlineReplySectionProps) {
+  const [replies, setReplies] = useState<(BoardPostComment & { hidden?: boolean })[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+
+  const visitorName = (() => {
+    try { return JSON.parse(localStorage.getItem('kayaa_profile') ?? '{}').name ?? null; }
+    catch { return null; }
+  })();
+
+  // Load replies when first opened
+  useEffect(() => {
+    if (!isOpen || loaded) return;
+    setLoading(true);
+    getBoardPostComments(postId).then(r => {
+      setReplies(r);
+      setLoaded(true);
+      setLoading(false);
+    });
+  }, [isOpen, loaded, postId]);
+
+  async function handleSend() {
+    const text = replyText.trim();
+    if (!text || text.length < 2) { setSendError('Add a short reply first.'); return; }
+    setSending(true);
+    setSendError('');
+    const vid = getVisitorId();
+    const comment = await addBoardPostComment(postId, vid, text, visitorName ?? undefined);
+    if (comment) {
+      setReplies(prev => [...prev, comment]);
+      setReplyText('');
+    } else {
+      setSendError('That didn\'t work. Try again.');
+    }
+    setSending(false);
+  }
+
+  async function handleReport(commentId: string, reason: 'spam' | 'harmful') {
+    const vid = getVisitorId();
+    await reportBoardPostComment(commentId, vid, reason);
+    // After 1 local report, hide immediately in UI (conservative approach)
+    setReplies(prev => prev.map(r => r.id === commentId ? { ...r, hidden: true } : r));
+  }
+
+  const visibleReplies = replies.filter(r => !r.hidden);
+
+  return (
+    <div style={{
+      borderTop: `1px solid rgba(255,255,255,0.07)`,
+      background: 'rgba(255,255,255,0.02)',
+    }}>
+      {/* Toggle row — hidden when parent card already owns the toggle (e.g. AskCard) */}
+      {!noToggleBar && (
+        <button
+          onClick={onToggle}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '10px 14px', background: 'none', border: 'none',
+            cursor: 'pointer', textAlign: 'left',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+            color: commentsCount > 0 ? accent : 'rgba(255,255,255,0.3)',
+          }}
+        >
+          <MessageCircle size={13} color={commentsCount > 0 ? accent : 'rgba(255,255,255,0.3)'} />
+          {commentsCount > 0
+            ? (isOpen ? `Hide replies` : `View ${commentsCount} ${commentsCount === 1 ? 'reply' : 'replies'}`)
+            : 'Be the first to reply'}
+        </button>
+      )}
+
+      {isOpen && (
+        <div style={{ padding: '0 14px 12px' }}>
+          {/* Replies list */}
+          {loading && (
+            <div style={{ padding: '8px 0', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+              Loading…
+            </div>
+          )}
+
+          {!loading && loaded && visibleReplies.length === 0 && (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.28)', margin: '4px 0 10px', lineHeight: 1.5 }}>
+              No replies yet. Be the first to reply.
+            </p>
+          )}
+
+          {visibleReplies.map(r => (
+            <ReplyItem key={r.id} reply={r} onReport={handleReport} />
+          ))}
+
+          {/* Reply input */}
+          <div style={{ marginTop: visibleReplies.length > 0 ? '10px' : '4px', display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+            <textarea
+              value={replyText}
+              onChange={e => { setReplyText(e.target.value.slice(0, 150)); setSendError(''); }}
+              placeholder="Add what you know..."
+              rows={2}
+              style={{
+                flex: 1, background: 'var(--color-surface)',
+                border: `1px solid ${sendError ? '#F87171' : 'var(--color-border)'}`,
+                borderRadius: '10px', padding: '10px 12px',
+                color: 'var(--color-text)', fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', outline: 'none',
+                resize: 'none', lineHeight: 1.45,
+              }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={!replyText.trim() || sending}
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: replyText.trim() && !sending ? accent : 'var(--color-border)',
+                border: 'none', cursor: replyText.trim() && !sending ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, transition: 'background 0.15s',
+              }}
+              aria-label="Reply"
+            >
+              <Send size={16} color={replyText.trim() && !sending ? '#000' : 'rgba(255,255,255,0.3)'} />
+            </button>
+          </div>
+          {sendError && (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171', margin: '4px 0 0' }}>
+              {sendError}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Skeleton loader ───────────────────────────────────────────────────────────
 
 function PostSkeleton() {
@@ -583,19 +888,62 @@ function PostSkeleton() {
 
 // ── Smart card dispatcher ─────────────────────────────────────────────────────
 
-function PostCard({ post, isMine, onMarkTaken, onMarkResolved }: {
+function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onToggleExpand }: {
   post: BoardPost;
   isMine: boolean;
   onMarkTaken: (id: string) => void;
   onMarkResolved: (id: string) => void;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }) {
-  if (post.category === 'jobs')          return <JobCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
-  if (post.category === 'services')      return <ServiceCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
-  if (post.category === 'accommodation') return <HousingListCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} />;
-  if (post.category === 'announcements' || (post as { category: string }).category === 'announcer') {
-    return <NoticeCard post={post} />;
+  // Ask posts: card acts as its own header with inline reply toggle
+  if (post.category === 'ask') {
+    return (
+      <div style={{ borderRadius: '14px', overflow: 'hidden' }}>
+        <AskCard
+          post={post}
+          replyCount={post.commentsCount}
+          onToggleReplies={onToggleExpand}
+          repliesOpen={isExpanded}
+        />
+        {isExpanded && (
+          <InlineReplySection
+            postId={post.id}
+            commentsCount={post.commentsCount}
+            isOpen={isExpanded}
+            onToggle={onToggleExpand}
+            accent="#A78BFA"
+            noToggleBar
+          />
+        )}
+      </div>
+    );
   }
-  return <GenericCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} onMarkResolved={onMarkResolved} />;
+
+  // All other post types: card on top, reply section below
+  let card: React.ReactNode;
+  if (post.category === 'jobs')
+    card = <JobCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
+  else if (post.category === 'services')
+    card = <ServiceCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
+  else if (post.category === 'accommodation')
+    card = <HousingListCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} />;
+  else if (post.category === 'announcements' || (post as { category: string }).category === 'announcer')
+    card = <NoticeCard post={post} />;
+  else
+    card = <GenericCard post={post} isMine={isMine} onMarkTaken={onMarkTaken} onMarkResolved={onMarkResolved} />;
+
+  return (
+    <div style={{ borderRadius: '14px', overflow: 'hidden' }}>
+      {card}
+      <InlineReplySection
+        postId={post.id}
+        commentsCount={post.commentsCount}
+        isOpen={isExpanded}
+        onToggle={onToggleExpand}
+      />
+    </div>
+  );
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -616,9 +964,14 @@ export default function BoardPage() {
   const [mineIds,         setMineIds]         = useState<string[]>([]);
   const [safetyDismissed, setSafetyDismissed] = useState(false);
   const [userId,          setUserId]          = useState('');
+  const [expandedPostId,  setExpandedPostId]  = useState<string | null>(null);
   const [boardHintDismissed, setBoardHintDismissed] = useState(
     () => { try { return localStorage.getItem('kayaa_board_hint_seen') === 'true'; } catch { return false; } }
   );
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedPostId(prev => prev === id ? null : id);
+  }, []);
 
   useEffect(() => {
     getInteractiveUserId().then(setUserId);
@@ -918,6 +1271,15 @@ export default function BoardPage() {
                 onCta={() => navigate('/board/new?cat=announcements')}
                 accent="#F59E0B"
               />
+            ) : secondaryFilter === 'ask' ? (
+              <NudgeCard
+                emoji="❓"
+                title={`No questions asked in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet`}
+                body="Need to know a good mechanic, a cheap plumber, or what that new place on the corner is? Ask your neighbours."
+                ctaLabel={`Ask ${display || 'the neighbourhood'}`}
+                onCta={() => navigate(`/board/new?cat=ask`)}
+                accent="#A78BFA"
+              />
             ) : (
               <NudgeCard
                 emoji={getCategoryConfig(secondaryFilter ?? activeTab).emoji}
@@ -966,6 +1328,8 @@ export default function BoardPage() {
                 isMine={mineIds.includes(post.id) || post.userId === userId}
                 onMarkTaken={handleMarkTaken}
                 onMarkResolved={handleMarkResolved}
+                isExpanded={expandedPostId === post.id}
+                onToggleExpand={() => toggleExpand(post.id)}
               />
             ))}
             <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px', marginBottom: 0 }}>

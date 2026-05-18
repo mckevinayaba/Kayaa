@@ -617,6 +617,43 @@ export default function FeedPage() {
         );
       })()}
 
+      {/* ── Ask the neighbourhood teaser ──────────────────────────────────── */}
+      {boardLoaded && (
+        <div
+          onClick={() => navigate('/board/new?cat=ask')}
+          style={{
+            marginBottom: '20px',
+            background: 'rgba(148,115,250,0.05)',
+            border: '1px solid rgba(167,139,250,0.18)',
+            borderRadius: '12px',
+            padding: '12px 14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <span style={{ fontSize: '20px', flexShrink: 0 }}>❓</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
+              fontSize: '13px', color: '#A78BFA',
+              margin: '0 0 2px',
+            }}>
+              Ask {suburb || 'the neighbourhood'}
+            </p>
+            <p style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)', margin: 0,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              Good mechanic near here? Best shisanyama? Your neighbours know.
+            </p>
+          </div>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(167,139,250,0.6)', flexShrink: 0 }}>→</span>
+        </div>
+      )}
+
       {/* ── 7. Jobs & Skills — ONE preview listing (real or starter) ──────── */}
       {jobsLoaded && displayJobs.length > 0 && (() => {
         const job = displayJobs[0];
