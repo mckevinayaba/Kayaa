@@ -1893,6 +1893,8 @@ export interface BoardPost {
   expiresAt?: string;
   likesCount: number;
   commentsCount: number;
+  /** True when the poster's GPS-detected suburb matched the post's neighbourhood at creation time. */
+  isLocalVerified?: boolean;
 }
 
 export function calcBoardExpiry(category: BoardCategory): string | null {
@@ -1931,8 +1933,9 @@ function dbBoardPost(row: any): BoardPost {
     status: (row.status as BoardPostStatus) ?? 'active',
     createdAt: row.created_at ?? new Date().toISOString(),
     expiresAt: row.expires_at ?? undefined,
-    likesCount:    row.likes_count    ?? 0,
-    commentsCount: row.comments_count ?? 0,
+    likesCount:       row.likes_count       ?? 0,
+    commentsCount:    row.comments_count    ?? 0,
+    isLocalVerified:  row.is_local_verified ?? false,
   };
 }
 
@@ -1944,6 +1947,12 @@ function sortBoardPosts(posts: BoardPost[]): BoardPost[] {
     const aSafety = a.category === 'safety' && (now - new Date(a.createdAt).getTime()) < sixHours ? 1 : 0;
     const bSafety = b.category === 'safety' && (now - new Date(b.createdAt).getTime()) < sixHours ? 1 : 0;
     if (bSafety !== aSafety) return bSafety - aSafety;
+    // Within safety: GPS-verified posts rank above unverified
+    if (a.category === 'safety' && b.category === 'safety') {
+      const aV = a.isLocalVerified ? 1 : 0;
+      const bV = b.isLocalVerified ? 1 : 0;
+      if (bV !== aV) return bV - aV;
+    }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
@@ -2024,6 +2033,8 @@ export async function createBoardPost(
     /** Phase-1: optional short video URL (housing, for_sale, services only) */
     video_url?: string;
     country_code?: string;
+    /** Phase-2: GPS-verified locality — set true when poster's GPS matches neighbourhood */
+    is_local_verified?: boolean;
   },
   userId?: string,
 ): Promise<{ error: string | null; post: BoardPost | null }> {
@@ -2043,6 +2054,8 @@ export async function createBoardPost(
   if (userId) payload.user_id = userId;
   // Only include video_url when present — column may not exist in older envs
   if (data.video_url) payload.video_url = data.video_url;
+  // Only include is_local_verified when explicitly true — column may not exist in older envs
+  if (data.is_local_verified) payload.is_local_verified = true;
 
   try {
     const { data: row, error } = await supabase.from('board_posts').insert(payload).select().single();
@@ -2544,6 +2557,30 @@ export async function addBoardPostComment(
     if (error || !data) return null;
     return dbBoardComment(data);
   } catch { return null; }
+}
+
+/**
+ * Report a board post reply.
+ * Inserts into board_post_comment_reports (created if table exists).
+ * On 3+ unique reports the UI hides the reply; admin reviews via DB.
+ * Gracefully no-ops if the table doesn't exist yet.
+ */
+export async function reportBoardPostComment(
+  commentId: string,
+  visitorId: string,
+  reason: 'spam' | 'harmful',
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase
+      .from('board_post_comment_reports')
+      .upsert(
+        { comment_id: commentId, visitor_id: visitorId, reason },
+        { onConflict: 'comment_id,visitor_id', ignoreDuplicates: true },
+      );
+    // If table doesn't exist (42P01) just swallow — feature degrades gracefully
+    if (error && error.code !== '42P01') return { error: error.message };
+    return { error: null };
+  } catch { return { error: null }; }
 }
 
 /** Returns whether the visitor has liked this post (localStorage-first). */

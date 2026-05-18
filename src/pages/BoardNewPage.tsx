@@ -9,9 +9,64 @@ import {
   type BoardPost,
 } from '../lib/api';
 import { getInteractiveUserId } from '../lib/api';
+import { detectSuburbFromBounds } from '../lib/geocode';
 import { BOARD_CATEGORIES } from './BoardPage';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
+
+// ─── Image compression ────────────────────────────────────────────────────────
+// Resize to max 1200px on longest edge, quality 0.82 JPEG.
+// Used for safety photos to reduce upload size before Supabase.
+
+async function compressImageFile(file: File): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+        else         { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(
+        blob => resolve(
+          blob
+            ? new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })
+            : file,
+        ),
+        'image/jpeg', 0.82,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+// ─── GPS locality verification ────────────────────────────────────────────────
+// Silent: never shows a prompt, never blocks the post.
+// Returns true only when GPS permission was already granted AND the GPS-detected
+// suburb matches the post's neighbourhood (bounding-box lookup — instant, no API).
+
+async function checkLocalVerification(neighbourhood: string): Promise<boolean> {
+  if (!navigator?.geolocation) return false;
+  try {
+    const pos = await new Promise<GeolocationPosition>((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 4000, maximumAge: 120000 }),
+    );
+    const gpsSuburb = detectSuburbFromBounds(pos.coords.latitude, pos.coords.longitude);
+    if (!gpsSuburb) return false;
+    const gps  = gpsSuburb.toLowerCase().trim();
+    const post = neighbourhood.toLowerCase().trim();
+    return gps === post || gps.includes(post) || post.includes(gps);
+  } catch {
+    return false; // Permission denied, timeout, or unavailable → silently skip
+  }
+}
 
 // ─── Video support ────────────────────────────────────────────────────────────
 
@@ -999,6 +1054,434 @@ function PreviewStep({
   );
 }
 
+// ─── Safety fast-path form ───────────────────────────────────────────────────
+// Shown when ?cat=safety — single "What happened?" field + optional photo.
+// No urgency toggle. No step 2/3. Submits directly to the board.
+
+function SafetyForm({ suburb, onBack }: { suburb: string; onBack: () => void }) {
+  const navigate   = useNavigate();
+  const fileRef    = useRef<HTMLInputElement>(null);
+  const { selectedCountry } = useCountry();
+
+  const [text,       setText]       = useState('');
+  const [imageUrl,   setImageUrl]   = useState('');
+  const [uploading,  setUploading]  = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error,      setError]      = useState('');
+
+  const charLeft = 200 - text.length;
+  const canPost  = text.trim().length >= 5 && !submitting;
+
+  async function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setUploading(true);
+    try {
+      const compressed = await compressImageFile(raw);
+      const uid = await getInteractiveUserId();
+      const url = await uploadBoardImage(uid, compressed);
+      setImageUrl(url);
+    } catch { /* silent — image just won't attach */ }
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
+  async function handleSubmit() {
+    const t = text.trim();
+    if (!t || t.length < 5) { setError('Describe what happened.'); return; }
+    setSubmitting(true);
+    setError('');
+    const [uid, isVerified] = await Promise.all([
+      getInteractiveUserId(),
+      checkLocalVerification(suburb),
+    ]);
+    const { error: apiError, post } = await createBoardPost({
+      neighbourhood: suburb,
+      category: 'safety',
+      title: t,
+      images: imageUrl ? [imageUrl] : [],
+      country_code: selectedCountry.code,
+      is_local_verified: isVerified || undefined,
+    }, uid);
+    if (apiError || !post) {
+      setError('That didn\'t work. Try again.');
+      setSubmitting(false);
+      return;
+    }
+    try {
+      const mine: string[] = JSON.parse(localStorage.getItem('kayaa_board_mine') ?? '[]');
+      mine.unshift(post.id);
+      localStorage.setItem('kayaa_board_mine', JSON.stringify(mine.slice(0, 50)));
+    } catch { /* ignore */ }
+    navigate('/board');
+  }
+
+  return (
+    <div style={{
+      padding: '16px',
+      paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))',
+      minHeight: '100vh',
+      background: 'var(--color-bg)',
+    }}>
+      <style>{`@keyframes sfSpin { to { transform: rotate(360deg); } }`}</style>
+
+      {/* Back */}
+      <button
+        onClick={onBack}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif',
+          fontSize: '14px', padding: 0, marginBottom: '24px',
+        }}
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
+
+      {/* Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '30px', marginBottom: '10px' }}>🚨</div>
+        <h1 style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
+          fontSize: '22px', color: '#EF4444',
+          margin: '0 0 6px', letterSpacing: '-0.01em',
+        }}>
+          Share a safety alert
+        </h1>
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
+          color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.5,
+        }}>
+          Keep it brief and factual. Your alert goes to {suburb}.
+        </p>
+      </div>
+
+      {/* What happened field */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{
+          display: 'block', fontFamily: 'Inter, sans-serif',
+          fontSize: '12px', fontWeight: 700,
+          color: 'rgba(255,255,255,0.45)', marginBottom: '8px',
+          textTransform: 'uppercase', letterSpacing: '0.04em',
+        }}>
+          What happened? *
+        </label>
+        <textarea
+          autoFocus
+          value={text}
+          onChange={e => { setText(e.target.value.slice(0, 200)); setError(''); }}
+          placeholder="Suspicious person near the taxi rank on Claim Street"
+          rows={4}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'var(--color-surface)',
+            border: `1.5px solid ${error ? '#F87171' : text.trim().length >= 5 ? 'rgba(239,68,68,0.4)' : 'var(--color-border)'}`,
+            borderRadius: '14px', padding: '14px',
+            color: 'var(--color-text)', fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', outline: 'none',
+            resize: 'none', lineHeight: 1.5,
+            transition: 'border-color 0.15s',
+          }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+          {error ? (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171' }}>{error}</span>
+          ) : (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+              Be specific — street, time, description helps neighbours
+            </span>
+          )}
+          <span style={{
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
+            color: charLeft <= 30 ? '#F59E0B' : 'rgba(255,255,255,0.3)',
+            flexShrink: 0, marginLeft: '8px',
+          }}>
+            {charLeft}
+          </span>
+        </div>
+      </div>
+
+      {/* Photo (optional) */}
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{
+          display: 'block', fontFamily: 'Inter, sans-serif',
+          fontSize: '12px', fontWeight: 700,
+          color: 'rgba(255,255,255,0.45)', marginBottom: '8px',
+          textTransform: 'uppercase', letterSpacing: '0.04em',
+        }}>
+          Add a photo <span style={{ fontWeight: 400, textTransform: 'none', color: 'rgba(255,255,255,0.25)' }}>(optional)</span>
+        </label>
+
+        {imageUrl ? (
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <img
+              src={imageUrl}
+              alt="Safety photo"
+              style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '10px', display: 'block' }}
+            />
+            <button
+              onClick={() => setImageUrl('')}
+              style={{
+                position: 'absolute', top: '-6px', right: '-6px',
+                width: '22px', height: '22px', borderRadius: '50%',
+                background: '#EF4444', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+              }}
+            >
+              <X size={11} color="#fff" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '12px 16px', borderRadius: '12px',
+              background: 'var(--color-surface)',
+              border: '1px dashed rgba(239,68,68,0.25)',
+              cursor: uploading ? 'default' : 'pointer',
+              opacity: uploading ? 0.6 : 1,
+            }}
+          >
+            <Camera size={18} color="rgba(239,68,68,0.6)" />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+              {uploading ? 'Compressing…' : 'Take or upload a photo'}
+            </span>
+          </button>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: 'none' }}
+          onChange={handleImageAdd}
+        />
+      </div>
+
+      {/* Location indicator */}
+      <div style={{
+        background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)',
+        borderRadius: '12px', padding: '10px 14px',
+        fontSize: '13px', color: 'rgba(255,255,255,0.45)',
+        fontFamily: 'Inter, sans-serif', marginBottom: '20px',
+      }}>
+        📍 Alert goes to neighbours in <strong style={{ color: '#EF4444' }}>{suburb}</strong> · expires in 48 hours
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={handleSubmit}
+        disabled={!canPost}
+        style={{
+          width: '100%', padding: '17px',
+          background: canPost ? '#EF4444' : 'var(--color-border)',
+          color: canPost ? '#fff' : 'var(--color-muted)',
+          border: 'none', borderRadius: '14px',
+          fontSize: '16px', fontWeight: 800,
+          cursor: canPost ? 'pointer' : 'default',
+          fontFamily: 'Inter, sans-serif',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          transition: 'background 0.15s',
+        }}
+      >
+        {submitting ? (
+          <>
+            <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', borderTopColor: '#fff', display: 'inline-block', animation: 'sfSpin 0.7s linear infinite' }} />
+            Sending…
+          </>
+        ) : `Send alert to ${suburb}`}
+      </button>
+    </div>
+  );
+}
+
+// ─── Ask fast-path form ───────────────────────────────────────────────────────
+// Shown when ?cat=ask — no chooser, no preview, single input only.
+
+function AskForm({ suburb, onBack }: { suburb: string; onBack: () => void }) {
+  const navigate = useNavigate();
+  const [question, setQuestion] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const { selectedCountry } = useCountry();
+
+  const examples = [
+    'Good plumber in the area?',
+    'Cheap braids near me?',
+    'Is Sipho\'s Cuts open today?',
+    'Pharmacy open now near Claim Street?',
+  ];
+
+  async function handleSubmit() {
+    const q = question.trim();
+    if (!q || q.length < 5) { setError('Ask a short, clear question.'); return; }
+    setSubmitting(true);
+    setError('');
+    const [uid, isVerified] = await Promise.all([
+      getInteractiveUserId(),
+      checkLocalVerification(suburb),
+    ]);
+    const { error: apiError, post } = await createBoardPost({
+      neighbourhood: suburb,
+      category: 'ask',
+      title: q,
+      country_code: selectedCountry.code,
+      is_local_verified: isVerified || undefined,
+    }, uid);
+    if (apiError || !post) {
+      setError('That didn\'t work. Try again.');
+      setSubmitting(false);
+      return;
+    }
+    // Track ownership
+    try {
+      const mine: string[] = JSON.parse(localStorage.getItem('kayaa_board_mine') ?? '[]');
+      mine.unshift(post.id);
+      localStorage.setItem('kayaa_board_mine', JSON.stringify(mine.slice(0, 50)));
+    } catch { /* ignore */ }
+    navigate('/board');
+  }
+
+  const charLeft = 150 - question.length;
+  const canPost = question.trim().length >= 5 && !submitting;
+
+  return (
+    <div style={{ padding: '16px', paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))', minHeight: '100vh', background: 'var(--color-bg)' }}>
+      <style>{`@keyframes askSpin { to { transform: rotate(360deg); } }`}</style>
+
+      {/* Back */}
+      <button
+        onClick={onBack}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif',
+          fontSize: '14px', padding: 0, marginBottom: '24px',
+        }}
+      >
+        <ArrowLeft size={16} /> Back
+      </button>
+
+      {/* Header */}
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ fontSize: '32px', marginBottom: '10px' }}>❓</div>
+        <h1 style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
+          fontSize: '24px', color: 'var(--color-text)',
+          margin: '0 0 6px', letterSpacing: '-0.01em',
+        }}>
+          Ask your neighbours
+        </h1>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+          Someone in {suburb} probably knows the answer.
+        </p>
+      </div>
+
+      {/* Question input */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{
+          display: 'block', fontFamily: 'Inter, sans-serif',
+          fontSize: '13px', fontWeight: 700,
+          color: 'var(--color-muted)', marginBottom: '8px',
+          textTransform: 'uppercase', letterSpacing: '0.04em',
+        }}>
+          What do you need help finding?
+        </label>
+        <textarea
+          autoFocus
+          value={question}
+          onChange={e => { setQuestion(e.target.value.slice(0, 150)); setError(''); }}
+          placeholder={examples[Math.floor(Date.now() / 60000) % examples.length]}
+          rows={3}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'var(--color-surface)',
+            border: `1.5px solid ${error ? '#F87171' : question.trim().length >= 5 ? 'rgba(57,217,138,0.35)' : 'var(--color-border)'}`,
+            borderRadius: '14px', padding: '14px',
+            color: 'var(--color-text)', fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', outline: 'none',
+            resize: 'none', lineHeight: 1.5,
+            transition: 'border-color 0.15s',
+          }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+          {error ? (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171' }}>{error}</span>
+          ) : (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+              {question.length === 0 ? 'Be specific — who, what, where helps neighbours give better answers' : ' '}
+            </span>
+          )}
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: charLeft <= 20 ? '#F59E0B' : 'var(--color-muted)', flexShrink: 0, marginLeft: '8px' }}>
+            {charLeft}
+          </span>
+        </div>
+      </div>
+
+      {/* Example questions as tappable hints */}
+      <div style={{ marginBottom: '28px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+          Examples — tap to use
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {examples.map(ex => (
+            <button
+              key={ex}
+              onClick={() => { setQuestion(ex); setError(''); }}
+              style={{
+                padding: '6px 12px', borderRadius: '20px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.04)',
+                color: 'rgba(255,255,255,0.45)',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
+                cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Location indicator */}
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: '12px', padding: '10px 14px',
+        fontSize: '13px', color: 'var(--color-muted)',
+        fontFamily: 'Inter, sans-serif', marginBottom: '20px',
+      }}>
+        📍 Your question goes to neighbours in <strong style={{ color: 'var(--color-text)' }}>{suburb}</strong>
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={handleSubmit}
+        disabled={!canPost}
+        style={{
+          width: '100%', padding: '17px',
+          background: canPost ? '#39D98A' : 'var(--color-border)',
+          color: canPost ? '#000' : 'var(--color-muted)',
+          border: 'none', borderRadius: '14px',
+          fontSize: '17px', fontWeight: 800,
+          cursor: canPost ? 'pointer' : 'default',
+          fontFamily: 'Inter, sans-serif',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          transition: 'background 0.15s',
+        }}
+      >
+        {submitting ? (
+          <>
+            <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', display: 'inline-block', animation: 'askSpin 0.7s linear infinite' }} />
+            Posting…
+          </>
+        ) : `Ask ${suburb}`}
+      </button>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function BoardNewPage() {
@@ -1015,12 +1498,7 @@ export default function BoardNewPage() {
   useEffect(() => {
     const cat = searchParams.get('cat') as BoardCategory | null;
     if (!cat) return;
-    // Safety incidents always go to the dedicated report flow
-    if (cat === 'safety') {
-      navigate('/report/safety', { replace: true });
-      return;
-    }
-    if (['for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation'].includes(cat)) {
+    if (['safety','for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation'].includes(cat)) {
       setCategory(cat);
       setStep(2);
       setPreselected(true);
@@ -1038,7 +1516,10 @@ export default function BoardNewPage() {
 
   async function handleSubmit() {
     setSubmitting(true);
-    const uid = await getInteractiveUserId();
+    const [uid, isVerified] = await Promise.all([
+      getInteractiveUserId(),
+      checkLocalVerification(suburb),
+    ]);
     const { error, post } = await createBoardPost({
       neighbourhood: suburb,
       category,
@@ -1049,6 +1530,7 @@ export default function BoardNewPage() {
       images: formData.images,
       video_url: formData.videoUrl || undefined,
       country_code: selectedCountry.code,
+      is_local_verified: isVerified || undefined,
     }, uid);
 
     if (!error && post) {
@@ -1065,17 +1547,32 @@ export default function BoardNewPage() {
   }
 
   function selectCategory(cat: BoardCategory) {
-    // Safety incidents get their own dedicated flow — not the generic board form
-    if (cat === 'safety') {
-      navigate('/report/safety');
-      return;
-    }
     setCategory(cat);
     setStep(2);
   }
 
   const stepTitle = step === 1 ? 'New post' : step === 2 ? 'Add details' : 'Preview';
   const cat = BOARD_CATEGORIES.find(c => c.key === category);
+
+  // Safety fast-path: bypass multi-step form entirely
+  if (category === 'safety' && (preselected || step === 2)) {
+    return (
+      <SafetyForm
+        suburb={suburb}
+        onBack={() => preselected ? navigate(-1) : setStep(1)}
+      />
+    );
+  }
+
+  // Ask fast-path: bypass multi-step form entirely
+  if (category === 'ask' && (preselected || step === 2)) {
+    return (
+      <AskForm
+        suburb={suburb}
+        onBack={() => preselected ? navigate(-1) : setStep(1)}
+      />
+    );
+  }
 
   // ── Post-submit success screen ──────────────────────────────────────────────
   if (successPost) {
