@@ -888,7 +888,7 @@ export default function BoardPage() {
                 title="No jobs posted yet"
                 body={`No job listings in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Know of a position? Post it and help your neighbours find work.`}
                 ctaLabel="Post a job"
-                onCta={() => navigate('/board/new')}
+                onCta={() => navigate('/board/new?cat=jobs')}
                 accent="#A78BFA"
               />
             ) : activeTab === 'services' ? (
@@ -897,7 +897,7 @@ export default function BoardPage() {
                 title="No services listed"
                 body={`No services in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Do you fix, clean, build, teach or care? Let your neighbourhood know.`}
                 ctaLabel="List your service"
-                onCta={() => navigate('/board/new')}
+                onCta={() => navigate('/board/new?cat=services')}
                 accent="#60A5FA"
               />
             ) : activeTab === 'accommodation' ? (
@@ -906,7 +906,7 @@ export default function BoardPage() {
                 title="No housing listings"
                 body={`No rooms or rentals posted in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Know a place to stay? Post it.`}
                 ctaLabel="Post a listing"
-                onCta={() => navigate('/board/new')}
+                onCta={() => navigate('/board/new?cat=accommodation')}
                 accent="#34D399"
               />
             ) : activeTab === 'announcements' ? (
@@ -915,7 +915,7 @@ export default function BoardPage() {
                 title="No notices posted"
                 body={`Nothing announced in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Have something to share with your neighbours?`}
                 ctaLabel="Post a notice"
-                onCta={() => navigate('/board/new')}
+                onCta={() => navigate('/board/new?cat=announcements')}
                 accent="#F59E0B"
               />
             ) : (
@@ -924,7 +924,7 @@ export default function BoardPage() {
                 title={`No ${activeLabel} posts in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'}`}
                 body="Nothing here yet — you could be the first to post in this category."
                 ctaLabel={`Post ${activeLabel}`}
-                onCta={() => navigate('/board/new')}
+                onCta={() => navigate(`/board/new?cat=${secondaryFilter ?? activeTab}`)}
                 accent={getCategoryConfig(secondaryFilter ?? activeTab).color}
               />
             )}

@@ -442,7 +442,7 @@ export default function HousingPage() {
             }
             {/* Post CTA */}
             <button
-              onClick={() => navigate('/board/new')}
+              onClick={() => navigate('/board/new?cat=accommodation')}
               style={{
                 width: '100%', marginTop: '4px',
                 border: '1px dashed rgba(52,211,153,0.25)',

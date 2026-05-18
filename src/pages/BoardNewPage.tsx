@@ -1007,8 +1007,11 @@ export default function BoardNewPage() {
   const { selectedCountry } = useCountry();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [category, setCategory] = useState<BoardCategory>('ask');
+  // True when the user arrived with a ?cat= param — means step 1 (chooser) was skipped.
+  // Back from step 2 should return to the previous page, not the chooser.
+  const [preselected, setPreselected] = useState(false);
 
-  // Pre-select category from query param (e.g. ?cat=services from "Post Your Skills" CTA)
+  // Pre-select category from query param (e.g. ?cat=accommodation from Housing "Post a listing" CTA)
   useEffect(() => {
     const cat = searchParams.get('cat') as BoardCategory | null;
     if (!cat) return;
@@ -1020,6 +1023,7 @@ export default function BoardNewPage() {
     if (['for_sale','free','services','jobs','lost_found','announcements','ask','events','accommodation'].includes(cat)) {
       setCategory(cat);
       setStep(2);
+      setPreselected(true);
     }
   }, [searchParams, navigate]);
   const [formData, setFormData] = useState<FormData>({
@@ -1175,7 +1179,16 @@ export default function BoardNewPage() {
         position: 'sticky', top: 0, background: 'var(--color-bg)', zIndex: 10,
       }}>
         <button
-          onClick={() => step === 1 ? navigate('/board') : setStep(s => (s - 1) as 1 | 2 | 3)}
+          onClick={() => {
+            if (step === 1) {
+              navigate('/board');
+            } else if (step === 2 && preselected) {
+              // User came directly from a category page — go back there, not to the chooser
+              navigate(-1);
+            } else {
+              setStep(s => (s - 1) as 1 | 2 | 3);
+            }
+          }}
           style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
         >
           <ArrowLeft size={20} color="var(--color-text)" />
@@ -1190,9 +1203,9 @@ export default function BoardNewPage() {
             </div>
           )}
         </div>
-        {/* Step indicators */}
+        {/* Step indicators — 2 steps when category was pre-selected, 3 otherwise */}
         <div style={{ display: 'flex', gap: '4px' }}>
-          {[1, 2, 3].map(s => (
+          {(preselected ? [2, 3] : [1, 2, 3]).map(s => (
             <div key={s} style={{
               width: s <= step ? '20px' : '6px', height: '6px',
               borderRadius: '3px',

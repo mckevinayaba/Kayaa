@@ -263,7 +263,7 @@ export default function JobsPage() {
               Know someone hiring? Or have a skill to offer?
             </p>
             <button
-              onClick={() => navigate('/board/new')}
+              onClick={() => navigate('/board/new?cat=jobs')}
               style={{ background: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px' }}
             >
               Post a job or skill
@@ -305,7 +305,7 @@ export default function JobsPage() {
 
         {/* Always-visible post CTA */}
         <button
-          onClick={() => navigate('/board/new')}
+          onClick={() => navigate('/board/new?cat=jobs')}
           style={{
             width: '100%', marginTop: '20px',
             border: '1px dashed rgba(167,139,250,0.3)',
@@ -322,7 +322,7 @@ export default function JobsPage() {
 
       {/* ── FAB ── */}
       <button
-        onClick={() => navigate('/board/new')}
+        onClick={() => navigate('/board/new?cat=jobs')}
         style={{ position: 'fixed', bottom: '80px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#A78BFA', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(167,139,250,0.4)', zIndex: 50 }}
         aria-label="Post a job"
       >
