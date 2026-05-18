@@ -26,6 +26,8 @@ import {
   getBoardPostComments,
   addBoardPostComment,
   reportBoardPostComment,
+  toggleBoardPostLike,
+  isBoardPostLikedLocally,
   getVisitorId,
   type BoardPost,
   type BoardCategory,
@@ -178,6 +180,193 @@ function NeighbourhoodLabel({ name, verified }: { name: string; verified?: boole
     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
       📍 {name}
     </span>
+  );
+}
+
+// ── Reply error mapping ───────────────────────────────────────────────────────
+
+function mapReplyError(errorCode: string | null): string {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return 'No connection. Check your data and try again.';
+  }
+  switch (errorCode) {
+    case 'OFFLINE':   return 'No connection. Check your data and try again.';
+    case 'AUTH':      return 'Please sign in first to reply.';
+    case 'TOO_LONG':  return 'Your reply is too long. Keep it under 150 characters.';
+    case 'POST_GONE': return 'This post is no longer open for replies.';
+    default:          return 'Kayaa is having a problem right now. Try again in a moment.';
+  }
+}
+
+// ── Engagement helpers ────────────────────────────────────────────────────────
+
+/** Reaction label by post category. null = no reaction for this type. */
+function getReactionConfig(category: string): { emoji: string; label: string } | null {
+  if (category === 'safety' || category === 'lost_found') return { emoji: '👁', label: 'Seen' };
+  if (['ask', 'announcements', 'events', 'free'].includes(category)) return { emoji: '👍', label: 'Helpful' };
+  return null; // jobs, services, accommodation, for_sale — transactional, no reaction
+}
+
+/** Whether a "Follow updates" toggle makes sense for this post type. */
+function isFollowable(category: string): boolean {
+  return ['safety', 'lost_found', 'ask'].includes(category);
+}
+
+function isFollowedLocally(postId: string): boolean {
+  try {
+    const arr: string[] = JSON.parse(localStorage.getItem('kayaa_followed_posts') ?? '[]');
+    return arr.includes(postId);
+  } catch { return false; }
+}
+
+function toggleFollowLocally(postId: string): boolean {
+  try {
+    let arr: string[] = JSON.parse(localStorage.getItem('kayaa_followed_posts') ?? '[]');
+    const was = arr.includes(postId);
+    arr = was ? arr.filter(id => id !== postId) : [...new Set([...arr, postId])];
+    localStorage.setItem('kayaa_followed_posts', JSON.stringify(arr));
+    return !was;
+  } catch { return false; }
+}
+
+// ── Post action bar (reactions · share · follow) ──────────────────────────────
+
+function PostActionBar({ post }: { post: BoardPost }) {
+  const reactionCfg = getReactionConfig(post.category);
+  const followable  = isFollowable(post.category);
+
+  const [reacted,      setReacted]      = useState(() => isBoardPostLikedLocally(post.id));
+  const [count,        setCount]        = useState(post.likesCount);
+  const [following,    setFollowing]    = useState(() => isFollowedLocally(post.id));
+  const [sharing,      setSharing]      = useState(false);
+  const [copyDone,     setCopyDone]     = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+
+  async function handleReact() {
+    const next = !reacted;
+    setReacted(next);
+    setCount(c => Math.max(0, c + (next ? 1 : -1)));
+    await toggleBoardPostLike(post.id, getVisitorId());
+  }
+
+  function handleFollow() {
+    setFollowing(toggleFollowLocally(post.id));
+  }
+
+  async function handleShare() {
+    const url  = `https://kayaa.co.za/board/${post.id}`;
+    const data = { title: post.title, text: `${post.title} — ${post.neighbourhood}`, url };
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      setSharing(true);
+      try { await navigator.share(data); } catch { /* user cancelled */ }
+      setSharing(false);
+    } else {
+      setShowFallback(f => !f);
+    }
+  }
+
+  async function handleCopyLink() {
+    const url = `https://kayaa.co.za/board/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyDone(true);
+      setTimeout(() => setCopyDone(false), 2000);
+    } catch { /* noop */ }
+  }
+
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(
+    `${post.title} — ${post.neighbourhood}\nhttps://kayaa.co.za/board/${post.id}`,
+  )}`;
+
+  const btnBase: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: '5px',
+    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px',
+    padding: '5px 11px', cursor: 'pointer',
+    background: 'none', transition: 'all 0.15s',
+    WebkitTapHighlightColor: 'transparent',
+  };
+
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', flexWrap: 'wrap' }}>
+
+        {/* Reaction: Seen / Helpful */}
+        {reactionCfg && (
+          <button onClick={handleReact} style={{
+            ...btnBase,
+            background: reacted ? 'rgba(57,217,138,0.1)' : 'none',
+            border: `1px solid ${reacted ? 'rgba(57,217,138,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          }}>
+            <span style={{ fontSize: '13px' }}>{reactionCfg.emoji}</span>
+            <span style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+              color: reacted ? '#39D98A' : 'rgba(255,255,255,0.4)',
+            }}>
+              {reactionCfg.label}{count > 0 ? ` ${count}` : ''}
+            </span>
+          </button>
+        )}
+
+        {/* Share */}
+        <button onClick={handleShare} style={btnBase}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>↗</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>
+            {sharing ? 'Opening…' : 'Share'}
+          </span>
+        </button>
+
+        {/* Follow updates */}
+        {followable && (
+          <button onClick={handleFollow} style={{
+            ...btnBase,
+            background: following ? 'rgba(167,139,250,0.1)' : 'none',
+            border: `1px solid ${following ? 'rgba(167,139,250,0.28)' : 'rgba(255,255,255,0.08)'}`,
+          }}>
+            <span style={{ fontSize: '13px' }}>{following ? '✓' : '🔔'}</span>
+            <span style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+              color: following ? '#A78BFA' : 'rgba(255,255,255,0.4)',
+            }}>
+              {following ? 'Following' : 'Follow updates'}
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* Share fallback (native share unavailable) */}
+      {showFallback && (
+        <div style={{ padding: '0 14px 10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setShowFallback(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.25)',
+              borderRadius: '20px', padding: '6px 14px',
+              color: '#25D366', fontFamily: 'Inter, sans-serif',
+              fontSize: '12px', fontWeight: 700, textDecoration: 'none',
+            }}
+          >
+            WhatsApp
+          </a>
+          <button
+            onClick={handleCopyLink}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '20px', padding: '6px 14px',
+              color: copyDone ? '#39D98A' : 'rgba(255,255,255,0.55)',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {copyDone ? '✓ Copied' : 'Copy link'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -779,12 +968,13 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
     setSending(true);
     setSendError('');
     const vid = getVisitorId();
-    const comment = await addBoardPostComment(postId, vid, text, visitorName ?? undefined);
+    const { comment, errorCode } = await addBoardPostComment(postId, vid, text, visitorName ?? undefined);
     if (comment) {
       setReplies(prev => [...prev, comment]);
-      setReplyText('');
+      setReplyText(''); // only clear on success
     } else {
-      setSendError('That didn\'t work. Try again.');
+      // reply text is deliberately kept so the user can retry
+      setSendError(mapReplyError(errorCode));
     }
     setSending(false);
   }
@@ -846,7 +1036,8 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
             <textarea
               value={replyText}
               onChange={e => { setReplyText(e.target.value.slice(0, 150)); setSendError(''); }}
-              placeholder="Add what you know..."
+              placeholder={sending ? '' : 'Add what you know...'}
+              disabled={sending}
               rows={2}
               style={{
                 flex: 1, background: 'var(--color-surface)',
@@ -855,6 +1046,7 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
                 color: 'var(--color-text)', fontSize: '14px',
                 fontFamily: 'Inter, sans-serif', outline: 'none',
                 resize: 'none', lineHeight: 1.45,
+                opacity: sending ? 0.6 : 1,
               }}
             />
             <button
@@ -872,7 +1064,14 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
               <Send size={16} color={replyText.trim() && !sending ? '#000' : 'rgba(255,255,255,0.3)'} />
             </button>
           </div>
-          {sendError && (
+
+          {/* Status / error row */}
+          {sending && (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
+              Sending reply…
+            </p>
+          )}
+          {!sending && sendError && (
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171', margin: '4px 0 0' }}>
               {sendError}
             </p>
@@ -909,7 +1108,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
   isExpanded: boolean;
   onToggleExpand: () => void;
 }) {
-  // Ask posts: card acts as its own header with inline reply toggle
+  // Ask posts: AskCard owns the reply toggle; action bar sits between card and replies
   if (post.category === 'ask') {
     return (
       <div style={{ borderRadius: '14px', overflow: 'hidden' }}>
@@ -919,6 +1118,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
           onToggleReplies={onToggleExpand}
           repliesOpen={isExpanded}
         />
+        <PostActionBar post={post} />
         {isExpanded && (
           <InlineReplySection
             postId={post.id}
@@ -933,7 +1133,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
     );
   }
 
-  // All other post types: card on top, reply section below
+  // All other post types: card → action bar → reply section
   let card: React.ReactNode;
   if (post.category === 'jobs')
     card = <JobCard post={post} isMine={isMine} onMarkResolved={onMarkResolved} />;
@@ -949,6 +1149,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
   return (
     <div style={{ borderRadius: '14px', overflow: 'hidden' }}>
       {card}
+      <PostActionBar post={post} />
       <InlineReplySection
         postId={post.id}
         commentsCount={post.commentsCount}

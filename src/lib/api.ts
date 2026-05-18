@@ -2542,21 +2542,45 @@ export async function getBoardPostComments(postId: string): Promise<BoardPostCom
   } catch { return []; }
 }
 
+/**
+ * Add a reply to a board post.
+ * Returns { comment, errorCode } where errorCode is:
+ *   null        → success
+ *   'OFFLINE'   → no network
+ *   'AUTH'      → RLS / unauthenticated
+ *   'TOO_LONG'  → check constraint violated
+ *   'POST_GONE' → FK violation (post deleted)
+ *   'UNKNOWN'   → any other server error
+ */
 export async function addBoardPostComment(
   postId: string,
   visitorId: string,
   content: string,
   visitorName?: string,
-): Promise<BoardPostComment | null> {
+): Promise<{ comment: BoardPostComment | null; errorCode: string | null }> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return { comment: null, errorCode: 'OFFLINE' };
+  }
   try {
     const { data, error } = await supabase
       .from('board_post_comments')
       .insert({ post_id: postId, visitor_id: visitorId, content: content.trim(), visitor_name: visitorName ?? null })
       .select()
       .single();
-    if (error || !data) return null;
-    return dbBoardComment(data);
-  } catch { return null; }
+    if (error) {
+      if (error.code === '42501') return { comment: null, errorCode: 'AUTH' };
+      if (error.code === '23514') return { comment: null, errorCode: 'TOO_LONG' };
+      if (error.code === '23503') return { comment: null, errorCode: 'POST_GONE' };
+      return { comment: null, errorCode: 'UNKNOWN' };
+    }
+    if (!data) return { comment: null, errorCode: 'UNKNOWN' };
+    return { comment: dbBoardComment(data), errorCode: null };
+  } catch {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return { comment: null, errorCode: 'OFFLINE' };
+    }
+    return { comment: null, errorCode: 'UNKNOWN' };
+  }
 }
 
 /**

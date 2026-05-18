@@ -105,7 +105,7 @@ export default function BoardPostPage() {
     if (!post || !newComment.trim() || sending) return;
     setSending(true);
     const vid = getVisitorId();
-    const comment = await addBoardPostComment(post.id, vid, newComment.trim(), visitorName ?? undefined);
+    const { comment } = await addBoardPostComment(post.id, vid, newComment.trim(), visitorName ?? undefined);
     if (comment) {
       setComments(prev => [...prev, comment]);
       setNewComment('');
