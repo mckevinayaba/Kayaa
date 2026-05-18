@@ -79,6 +79,16 @@ function getCategoryConfig(key: string) {
   };
 }
 
+// ── Geographic scope ─────────────────────────────────────────────────────────
+
+type GeoScope = 'my_area' | 'nearby' | 'everywhere';
+
+const GEO_SCOPES: { key: GeoScope; label: string }[] = [
+  { key: 'my_area',    label: 'My area' },
+  { key: 'nearby',     label: 'Nearby' },
+  { key: 'everywhere', label: 'Everywhere' },
+];
+
 // ── Primary tabs ──────────────────────────────────────────────────────────────
 
 const PRIMARY_TABS = [
@@ -600,7 +610,7 @@ export default function BoardPage() {
 
   const [posts,           setPosts]           = useState<BoardPost[]>([]);
   const [loading,         setLoading]         = useState(true);
-  const [expanded,        setExpanded]        = useState(false);
+  const [geoScope,        setGeoScope]        = useState<GeoScope>('my_area');
   const [activeTab,       setActiveTab]       = useState<string>('all');
   const [secondaryFilter, setSecondaryFilter] = useState<string | null>(null);
   const [mineIds,         setMineIds]         = useState<string[]>([]);
@@ -620,14 +630,13 @@ export default function BoardPage() {
 
   useEffect(() => {
     setLoading(true);
-    // Resolve which category to fetch
+    // Resolve which category to fetch — category and geo scope are independent axes
     const fetchCat = secondaryFilter ?? (activeTab === 'all' ? undefined : activeTab);
-    getBoardPosts(suburb, city, fetchCat, selectedCountry.code).then(({ posts: p, expanded: e }) => {
+    getBoardPosts(suburb, city, fetchCat, selectedCountry.code, geoScope).then(({ posts: p }) => {
       setPosts(p);
-      setExpanded(e);
       setLoading(false);
     });
-  }, [suburb, city, activeTab, secondaryFilter, selectedCountry.code]);
+  }, [suburb, city, activeTab, secondaryFilter, selectedCountry.code, geoScope]);
 
   const freshSafetyPosts = posts.filter(isSafetyFresh);
   const showSafetyBanner = freshSafetyPosts.length > 0 && !safetyDismissed;
@@ -699,11 +708,6 @@ export default function BoardPage() {
             }}>
               {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
             </h1>
-            {expanded && !loading && (
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#F5A623', margin: '4px 0 0' }}>
-                expanded area
-              </p>
-            )}
           </div>
           <button
             onClick={() => navigate('/board/mine')}
@@ -732,6 +736,34 @@ export default function BoardPage() {
           >×</button>
         </div>
       )}
+
+      {/* ── Geographic scope pills ── */}
+      <div style={{
+        display: 'flex', gap: '6px', padding: '0 16px 10px',
+        overflowX: 'auto', scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}>
+        {GEO_SCOPES.map(s => {
+          const active = geoScope === s.key;
+          return (
+            <button
+              key={s.key}
+              onClick={() => setGeoScope(s.key)}
+              style={{
+                flexShrink: 0, padding: '6px 16px', borderRadius: '20px',
+                border: `1px solid ${active ? '#39D98A' : 'rgba(255,255,255,0.1)'}`,
+                background: active ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.04)',
+                color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
+                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontWeight: active ? 700 : 500, cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              {s.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* ── Primary tab bar ── */}
       <div style={{
@@ -844,7 +876,7 @@ export default function BoardPage() {
             {activeTab === 'all' && !secondaryFilter ? (
               <NudgeCard
                 emoji="💬"
-                title={`Nothing posted in ${display || 'your area'} yet.`}
+                title={`Nothing posted in ${geoScope === 'my_area' ? (display || 'your area') : geoScope === 'nearby' ? 'your area or nearby' : 'any area'} yet.`}
                 body="The conversation starts with you."
                 ctaLabel="Start the first post"
                 onCta={() => navigate('/board/new')}
@@ -854,7 +886,7 @@ export default function BoardPage() {
               <NudgeCard
                 emoji="💼"
                 title="No jobs posted yet"
-                body={`No job listings in ${display || 'your area'} yet. Know of a position? Post it and help your neighbours find work.`}
+                body={`No job listings in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Know of a position? Post it and help your neighbours find work.`}
                 ctaLabel="Post a job"
                 onCta={() => navigate('/board/new')}
                 accent="#A78BFA"
@@ -863,7 +895,7 @@ export default function BoardPage() {
               <NudgeCard
                 emoji="🔧"
                 title="No services listed"
-                body={`No services in ${display || 'your area'} yet. Do you fix, clean, build, teach or care? Let your neighbourhood know.`}
+                body={`No services in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Do you fix, clean, build, teach or care? Let your neighbourhood know.`}
                 ctaLabel="List your service"
                 onCta={() => navigate('/board/new')}
                 accent="#60A5FA"
@@ -872,7 +904,7 @@ export default function BoardPage() {
               <NudgeCard
                 emoji="🏠"
                 title="No housing listings"
-                body={`No rooms or rentals posted in ${display || 'your area'} yet. Know a place to stay? Post it.`}
+                body={`No rooms or rentals posted in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Know a place to stay? Post it.`}
                 ctaLabel="Post a listing"
                 onCta={() => navigate('/board/new')}
                 accent="#34D399"
@@ -881,7 +913,7 @@ export default function BoardPage() {
               <NudgeCard
                 emoji="📢"
                 title="No notices posted"
-                body={`Nothing announced in ${display || 'your area'} yet. Have something to share with your neighbours?`}
+                body={`Nothing announced in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Have something to share with your neighbours?`}
                 ctaLabel="Post a notice"
                 onCta={() => navigate('/board/new')}
                 accent="#F59E0B"
@@ -889,12 +921,40 @@ export default function BoardPage() {
             ) : (
               <NudgeCard
                 emoji={getCategoryConfig(secondaryFilter ?? activeTab).emoji}
-                title={`No ${activeLabel} posts in ${display || 'your area'}`}
+                title={`No ${activeLabel} posts in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'}`}
                 body="Nothing here yet — you could be the first to post in this category."
                 ctaLabel={`Post ${activeLabel}`}
                 onCta={() => navigate('/board/new')}
                 accent={getCategoryConfig(secondaryFilter ?? activeTab).color}
               />
+            )}
+
+            {/* Scope expansion nudges */}
+            {geoScope === 'my_area' && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setGeoScope('nearby')}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See nearby posts
+                </button>
+                <button
+                  onClick={() => setGeoScope('everywhere')}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See all areas
+                </button>
+              </div>
+            )}
+            {geoScope === 'nearby' && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '14px' }}>
+                <button
+                  onClick={() => setGeoScope('everywhere')}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See all areas
+                </button>
+              </div>
             )}
           </div>
         ) : (
@@ -909,7 +969,7 @@ export default function BoardPage() {
               />
             ))}
             <p style={{ textAlign: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px', marginBottom: 0 }}>
-              {posts.length} post{posts.length !== 1 ? 's' : ''} · {display || 'your area'}
+              {posts.length} post{posts.length !== 1 ? 's' : ''} · {geoScope === 'my_area' ? (display || 'your area') : geoScope === 'nearby' ? `${display || 'your area'} + nearby` : 'all areas'}
             </p>
           </div>
         )}

@@ -1117,28 +1117,51 @@ export interface LocalJob {
   payLabel?: string;
 }
 
-export async function getLocalJobs(neighbourhood: string): Promise<LocalJob[]> {
-  const { data, error } = await supabase
-    .from('local_jobs')
-    .select('*')
-    .eq('neighbourhood', neighbourhood)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false });
+export async function getLocalJobs(
+  neighbourhood: string,
+  scope: 'my_area' | 'nearby' | 'everywhere' = 'my_area',
+  city = '',
+): Promise<LocalJob[]> {
+  try {
+    let q = supabase
+      .from('local_jobs')
+      .select('*')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
 
-  if (error || !data) return [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data.map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    neighbourhood: row.neighbourhood,
-    jobType: row.job_type,
-    contactInfo: row.contact_info,
-    isPaid: row.is_paid ?? true,
-    postedBy: row.posted_by,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
-  }));
+    // For 'my_area': filter at DB level — fast exact match.
+    // For 'nearby'/'everywhere': fetch all, filter client-side.
+    if (scope === 'my_area') {
+      q = q.eq('neighbourhood', neighbourhood);
+    }
+
+    const { data, error } = await q;
+    if (error || !data) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allJobs: LocalJob[] = data.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      neighbourhood: row.neighbourhood,
+      jobType: row.job_type,
+      contactInfo: row.contact_info,
+      isPaid: row.is_paid ?? true,
+      postedBy: row.posted_by,
+      createdAt: row.created_at,
+      expiresAt: row.expires_at,
+    }));
+
+    if (scope === 'everywhere') return allJobs;
+
+    // scope === 'nearby': exact suburb + tight cluster neighbours
+    return allJobs.filter(job => {
+      const tier = getAreaTier(job.neighbourhood, job.neighbourhood, neighbourhood, city);
+      return tier === 'exact' || tier === 'cluster';
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function createLocalJob(data: {
@@ -1930,6 +1953,7 @@ export async function getBoardPosts(
   city: string,
   category?: string,
   countryCode?: string,
+  scope: 'my_area' | 'nearby' | 'everywhere' = 'nearby',
 ): Promise<{ posts: BoardPost[]; expanded: boolean }> {
   try {
     const now = new Date().toISOString();
@@ -1956,22 +1980,20 @@ export async function getBoardPosts(
 
     const allPosts = data.map(dbBoardPost);
 
-    // Cluster-filter client-side (same logic as feed)
-    const local = allPosts.filter(p => {
+    // 'everywhere': return all posts — user explicitly chose this scope
+    if (scope === 'everywhere') {
+      return { posts: sortBoardPosts(allPosts), expanded: false };
+    }
+
+    // 'my_area': exact suburb match only
+    // 'nearby': exact suburb + tight cluster neighbours
+    const filtered = allPosts.filter(p => {
       const tier = getAreaTier(p.neighbourhood, p.neighbourhood, suburb, city);
+      if (scope === 'my_area') return tier === 'exact';
       return tier === 'exact' || tier === 'cluster';
     });
 
-    if (local.length >= 5) return { posts: sortBoardPosts(local), expanded: false };
-
-    // Expand to metro if not enough local
-    const metro = allPosts.filter(p => {
-      const tier = getAreaTier(p.neighbourhood, p.neighbourhood, suburb, city);
-      return tier !== 'outside';
-    });
-
-    const expanded = metro.length > local.length;
-    return { posts: sortBoardPosts(metro.length > 0 ? metro : allPosts.slice(0, 30)), expanded };
+    return { posts: sortBoardPosts(filtered), expanded: false };
   } catch {
     return { posts: [], expanded: false };
   }

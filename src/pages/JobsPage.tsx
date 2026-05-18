@@ -2,8 +2,8 @@
  * JobsPage — /jobs
  *
  * Shows local_jobs for the detected suburb.
- * If no real jobs exist, seed listings keep the page alive.
- * Seed data is display-only — never saved to Supabase.
+ * Geographic scope is user-controlled: My area | Nearby | Everywhere.
+ * "All" means all categories — never all geographies.
  */
 
 import { useState, useEffect } from 'react';
@@ -12,6 +12,16 @@ import { Plus } from 'lucide-react';
 import { getLocalJobs } from '../lib/api';
 import type { LocalJob } from '../lib/api';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
+
+// ─── Geographic scope ─────────────────────────────────────────────────────────
+
+type GeoScope = 'my_area' | 'nearby' | 'everywhere';
+
+const GEO_SCOPES: { key: GeoScope; label: string }[] = [
+  { key: 'my_area',    label: 'My area' },
+  { key: 'nearby',     label: 'Nearby' },
+  { key: 'everywhere', label: 'Everywhere' },
+];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -117,10 +127,11 @@ type Filter = 'all' | 'Hiring' | 'Skills';
 
 export default function JobsPage() {
   const navigate = useNavigate();
-  const { displaySuburb: suburb } = useNeighbourhood();
+  const { displaySuburb: suburb, displayCity: city } = useNeighbourhood();
 
   const [realJobs, setRealJobs] = useState<LocalJob[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [geoScope, setGeoScope] = useState<GeoScope>('my_area');
   const [filter,   setFilter]   = useState<Filter>('all');
   const [jobsHintDismissed, setJobsHintDismissed] = useState(
     () => { try { return localStorage.getItem('kayaa_jobs_hint_seen') === 'true'; } catch { return false; } }
@@ -129,10 +140,10 @@ export default function JobsPage() {
   useEffect(() => {
     setLoading(true);
     if (!suburb) { setLoading(false); return; }
-    getLocalJobs(suburb)
+    getLocalJobs(suburb, geoScope, city || '')
       .then(jobs => { setRealJobs(jobs); setLoading(false); })
       .catch(() => { setLoading(false); });
-  }, [suburb]);
+  }, [suburb, city, geoScope]);
 
   // Normalise to DisplayJob — real listings only
   const allJobs: DisplayJob[] = loading
@@ -163,9 +174,38 @@ export default function JobsPage() {
         </h1>
         {!isSeedMode && !loading && (
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px' }}>
-            {realJobs.length} listing{realJobs.length !== 1 ? 's' : ''} in {suburb || 'your area'}
+            {realJobs.length} listing{realJobs.length !== 1 ? 's' : ''} · {geoScope === 'my_area' ? (suburb || 'your area') : geoScope === 'nearby' ? `${suburb || 'your area'} + nearby` : 'all areas'}
           </p>
         )}
+
+        {/* ── Geographic scope pills ── */}
+        <div style={{
+          display: 'flex', gap: '6px', marginBottom: '4px',
+          overflowX: 'auto', scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+        } as React.CSSProperties}>
+          {GEO_SCOPES.map(s => {
+            const active = geoScope === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setGeoScope(s.key)}
+                style={{
+                  flexShrink: 0, padding: '6px 16px', borderRadius: '20px',
+                  border: `1px solid ${active ? '#39D98A' : 'rgba(255,255,255,0.1)'}`,
+                  background: active ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.04)',
+                  color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
+                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontWeight: active ? 700 : 500, cursor: 'pointer',
+                  WebkitTapHighlightColor: 'transparent',
+                } as React.CSSProperties}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+
         {!jobsHintDismissed && !loading && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '12px' }}>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
@@ -215,7 +255,9 @@ export default function JobsPage() {
           <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>💼</div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              No jobs posted yet.
+              {filter !== 'all'
+                ? `No ${filter === 'Hiring' ? 'hiring' : 'skills'} listings yet.`
+                : `No jobs in ${geoScope === 'my_area' ? (suburb || 'your area') : geoScope === 'nearby' ? 'your area or nearby' : 'any area'} yet.`}
             </div>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Know someone hiring? Or have a skill to offer?
@@ -226,6 +268,34 @@ export default function JobsPage() {
             >
               Post a job or skill
             </button>
+
+            {/* Scope expansion nudges */}
+            {geoScope === 'my_area' && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setGeoScope('nearby')}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See nearby jobs
+                </button>
+                <button
+                  onClick={() => setGeoScope('everywhere')}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See all areas
+                </button>
+              </div>
+            )}
+            {geoScope === 'nearby' && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '14px' }}>
+                <button
+                  onClick={() => setGeoScope('everywhere')}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  See all areas
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
