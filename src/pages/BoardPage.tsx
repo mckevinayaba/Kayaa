@@ -1407,8 +1407,8 @@ export default function BoardPage() {
 
       {/* ── Header ── */}
       <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.1em',
@@ -1416,12 +1416,28 @@ export default function BoardPage() {
             }}>
               Community board
             </p>
-            <h1 style={{
-              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px',
-              color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
-            }}>
-              {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <h1 style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px',
+                color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
+              }}>
+                {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
+              </h1>
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '20px', padding: '4px 10px',
+                  fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.45)',
+                  cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0,
+                  WebkitTapHighlightColor: 'transparent',
+                } as React.CSSProperties}
+                aria-label="Change neighbourhood"
+              >
+                Change area
+              </button>
+            </div>
           </div>
           <button
             onClick={() => navigate('/board/mine')}
@@ -1429,7 +1445,7 @@ export default function BoardPage() {
               background: 'transparent', border: '1px solid var(--color-border)',
               borderRadius: '20px', padding: '6px 12px',
               fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)',
-              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0,
             }}
           >
             My posts

@@ -1,10 +1,11 @@
 ﻿import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Map, List, SlidersHorizontal, X, Users } from 'lucide-react';
+import { Map, List, SlidersHorizontal, X, Users, ChevronDown } from 'lucide-react';
 import { getAllVenues } from '../lib/api';
 import { haversineKm } from '../lib/geocode';
 import { useCountry } from '../contexts/CountryContext';
 import useLocation from '../hooks/useLocation';
+import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import SearchBar from '../components/search/SearchBar';
 import VisualFilters from '../components/feed/VisualFilters';
 // MapView is lazy-loaded so leaflet/dist/leaflet.css is code-split into its own chunk
@@ -128,6 +129,7 @@ export default function ExplorePage() {
   const navigate = useNavigate();
   const { selectedCountry } = useCountry();
   const { suburb, lat: userLat, lon: userLon } = useLocation();
+  const { setManualOverride, clearManualOverride, manualOverride } = useNeighbourhood();
 
   const [venues,       setVenues]       = useState<Venue[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -137,13 +139,16 @@ export default function ExplorePage() {
   const [distFilter,   setDistFilter]   = useState('Any');
   const [statusFilter, setStatusFilter] = useState('Any status');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [showAreaSearch, setShowAreaSearch] = useState(false);
+  const [areaQuery,      setAreaQuery]      = useState('');
 
   useEffect(() => {
-    getAllVenues({ countryCode: selectedCountry.code }).then(v => {
+    setLoading(true);
+    getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined }).then(v => {
       setVenues(v.filter(x => x.description.trim().length >= 10));
       setLoading(false);
     });
-  }, [selectedCountry.code]);
+  }, [selectedCountry.code, suburb]);
 
   // ── Filter pills ─────────────────────────────────────────────────────────────
 
@@ -223,8 +228,26 @@ export default function ExplorePage() {
               {loading ? '…' : `${filtered.length} places near ${areaLabel}`}
             </p>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Right-side controls: neighbourhood switch + filters + view toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Neighbourhood switch */}
+            <button
+              onClick={() => { setShowAreaSearch(s => !s); setAreaQuery(''); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                background: manualOverride ? 'rgba(96,165,250,0.12)' : 'var(--color-surface)',
+                border: `1px solid ${manualOverride ? 'rgba(96,165,250,0.3)' : 'var(--color-border)'}`,
+                borderRadius: '20px', padding: '6px 11px',
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+                color: manualOverride ? '#93C5FD' : 'var(--color-muted)',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+              aria-label="Change neighbourhood"
+            >
+              {suburb || 'Set area'}
+              <ChevronDown size={12} />
+            </button>
             {/* Advanced filter toggle */}
             <button
               onClick={() => setShowAdv(s => !s)}
@@ -264,9 +287,41 @@ export default function ExplorePage() {
           </div>
         </div>
 
+        {/* Inline area search */}
+        {showAreaSearch && (
+          <div style={{ marginBottom: '10px', display: 'flex', gap: '8px' }}>
+            <input
+              autoFocus
+              value={areaQuery}
+              onChange={e => setAreaQuery(e.target.value)}
+              placeholder="e.g. Berea, Soweto…"
+              style={{
+                flex: 1, padding: '9px 13px', borderRadius: '10px',
+                background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.3)',
+                color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontSize: '14px',
+                outline: 'none',
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && areaQuery.trim()) { setManualOverride(areaQuery.trim()); setShowAreaSearch(false); }
+                if (e.key === 'Escape') setShowAreaSearch(false);
+              }}
+            />
+            <button
+              onClick={() => { if (areaQuery.trim()) { setManualOverride(areaQuery.trim()); setShowAreaSearch(false); } }}
+              style={{ padding: '9px 14px', borderRadius: '10px', border: 'none', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer', flexShrink: 0 }}
+            >Set</button>
+            {manualOverride && (
+              <button
+                onClick={() => { clearManualOverride(); setShowAreaSearch(false); }}
+                style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}
+              >GPS</button>
+            )}
+          </div>
+        )}
+
         {/* Search bar */}
         <div style={{ marginBottom: '12px' }}>
-          <SearchBar venues={venues} userLat={userLat} userLon={userLon} />
+          <SearchBar venues={venues} userLat={userLat} userLon={userLon} neighbourhood={suburb || undefined} />
         </div>
 
         {/* Category filter pills */}

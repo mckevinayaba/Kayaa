@@ -227,11 +227,12 @@ export default function CheckInBrowsePage() {
   const [showSort, setShowSort] = useState(false);
 
   useEffect(() => {
-    getAllVenues({ countryCode: selectedCountry.code }).then(v => {
+    setLoading(true);
+    getAllVenues({ countryCode: selectedCountry.code, suburb: suburb || undefined }).then(v => {
       setVenues(v.filter(x => x.description.trim().length >= 10));
       setLoading(false);
     });
-  }, [selectedCountry.code]);
+  }, [selectedCountry.code, suburb]);
 
   // Active-now rail: busy status OR check-ins today
   const activeNow = useMemo(
@@ -290,7 +291,7 @@ export default function CheckInBrowsePage() {
           venues={venues}
           userLat={userLat}
           userLon={userLon}
-          placeholder="Search places, areas, categories…"
+          neighbourhood={suburb || undefined}
         />
       </div>
 

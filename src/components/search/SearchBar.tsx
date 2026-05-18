@@ -27,6 +27,8 @@ export interface SearchBarProps {
   userLon?: number;
   placeholder?: string;
   autoFocus?: boolean;
+  /** Current browsing neighbourhood — enables scoped search */
+  neighbourhood?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -76,10 +78,30 @@ export default function SearchBar({
   venues = [],
   userLat,
   userLon,
-  placeholder = 'Search places, areas, categories…',
+  placeholder,
   autoFocus = false,
+  neighbourhood,
 }: SearchBarProps) {
   const navigate = useNavigate();
+
+  // Scope: 'neighbourhood' = restrict to current suburb, 'all' = search everything
+  const [searchScope, setSearchScope] = useState<'neighbourhood' | 'all'>(
+    neighbourhood ? 'neighbourhood' : 'all',
+  );
+
+  // Reset scope when neighbourhood prop changes
+  const prevNeighbourhoodRef = useRef(neighbourhood);
+  useEffect(() => {
+    if (prevNeighbourhoodRef.current !== neighbourhood) {
+      prevNeighbourhoodRef.current = neighbourhood;
+      setSearchScope(neighbourhood ? 'neighbourhood' : 'all');
+    }
+  }, [neighbourhood]);
+
+  const resolvedPlaceholder = placeholder ??
+    (neighbourhood && searchScope === 'neighbourhood'
+      ? `Search in ${neighbourhood}…`
+      : 'Search places, areas, categories…');
 
   const [query,    setQuery]    = useState('');
   const [isOpen,   setIsOpen]   = useState(false);
@@ -120,8 +142,16 @@ export default function SearchBar({
   useEffect(() => {
     if (!debouncedQ.trim() || debouncedQ.length < 2) { setResults([]); return; }
 
+    // When scoped to neighbourhood, restrict to venues in that suburb
+    const pool = (searchScope === 'neighbourhood' && neighbourhood)
+      ? venues.filter(v =>
+          v.neighborhood?.toLowerCase().includes(neighbourhood.toLowerCase()) ||
+          v.city?.toLowerCase().includes(neighbourhood.toLowerCase())
+        )
+      : venues;
+
     const scored: SearchResult[] = [];
-    for (const v of venues) {
+    for (const v of pool) {
       const score = matchScore(v, debouncedQ);
       if (!score) continue;
       const dist =
@@ -150,7 +180,7 @@ export default function SearchBar({
       .splice(8); // keep at most 8
 
     setResults(scored);
-  }, [debouncedQ, venues, userLat, userLon]);
+  }, [debouncedQ, venues, userLat, userLon, searchScope, neighbourhood]);
 
   // ── Close on outside click ──────────────────────────────────────────────────
   useEffect(() => {
@@ -234,7 +264,7 @@ export default function SearchBar({
           autoComplete="off"
           onChange={e => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
-          placeholder={isListening ? 'Listening…' : placeholder}
+          placeholder={isListening ? 'Listening…' : resolvedPlaceholder}
           aria-label="Search places"
           aria-expanded={showDropdown}
           aria-autocomplete="list"
@@ -295,6 +325,31 @@ export default function SearchBar({
             boxShadow: '0 20px 48px rgba(0,0,0,0.6)',
           }}
         >
+
+          {/* Scope toggle — shown when a neighbourhood is known */}
+          {neighbourhood && (
+            <div style={{ padding: '8px 14px 6px', borderBottom: '1px solid var(--color-border)', display: 'flex', gap: '6px' }}>
+              {(['neighbourhood', 'all'] as const).map(s => {
+                const active = searchScope === s;
+                const label  = s === 'neighbourhood' ? `In ${neighbourhood}` : 'All areas';
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSearchScope(s)}
+                    style={{
+                      padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                      background: active ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.06)',
+                      color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
+                      fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Recent searches */}
           {query.length === 0 && recents.length > 0 && (
@@ -383,14 +438,29 @@ export default function SearchBar({
 
           {/* No results */}
           {debouncedQ.length >= 2 && results.length === 0 && (
-            <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
+            <div style={{ padding: '20px 16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>🔍</div>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 4px' }}>
                 No results for <strong style={{ color: 'var(--color-text)' }}>"{debouncedQ}"</strong>
+                {searchScope === 'neighbourhood' && neighbourhood ? ` in ${neighbourhood}` : ''}
               </p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
-                Try a different name, area, or category
-              </p>
+              {searchScope === 'neighbourhood' && neighbourhood ? (
+                <button
+                  onClick={() => setSearchScope('all')}
+                  style={{
+                    marginTop: '8px', padding: '6px 14px', borderRadius: '20px', border: 'none',
+                    background: 'rgba(57,217,138,0.12)', color: '#39D98A',
+                    fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Search all areas
+                </button>
+              ) : (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+                  Try a different name, area, or category
+                </p>
+              )}
             </div>
           )}
 

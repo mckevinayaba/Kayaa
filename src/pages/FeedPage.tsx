@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { PenSquare } from 'lucide-react';
+import { PenSquare, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { haversineKm } from '../lib/geocode';
@@ -507,10 +507,28 @@ export default function FeedPage() {
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(57,217,138,0.6)', margin: '0 0 6px' }}>
           {getGreeting()}
         </p>
-        <div onClick={() => setShowAreaGate(true)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
+        {/* Neighbourhood title + explicit change affordance */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '28px', color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>
             {areaLabel}
           </h1>
+          <button
+            onClick={() => { setShowAreaSearch(true); setAreaSearchQuery(''); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '20px', padding: '6px 12px',
+              cursor: 'pointer', flexShrink: 0,
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+              color: 'rgba(255,255,255,0.6)',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+            aria-label="Change neighbourhood"
+          >
+            {manualOverride ? 'Browsing' : suburb ? 'Change' : 'Set area'}
+            <ChevronDown size={12} />
+          </button>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#9CA3AF', margin: '0 0 10px' }}>
           {!suburb
