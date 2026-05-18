@@ -23,6 +23,9 @@ import {
   getActiveVenueStory, getInteractiveUserId,
   getEventRsvpCountsBatch, checkUserRsvp, addEventRsvp, removeEventRsvp, getEventRsvpCount,
   getVenueRecentCheckIns, recordVenueView, getVenueOwnerUpdates,
+  getVenueRecommendations, getMyVenueRecommendation,
+  upsertVenueRecommendation, removeVenueRecommendation,
+  type VenueRecommendation,
 } from '../lib/api';
 import type { VenueRecentStats, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
 import type { Venue, Event, Post } from '../types';
@@ -1076,6 +1079,408 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
   );
 }
 
+// ─── Neighbour Recommendations ───────────────────────────────────────────────
+// No star ratings. Neighbours say why they like a place.
+// One recommendation per visitor (visitor_id). Soft-delete on removal.
+
+const REC_TAGS = ['Friendly', 'Affordable', 'Fast', 'Safe', 'Good quality'] as const;
+const REC_PLACEHOLDERS = [
+  'Friendly and affordable',
+  'Always open when others are closed',
+  'Clean and safe',
+  'Good service, owner is kind',
+];
+
+function formatDisplayName(raw: string): string {
+  // "Kevin Ayaba" → "Kevin A."
+  const parts = raw.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
+function getStoredVisitorName(): string {
+  return localStorage.getItem('kayaa_visitor_name') ?? '';
+}
+
+function RecModal({
+  existing,
+  onSave,
+  onClose,
+}: {
+  existing:  VenueRecommendation | null;
+  onSave:    (text: string | null, tags: string[], name: string | null) => Promise<void>;
+  onClose:   () => void;
+}) {
+  const [text,    setText]    = useState(existing?.text ?? '');
+  const [tags,    setTags]    = useState<string[]>(existing?.tags ?? []);
+  const [name,    setName]    = useState(getStoredVisitorName());
+  const [saving,  setSaving]  = useState(false);
+  const charLeft = 120 - text.length;
+
+  function toggleTag(tag: string) {
+    setTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : prev.length < 3 ? [...prev, tag] : prev,  // max 3 tags
+    );
+  }
+
+  async function handleSave(skipText = false) {
+    setSaving(true);
+    const displayName = name.trim() ? formatDisplayName(name.trim()) : null;
+    if (displayName) localStorage.setItem('kayaa_visitor_name', name.trim());
+    await onSave(skipText ? null : (text.trim() || null), tags, displayName);
+    setSaving(false);
+  }
+
+  const placeholder = REC_PLACEHOLDERS[Math.floor(Math.random() * REC_PLACEHOLDERS.length)];
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(0,0,0,0.85)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div style={{
+        width: '100%', maxWidth: '480px',
+        background: 'var(--color-surface)', borderRadius: '20px 20px 0 0',
+        padding: '24px 20px 44px', boxSizing: 'border-box',
+        maxHeight: '92dvh', overflowY: 'auto',
+      }}>
+        {/* Drag handle */}
+        <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)', margin: '0 auto 20px' }} />
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', margin: 0 }}>
+            Why do you recommend this place?
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, marginLeft: '12px' }}>
+            <X size={20} color="var(--color-muted)" />
+          </button>
+        </div>
+
+        {/* Quick tags */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          {REC_TAGS.map(tag => {
+            const active = tags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                style={{
+                  padding: '7px 14px', borderRadius: '20px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
+                  background: active ? 'rgba(57,217,138,0.15)' : 'var(--color-surface2)',
+                  border:     active ? '1.5px solid rgba(57,217,138,0.5)' : '1px solid var(--color-border)',
+                  color:      active ? '#39D98A' : 'var(--color-muted)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Text field */}
+        <div style={{ marginBottom: '14px' }}>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value.slice(0, 120))}
+            placeholder={placeholder}
+            rows={3}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
+              borderRadius: '12px', padding: '12px 14px',
+              fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--color-text)',
+              resize: 'none', outline: 'none', lineHeight: 1.55,
+            }}
+          />
+          <div style={{ textAlign: 'right', fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
+            {charLeft} left
+          </div>
+        </div>
+
+        {/* Name field */}
+        <div style={{ marginBottom: '20px' }}>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Your first name (optional)"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
+              borderRadius: '10px', padding: '11px 14px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-text)',
+              outline: 'none',
+            }}
+          />
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => handleSave(false)}
+            disabled={saving}
+            style={{
+              flex: 1, padding: '13px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+              background: '#39D98A', color: '#0D1117',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? 'Saving…' : 'Save recommendation'}
+          </button>
+          <button
+            onClick={() => handleSave(true)}
+            disabled={saving}
+            style={{
+              padding: '13px 18px', borderRadius: '12px', cursor: 'pointer',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)',
+            }}
+          >
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NeighbourRecommendations({ venue }: { venue: { id: string; name: string } }) {
+  const [recs,      setRecs]      = useState<VenueRecommendation[]>([]);
+  const [myRec,     setMyRec]     = useState<VenueRecommendation | null>(null);
+  const [loaded,    setLoaded]    = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showMenu,  setShowMenu]  = useState(false);  // edit/remove menu
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getVenueRecommendations(venue.id),
+      getMyVenueRecommendation(venue.id),
+    ]).then(([list, mine]) => {
+      if (!cancelled) { setRecs(list); setMyRec(mine); setLoaded(true); }
+    });
+    return () => { cancelled = true; };
+  }, [venue.id]);
+
+  async function handleSave(text: string | null, tags: string[], name: string | null) {
+    const { error } = await upsertVenueRecommendation(venue.id, text, tags, name);
+    if (error) return;
+    // Refresh
+    const [list, mine] = await Promise.all([
+      getVenueRecommendations(venue.id),
+      getMyVenueRecommendation(venue.id),
+    ]);
+    setRecs(list); setMyRec(mine);
+    setShowModal(false);
+  }
+
+  async function handleRemove() {
+    await removeVenueRecommendation(venue.id);
+    const [list, mine] = await Promise.all([
+      getVenueRecommendations(venue.id),
+      getMyVenueRecommendation(venue.id),
+    ]);
+    setRecs(list); setMyRec(mine);
+    setShowMenu(false);
+  }
+
+  const activeRecs   = recs.filter(r => r.isActive);
+  const count        = activeRecs.length;
+  const hasMyActive  = !!(myRec?.isActive);
+  const snippets     = activeRecs.filter(r => r.text || r.tags.length > 0).slice(0, 3);
+
+  // Collect all tags with counts
+  const tagCounts: Record<string, number> = {};
+  for (const r of activeRecs) {
+    for (const t of r.tags) tagCounts[t] = (tagCounts[t] ?? 0) + 1;
+  }
+  const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      {/* ── Recommend button ── */}
+      <div style={{ marginBottom: snippets.length > 0 || count > 0 ? '14px' : 0 }}>
+        {!hasMyActive ? (
+          <button
+            onClick={() => setShowModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+              padding: '13px 16px', borderRadius: '14px', cursor: 'pointer',
+              background: 'rgba(57,217,138,0.06)',
+              border: '1px solid rgba(57,217,138,0.2)',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>👍</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A', margin: 0 }}>
+                Recommend this place
+              </p>
+              {loaded && count > 0 && (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
+                  Recommended by {count} neighbour{count !== 1 ? 's' : ''}
+                </p>
+              )}
+              {loaded && count === 0 && (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
+                  Be the first to recommend it
+                </p>
+              )}
+            </div>
+          </button>
+        ) : (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowMenu(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                padding: '13px 16px', borderRadius: '14px', cursor: 'pointer',
+                background: 'rgba(57,217,138,0.1)',
+                border: '1.5px solid rgba(57,217,138,0.35)',
+                textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: '20px', flexShrink: 0 }}>✅</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A', margin: 0 }}>
+                  You recommend this place
+                </p>
+                {count > 0 && (
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
+                    Recommended by {count} neighbour{count !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>▾</span>
+            </button>
+
+            {/* Edit / Remove dropdown */}
+            {showMenu && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                marginTop: '4px', background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)', borderRadius: '12px',
+                overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              }}>
+                <button
+                  onClick={() => { setShowMenu(false); setShowModal(true); }}
+                  style={{
+                    display: 'block', width: '100%', padding: '13px 16px', textAlign: 'left',
+                    background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid var(--color-border)',
+                    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--color-text)',
+                  }}
+                >
+                  ✏️ Edit why I recommend
+                </button>
+                <button
+                  onClick={handleRemove}
+                  style={{
+                    display: 'block', width: '100%', padding: '13px 16px', textAlign: 'left',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#F87171',
+                  }}
+                >
+                  🗑 Remove my recommendation
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── "Neighbours say" display section ── */}
+      {loaded && (snippets.length > 0 || topTags.length > 0) && (
+        <div style={{
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: '14px', padding: '14px 16px',
+        }}>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: 'rgba(255,255,255,0.5)', margin: '0 0 12px',
+            textTransform: 'uppercase', letterSpacing: '0.05em',
+          }}>
+            Neighbours say
+          </p>
+
+          {/* Tag chips */}
+          {topTags.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: snippets.length > 0 ? '12px' : 0 }}>
+              {topTags.map(([tag, cnt]) => (
+                <span key={tag} style={{
+                  padding: '4px 10px', borderRadius: '20px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+                  color: '#39D98A', background: 'rgba(57,217,138,0.1)',
+                  border: '1px solid rgba(57,217,138,0.2)',
+                }}>
+                  {tag}{cnt > 1 ? ` · ${cnt}` : ''}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Short snippets */}
+          {snippets.map((r, i) => {
+            const nameLabel = r.displayName ?? 'A neighbour';
+            const body = r.text
+              ? (r.text.length > 100 ? r.text.slice(0, 97) + '…' : r.text)
+              : r.tags.join(', ');
+            return (
+              <div key={r.id} style={{
+                paddingTop: i > 0 ? '10px' : 0,
+                borderTop: i > 0 ? '1px solid var(--color-border)' : 'none',
+                marginTop: i > 0 ? '10px' : 0,
+              }}>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: '13px',
+                  color: 'rgba(255,255,255,0.72)', margin: '0 0 3px', lineHeight: 1.5,
+                }}>
+                  "{body}"
+                </p>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: '11px',
+                  color: 'rgba(255,255,255,0.35)', margin: 0,
+                }}>
+                  — {nameLabel}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empty state — only shown to non-recommenders after load */}
+      {loaded && count === 0 && !hasMyActive && (
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
+          color: 'rgba(255,255,255,0.28)', margin: '8px 0 0', textAlign: 'center',
+        }}>
+          No neighbours have recommended this place yet.
+        </p>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <RecModal
+          existing={myRec?.isActive ? myRec : null}
+          onSave={handleSave}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Owner Next Step Nudge ────────────────────────────────────────────────────
 // Shown only to the verified owner. Shows ONE next step at a time.
 // Calmer, simpler, no lists — just the most impactful thing to do right now.
@@ -2081,6 +2486,9 @@ export default function VenuePage() {
 
         {/* ── G: Real-time check-in activity (only when data exists) ────────── */}
         <RecentActivityFeed venueId={venue.id} />
+
+        {/* ── G2: Neighbour recommendations (no star ratings) ──────────────── */}
+        <NeighbourRecommendations venue={{ id: venue.id, name: venue.name }} />
 
         {/* ── H: Gallery strip (only when 2+ images exist) ─────────────────── */}
         {galleryImages.length >= 2 && (

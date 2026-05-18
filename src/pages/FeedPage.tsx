@@ -13,6 +13,7 @@ import {
   getBoardPosts,
   getLocalJobs,
   getUtilityReports,
+  getVenueRecCountsBatch,
 } from '../lib/api';
 import type { VibeType, BoardPost, LocalJob, UtilityReport } from '../lib/api';
 import type { Venue } from '../types';
@@ -214,6 +215,7 @@ export default function FeedPage() {
   const [headingCounts,       setHeadingCounts]       = useState<Record<string, number>>({});
   const [vibeWinners,         setVibeWinners]         = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
   const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
+  const [recCounts,           setRecCounts]           = useState<Record<string, number>>({});
 
   const [showAreaGate, setShowAreaGate] = useState(false);
   useEffect(() => {
@@ -331,11 +333,21 @@ export default function FeedPage() {
           setAlertsLoaded(true);
         }
 
-        // Batch interactivity
+        // Batch interactivity + rec counts
         const ids = venues.map(vv => vv.id);
         if (ids.length > 0) {
-          Promise.all([getHeadingThereCountsBatch(ids), getVibeWinnersBatch(ids), getActiveStoryVenuesBatch(ids)])
-            .then(([hc, vw, as_]) => { setHeadingCounts(hc); setVibeWinners(vw); setActiveStoryVenueIds(as_); })
+          Promise.all([
+            getHeadingThereCountsBatch(ids),
+            getVibeWinnersBatch(ids),
+            getActiveStoryVenuesBatch(ids),
+            getVenueRecCountsBatch(ids),
+          ])
+            .then(([hc, vw, as_, rc]) => {
+              setHeadingCounts(hc);
+              setVibeWinners(vw);
+              setActiveStoryVenueIds(as_);
+              setRecCounts(rc);
+            })
             .catch(() => {});
         }
       })
@@ -553,7 +565,7 @@ export default function FeedPage() {
         {loading ? (
           <VenueCardSkeleton />
         ) : placesNearYou.length > 0 ? (
-          <VenueCard venue={placesNearYou[0]} headingCount={headingCounts[placesNearYou[0].id] ?? 0} vibeWinner={vibeWinners[placesNearYou[0].id] ?? null} hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)} />
+          <VenueCard venue={placesNearYou[0]} headingCount={headingCounts[placesNearYou[0].id] ?? 0} vibeWinner={vibeWinners[placesNearYou[0].id] ?? null} hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)} recCount={recCounts[placesNearYou[0].id] ?? 0} />
         ) : (
           <div style={{
             border: '1.5px dashed rgba(255,255,255,0.10)',

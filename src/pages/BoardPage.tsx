@@ -29,6 +29,8 @@ import {
   toggleBoardPostLike,
   isBoardPostLikedLocally,
   getVisitorId,
+  searchVenuesByName,
+  upsertVenueRecommendation,
   type BoardPost,
   type BoardCategory,
   type BoardPostComment,
@@ -936,15 +938,25 @@ interface InlineReplySectionProps {
   accent?: string;
   /** When true the toggle-bar row is hidden (card already has its own toggle) */
   noToggleBar?: boolean;
+  /** The board category — used to show venue-tagging nudge on Ask posts */
+  category?: string;
 }
 
-function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = '#39D98A', noToggleBar = false }: InlineReplySectionProps) {
+function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = '#39D98A', noToggleBar = false, category }: InlineReplySectionProps) {
+  const { displaySuburb: neighbourhood = '', displayCity: city = '' } = useNeighbourhood();
   const [replies, setReplies] = useState<(BoardPostComment & { hidden?: boolean })[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  // ── Ask-post venue-tag nudge ──────────────────────────────────────────────
+  const [showTagNudge,   setShowTagNudge]   = useState(false);
+  const [tagQuery,       setTagQuery]       = useState('');
+  const [tagResults,     setTagResults]     = useState<{ id: string; name: string; slug: string; category: string }[]>([]);
+  const [tagSaving,      setTagSaving]      = useState(false);
+  const [tagDone,        setTagDone]        = useState('');  // venue name after saving
+  const [lastReplyText,  setLastReplyText]  = useState('');  // text of the reply that was just sent
 
   const visitorName = (() => {
     try { return JSON.parse(localStorage.getItem('kayaa_profile') ?? '{}').name ?? null; }
@@ -971,12 +983,39 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
     const { comment, errorCode } = await addBoardPostComment(postId, vid, text, visitorName ?? undefined);
     if (comment) {
       setReplies(prev => [...prev, comment]);
+      setLastReplyText(text);
       setReplyText(''); // only clear on success
+      // Show venue-tag nudge on Ask posts after a successful reply
+      if (category === 'ask') {
+        setShowTagNudge(true);
+        setTagDone('');
+        setTagQuery('');
+        setTagResults([]);
+      }
     } else {
       // reply text is deliberately kept so the user can retry
       setSendError(mapReplyError(errorCode));
     }
     setSending(false);
+  }
+
+  // Debounced venue search for tag nudge
+  useEffect(() => {
+    if (!tagQuery.trim()) { setTagResults([]); return; }
+    const t = setTimeout(() => {
+      searchVenuesByName(tagQuery, neighbourhood, city)
+        .then(setTagResults)
+        .catch(() => {});
+    }, 300);
+    return () => clearTimeout(t);
+  }, [tagQuery, neighbourhood, city]);
+
+  async function handleTagVenue(venue: { id: string; name: string }) {
+    setTagSaving(true);
+    const displayName = visitorName ? `${visitorName.split(' ')[0]} ${visitorName.split(' ').slice(-1)[0]?.[0] ?? ''}.`.trim() : null;
+    await upsertVenueRecommendation(venue.id, lastReplyText.slice(0, 120) || null, [], displayName, 'ask_reply');
+    setTagDone(venue.name);
+    setTagSaving(false);
   }
 
   async function handleReport(commentId: string, reason: 'spam' | 'harmful') {
@@ -1076,6 +1115,68 @@ function InlineReplySection({ postId, commentsCount, isOpen, onToggle, accent = 
               {sendError}
             </p>
           )}
+
+          {/* ── Ask-post venue-tag nudge ── */}
+          {showTagNudge && !sending && (
+            <div style={{
+              marginTop: '12px', padding: '12px 14px',
+              background: 'rgba(167,139,250,0.06)',
+              border: '1px solid rgba(167,139,250,0.2)',
+              borderRadius: '12px',
+            }}>
+              {tagDone ? (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#A78BFA', margin: 0 }}>
+                  ✅ Recommended {tagDone}
+                </p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700, color: 'rgba(167,139,250,0.9)', margin: 0 }}>
+                      Mentioned a place? Tag it to recommend it 👍
+                    </p>
+                    <button
+                      onClick={() => setShowTagNudge(false)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}
+                    >✕</button>
+                  </div>
+                  <input
+                    type="text"
+                    value={tagQuery}
+                    onChange={e => setTagQuery(e.target.value)}
+                    placeholder="Search place name…"
+                    style={{
+                      width: '100%', boxSizing: 'border-box',
+                      background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                      borderRadius: '8px', padding: '9px 12px',
+                      fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-text)',
+                      outline: 'none',
+                    }}
+                  />
+                  {tagResults.length > 0 && (
+                    <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {tagResults.map(v => (
+                        <button
+                          key={v.id}
+                          onClick={() => handleTagVenue(v)}
+                          disabled={tagSaving}
+                          style={{
+                            display: 'block', width: '100%', textAlign: 'left',
+                            padding: '8px 12px', borderRadius: '8px',
+                            background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-text)',
+                          }}
+                        >
+                          {v.name}
+                          <span style={{ color: 'rgba(255,255,255,0.35)', marginLeft: '6px', fontSize: '11px' }}>{v.category}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1127,6 +1228,7 @@ function PostCard({ post, isMine, onMarkTaken, onMarkResolved, isExpanded, onTog
             onToggle={onToggleExpand}
             accent="#A78BFA"
             noToggleBar
+            category="ask"
           />
         )}
       </div>

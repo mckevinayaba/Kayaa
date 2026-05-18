@@ -46,9 +46,10 @@ interface VenueCardProps {
   hasActiveStory?: boolean;
   onStoryTap?: () => void;
   recommendationReason?: string;
+  recCount?: number;  // neighbour recommendation count
 }
 
-export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason }: VenueCardProps) {
+export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0 }: VenueCardProps) {
   const navigate = useNavigate();
   const emoji  = getCategoryEmoji(venue.category);
   const color  = categoryColor[venue.category] ?? '#39D98A';
@@ -299,17 +300,31 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
-          {/* Recommendation reason */}
-          {recommendationReason && (
-            <div style={{ marginBottom: '9px' }}>
-              <span style={{
-                fontSize: '11px', fontWeight: 600,
-                color: 'var(--color-muted2)',
-                fontFamily: 'Inter, sans-serif',
-                letterSpacing: '0.01em',
-              }}>
-                {recommendationReason}
-              </span>
+          {/* Recommendation reason or neighbour count */}
+          {(recommendationReason || recCount > 0) && (
+            <div style={{ marginBottom: '9px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {recCount > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  fontSize: '11px', fontWeight: 700,
+                  color: '#39D98A', fontFamily: 'Inter, sans-serif',
+                  background: 'rgba(57,217,138,0.09)',
+                  border: '1px solid rgba(57,217,138,0.2)',
+                  borderRadius: '20px', padding: '3px 9px',
+                }}>
+                  👍 Recommended by {recCount} neighbour{recCount !== 1 ? 's' : ''}
+                </span>
+              )}
+              {recommendationReason && (
+                <span style={{
+                  fontSize: '11px', fontWeight: 600,
+                  color: 'var(--color-muted2)',
+                  fontFamily: 'Inter, sans-serif',
+                  letterSpacing: '0.01em',
+                }}>
+                  {recommendationReason}
+                </span>
+              )}
             </div>
           )}
 

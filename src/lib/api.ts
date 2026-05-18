@@ -2705,6 +2705,157 @@ export async function toggleBoardPostLike(postId: string, visitorId: string): Pr
 //   CREATE POLICY "moments_delete" ON neighbourhood_moments FOR DELETE USING (auth.uid() = user_id);
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── Venue Recommendations ────────────────────────────────────────────────────
+// Neighbour recommendations for places. No star ratings.
+// Keyed on visitor_id (localStorage UUID) — no Supabase auth required.
+
+export interface VenueRecommendation {
+  id:          string;
+  venueId:     string;
+  visitorId:   string;
+  displayName: string | null;   // "Nomsa M." — first name + last initial
+  text:        string | null;
+  tags:        string[];
+  isActive:    boolean;
+  source:      'direct' | 'ask_reply';
+  createdAt:   string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dbRec(row: any): VenueRecommendation {
+  return {
+    id:          row.id,
+    venueId:     row.venue_id,
+    visitorId:   row.visitor_id,
+    displayName: row.display_name ?? null,
+    text:        row.text         ?? null,
+    tags:        row.tags         ?? [],
+    isActive:    row.is_active,
+    source:      row.source       ?? 'direct',
+    createdAt:   row.created_at,
+  };
+}
+
+/** Fetch all active public recommendations for a venue (max 20, newest first). */
+export async function getVenueRecommendations(venueId: string): Promise<VenueRecommendation[]> {
+  const { data } = await supabase
+    .from('venue_recommendations')
+    .select('*')
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  return (data ?? []).map(dbRec);
+}
+
+/** Fetch this visitor's existing recommendation for a venue, if any. */
+export async function getMyVenueRecommendation(venueId: string): Promise<VenueRecommendation | null> {
+  const vid = getVisitorId();
+  const { data } = await supabase
+    .from('venue_recommendations')
+    .select('*')
+    .eq('venue_id', venueId)
+    .eq('visitor_id', vid)
+    .maybeSingle();
+  return data ? dbRec(data) : null;
+}
+
+/**
+ * Create or update this visitor's recommendation for a venue.
+ * Also re-activates a previously soft-deleted recommendation.
+ */
+export async function upsertVenueRecommendation(
+  venueId:     string,
+  text:        string | null,
+  tags:        string[],
+  displayName: string | null,
+  source:      'direct' | 'ask_reply' = 'direct',
+): Promise<{ error: string | null }> {
+  const vid = getVisitorId();
+  const { error } = await supabase
+    .from('venue_recommendations')
+    .upsert(
+      {
+        venue_id:     venueId,
+        visitor_id:   vid,
+        display_name: displayName,
+        text:         text?.trim().slice(0, 120) || null,
+        tags,
+        is_active:    true,
+        is_public:    true,
+        source,
+        updated_at:   new Date().toISOString(),
+      },
+      { onConflict: 'visitor_id,venue_id' },
+    );
+  return { error: error?.message ?? null };
+}
+
+/** Soft-delete this visitor's recommendation (sets is_active = false). */
+export async function removeVenueRecommendation(venueId: string): Promise<void> {
+  const vid = getVisitorId();
+  await supabase
+    .from('venue_recommendations')
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq('venue_id', venueId)
+    .eq('visitor_id', vid);
+}
+
+/** Count active public recommendations for a venue. */
+export async function getVenueRecommendationCount(venueId: string): Promise<number> {
+  const { count } = await supabase
+    .from('venue_recommendations')
+    .select('id', { count: 'exact', head: true })
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .eq('is_public', true);
+  return count ?? 0;
+}
+
+/**
+ * Batch-fetch recommendation counts for a list of venue IDs.
+ * Returns a map of venueId → count. Used by FeedPage / search.
+ */
+export async function getVenueRecCountsBatch(
+  venueIds: string[],
+): Promise<Record<string, number>> {
+  if (venueIds.length === 0) return {};
+  const { data } = await supabase
+    .from('venue_recommendations')
+    .select('venue_id')
+    .in('venue_id', venueIds)
+    .eq('is_active', true)
+    .eq('is_public', true);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    counts[row.venue_id] = (counts[row.venue_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
+ * Simple venue name search — used by the "Tag a place" nudge in Ask replies.
+ * Returns up to 6 matching venues in the neighbourhood / city.
+ */
+export async function searchVenuesByName(
+  query:        string,
+  neighbourhood: string,
+  city:         string,
+): Promise<{ id: string; name: string; slug: string; category: string }[]> {
+  if (!query.trim()) return [];
+  const { data } = await supabase
+    .from('venues')
+    .select('id, name, slug, type')
+    .or(`neighborhood.ilike.%${neighbourhood}%,city.ilike.%${city}%`)
+    .ilike('name', `%${query.trim()}%`)
+    .limit(6);
+  return (data ?? []).map(r => ({ id: r.id, name: r.name, slug: r.slug, category: r.type ?? '' }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface NeighbourhoodMoment {
   id:           string;
   userId:       string | null;   // null when anonymous
