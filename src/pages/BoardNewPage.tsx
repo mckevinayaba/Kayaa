@@ -5,6 +5,7 @@ import {
   createBoardPost,
   uploadBoardImage,
   uploadBoardVideo,
+  triggerSafetyPush,
   type BoardCategory,
   type BoardPost,
 } from '../lib/api';
@@ -1113,6 +1114,16 @@ function SafetyForm({ suburb, onBack }: { suburb: string; onBack: () => void }) 
       mine.unshift(post.id);
       localStorage.setItem('kayaa_board_mine', JSON.stringify(mine.slice(0, 50)));
     } catch { /* ignore */ }
+
+    // Trigger push notifications for subscribers in this suburb.
+    // Conditions: GPS-verified + text long enough (≥ 20 chars).
+    // 30-second delay gives a brief human-review buffer before alerts fire.
+    // The edge function owns the definitive qualification check — this is
+    // just a cheap client-side pre-filter to avoid pointless requests.
+    if (isVerified && t.length >= 20) {
+      setTimeout(() => triggerSafetyPush(post.id), 30_000);
+    }
+
     navigate('/board');
   }
 

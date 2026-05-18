@@ -117,10 +117,10 @@ export default function PushBanner() {
         <>
           <div style={{ flex: 1, paddingTop: '2px' }}>
             <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.35 }}>
-              Get {displaySuburb} alerts
+              🔔 Get safety alerts for {displaySuburb}
             </p>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '3px 0 10px', lineHeight: 1.45 }}>
-              Safety, outages, and important place updates — nothing noisy.
+              Know quickly when something serious happens nearby.
             </p>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -135,7 +135,7 @@ export default function PushBanner() {
                   transition: 'opacity 0.15s',
                 }}
               >
-                {loading ? 'Enabling…' : 'Allow'}
+                {loading ? 'Enabling…' : 'Yes, keep me safe'}
               </button>
               <button
                 onClick={dismiss}

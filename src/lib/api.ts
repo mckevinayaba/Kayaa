@@ -2583,6 +2583,34 @@ export async function addBoardPostComment(
   }
 }
 
+// ─── Safety push trigger ──────────────────────────────────────────────────────
+
+/**
+ * Fire-and-forget call to the trigger-safety-push edge function.
+ *
+ * The edge function owns ALL qualification checks (category, GPS-verified,
+ * text length, dedup). This function just passes the post ID.
+ * Silent on error — a push failure never surfaces to the user who posted.
+ */
+export async function triggerSafetyPush(postId: string): Promise<void> {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+    if (!supabaseUrl || !anonKey) return;
+
+    await fetch(`${supabaseUrl}/functions/v1/trigger-safety-push`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${anonKey}`,
+      },
+      body: JSON.stringify({ post_id: postId }),
+    });
+  } catch {
+    // Silent — push failures must never affect the posting experience
+  }
+}
+
 /**
  * Report a board post reply.
  * Inserts into board_post_comment_reports (created if table exists).
