@@ -65,7 +65,7 @@ export default function StoryViewer({ story, venueName, venueCategory, onClose }
             {emoji}
           </div>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>{venueName}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>{venueName}</div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>24h story</div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function StoryViewer({ story, venueName, venueCategory, onClose }
       {/* Caption */}
       {story.caption && (
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2, padding: '60px 20px 40px', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '16px', color: '#fff', lineHeight: 1.5, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: '#fff', lineHeight: 1.5, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
             {story.caption}
           </p>
         </div>

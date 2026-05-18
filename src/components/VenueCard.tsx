@@ -156,7 +156,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                 background: '#39D98A', flexShrink: 0,
                 animation: 'kDotPulse 2s ease-in-out infinite',
               }} />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em' }}>
                 {todayCount} here today
               </span>
             </div>
@@ -170,7 +170,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FBBF24', flexShrink: 0 }} />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FBBF24', fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.01em' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FBBF24', fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em' }}>
                 Someone was here today
               </span>
             </div>
@@ -193,7 +193,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               border: '1px solid rgba(255,255,255,0.12)',
             }}>
               <span style={{ fontSize: '11px' }}>{VIBE_EMOJI[vibeWinner.vibe]}</span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
                 {VIBE_LABEL[vibeWinner.vibe]}
               </span>
             </div>
@@ -230,7 +230,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             <span style={{
               fontSize: '11px', fontWeight: 700,
               color, letterSpacing: '0.06em', textTransform: 'uppercase',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               {emoji} {venue.category}
             </span>
@@ -249,7 +249,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                 background: 'rgba(96,165,250,0.08)',
                 border: '1px solid rgba(96,165,250,0.18)',
                 borderRadius: '100px', padding: '2px 7px',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}>
                 <Store size={9} color="#60A5FA" />
                 Owner managed
@@ -264,7 +264,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                 background: 'rgba(57,217,138,0.09)',
                 border: '1px solid rgba(57,217,138,0.2)',
                 borderRadius: '100px', padding: '2px 8px',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 letterSpacing: '0.04em',
               }}>
                 New
@@ -275,7 +275,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
           {/* Place name — bigger, tighter, more authoritative */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', margin: '0 0 5px', flexWrap: 'wrap' }}>
             <h3 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '19px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '19px',
               color: 'var(--color-text)', lineHeight: 1.2, margin: 0,
               letterSpacing: '-0.3px',
             }}>
@@ -305,7 +305,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               <span style={{
                 fontSize: '11px', fontWeight: 600,
                 color: 'var(--color-muted2)',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 letterSpacing: '0.01em',
               }}>
                 {recommendationReason}
@@ -381,7 +381,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
                   color: '#0D1117',
                   textDecoration: 'none',
                   fontSize: '12px', fontWeight: 800,
-                  fontFamily: 'Syne, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                   padding: '8px 18px',
                   borderRadius: '100px',
                   letterSpacing: '0.02em',

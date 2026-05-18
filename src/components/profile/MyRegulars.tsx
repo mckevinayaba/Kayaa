@@ -25,10 +25,10 @@ export function MyRegulars({ history }: MyRegularsProps) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0' }}>
         <div style={{ fontSize: '48px', marginBottom: '12px' }}>❤️</div>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
           No regulars yet
         </h3>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
           Visit a place 3 or more times to become a regular.
         </p>
       </div>
@@ -57,7 +57,7 @@ export function MyRegulars({ history }: MyRegularsProps) {
               width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
               background: `${color}18`, border: `1.5px solid ${color}40`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px', color,
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px', color,
             }}>
               {i + 1}
             </div>
@@ -68,12 +68,12 @@ export function MyRegulars({ history }: MyRegularsProps) {
             {/* Name + visit count */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {item.venueName}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color, marginTop: '2px', fontWeight: 600 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color, marginTop: '2px', fontWeight: 600 }}>
                 {item.visitCount} visits — you're a regular here
               </div>
             </div>

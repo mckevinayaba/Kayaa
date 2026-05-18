@@ -67,12 +67,12 @@ export default function VenueQRCode() {
       <!DOCTYPE html><html><head>
         <title>Kayaa Check-In Card — ${venue.name}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
           * { margin:0; padding:0; box-sizing:border-box; }
-          body { background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:'DM Sans',sans-serif; }
+          body { background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:'Inter',sans-serif; }
           .card { width:148mm; border:2.5px solid #39D98A; border-radius:16px; padding:24px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
-          .badge { background:#39D98A; color:#000; font-family:'Syne',sans-serif; font-weight:800; font-size:11px; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em; }
-          h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:20px; color:#0D1117; }
+          .badge { background:#39D98A; color:#000; font-family:'Inter',sans-serif; font-weight:800; font-size:11px; padding:4px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em; }
+          h1 { font-family:'Inter',sans-serif; font-weight:800; font-size:20px; color:#0D1117; }
           .sub { font-size:12px; color:#555; line-height:1.5; }
           img { width:200px; height:200px; }
           .url { font-size:10px; color:#888; margin-top:2px; }
@@ -115,10 +115,10 @@ export default function VenueQRCode() {
     return (
       <div style={{ padding: '80px 24px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏪</div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
           No venue found. Add your place first.
         </p>
-        <Link to="/onboarding" style={{ color: '#39D98A', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>
+        <Link to="/onboarding" style={{ color: '#39D98A', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>
           Add Your Place →
         </Link>
       </div>
@@ -144,7 +144,7 @@ export default function VenueQRCode() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
           Check-In QR Code
         </h1>
         <button
@@ -159,10 +159,10 @@ export default function VenueQRCode() {
 
         {/* ── Venue name ────────────────────────────────────────────────── */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#F0F6FC', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#F0F6FC', marginBottom: '4px' }}>
             {venue.name}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
             {venue.neighborhood}, {venue.city}
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function VenueQRCode() {
             }}
           >
             <QRCodeCanvas value={qrValue} size={220} level="M" marginSize={0} />
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: '#555', textAlign: 'center', maxWidth: '220px', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#555', textAlign: 'center', maxWidth: '220px', lineHeight: 1.4 }}>
               Scan to check in · kayaa.co.za
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function VenueQRCode() {
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '12px', padding: '10px 14px', marginBottom: '20px',
         }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {qrValue}
           </span>
           <button
@@ -199,7 +199,7 @@ export default function VenueQRCode() {
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '5px 10px', borderRadius: '8px', border: 'none',
               background: copied ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.07)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
               color: copied ? '#39D98A' : 'rgba(255,255,255,0.5)',
               cursor: 'pointer', flexShrink: 0,
             }}
@@ -216,7 +216,7 @@ export default function VenueQRCode() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               width: '100%', padding: '16px', borderRadius: '14px', border: 'none',
               background: '#39D98A',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000',
               cursor: 'pointer',
             }}
           >
@@ -229,7 +229,7 @@ export default function VenueQRCode() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               width: '100%', padding: '16px', borderRadius: '14px',
               background: 'transparent', border: '1px solid #30363D',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC',
               cursor: 'pointer',
             }}
           >
@@ -243,7 +243,7 @@ export default function VenueQRCode() {
           background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           borderRadius: '14px', padding: '16px',
         }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '10px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '10px' }}>
             📌 Placement tips
           </div>
           {[
@@ -255,7 +255,7 @@ export default function VenueQRCode() {
           ].map((tip, i) => (
             <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: i < 4 ? '8px' : '0' }}>
               <span style={{ color: '#39D98A', fontSize: '12px', flexShrink: 0, marginTop: '1px' }}>✓</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
                 {tip}
               </span>
             </div>

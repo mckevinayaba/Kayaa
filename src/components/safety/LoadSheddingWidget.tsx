@@ -80,11 +80,11 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
           ? <Zap    size={12} color={conf.color} />
           : <ZapOff size={12} color={conf.color} />
         }
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: conf.color, whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: conf.color, whiteSpace: 'nowrap' }}>
           {isOff ? 'No load shedding' : conf.label}
         </span>
         {next && !isOff && (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap' }}>
             · {timeUntil(next.start)}
           </span>
         )}
@@ -124,10 +124,10 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
 
         {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: conf.color, marginBottom: '1px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: conf.color, marginBottom: '1px' }}>
             {conf.label}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
             {next
               ? `Next outage ${timeUntil(next.start)} · ${slotLabel(next)}`
               : isOff
@@ -151,7 +151,7 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
           {/* Upcoming slots */}
           {schedule && schedule.upcoming.length > 0 ? (
             <>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '12px 0 8px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '12px 0 8px' }}>
                 Upcoming Outages
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -161,10 +161,10 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
                     padding: '8px 12px',
                     background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
                   }}>
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F0F6FC' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#F0F6FC' }}>
                       {slotLabel(slot)}
                     </span>
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                       {timeUntil(slot.start)}
                     </span>
                   </div>
@@ -172,7 +172,7 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
               </div>
             </>
           ) : (
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '12px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '12px', textAlign: 'center' }}>
               {areaId ? 'No upcoming outages for your area' : 'Add your area for a full schedule'}
             </div>
           )}
@@ -192,7 +192,7 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
                 background: alerts ? 'rgba(57,217,138,0.12)' : 'rgba(255,255,255,0.06)',
                 border: `1px solid ${alerts ? 'rgba(57,217,138,0.3)' : 'rgba(255,255,255,0.1)'}`,
                 borderRadius: '10px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                 color: alerts ? '#39D98A' : 'rgba(255,255,255,0.55)',
                 cursor: 'pointer',
               }}
@@ -205,7 +205,7 @@ export function LoadSheddingWidget({ compact = false, areaId }: LoadSheddingWidg
           )}
 
           {/* Data attribution */}
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: '10px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: '10px' }}>
             Data via EskomSePush · Updates every 5 min
           </div>
         </div>

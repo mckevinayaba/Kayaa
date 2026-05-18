@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ─── Design tokens ───────────────────────────────────────────────────────────
@@ -49,14 +49,14 @@ html, body, #root {
   height: 100%;
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Syne', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.01em;
 }
 
 @theme inline {
@@ -96,7 +96,7 @@ input, textarea, select {
   z-index: 200;
   background: var(--color-accent);
   color: #000;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700; font-size: 14px;
   padding: 8px 16px;
   border-radius: 0 0 8px 8px;
@@ -105,12 +105,10 @@ input, textarea, select {
 }
 .skip-link:focus { top: 0; }
 
-/* ── Typography overrides — tighten heading defaults ───────────────────────── */
-/* All h2/h3 in feed and venue pages already use Syne via inline styles.
-   These global rules raise the floor so nothing accidentally looks weak. */
-h1 { letter-spacing: -0.03em; }
-h2 { letter-spacing: -0.02em; }
-h3 { letter-spacing: -0.015em; }
+/* ── Typography — Inter tracking ────────────────────────────────────────────── */
+h1 { letter-spacing: -0.02em; }
+h2 { letter-spacing: -0.015em; }
+h3 { letter-spacing: -0.01em; }
 
 /* Feed section headings — any h2 inside the app layout gets this treatment */
 main h2 {
@@ -145,7 +143,7 @@ a { color: inherit; }
   border-radius: var(--radius-pill);
   background: var(--color-accent);
   color: #0D1117;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.01em;
@@ -164,7 +162,7 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;

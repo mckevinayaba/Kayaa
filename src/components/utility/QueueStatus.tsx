@@ -104,24 +104,24 @@ function ReportForm({
 
   return (
     <div style={{ marginTop: '10px', padding: '12px', background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '10px' }}>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>
         Update wait time:
       </div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
         <label style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Wait (mins)</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Wait (mins)</div>
           <input
             type="number" min="0" max="300"
             value={wait} onChange={e => setWait(e.target.value)}
-            style={{ width: '100%', boxSizing: 'border-box', background: '#0D1117', border: '1px solid #30363D', borderRadius: '7px', padding: '7px 10px', color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: '#0D1117', border: '1px solid #30363D', borderRadius: '7px', padding: '7px 10px', color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '13px', outline: 'none' }}
           />
         </label>
         <label style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>People in line</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>People in line</div>
           <input
             type="number" min="0" max="500"
             value={length} onChange={e => setLength(e.target.value)}
-            style={{ width: '100%', boxSizing: 'border-box', background: '#0D1117', border: '1px solid #30363D', borderRadius: '7px', padding: '7px 10px', color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: '#0D1117', border: '1px solid #30363D', borderRadius: '7px', padding: '7px 10px', color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '13px', outline: 'none' }}
           />
         </label>
       </div>
@@ -130,7 +130,7 @@ function ReportForm({
         style={{
           width: '100%', padding: '8px',
           background: '#60A5FA', border: 'none', borderRadius: '7px',
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
           color: '#000', cursor: 'pointer',
         }}
       >
@@ -154,10 +154,10 @@ function QueueCard({ queue: initial }: { queue: QueueLocation }) {
       {/* Top row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
             {queue.name}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             {typeLabel(queue.type)}
           </div>
         </div>
@@ -171,18 +171,18 @@ function QueueCard({ queue: initial }: { queue: QueueLocation }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Clock size={13} color={color} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color }}>
               {queue.currentWait} min
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Users size={13} color="rgba(255,255,255,0.4)" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
               {queue.queueLength} in line
             </span>
           </div>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
           {formatAge(queue.lastUpdated)}
         </span>
       </div>
@@ -199,7 +199,7 @@ function QueueCard({ queue: initial }: { queue: QueueLocation }) {
           style={{
             marginTop: '10px', width: '100%', padding: '6px',
             background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '7px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            borderRadius: '7px', fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
           }}
         >
@@ -241,10 +241,10 @@ export function QueueStatus() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
             Queue Status
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
             Live wait times near you
           </p>
         </div>
@@ -283,10 +283,10 @@ export function QueueStatus() {
         <div style={{ textAlign: 'center', paddingBottom: '8px' }}>
           <div style={{ padding: '20px', background: '#0D1117', borderRadius: '12px', marginBottom: '12px' }}>
             <Users size={32} color="rgba(255,255,255,0.15)" style={{ marginBottom: '8px' }} />
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
               No queue info yet
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
               Be the first to report a wait time
             </div>
           </div>
@@ -303,10 +303,10 @@ export function QueueStatus() {
                 }}
               >
                 <span style={{ fontSize: '20px' }}>{p.emoji}</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', flex: 1 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', flex: 1 }}>
                   {p.label}
                 </span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#60A5FA' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: '#60A5FA' }}>
                   Report Wait →
                 </span>
               </button>

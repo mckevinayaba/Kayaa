@@ -46,7 +46,7 @@ const INPUT_STYLE: React.CSSProperties = {
   borderRadius: '12px',
   padding: '12px 14px',
   color: '#F0F6FC',
-  fontSize: '15px', fontFamily: 'DM Sans, sans-serif',
+  fontSize: '15px', fontFamily: 'Inter, sans-serif',
   outline: 'none',
 };
 
@@ -94,13 +94,13 @@ export default function MomentCreatePage() {
       }}>
         <div style={{ fontSize: '36px', marginBottom: '16px' }}>📸</div>
         <h2 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '18px', color: '#F0F6FC', margin: '0 0 8px',
         }}>
           Sign in to share
         </h2>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.4)', margin: '0 0 24px', lineHeight: 1.6,
           maxWidth: '260px',
         }}>
@@ -111,7 +111,7 @@ export default function MomentCreatePage() {
           style={{
             padding: '12px 28px', borderRadius: '12px', border: 'none',
             background: '#39D98A', color: '#0D1117',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px',
             cursor: 'pointer',
           }}
         >
@@ -215,7 +215,7 @@ export default function MomentCreatePage() {
             background: 'none', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '4px 0', color: 'rgba(255,255,255,0.5)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontSize: '14px',
           }}
         >
           <ArrowLeft size={16} color="rgba(255,255,255,0.5)" />
@@ -228,20 +228,20 @@ export default function MomentCreatePage() {
               background: '#39D98A', boxShadow: '0 0 6px rgba(57,217,138,0.7)',
             }} />
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
               color: '#39D98A', letterSpacing: '0.06em', textTransform: 'uppercase',
             }}>
               Neighbourhood Moment
             </span>
           </div>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontFamily: 'Inter, sans-serif', fontWeight: 800,
             fontSize: '20px', color: '#F0F6FC', margin: '0 0 4px', lineHeight: 1.2,
           }}>
             What's happening nearby?
           </h1>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.38)', margin: 0, lineHeight: 1.5,
           }}>
             Gone in 24 hours. Just a slice of now.
@@ -260,7 +260,7 @@ export default function MomentCreatePage() {
         <div>
           <label style={{
             display: 'block',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
             color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em',
             textTransform: 'uppercase', marginBottom: '10px',
           }}>
@@ -309,7 +309,7 @@ export default function MomentCreatePage() {
             }}>
               <Loader size={22} color="rgba(255,255,255,0.3)" style={{ animation: 'spin 1s linear infinite' }} />
               <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px',
                 color: 'rgba(255,255,255,0.35)',
               }}>
                 Uploading…
@@ -337,13 +337,13 @@ export default function MomentCreatePage() {
                   <Camera size={20} color="rgba(57,217,138,0.6)" />
                 </div>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600,
                   fontSize: '13px', color: 'rgba(255,255,255,0.55)',
                 }}>
                   Photo
                 </span>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '10px',
                   color: 'rgba(255,255,255,0.22)',
                 }}>
                   up to 20 MB
@@ -369,13 +369,13 @@ export default function MomentCreatePage() {
                   <Video size={20} color="rgba(96,165,250,0.55)" />
                 </div>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600,
                   fontSize: '13px', color: 'rgba(255,255,255,0.55)',
                 }}>
                   Video
                 </span>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '10px',
                   color: 'rgba(255,255,255,0.22)',
                 }}>
                   best under 20 sec
@@ -390,7 +390,7 @@ export default function MomentCreatePage() {
               marginTop: '10px', padding: '10px 14px', borderRadius: '10px',
               background: 'rgba(239,68,68,0.08)',
               border: '1px solid rgba(239,68,68,0.25)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px',
               color: '#FCA5A5',
             }}>
               {upload.msg}
@@ -398,7 +398,7 @@ export default function MomentCreatePage() {
           )}
 
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.22)', margin: '6px 0 0', lineHeight: 1.5,
           }}>
             One photo or one short clip. Show what the area looks or feels like right now.
@@ -425,7 +425,7 @@ export default function MomentCreatePage() {
         <div>
           <label style={{
             display: 'block',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
             color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em',
             textTransform: 'uppercase', marginBottom: '8px',
           }}>
@@ -443,13 +443,13 @@ export default function MomentCreatePage() {
             marginTop: '4px',
           }}>
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontSize: '11px',
               color: 'rgba(255,255,255,0.2)',
             }}>
               Keep it short and specific.
             </span>
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontSize: '11px',
               color: caption.length > 100 ? '#F59E0B' : 'rgba(255,255,255,0.2)',
             }}>
               {caption.length}/120
@@ -468,13 +468,13 @@ export default function MomentCreatePage() {
             <span style={{ fontSize: '16px', flexShrink: 0 }}>🚨</span>
             <div style={{ flex: 1 }}>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                 color: '#F87171', margin: '0 0 4px',
               }}>
                 Looks like a safety issue?
               </p>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: 'rgba(255,255,255,0.4)', margin: '0 0 8px', lineHeight: 1.5,
               }}>
                 Crime, robbery, missing persons, and urgent danger belong in Alerts — where neighbours can act quickly.
@@ -484,7 +484,7 @@ export default function MomentCreatePage() {
                 style={{
                   background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
                   borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                   color: '#F87171',
                 }}
               >
@@ -504,13 +504,13 @@ export default function MomentCreatePage() {
             <span style={{ fontSize: '16px', flexShrink: 0 }}>📋</span>
             <div style={{ flex: 1 }}>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                 color: '#A78BFA', margin: '0 0 4px',
               }}>
                 Selling or offering something?
               </p>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: 'rgba(255,255,255,0.4)', margin: '0 0 8px', lineHeight: 1.5,
               }}>
                 Listings, jobs, services, and rentals belong on Board — they stay visible for longer and reach the right people.
@@ -520,7 +520,7 @@ export default function MomentCreatePage() {
                 style={{
                   background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.25)',
                   borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                   color: '#A78BFA',
                 }}
               >
@@ -534,7 +534,7 @@ export default function MomentCreatePage() {
         <div>
           <label style={{
             display: 'block',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
             color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em',
             textTransform: 'uppercase', marginBottom: '8px',
           }}>
@@ -546,12 +546,12 @@ export default function MomentCreatePage() {
             opacity: 0.7, cursor: 'default',
           }}>
             <MapPin size={14} color="rgba(57,217,138,0.6)" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '15px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', color: '#F0F6FC' }}>
               {neighbourhood || 'Your neighbourhood'}
             </span>
           </div>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.2)', margin: '5px 0 0',
           }}>
             Set automatically from your area.
@@ -562,7 +562,7 @@ export default function MomentCreatePage() {
         <div>
           <label style={{
             display: 'block',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
             color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em',
             textTransform: 'uppercase', marginBottom: '8px',
           }}>
@@ -583,7 +583,7 @@ export default function MomentCreatePage() {
             />
           </div>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.2)', margin: '5px 0 0', lineHeight: 1.5,
           }}>
             Adds place context to your moment. Useful when the photo is clearly about one spot.
@@ -597,7 +597,7 @@ export default function MomentCreatePage() {
           borderRadius: '14px', padding: '14px 16px',
         }}>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
             color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
             letterSpacing: '0.06em', margin: '0 0 10px',
           }}>
@@ -614,7 +614,7 @@ export default function MomentCreatePage() {
               '❌ Selling something → use Board',
             ].map(line => (
               <p key={line} style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: line.startsWith('✅') ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)',
                 margin: 0, lineHeight: 1.5,
               }}>
@@ -630,7 +630,7 @@ export default function MomentCreatePage() {
             padding: '10px 14px', borderRadius: '10px',
             background: 'rgba(239,68,68,0.08)',
             border: '1px solid rgba(239,68,68,0.25)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: '#FCA5A5', lineHeight: 1.5,
           }}>
             {error}
@@ -654,7 +654,7 @@ export default function MomentCreatePage() {
             borderRadius: '14px', border: 'none',
             background: canSubmit ? '#39D98A' : 'rgba(57,217,138,0.2)',
             color: canSubmit ? '#0D1117' : 'rgba(57,217,138,0.35)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
             cursor: canSubmit ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             transition: 'background 0.15s, color 0.15s',
@@ -672,7 +672,7 @@ export default function MomentCreatePage() {
           )}
         </button>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontSize: '11px',
           color: 'rgba(255,255,255,0.18)', textAlign: 'center',
           margin: '8px 0 0', lineHeight: 1.5,
         }}>

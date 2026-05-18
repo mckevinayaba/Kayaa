@@ -118,10 +118,10 @@ export function AchievementBadges({ stats }: AchievementBadgesProps) {
   return (
     <div style={{ padding: '0 16px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', margin: 0 }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', margin: 0 }}>
           Achievements
         </h3>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
           {unlocked.length} / {badges.length}
         </span>
       </div>
@@ -152,7 +152,7 @@ export function AchievementBadges({ stats }: AchievementBadgesProps) {
 
               {/* Label */}
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '10px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
                 color: b.unlocked ? b.color : 'rgba(255,255,255,0.3)',
                 marginBottom: '4px', lineHeight: 1.3,
               }}>
@@ -174,7 +174,7 @@ export function AchievementBadges({ stats }: AchievementBadgesProps) {
                       transition: 'width 0.4s ease',
                     }} />
                   </div>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>
                     {b.progress ?? 0}/{b.total}
                   </div>
                 </>

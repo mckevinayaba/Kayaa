@@ -242,7 +242,7 @@ export default function SearchBar({
           style={{
             flex: 1, background: 'transparent', border: 'none', outline: 'none',
             color: isListening ? '#39D98A' : 'var(--color-text)',
-            fontSize: '16px', fontFamily: 'DM Sans, sans-serif',
+            fontSize: '16px', fontFamily: 'Inter, sans-serif',
             padding: '12px 8px',
             // Remove default search-input clear button (handled manually)
             WebkitAppearance: 'none',
@@ -300,12 +300,12 @@ export default function SearchBar({
           {query.length === 0 && recents.length > 0 && (
             <div style={{ padding: '10px 14px 6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Recent
                 </span>
                 <button
                   onClick={clearRecents}
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', fontSize: '11px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', padding: '2px 0' }}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.28)', fontSize: '11px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', padding: '2px 0' }}
                 >
                   Clear
                 </button>
@@ -317,7 +317,7 @@ export default function SearchBar({
                   style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: 'none', border: 'none', padding: '8px 0', cursor: 'pointer', textAlign: 'left' }}
                 >
                   <Clock size={12} color="rgba(255,255,255,0.28)" style={{ flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{term}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{term}</span>
                 </button>
               ))}
               {results.length === 0 && (
@@ -347,7 +347,7 @@ export default function SearchBar({
                   {/* Text */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>
                         {r.title}
                       </span>
                       {/* Status dot */}
@@ -362,7 +362,7 @@ export default function SearchBar({
                         </span>
                       ))}
                     </div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.subtitle}
                     </div>
                   </div>
@@ -371,7 +371,7 @@ export default function SearchBar({
                   {r.distanceKm != null && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                       <MapPin size={10} color="var(--color-muted)" />
-                      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
                         {fmtDist(r.distanceKm)}
                       </span>
                     </div>
@@ -385,10 +385,10 @@ export default function SearchBar({
           {debouncedQ.length >= 2 && results.length === 0 && (
             <div style={{ padding: '24px 16px', textAlign: 'center' }}>
               <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 4px' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 4px' }}>
                 No results for <strong style={{ color: 'var(--color-text)' }}>"{debouncedQ}"</strong>
               </p>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
                 Try a different name, area, or category
               </p>
             </div>

@@ -87,7 +87,7 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
         borderRadius: '18px',
       }}>
         <Droplet size={12} color={pillColor} />
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: pillColor, whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: pillColor, whiteSpace: 'nowrap' }}>
           {pillLabel}
         </span>
       </div>
@@ -107,10 +107,10 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
       }}>
         <Droplet size={22} color="#60A5FA" style={{ flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#60A5FA' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#60A5FA' }}>
             Water Supply Normal
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(96,165,250,0.7)', marginTop: '1px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(96,165,250,0.7)', marginTop: '1px' }}>
             No outages reported in {area}
           </div>
         </div>
@@ -132,10 +132,10 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: outage ? '10px' : '0' }}>
           <AlertTriangle size={22} color="#EF4444" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#EF4444' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#EF4444' }}>
               Water Outage Active
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(239,68,68,0.7)', marginTop: '1px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(239,68,68,0.7)', marginTop: '1px' }}>
               No water in {area}
             </div>
           </div>
@@ -150,12 +150,12 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
 
         {outage && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
               <Clock size={13} color="rgba(255,255,255,0.4)" />
               Estimated restoration: <strong style={{ color: '#fff' }}>{formatTime(outage.end_time)}</strong>
             </div>
             {outage.reason && (
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', paddingLeft: '19px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', paddingLeft: '19px' }}>
                 Reason: {outage.reason}
               </div>
             )}
@@ -180,10 +180,10 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: outage ? '10px' : '0' }}>
           <Droplet size={22} color="#FBBF24" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#FBBF24' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#FBBF24' }}>
               Scheduled Outage
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(251,191,36,0.7)', marginTop: '1px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(251,191,36,0.7)', marginTop: '1px' }}>
               {area}
             </div>
           </div>
@@ -198,11 +198,11 @@ export function WaterStatus({ area, compact }: { area: string; compact?: boolean
 
         {outage && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
               <Clock size={13} color="rgba(255,255,255,0.4)" />
               Starts: <strong style={{ color: '#fff' }}>{formatDateTime(outage.start_time)}</strong>
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', paddingLeft: '19px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', paddingLeft: '19px' }}>
               Duration: {hrs} {hrs === 1 ? 'hour' : 'hours'}
               {outage.reason ? ` · ${outage.reason}` : ''}
             </div>

@@ -14,7 +14,7 @@ export default function PostBar({ suburb, onPost, onAddPlace, onWork }: PostBarP
     flex: 1,
     height: '38px',
     borderRadius: '10px',
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
@@ -35,7 +35,7 @@ export default function PostBar({ suburb, onPost, onAddPlace, onWork }: PostBarP
           padding: '12px 14px',
           marginBottom: '10px',
           cursor: 'pointer',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.45)',
           WebkitTapHighlightColor: 'transparent',
         }}

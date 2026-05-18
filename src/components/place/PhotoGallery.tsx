@@ -103,7 +103,7 @@ export function PhotoGallery({ photos, currentIndex, onIndexChange, height = '30
       {photos.length > 1 && (
         <div style={{
           position: 'absolute', bottom: '14px', right: '14px',
-          fontSize: '11px', fontFamily: 'DM Sans, sans-serif',
+          fontSize: '11px', fontFamily: 'Inter, sans-serif',
           color: 'rgba(255,255,255,0.7)',
           background: 'rgba(13,17,23,0.5)', borderRadius: '20px',
           padding: '3px 10px', backdropFilter: 'blur(6px)',

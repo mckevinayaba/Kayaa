@@ -52,10 +52,10 @@ function ToggleRow({
       border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px',
     }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff', marginBottom: '3px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff', marginBottom: '3px' }}>
           {title}
         </div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
           {description}
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function PrivacySettings() {
         >
           <ArrowLeft size={18} color="#fff" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
           Privacy Settings
         </h1>
       </div>
@@ -154,7 +154,7 @@ export default function PrivacySettings() {
           borderRadius: '12px', padding: '14px 16px',
         }}>
           <Lock size={18} color="#39D98A" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
             Control what others can see. Changes save instantly and are stored on this device.
           </p>
         </div>
@@ -173,7 +173,7 @@ export default function PrivacySettings() {
         </div>
 
         {/* Note */}
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6 }}>
           Kayaa is anonymous by default. These settings apply when you choose to share your name.
         </p>
       </div>

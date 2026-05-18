@@ -180,10 +180,10 @@ export default function QuickAddPlace({
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', margin: 0 }}>
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', margin: 0 }}>
               Add a place
             </h2>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0', lineHeight: 1.4 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0', lineHeight: 1.4 }}>
               Know a barbershop, spaza, or shisanyama that's not on Kayaa yet? Add it in 30 seconds.
             </p>
           </div>
@@ -203,10 +203,10 @@ export default function QuickAddPlace({
         {done ? (
           <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>📍</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#39D98A', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#39D98A', marginBottom: '6px' }}>
               {name} is on Kayaa
             </div>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 8px', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 8px', lineHeight: 1.5 }}>
               It will appear in the feed for {suburb}. The owner can claim it anytime.
             </p>
 
@@ -218,7 +218,7 @@ export default function QuickAddPlace({
                 borderRadius: '20px', padding: '5px 12px', marginBottom: '16px',
               }}>
                 <Sparkles size={12} color="#A78BFA" />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#A78BFA' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#A78BFA' }}>
                   Writing description…
                 </span>
               </div>
@@ -229,7 +229,7 @@ export default function QuickAddPlace({
               style={{
                 width: '100%', padding: '12px', borderRadius: '12px',
                 background: '#39D98A', border: 'none',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
                 color: '#000', cursor: 'pointer',
                 marginTop: enriching ? '0' : '16px',
               }}
@@ -301,7 +301,7 @@ export default function QuickAddPlace({
               </div>
 
               {error && (
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#F87171', margin: 0 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171', margin: 0 }}>
                   {error}
                 </p>
               )}
@@ -313,7 +313,7 @@ export default function QuickAddPlace({
                 borderRadius: '10px', padding: '10px 12px',
               }}>
                 <Sparkles size={13} color="#A78BFA" style={{ flexShrink: 0, marginTop: '1px' }} />
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.5 }}>
                   We'll write a description for this place automatically. The owner can update it anytime after claiming.
                 </p>
               </div>
@@ -325,7 +325,7 @@ export default function QuickAddPlace({
                   width: '100%', padding: '13px', borderRadius: '12px',
                   background: canSubmit ? '#39D98A' : 'rgba(57,217,138,0.2)',
                   border: 'none',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
                   color: canSubmit ? '#000' : 'rgba(255,255,255,0.2)',
                   cursor: canSubmit ? 'pointer' : 'default',
                   transition: 'background 0.15s',
@@ -344,7 +344,7 @@ export default function QuickAddPlace({
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   fontSize: '12px',
   fontWeight: 600,
   color: 'rgba(255,255,255,0.45)',
@@ -361,7 +361,7 @@ const inputStyle: React.CSSProperties = {
   padding: '10px 12px',
   color: '#F0F6FC',
   fontSize: '14px',
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   outline: 'none',
   boxSizing: 'border-box',
 };

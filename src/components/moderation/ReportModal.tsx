@@ -104,10 +104,10 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
         <div style={SHEET_STYLE} onClick={e => e.stopPropagation()}>
           <div style={{ textAlign: 'center', padding: '32px 24px' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
               Report Submitted
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', marginBottom: '24px', lineHeight: 1.5 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', marginBottom: '24px', lineHeight: 1.5 }}>
               Our team will review it within 24 hours. Thank you for keeping Kayaa safe.
             </div>
             <button onClick={onClose} style={GREEN_BTN}>Done</button>
@@ -126,7 +126,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Flag size={18} color="#EF4444" />
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
               Report {CONTENT_LABELS[contentType]}
             </span>
           </div>
@@ -147,13 +147,13 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
             borderRadius: '10px',
           }}>
             <AlertTriangle size={16} color="#F97316" style={{ flexShrink: 0, marginTop: '1px' }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(249,115,22,0.9)', lineHeight: 1.5 }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(249,115,22,0.9)', lineHeight: 1.5 }}>
               False reports may result in your account being suspended. Only report content that violates our community guidelines.
             </span>
           </div>
 
           {/* Reason list */}
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>
             Why are you reporting this?
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
@@ -166,7 +166,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
                   background: reason === r ? 'rgba(239,68,68,0.12)' : 'var(--color-surface)',
                   border: `1px solid ${reason === r ? '#EF4444' : 'var(--color-border)'}`,
                   borderRadius: '10px',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '14px',
                   color: reason === r ? '#F0F6FC' : 'rgba(255,255,255,0.65)',
                   cursor: 'pointer',
                   transition: 'border-color 0.15s',
@@ -178,7 +178,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
           </div>
 
           {/* Details */}
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '6px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '6px' }}>
             Additional details (optional)
           </div>
           <textarea
@@ -190,7 +190,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
               width: '100%', boxSizing: 'border-box',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               borderRadius: '10px', padding: '12px',
-              color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+              color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px',
               outline: 'none', resize: 'none',
               marginBottom: '16px',
             }}
@@ -204,7 +204,7 @@ export function ReportModal({ contentType, contentId, onClose }: ReportModalProp
               width: '100%', padding: '13px',
               background: reason && !loading ? '#EF4444' : 'rgba(255,255,255,0.07)',
               border: 'none', borderRadius: '12px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
               color: reason && !loading ? '#fff' : 'rgba(255,255,255,0.3)',
               cursor: reason && !loading ? 'pointer' : 'default',
               transition: 'background 0.2s',
@@ -239,6 +239,6 @@ const SHEET_STYLE: React.CSSProperties = {
 const GREEN_BTN: React.CSSProperties = {
   width: '100%', padding: '13px',
   background: '#39D98A', border: 'none', borderRadius: '12px',
-  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
   color: '#000', cursor: 'pointer',
 };

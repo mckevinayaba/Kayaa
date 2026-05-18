@@ -152,13 +152,13 @@ export default function CreatePage() {
       {/* ── Header ── */}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '22px', color: '#F0F6FC', margin: '0 0 4px',
         }}>
           Create
         </h1>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.38)', margin: 0,
         }}>
           What do you want to contribute to your neighbourhood?
@@ -171,7 +171,7 @@ export default function CreatePage() {
 
           {/* Section heading */}
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.1em',
             color: 'rgba(255,255,255,0.3)', margin: '0 0 10px',
           }}>
@@ -181,7 +181,7 @@ export default function CreatePage() {
           {/* Owner hook for Places section */}
           {section.heading === 'Places' && (
             <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px',
               color: 'rgba(255,255,255,0.45)', margin: '-4px 0 10px',
               lineHeight: 1.5,
             }}>
@@ -219,13 +219,13 @@ export default function CreatePage() {
                 {/* Text */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700,
                     fontSize: '14px', color: '#F0F6FC', marginBottom: '2px',
                   }}>
                     {tile.label}
                   </div>
                   <div style={{
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                    fontFamily: 'Inter, sans-serif', fontSize: '12px',
                     color: 'rgba(255,255,255,0.42)', lineHeight: 1.4,
                     marginBottom: '4px',
                   }}>
@@ -233,7 +233,7 @@ export default function CreatePage() {
                   </div>
                   {/* "Appears in" context badge */}
                   <span style={{
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 600,
+                    fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 600,
                     color: tile.color, background: `${tile.color}12`,
                     padding: '2px 7px', borderRadius: '8px',
                     display: 'inline-block',

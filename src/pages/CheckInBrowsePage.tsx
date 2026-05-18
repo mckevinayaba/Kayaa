@@ -79,10 +79,10 @@ function ActiveNowRail({ venues, onSelect }: { venues: Venue[]; onSelect: (slug:
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
         <Zap size={14} color="#39D98A" />
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: 0 }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: 0 }}>
           Active right now
         </h2>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
           · {venues.length} place{venues.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -111,11 +111,11 @@ function ActiveNowRail({ venues, onSelect }: { venues: Venue[]; onSelect: (slug:
                 <span style={{ fontSize: '18px' }}>{emoji}</span>
                 <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dot.color, display: 'inline-block' }} />
               </div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '3px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '3px' }}>
                 {v.name}
               </div>
               {(v.checkinsToday ?? 0) > 0 && (
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: color, fontWeight: 600 }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: color, fontWeight: 600 }}>
                   {v.checkinsToday} check-in{v.checkinsToday !== 1 ? 's' : ''} today
                 </div>
               )}
@@ -167,7 +167,7 @@ function VenueRow({ venue, userLat, userLon, onCheckin }: {
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {venue.name}
           </span>
           {venue.isVerified && <span title="Verified" style={{ fontSize: '11px', color: '#39D98A', flexShrink: 0 }}>✓</span>}
@@ -176,13 +176,13 @@ function VenueRow({ venue, userLat, userLon, onCheckin }: {
           {/* Status */}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: dot.color, display: 'inline-block' }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: dot.color, fontWeight: 600 }}>{dot.label}</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: dot.color, fontWeight: 600 }}>{dot.label}</span>
           </span>
           <span style={{ color: 'var(--color-border)', fontSize: '10px' }}>·</span>
           {/* Area */}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
             <MapPin size={10} color="var(--color-muted)" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
               {venue.neighborhood || venue.city}
             </span>
           </span>
@@ -190,7 +190,7 @@ function VenueRow({ venue, userLat, userLon, onCheckin }: {
           {dist != null && (
             <>
               <span style={{ color: 'var(--color-border)', fontSize: '10px' }}>·</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>{fmtDist(dist)}</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>{fmtDist(dist)}</span>
             </>
           )}
         </div>
@@ -203,7 +203,7 @@ function VenueRow({ venue, userLat, userLon, onCheckin }: {
           background: '#39D98A', color: '#0D1117',
           border: 'none', borderRadius: '20px',
           padding: '8px 14px',
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
           cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
         }}
       >
@@ -276,10 +276,10 @@ export default function CheckInBrowsePage() {
 
       {/* Header */}
       <div style={{ marginBottom: '16px' }}>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', margin: '0 0 3px' }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px', color: 'var(--color-text)', margin: '0 0 3px' }}>
           Explore
         </h1>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
           Find places to check in near {areaLabel}
         </p>
       </div>
@@ -323,7 +323,7 @@ export default function CheckInBrowsePage() {
                   background: active ? 'rgba(57,217,138,0.15)' : 'var(--color-surface)',
                   color: active ? '#39D98A' : 'var(--color-muted)',
                   fontSize: '12px', fontWeight: 600,
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                   cursor: 'pointer', whiteSpace: 'nowrap',
                   transition: 'all 0.15s',
                 }}
@@ -338,7 +338,7 @@ export default function CheckInBrowsePage() {
 
       {/* Sort + result count row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
           {loading ? '…' : `${filtered.length} place${filtered.length !== 1 ? 's' : ''}`}
         </span>
 
@@ -353,7 +353,7 @@ export default function CheckInBrowsePage() {
               borderRadius: '10px', padding: '6px 10px',
               color: showSort ? '#39D98A' : 'var(--color-muted)',
               fontSize: '12px', fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', cursor: 'pointer',
               transition: 'all 0.15s',
             }}
           >
@@ -381,7 +381,7 @@ export default function CheckInBrowsePage() {
                     border: 'none',
                     padding: '10px 14px',
                     textAlign: 'left',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+                    fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
                     color: sortBy === opt.key ? '#39D98A' : 'var(--color-text)',
                     cursor: 'pointer',
                   }}
@@ -402,10 +402,10 @@ export default function CheckInBrowsePage() {
           <div style={{ fontSize: '36px', marginBottom: '12px' }}>
             {activeCat !== 'All' ? (CAT_EMOJI[activeCat] ?? '📍') : '🔍'}
           </div>
-          <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '8px' }}>
+          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '8px' }}>
             {activeCat !== 'All' ? `No ${activeCat.toLowerCase()} places yet` : 'No places found'}
           </h3>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
             {activeCat !== 'All'
               ? `Be the first to add a ${activeCat.toLowerCase()} near ${areaLabel}.`
               : `Nothing in this area yet. Want to add your place?`}
@@ -416,7 +416,7 @@ export default function CheckInBrowsePage() {
               background: '#39D98A', color: '#0D1117',
               border: 'none', borderRadius: '12px',
               padding: '12px 24px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
               cursor: 'pointer',
             }}
           >
@@ -439,7 +439,7 @@ export default function CheckInBrowsePage() {
             textAlign: 'center', padding: '24px 0 8px',
             borderTop: '1px solid var(--color-border)', marginTop: '8px',
           }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '0 0 12px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '0 0 12px' }}>
               Don't see your place?
             </p>
             <button
@@ -447,7 +447,7 @@ export default function CheckInBrowsePage() {
               style={{
                 background: 'transparent', border: '1px solid rgba(57,217,138,0.3)',
                 borderRadius: '12px', padding: '10px 22px',
-                color: '#39D98A', fontFamily: 'DM Sans, sans-serif',
+                color: '#39D98A', fontFamily: 'Inter, sans-serif',
                 fontWeight: 600, fontSize: '13px', cursor: 'pointer',
               }}
             >

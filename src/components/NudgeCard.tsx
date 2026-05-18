@@ -61,14 +61,14 @@ export default function NudgeCard({
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '13px', color: '#F0F6FC',
             marginBottom: '3px', lineHeight: 1.3,
           }}>
             {title}
           </div>
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.45)', lineHeight: 1.5,
             marginBottom: '10px',
           }}>
@@ -80,7 +80,7 @@ export default function NudgeCard({
               background: accent, color: '#000',
               border: 'none', borderRadius: '8px',
               padding: '6px 14px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
               fontSize: '12px', cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
             } as React.CSSProperties}

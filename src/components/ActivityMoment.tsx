@@ -26,7 +26,7 @@ export default function ActivityMoment({ text, time, initial }: ActivityMomentPr
         fontSize: '11px',
         fontWeight: 700,
         color: 'var(--color-accent)',
-        fontFamily: 'Syne, sans-serif',
+        fontFamily: 'Inter, sans-serif',
         flexShrink: 0,
       }}>
         {initial}

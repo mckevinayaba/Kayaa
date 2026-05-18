@@ -200,7 +200,7 @@ function QRScanner({ onDetect, onClose }: QRScannerProps) {
               style={{
                 width: '100%', background: '#39D98A', color: '#000',
                 border: 'none', borderRadius: '10px', padding: '12px',
-                fontWeight: 700, fontFamily: 'Syne, sans-serif', fontSize: '14px',
+                fontWeight: 700, fontFamily: 'Inter, sans-serif', fontSize: '14px',
                 cursor: 'pointer',
               }}
             >
@@ -414,7 +414,7 @@ export default function CheckInPage() {
         {venue && (
           <div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{emoji} {venue.name}</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px' }}>
               Check in
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function CheckInPage() {
               {emoji}
             </div>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '3px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '3px' }}>
                 {venue.name}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -462,7 +462,7 @@ export default function CheckInPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '14px' }}>🤫</span>
               <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px',
                 color: isGhost ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.4)',
                 fontWeight: isGhost ? 600 : 400,
               }}>
@@ -485,7 +485,7 @@ export default function CheckInPage() {
           </button>
           {isGhost && (
             <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontSize: '11px',
               color: 'rgba(255,255,255,0.3)', margin: '6px 14px 0',
               lineHeight: 1.5,
             }}>
@@ -523,7 +523,7 @@ export default function CheckInPage() {
               <MapPin size={30} color="#39D98A" />
             </div>
             <div>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '6px' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '6px' }}>
                 Verifying your location…
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--color-muted)' }}>This only takes a moment</p>
@@ -544,7 +544,7 @@ export default function CheckInPage() {
               📍
             </div>
             <div>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '8px' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '8px' }}>
                 You're{' '}
                 {distanceKm != null ? `${distanceKm < 1 ? `${Math.round(distanceKm * 1000)}m` : `${distanceKm.toFixed(1)}km`}` : 'some distance'}{' '}
                 away
@@ -561,7 +561,7 @@ export default function CheckInPage() {
                 style={{
                   background: 'var(--color-accent)', color: '#000',
                   border: 'none', borderRadius: '14px', padding: '16px',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer',
                 }}
               >
                 Check In Anyway
@@ -572,7 +572,7 @@ export default function CheckInPage() {
                   background: 'transparent', color: 'var(--color-muted)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '14px', padding: '14px',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                 }}
               >
                 Cancel
@@ -593,7 +593,7 @@ export default function CheckInPage() {
               {emoji}
             </div>
             <div>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '8px' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', marginBottom: '8px' }}>
                 Check in at {venue.name}
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.65, maxWidth: '280px' }}>
@@ -606,7 +606,7 @@ export default function CheckInPage() {
                 style={{
                   background: 'var(--color-accent)', color: '#000',
                   border: 'none', borderRadius: '14px', padding: '16px',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer',
                 }}
               >
                 I'm Here — Check Me In
@@ -618,7 +618,7 @@ export default function CheckInPage() {
                   border: '1.5px solid rgba(57,217,138,0.28)',
                   borderRadius: '14px', padding: '14px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                 }}
               >
                 <QrCode size={16} /> Scan Venue QR Code
@@ -640,7 +640,7 @@ export default function CheckInPage() {
           <>
             <div style={{ fontSize: '52px', marginBottom: '4px' }}>✓</div>
             <div>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>
                 Already checked in today
               </h2>
               <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.65 }}>
@@ -652,7 +652,7 @@ export default function CheckInPage() {
               style={{
                 background: 'var(--color-accent)', color: '#000',
                 border: 'none', borderRadius: '14px', padding: '16px 32px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer',
               }}
             >
               Back to {venue.name.split("'")[0].trim()}

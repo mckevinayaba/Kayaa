@@ -141,10 +141,10 @@ function VideoUpload({
             <Play size={18} color="rgba(57,217,138,0.7)" />
           </div>
           <div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>
               Add a short video
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.45 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.45 }}>
               Show the room, item condition, or service clearly
             </div>
           </div>
@@ -158,14 +158,14 @@ function VideoUpload({
           border: '1px solid rgba(239,68,68,0.22)',
           borderRadius: '12px', padding: '14px 16px',
         }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171', margin: '0 0 10px', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#F87171', margin: '0 0 10px', lineHeight: 1.5 }}>
             {state.msg}
           </p>
           <button
             onClick={() => { setState({ status: 'idle' }); }}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.4)', padding: 0,
             }}
           >
@@ -203,7 +203,7 @@ function VideoUpload({
                 borderTop: '3px solid #39D98A',
                 animation: 'vidSpin 0.9s linear infinite',
               }} />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>
                 Uploading…
               </span>
             </div>
@@ -231,16 +231,16 @@ function VideoUpload({
       {/* Done status row — duration + soft length nudge */}
       {state.status === 'done' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '7px', flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#39D98A' }}>
             ✓ Video ready
           </span>
           {durationLabel && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
               · {durationLabel}
             </span>
           )}
           {durationWarn && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#F59E0B' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#F59E0B' }}>
               · Under 20 seconds works best
             </span>
           )}
@@ -256,13 +256,13 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
   return (
     <div style={{ padding: '16px', paddingBottom: '60px' }}>
       <h1 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800,
+        fontFamily: 'Inter, sans-serif', fontWeight: 800,
         fontSize: '22px', color: 'var(--color-text)',
         margin: '0 0 6px',
       }}>
         What are you posting?
       </h1>
-      <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 20px', fontFamily: 'DM Sans, sans-serif' }}>
+      <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 20px', fontFamily: 'Inter, sans-serif' }}>
         Choose a category to get started
       </p>
 
@@ -280,10 +280,10 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
         >
           <div style={{ fontSize: '28px' }}>🔧</div>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
               Offer a Service
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#60A5FA' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#60A5FA' }}>
               Barber · tutor · plumber
             </div>
           </div>
@@ -300,10 +300,10 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
         >
           <div style={{ fontSize: '28px' }}>🏠</div>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '13px', color: 'var(--color-text)', marginBottom: '2px' }}>
               List a Place
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#34D399' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#34D399' }}>
               Room · rental · short stay
             </div>
           </div>
@@ -330,14 +330,14 @@ function CategoryPicker({ onSelect }: { onSelect: (cat: BoardCategory) => void }
               <span style={{ fontSize: '28px' }}>{cat.emoji}</span>
               <div>
                 <div style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700,
                   fontSize: '13px',
                   color: isSafety ? '#EF4444' : 'var(--color-text)',
                 }}>
                   {cat.label}
                 </div>
                 {isSafety && (
-                  <div style={{ fontSize: '11px', color: 'rgba(239,68,68,0.7)', marginTop: '2px', fontFamily: 'DM Sans, sans-serif' }}>
+                  <div style={{ fontSize: '11px', color: 'rgba(239,68,68,0.7)', marginTop: '2px', fontFamily: 'Inter, sans-serif' }}>
                     Expires in 48h
                   </div>
                 )}
@@ -446,7 +446,7 @@ function DetailsForm({
       {/* Housing: sub-type picker + hint */}
       {isHousing && (
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Type of listing *
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
@@ -464,10 +464,10 @@ function DetailsForm({
                   }}
                 >
                   <div style={{ fontSize: '18px', marginBottom: '4px' }}>{sub.emoji}</div>
-                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? '#34D399' : 'var(--color-text)', marginBottom: '2px' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? '#34D399' : 'var(--color-text)', marginBottom: '2px' }}>
                     {sub.label}
                   </div>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
                     {sub.hint}
                   </div>
                 </button>
@@ -480,7 +480,7 @@ function DetailsForm({
       {/* Jobs: sub-type picker */}
       {isJob && (
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             What are you posting? *
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -500,10 +500,10 @@ function DetailsForm({
                 >
                   <span style={{ fontSize: '22px', flexShrink: 0 }}>{sub.emoji}</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: active ? sub.color : 'var(--color-text)', marginBottom: '2px' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: active ? sub.color : 'var(--color-text)', marginBottom: '2px' }}>
                       {sub.label}
                     </div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
                       {sub.hint}
                     </div>
                   </div>
@@ -520,7 +520,7 @@ function DetailsForm({
       {/* Services: sub-type picker */}
       {isService && (
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             What are you posting? *
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -538,10 +538,10 @@ function DetailsForm({
                   }}
                 >
                   <div style={{ fontSize: '22px', marginBottom: '6px' }}>{sub.emoji}</div>
-                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? sub.color : 'var(--color-text)', marginBottom: '3px' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: active ? sub.color : 'var(--color-text)', marginBottom: '3px' }}>
                     {sub.label}
                   </div>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
                     {sub.hint}
                   </div>
                 </button>
@@ -557,7 +557,7 @@ function DetailsForm({
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
           borderRadius: '12px', padding: '12px 14px', marginBottom: '16px',
         }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#93C5FD', margin: 0, lineHeight: 1.5 }}>
             💡 Tip: Be specific about what you offer, your price, and how to reach you. Posts stay active for 30 days.
           </p>
         </div>
@@ -575,10 +575,10 @@ function DetailsForm({
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <AlertTriangle size={18} color={formData.isUrgent ? '#EF4444' : 'var(--color-muted)'} />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: formData.isUrgent ? '#EF4444' : 'var(--color-text)', fontFamily: 'DM Sans, sans-serif' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: formData.isUrgent ? '#EF4444' : 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
                 Mark as Urgent
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
                 Shows a red alert banner to everyone
               </div>
             </div>
@@ -606,7 +606,7 @@ function DetailsForm({
 
       {/* Title */}
       <div style={{ marginBottom: '14px' }}>
-        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {isSafety ? 'Alert title *' : 'Title *'}
         </label>
         <input
@@ -624,17 +624,17 @@ function DetailsForm({
             border: `1px solid ${isSafety ? 'rgba(239,68,68,0.3)' : 'var(--color-border)'}`,
             borderRadius: '12px', padding: '13px 14px',
             color: 'var(--color-text)', fontSize: '15px',
-            fontFamily: 'DM Sans, sans-serif', outline: 'none',
+            fontFamily: 'Inter, sans-serif', outline: 'none',
           }}
         />
-        <div style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '3px', fontFamily: 'Inter, sans-serif' }}>
           {80 - formData.title.length} left
         </div>
       </div>
 
       {/* Description */}
       <div style={{ marginBottom: '14px' }}>
-        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Details
         </label>
         <textarea
@@ -658,11 +658,11 @@ function DetailsForm({
             border: '1px solid var(--color-border)',
             borderRadius: '12px', padding: '13px 14px',
             color: 'var(--color-text)', fontSize: '14px',
-            fontFamily: 'DM Sans, sans-serif', outline: 'none',
+            fontFamily: 'Inter, sans-serif', outline: 'none',
             resize: 'none',
           }}
         />
-        <div style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', marginTop: '3px', fontFamily: 'Inter, sans-serif' }}>
           {500 - formData.description.length} left
         </div>
       </div>
@@ -670,7 +670,7 @@ function DetailsForm({
       {/* Price (housing) */}
       {isHousing && (
         <div style={{ marginBottom: '14px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {isShortStay ? 'Rate per night (R)' : 'Monthly rent (R)'}
           </label>
           <input
@@ -684,10 +684,10 @@ function DetailsForm({
               background: 'var(--color-surface)', border: '1px solid rgba(52,211,153,0.25)',
               borderRadius: '12px', padding: '13px 14px',
               color: 'var(--color-text)', fontSize: '15px',
-              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+              fontFamily: 'Inter, sans-serif', outline: 'none',
             }}
           />
-          <div style={{ fontSize: '11px', color: '#34D399', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: '#34D399', marginTop: '3px', fontFamily: 'Inter, sans-serif' }}>
             {isShortStay ? 'Per night / nightly rate' : 'Per calendar month — leave blank if negotiable'}
           </div>
         </div>
@@ -696,7 +696,7 @@ function DetailsForm({
       {/* Price (for_sale) */}
       {showPrice && (
         <div style={{ marginBottom: '14px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Price (R)
           </label>
           <input
@@ -711,7 +711,7 @@ function DetailsForm({
               border: '1px solid var(--color-border)',
               borderRadius: '12px', padding: '13px 14px',
               color: 'var(--color-text)', fontSize: '15px',
-              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+              fontFamily: 'Inter, sans-serif', outline: 'none',
             }}
           />
         </div>
@@ -720,7 +720,7 @@ function DetailsForm({
       {/* Rate (services/jobs) */}
       {showRate && (
         <div style={{ marginBottom: '14px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {isJob && formData.jobSubType === 'available' ? 'Expected rate / salary (optional)' :
              isJob ? 'Salary / Rate offered (optional)' :
              'Rate / Price (optional)'}
@@ -737,7 +737,7 @@ function DetailsForm({
               border: '1px solid var(--color-border)',
               borderRadius: '12px', padding: '13px 14px',
               color: 'var(--color-text)', fontSize: '15px',
-              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+              fontFamily: 'Inter, sans-serif', outline: 'none',
             }}
           />
         </div>
@@ -745,7 +745,7 @@ function DetailsForm({
 
       {/* WhatsApp contact */}
       <div style={{ marginBottom: '14px' }}>
-        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           WhatsApp Number (optional)
         </label>
         <input
@@ -759,10 +759,10 @@ function DetailsForm({
             border: '1px solid var(--color-border)',
             borderRadius: '12px', padding: '13px 14px',
             color: 'var(--color-text)', fontSize: '15px',
-            fontFamily: 'DM Sans, sans-serif', outline: 'none',
+            fontFamily: 'Inter, sans-serif', outline: 'none',
           }}
         />
-        <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
           People will contact you directly on WhatsApp
         </div>
       </div>
@@ -770,11 +770,11 @@ function DetailsForm({
       {/* ── Media section ───────────────────────────────────────────────── */}
       <div style={{ marginBottom: '20px' }}>
         {/* Section header */}
-        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {VIDEO_CATS.includes(category) ? 'Media (optional)' : 'Photos (optional)'}
         </label>
         {VIDEO_CATS.includes(category) && (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px', lineHeight: 1.45 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px', lineHeight: 1.45 }}>
             Photos and video help people trust what they're seeing before they message you.
           </p>
         )}
@@ -811,7 +811,7 @@ function DetailsForm({
               }}
             >
               <Camera size={18} color="var(--color-muted)" />
-              <span style={{ fontSize: '9px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+              <span style={{ fontSize: '9px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
                 {uploading ? '…' : 'Add'}
               </span>
             </button>
@@ -823,10 +823,10 @@ function DetailsForm({
         {VIDEO_CATS.includes(category) && (
           <div>
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
                 Short video
               </span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.32)', marginLeft: '8px' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.32)', marginLeft: '8px' }}>
                 Optional · best under 20 seconds
               </span>
             </div>
@@ -844,7 +844,7 @@ function DetailsForm({
         background: 'var(--color-surface)', border: '1px solid var(--color-border)',
         borderRadius: '12px', padding: '10px 14px',
         fontSize: '13px', color: 'var(--color-muted)',
-        fontFamily: 'DM Sans, sans-serif', marginBottom: '20px',
+        fontFamily: 'Inter, sans-serif', marginBottom: '20px',
       }}>
         📍 This will be posted in <strong style={{ color: 'var(--color-text)' }}>{suburb}</strong>
       </div>
@@ -860,7 +860,7 @@ function DetailsForm({
           border: 'none', borderRadius: '14px',
           fontSize: '16px', fontWeight: 800,
           cursor: canProceed ? 'pointer' : 'default',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}
       >
         Preview post →
@@ -892,7 +892,7 @@ function PreviewStep({
   return (
     <div style={{ padding: '0 16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '4px' }}>
           This is how your post will look
         </div>
       </div>
@@ -915,21 +915,21 @@ function PreviewStep({
           }}>
             {cat.emoji} {cat.label}
           </span>
-          <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>just now</span>
+          <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>just now</span>
         </div>
 
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: 'var(--color-text)', marginBottom: formData.description ? '6px' : '10px', lineHeight: 1.3 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: 'var(--color-text)', marginBottom: formData.description ? '6px' : '10px', lineHeight: 1.3 }}>
           {formData.title}
         </div>
 
         {formData.description && (
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 10px', lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif' }}>
+          <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 10px', lineHeight: 1.55, fontFamily: 'Inter, sans-serif' }}>
             {formData.description}
           </p>
         )}
 
         {formData.price && (
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#39D98A', marginBottom: '10px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: '#39D98A', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}>
             R{Number(formData.price).toLocaleString()}
           </div>
         )}
@@ -957,7 +957,7 @@ function PreviewStep({
           </div>
         )}
 
-        <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <span>📍 {suburb}</span>
           {formData.contactWhatsapp && <span>· 💬 WhatsApp</span>}
           {formData.videoUrl && <span>· 🎬 Video</span>}
@@ -976,7 +976,7 @@ function PreviewStep({
           border: 'none', borderRadius: '14px',
           fontSize: '16px', fontWeight: 800,
           cursor: submitting ? 'default' : 'pointer',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           marginBottom: '10px',
         }}
       >
@@ -990,7 +990,7 @@ function PreviewStep({
           width: '100%', padding: '14px',
           background: 'transparent', border: 'none',
           color: 'var(--color-muted)', fontSize: '14px',
-          cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+          cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}
       >
         ← Edit details
@@ -1114,13 +1114,13 @@ export default function BoardNewPage() {
         </div>
 
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
           color: 'var(--color-text)', margin: '0 0 8px',
         }}>
           Post published!
         </h1>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+          fontFamily: 'Inter, sans-serif', fontSize: '14px',
           color: 'var(--color-muted)', margin: '0 0 32px', lineHeight: 1.55,
           maxWidth: '280px',
         }}>
@@ -1143,7 +1143,7 @@ export default function BoardNewPage() {
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
           </svg>
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000',
           }}>
             Share on WhatsApp
           </span>
@@ -1157,7 +1157,7 @@ export default function BoardNewPage() {
             background: 'transparent',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px',
             color: 'var(--color-muted)',
             WebkitTapHighlightColor: 'transparent',
           } as React.CSSProperties}
@@ -1194,11 +1194,11 @@ export default function BoardNewPage() {
           <ArrowLeft size={20} color="var(--color-text)" />
         </button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)' }}>
             {stepTitle}
           </div>
           {step > 1 && cat && (
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
               {cat.emoji} {cat.label}
             </div>
           )}

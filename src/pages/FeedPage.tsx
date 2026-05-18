@@ -156,7 +156,7 @@ function UtilityPillStrip({ suburb }: { suburb: string }) {
     height: '34px', padding: '0 14px', flexShrink: 0,
     background: '#161B22', border: '1px solid #1e2a3a',
     borderRadius: '18px', cursor: 'pointer',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+    fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
     WebkitTapHighlightColor: 'transparent',
   };
   return (
@@ -409,7 +409,7 @@ export default function FeedPage() {
       {pullDelta > 10 && (
         <div style={{ position: 'fixed', top: '56px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '6px 14px', opacity: Math.min(pullDelta / 60, 1), pointerEvents: 'none' }}>
           <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid rgba(57,217,138,0.35)', borderTopColor: '#39D98A', transform: `rotate(${Math.min(pullDelta * 4.5, 360)}deg)` }} />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>{pullDelta >= 60 ? 'Release to refresh' : 'Pull to refresh'}</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>{pullDelta >= 60 ? 'Release to refresh' : 'Pull to refresh'}</span>
         </div>
       )}
 
@@ -418,7 +418,7 @@ export default function FeedPage() {
         <div style={{ textAlign: 'center', padding: '4px 0 8px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '5px 12px' }}>
             <div style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid rgba(57,217,138,0.25)', borderTopColor: '#39D98A', animation: 'spin 0.8s linear infinite' }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>Refreshing…</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>Refreshing…</span>
           </div>
         </div>
       )}
@@ -428,8 +428,8 @@ export default function FeedPage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', padding: '10px 14px', marginBottom: '14px' }}>
           <span style={{ fontSize: '16px', flexShrink: 0 }}>⚠️</span>
           <div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F59E0B' }}>You're offline</div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F59E0B' }}>You're offline</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px', lineHeight: 1.4 }}>
               {cacheDate ? `Showing places saved ${new Date(cacheDate).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}. Some info may be outdated.` : 'No cached data available. Connect to the internet to load places.'}
             </div>
           </div>
@@ -440,10 +440,10 @@ export default function FeedPage() {
       {showGpsConfirm && !manualOverride && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '12px', padding: '10px 14px', marginBottom: '12px' }}>
           <span style={{ fontSize: '15px', flexShrink: 0 }}>📍</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', flex: 1, lineHeight: 1.4 }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', flex: 1, lineHeight: 1.4 }}>
             Showing <strong style={{ color: '#F0F6FC' }}>{suburb}</strong> — not right?
           </span>
-          <button onClick={handleChangeArea} style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', flexShrink: 0 }}>Change</button>
+          <button onClick={handleChangeArea} style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', flexShrink: 0 }}>Change</button>
           <button onClick={handleConfirmGpsSuburb} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', fontSize: '16px', padding: '0 2px', flexShrink: 0 }} aria-label="Dismiss">×</button>
         </div>
       )}
@@ -451,13 +451,13 @@ export default function FeedPage() {
       {/* Area search */}
       {showAreaSearch && (
         <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '14px', padding: '14px 16px', marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '10px' }}>Which suburb are you in?</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '10px' }}>Which suburb are you in?</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input
               autoFocus value={areaSearchQuery}
               onChange={e => setAreaSearchQuery(e.target.value)}
               placeholder="e.g. Rosebank, Soweto…"
-              style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', outline: 'none' }}
+              style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px', outline: 'none' }}
               onKeyDown={e => {
                 if (e.key === 'Enter' && areaSearchQuery.trim()) { setManualOverride(areaSearchQuery.trim(), city); setShowAreaSearch(false); setRefreshKey(k => k + 1); }
                 if (e.key === 'Escape') setShowAreaSearch(false);
@@ -465,10 +465,10 @@ export default function FeedPage() {
             />
             <button
               onClick={() => { if (areaSearchQuery.trim()) { setManualOverride(areaSearchQuery.trim(), city); setShowAreaSearch(false); setRefreshKey(k => k + 1); } }}
-              style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px' }}
+              style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px' }}
             >Set</button>
           </div>
-          <button onClick={() => setShowAreaSearch(false)} style={{ marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', padding: 0 }}>Cancel — use my GPS location</button>
+          <button onClick={() => setShowAreaSearch(false)} style={{ marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', padding: 0 }}>Cancel — use my GPS location</button>
         </div>
       )}
 
@@ -485,22 +485,22 @@ export default function FeedPage() {
       {manualOverride && suburb && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '10px', padding: '8px 12px', marginBottom: '12px' }}>
           <span style={{ fontSize: '13px' }}>🔍</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>Browsing <strong>{manualOverride}</strong></span>
-          <button onClick={() => { clearManualOverride(); setRefreshKey(k => k + 1); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}>Use GPS</button>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>Browsing <strong>{manualOverride}</strong></span>
+          <button onClick={() => { clearManualOverride(); setRefreshKey(k => k + 1); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}>Use GPS</button>
         </div>
       )}
 
       {/* ── 1. Neighbourhood header ─────────────────────────────────────────── */}
       <div style={{ marginBottom: '20px' }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(57,217,138,0.6)', margin: '0 0 6px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(57,217,138,0.6)', margin: '0 0 6px' }}>
           {getGreeting()}
         </p>
         <div onClick={() => setShowAreaGate(true)} style={{ cursor: 'pointer', marginBottom: '6px' }}>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '28px', color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>
+          <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '28px', color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>
             {areaLabel}
           </h1>
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: '#9CA3AF', margin: '0 0 10px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#9CA3AF', margin: '0 0 10px' }}>
           {!suburb
             ? 'Set your neighbourhood to see places nearby'
             : rawVenues.length === 0
@@ -513,11 +513,11 @@ export default function FeedPage() {
           const dateStr = new Date().toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' });
           return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 5px rgba(57,217,138,0.6)' }} />
                 {activeNow} active now
               </span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{dateStr}</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{dateStr}</span>
             </div>
           );
         })()}
@@ -533,13 +533,13 @@ export default function FeedPage() {
       {/* ── 4. Places near you ──────────────────────────────────────────────── */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Places near you</p>
-          <button onClick={() => navigate('/neighbourhood')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>Browse all →</button>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Places near you</p>
+          <button onClick={() => navigate('/neighbourhood')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>Browse all →</button>
         </div>
 
         {showPlacesHint && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
               These are the businesses and spots in your area. Tap one to learn more or check in when you visit.
             </p>
             <button
@@ -560,15 +560,15 @@ export default function FeedPage() {
             borderRadius: '16px', padding: '28px 20px', textAlign: 'center',
           }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>🗺️</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
               {suburb || areaLabel} is waiting to be discovered.
             </div>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Be the first to add a business and put your area on the map.
             </p>
             <button
               onClick={() => navigate('/onboarding')}
-              style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+              style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
             >
               Add the first business
             </button>
@@ -581,8 +581,8 @@ export default function FeedPage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px' }}>
           <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>Explore nearby places, check in where you go, and stay on top of alerts.</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>Explore nearby places, check in where you go, and stay on top of alerts.</p>
           </div>
           <button onClick={() => { localStorage.setItem('kayaa_welcome_dismissed', 'true'); setWelcomeDismissed(true); }} aria-label="Dismiss welcome hint" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>
@@ -597,19 +597,19 @@ export default function FeedPage() {
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>From the Board</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>From the Board</p>
                 {post.isSeed && (
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
                 )}
               </div>
-              <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>See all posts →</button>
+              <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>See all posts →</button>
             </div>
             <div onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ display: 'inline-block', fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
+                <span style={{ display: 'inline-block', fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                 {post.title}
               </p>
             </div>
@@ -626,24 +626,24 @@ export default function FeedPage() {
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
                   Jobs &amp; Skills{suburb ? ` · ${suburb}` : ''}
                 </p>
                 {job.isSeed && (
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
                 )}
               </div>
-              <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>Browse all jobs →</button>
+              <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>Browse all jobs →</button>
             </div>
             <div onClick={() => navigate('/jobs')} style={{ background: 'var(--color-surface)', border: `1px solid ${badgeColor}18`, borderLeft: `3px solid ${badgeColor}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: badgeColor, background: `${badgeColor}18`, borderRadius: '20px', padding: '2px 8px' }}>{isSkill ? '💡 Skills' : '💼 Hiring'}</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: badgeColor, background: `${badgeColor}18`, borderRadius: '20px', padding: '2px 8px' }}>{isSkill ? '💡 Skills' : '💼 Hiring'}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif' }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
                 {job.title}
               </p>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>📍 {job.neighbourhood}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>📍 {job.neighbourhood}</p>
             </div>
           </div>
         );
@@ -673,15 +673,15 @@ export default function FeedPage() {
           return (
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
-                <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
+                <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
               </div>
               <div onClick={() => navigate('/alerts')} style={{ background: `${color}08`, border: `1px solid ${color}20`, borderLeft: `3px solid ${color}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{meta.icon} {meta.label}</span>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(utilityAlert.createdAt)}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{meta.icon} {meta.label}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(utilityAlert.createdAt)}</span>
                 </div>
-                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'DM Sans, sans-serif' }}>
+                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
                   📍 {utilityAlert.areaDetail}
                   {utilityAlert.reportCount > 1 && <span style={{ color, fontWeight: 700 }}> · {utilityAlert.reportCount} reports</span>}
                 </p>
@@ -695,18 +695,18 @@ export default function FeedPage() {
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
               </div>
-              <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
+              <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
             </div>
             <div onClick={() => navigate('/alerts')} style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)', borderLeft: '3px solid rgba(57,217,138,0.4)', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '18px', flexShrink: 0 }}>{SEED_ALERT.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '13px', color: '#39D98A', margin: '0 0 2px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>{SEED_ALERT.label}</p>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, fontFamily: 'DM Sans, sans-serif' }}>{SEED_ALERT.message}</p>
+                <p style={{ fontSize: '13px', color: '#39D98A', margin: '0 0 2px', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{SEED_ALERT.label}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, fontFamily: 'Inter, sans-serif' }}>{SEED_ALERT.message}</p>
               </div>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{SEED_ALERT.time}</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{SEED_ALERT.time}</span>
             </div>
           </div>
         );

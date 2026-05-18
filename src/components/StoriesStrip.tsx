@@ -73,7 +73,7 @@ export default function StoriesStrip({ stories }: StoriesStripProps) {
               </div>
               <span style={{
                 fontSize: '10px', color: 'var(--color-muted)',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 maxWidth: '56px', textAlign: 'center',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
@@ -95,8 +95,8 @@ export default function StoriesStrip({ stories }: StoriesStripProps) {
           >
             <X size={18} color="#fff" />
           </button>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginBottom: '12px', fontFamily: 'DM Sans, sans-serif' }}>{active.venueName}</div>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '18px', color: '#fff', lineHeight: 1.6, textAlign: 'center', margin: 0, maxWidth: '340px' }}>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>{active.venueName}</div>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '18px', color: '#fff', lineHeight: 1.6, textAlign: 'center', margin: 0, maxWidth: '340px' }}>
             {active.content}
           </p>
         </div>

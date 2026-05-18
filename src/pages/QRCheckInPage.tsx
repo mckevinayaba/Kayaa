@@ -122,7 +122,7 @@ export default function QRCheckInPage() {
         padding: '32px', textAlign: 'center',
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px' }}>
           Place not found
         </h2>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '24px' }}>
@@ -168,7 +168,7 @@ export default function QRCheckInPage() {
 
       {/* Venue name */}
       <h1 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
         color: 'var(--color-text)', marginBottom: '8px', lineHeight: 1.2,
       }}>
         {venue.name}
@@ -199,7 +199,7 @@ export default function QRCheckInPage() {
           borderRadius: '14px', padding: '16px 20px', marginBottom: '24px', width: '100%', maxWidth: '300px',
         }}>
           <p style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             color: '#fff', marginBottom: '4px',
           }}>
             Already checked in today ✓
@@ -221,7 +221,7 @@ export default function QRCheckInPage() {
             color: '#000', border: 'none', borderRadius: '16px',
             padding: '18px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px',
             cursor: saving ? 'default' : 'pointer',
             marginBottom: '16px',
           }}

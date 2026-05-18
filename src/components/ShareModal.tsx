@@ -195,7 +195,7 @@ export default function ShareModal(props: ShareModalProps) {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>
             Share
           </span>
           <button
@@ -250,7 +250,7 @@ export default function ShareModal(props: ShareModalProps) {
             background: '#25D366', border: 'none',
             borderRadius: '12px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             color: '#000', marginBottom: '10px',
           }}
         >
@@ -269,7 +269,7 @@ export default function ShareModal(props: ShareModalProps) {
               flex: 1, padding: '12px 8px',
               background: 'var(--color-bg)', border: '1px solid var(--color-border)',
               borderRadius: '12px', cursor: pngBlob ? 'pointer' : 'default',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
               color: pngBlob ? 'var(--color-text)' : 'var(--color-muted)',
               opacity: pngBlob ? 1 : 0.5,
               transition: 'color 0.2s',
@@ -283,7 +283,7 @@ export default function ShareModal(props: ShareModalProps) {
               flex: 1, padding: '12px 8px',
               background: 'var(--color-bg)', border: '1px solid var(--color-border)',
               borderRadius: '12px', cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
               color: 'var(--color-text)',
               transition: 'color 0.2s',
             }}
@@ -297,7 +297,7 @@ export default function ShareModal(props: ShareModalProps) {
               flex: 1, padding: '12px 8px',
               background: 'var(--color-bg)', border: '1px solid var(--color-border)',
               borderRadius: '12px', cursor: pngBlob ? 'pointer' : 'default',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
               color: pngBlob ? 'var(--color-text)' : 'var(--color-muted)',
               opacity: pngBlob ? 1 : 0.5,
             }}
@@ -310,7 +310,7 @@ export default function ShareModal(props: ShareModalProps) {
         <p style={{
           textAlign: 'center', fontSize: '11px',
           color: 'rgba(255,255,255,0.28)',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           lineHeight: 1.5,
         }}>
           Every place that makes a neighbourhood. One network.

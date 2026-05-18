@@ -105,7 +105,7 @@ function DayRow({
   const inputStyle = {
     background: '#0D1117', border: '1px solid #30363D', borderRadius: '8px',
     padding: '9px 10px', color: '#F0F6FC',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '13px', outline: 'none',
+    fontFamily: 'Inter, sans-serif', fontSize: '13px', outline: 'none',
     width: '100%', boxSizing: 'border-box' as const,
   };
 
@@ -122,11 +122,11 @@ function DayRow({
             width: '8px', height: '8px', borderRadius: '50%',
             background: slot.closed ? 'rgba(255,255,255,0.15)' : '#39D98A',
           }} />
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
             {DAY_LABELS[day]}
           </span>
           {!slot.closed && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
               {fmt12(slot.open)} – {fmt12(slot.close)}
             </span>
           )}
@@ -151,7 +151,7 @@ function DayRow({
               transition: 'left 0.2s',
             }} />
           </div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             {slot.closed ? 'Closed' : 'Open'}
           </span>
         </label>
@@ -161,7 +161,7 @@ function DayRow({
       {!slot.closed && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
               Opens
             </div>
             <input
@@ -172,7 +172,7 @@ function DayRow({
             />
           </div>
           <div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
               Closes
             </div>
             <input
@@ -266,7 +266,7 @@ export default function VenueHours() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Clock size={16} color="rgba(255,255,255,0.5)" />
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
             Opening Hours
           </h1>
         </div>
@@ -278,7 +278,7 @@ export default function VenueHours() {
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '8px 14px', borderRadius: '10px', border: 'none',
             background: saved ? 'rgba(57,217,138,0.2)' : '#39D98A',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: saved ? '#39D98A' : '#000',
             cursor: saving ? 'default' : 'pointer',
             transition: 'all 0.2s',
@@ -296,7 +296,7 @@ export default function VenueHours() {
 
         {/* ── Quick presets ─────────────────────────────────────────────── */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
             Quick presets
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -308,7 +308,7 @@ export default function VenueHours() {
                   display: 'flex', alignItems: 'center', gap: '6px',
                   padding: '6px 12px', borderRadius: '20px',
                   background: 'var(--color-surface)', border: '1px solid #30363D',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
                   color: 'rgba(255,255,255,0.6)', cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
               >
@@ -333,13 +333,13 @@ export default function VenueHours() {
 
         {/* ── No venue fallback ─────────────────────────────────────────── */}
         {!venueId && !loading && (
-          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
             No venue found. <a href="/onboarding" style={{ color: '#39D98A' }}>Add your place first.</a>
           </div>
         )}
 
         {/* ── Save hint ─────────────────────────────────────────────────── */}
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
           Changes are visible on your venue page immediately after saving.
         </div>
       </div>

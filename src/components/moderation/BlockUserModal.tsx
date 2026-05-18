@@ -74,10 +74,10 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>
               {action === 'block' ? '🚫' : '🔕'}
             </div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', marginBottom: '8px' }}>
               {action === 'block' ? `${targetName} blocked` : `${targetName} muted`}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px', lineHeight: 1.5 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px', lineHeight: 1.5 }}>
               {action === 'block'
                 ? "You won't see their posts or comments on Kayaa."
                 : "Their posts and comments will be hidden from your view."}
@@ -96,7 +96,7 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
             Manage User
           </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
@@ -106,7 +106,7 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
 
         {/* Body */}
         <div style={{ padding: '14px 16px 20px' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px', lineHeight: 1.5 }}>
             Choose how you want to manage{' '}
             <strong style={{ color: '#F0F6FC' }}>{targetName}</strong>
           </p>
@@ -127,10 +127,10 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
             >
               <VolumeX size={20} color="#F97316" style={{ flexShrink: 0, marginTop: '1px' }} />
               <div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '3px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '3px' }}>
                   Mute
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
                   Hide their posts and comments. They can still see yours.
                 </div>
               </div>
@@ -150,10 +150,10 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
             >
               <UserX size={20} color="#EF4444" style={{ flexShrink: 0, marginTop: '1px' }} />
               <div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '3px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '3px' }}>
                   Block
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
                   {"They can't see your content or contact you. They won't be notified."}
                 </div>
               </div>
@@ -170,7 +170,7 @@ export function BlockUserModal({ targetId, targetName, onClose }: BlockUserModal
                 ? 'rgba(255,255,255,0.07)'
                 : action === 'block' ? '#EF4444' : '#F97316',
               border: 'none', borderRadius: '12px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
               color: loading ? 'rgba(255,255,255,0.3)' : '#fff',
               cursor: loading ? 'default' : 'pointer',
               transition: 'background 0.2s',
@@ -207,6 +207,6 @@ const SHEET: React.CSSProperties = {
 const GREEN_BTN: React.CSSProperties = {
   width: '100%', padding: '13px',
   background: '#39D98A', border: 'none', borderRadius: '12px',
-  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
   color: '#000', cursor: 'pointer',
 };

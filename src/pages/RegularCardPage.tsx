@@ -97,7 +97,7 @@ export default function RegularCardPage() {
           background: 'rgba(57,217,138,0.12)',
           border: '2.5px solid #39D98A',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '32px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '32px',
           color: '#39D98A', marginBottom: '16px',
           boxShadow: '0 0 24px rgba(57,217,138,0.18)',
         }}>
@@ -105,13 +105,13 @@ export default function RegularCardPage() {
         </div>
 
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
           color: 'var(--color-text)', marginBottom: '4px', lineHeight: 1.2,
         }}>
           {visitorName}'s Regular Card
         </h1>
 
-        <p style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'DM Sans, sans-serif' }}>
+        <p style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600, fontFamily: 'Inter, sans-serif' }}>
           {neighbourhood} Regular
           {checkins.length > 0 && (
             <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>
@@ -134,7 +134,7 @@ export default function RegularCardPage() {
         {checkins.length === 0 ? (
           <div style={{ padding: '32px 16px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>📍</div>
-            <p style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.55 }}>
+            <p style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', lineHeight: 1.55 }}>
               No check-ins recorded yet for {visitorName}
             </p>
           </div>
@@ -166,13 +166,13 @@ export default function RegularCardPage() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                     color: 'var(--color-text)', marginBottom: '2px',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
                     {c.venueName}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
                     {c.visitCount} visit{c.visitCount !== 1 ? 's' : ''}
                   </div>
                 </div>
@@ -200,15 +200,15 @@ export default function RegularCardPage() {
             display: 'flex', gap: '0', flexDirection: 'column',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>Total check-ins</span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'Syne, sans-serif' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>Total check-ins</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
                 {totalVisits}
               </span>
             </div>
             {memberSince && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>Member since</span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'Syne, sans-serif' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>Member since</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
                   {memberSince}
                 </span>
               </div>
@@ -226,7 +226,7 @@ export default function RegularCardPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           background: '#39D98A', color: '#000',
           borderRadius: '14px', padding: '16px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
           textDecoration: 'none', width: '100%', boxSizing: 'border-box',
         }}
       >
@@ -235,9 +235,9 @@ export default function RegularCardPage() {
       </a>
 
       {/* Branding */}
-      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-muted)', marginTop: '16px', fontFamily: 'DM Sans, sans-serif' }}>
+      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-muted)', marginTop: '16px', fontFamily: 'Inter, sans-serif' }}>
         Powered by{' '}
-        <span style={{ color: '#39D98A', fontWeight: 600, fontFamily: 'Syne, sans-serif' }}>kayaa</span>
+        <span style={{ color: '#39D98A', fontWeight: 600, fontFamily: 'Inter, sans-serif' }}>kayaa</span>
       </p>
     </div>
   );

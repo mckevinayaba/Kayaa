@@ -45,12 +45,12 @@ const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '12px', padding: '13px 14px',
-  color: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+  color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: '14px',
   outline: 'none',
 };
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontFamily: 'DM Sans, sans-serif',
+  display: 'block', fontFamily: 'Inter, sans-serif',
   fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.5)',
   textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px',
 };
@@ -100,7 +100,7 @@ export default function EditProfile() {
         >
           <ArrowLeft size={18} color="#fff" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
           Edit Profile
         </h1>
         <button
@@ -127,14 +127,14 @@ export default function EditProfile() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {form.name ? (
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '32px', color: '#39D98A' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '32px', color: '#39D98A' }}>
                 {form.name[0].toUpperCase()}
               </span>
             ) : (
               <User size={32} color="rgba(57,217,138,0.6)" />
             )}
           </div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
             Profile photo coming soon
           </span>
         </div>
@@ -149,7 +149,7 @@ export default function EditProfile() {
             placeholder="e.g. Thabo"
             style={inputStyle}
           />
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '5px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '5px' }}>
             Shown when you check in publicly
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function EditProfile() {
             placeholder="Tell your neighbours about yourself…"
             style={{ ...inputStyle, resize: 'none', lineHeight: 1.55 }}
           />
-          <div style={{ textAlign: 'right', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
+          <div style={{ textAlign: 'right', fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
             {form.bio.length}/160
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function EditProfile() {
           style={{
             width: '100%', background: loading ? 'rgba(57,217,138,0.5)' : '#39D98A',
             border: 'none', borderRadius: '14px', padding: '16px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
             color: '#000', cursor: loading ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}
@@ -228,7 +228,7 @@ export default function EditProfile() {
         </button>
 
         {/* Anonymous note */}
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
           Your profile is stored locally on this device. No account required.
         </p>
       </div>

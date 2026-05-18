@@ -71,10 +71,10 @@ export function MyPosts({ visitorId }: MyPostsProps) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0' }}>
         <div style={{ fontSize: '48px', marginBottom: '12px' }}>💬</div>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
           No posts yet
         </h3>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '20px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '20px' }}>
           Share a question, story or skill on the Board.
         </p>
         <button
@@ -82,7 +82,7 @@ export function MyPosts({ visitorId }: MyPostsProps) {
           style={{
             background: '#39D98A', color: '#000', border: 'none',
             borderRadius: '12px', padding: '12px 24px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
           }}
         >
           Post something →
@@ -105,17 +105,17 @@ export function MyPosts({ visitorId }: MyPostsProps) {
             <span style={{ fontSize: '16px' }}>
               {POST_TYPE_EMOJI[post.post_type] ?? '💬'}
             </span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {post.post_type}
             </span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>
               {timeAgo(post.created_at)}
             </span>
           </div>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, margin: '0 0 10px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, margin: '0 0 10px' }}>
             {post.content.length > 120 ? post.content.slice(0, 120) + '…' : post.content}
           </p>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
             ❤️ {post.like_count ?? 0}
           </div>
         </div>

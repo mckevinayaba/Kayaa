@@ -64,12 +64,12 @@ function StatTile({
       display: 'flex', flexDirection: 'column', gap: '6px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px', color: accent, lineHeight: 1 }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px', color: accent, lineHeight: 1 }}>
           {value}
         </span>
         {icon}
       </div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
       </div>
     </div>
@@ -94,7 +94,7 @@ function WeeklyMiniChart({ bars }: { bars: WeeklyBar[] }) {
               background: isMax ? '#39D98A' : 'rgba(57,217,138,0.25)',
               transition: 'height 0.3s',
             }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
               {b.day.slice(0, 1)}
             </span>
           </div>
@@ -140,16 +140,16 @@ function ActionButton({
         {emoji ?? icon}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: premium ? '#FBBF24' : '#F0F6FC', marginBottom: '1px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: premium ? '#FBBF24' : '#F0F6FC', marginBottom: '1px' }}>
           {label}
         </div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: premium ? 'rgba(251,191,36,0.6)' : 'rgba(255,255,255,0.4)' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: premium ? 'rgba(251,191,36,0.6)' : 'rgba(255,255,255,0.4)' }}>
           {sub}
         </div>
       </div>
       {premium && (
         <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 800, fontSize: '10px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '10px',
           color: '#000', background: '#FBBF24', borderRadius: '6px', padding: '3px 7px',
           flexShrink: 0,
         }}>
@@ -181,10 +181,10 @@ function NoVenueState() {
   return (
     <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: '56px', marginBottom: '16px' }}>🏪</div>
-      <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: '#F0F6FC', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px', color: '#F0F6FC', marginBottom: '8px' }}>
         No venue found
       </h1>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: '24px', maxWidth: '280px' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: '24px', maxWidth: '280px' }}>
         You don't have a place on Kayaa yet. Add your business to get check-ins, analytics, and regulars.
       </p>
       <Link
@@ -192,7 +192,7 @@ function NoVenueState() {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '8px',
           padding: '14px 28px', borderRadius: '14px', textDecoration: 'none',
-          background: '#39D98A', fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          background: '#39D98A', fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '15px', color: '#000',
         }}
       >
@@ -302,10 +302,10 @@ export default function VenueDashboard() {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px' }}>
           Sign in to manage your venue
         </p>
-        <Link to="/login" style={{ padding: '12px 28px', background: '#39D98A', borderRadius: '12px', textDecoration: 'none', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000' }}>
+        <Link to="/login" style={{ padding: '12px 28px', background: '#39D98A', borderRadius: '12px', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000' }}>
           Sign In
         </Link>
       </div>
@@ -335,7 +335,7 @@ export default function VenueDashboard() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
           Venue Dashboard
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -370,16 +370,16 @@ export default function VenueDashboard() {
             {emoji}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', marginBottom: '2px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', marginBottom: '2px' }}>
               {venue.name}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
               {venue.category} · {venue.neighborhood}
             </div>
             {/* Plan tier indicator — always shown so owners know where they stand */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px' }}>
               <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '9px',
                 letterSpacing: '0.05em', textTransform: 'uppercase',
                 color: venue.planTier === 'pro' ? '#FBBF24' : venue.planTier === 'starter' ? '#39D98A' : 'rgba(255,255,255,0.35)',
                 background: venue.planTier === 'pro' ? 'rgba(251,191,36,0.1)' : venue.planTier === 'starter' ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.06)',
@@ -390,7 +390,7 @@ export default function VenueDashboard() {
               </span>
               {venue.isPromoted && (
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '9px',
                   color: '#F5A623', background: 'rgba(245,166,35,0.1)',
                   border: '1px solid rgba(245,166,35,0.2)',
                   borderRadius: '4px', padding: '2px 6px', textTransform: 'uppercase',
@@ -407,7 +407,7 @@ export default function VenueDashboard() {
               style={{
                 padding: '7px 12px', borderRadius: '10px', textDecoration: 'none',
                 background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
                 color: '#39D98A', whiteSpace: 'nowrap',
               }}
             >
@@ -429,7 +429,7 @@ export default function VenueDashboard() {
                 : <ToggleLeft  size={14} color="rgba(255,255,255,0.3)" />
               }
               <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
                 color: isOpen ? '#39D98A' : 'rgba(255,255,255,0.3)',
               }}>
                 {isOpen ? 'Open' : 'Closed'}
@@ -447,14 +447,14 @@ export default function VenueDashboard() {
           }}>
             <span style={{ fontSize: '18px' }}>⏰</span>
             <div style={{ flex: 1 }}>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F5A623' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F5A623' }}>
                 {stats!.lapsedCount} regular{stats!.lapsedCount !== 1 ? 's' : ''} haven't visited in 14+ days
               </span>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
                 Send a WhatsApp nudge from the Studio tab
               </div>
             </div>
-            <Link to="/feed" style={{ textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px', color: '#F5A623', flexShrink: 0 }}>
+            <Link to="/feed" style={{ textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px', color: '#F5A623', flexShrink: 0 }}>
               Studio →
             </Link>
           </div>
@@ -467,7 +467,7 @@ export default function VenueDashboard() {
             borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px',
           }}>
             <span style={{ fontSize: '18px' }}>🌱</span>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
               {stats!.newFacesCount} new face{stats!.newFacesCount !== 1 ? 's' : ''} this week — make them feel welcome!
             </div>
           </div>
@@ -508,10 +508,10 @@ export default function VenueDashboard() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '1px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '1px' }}>
                 Weekly rhythm
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                 4-week average check-ins per day
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function VenueDashboard() {
                   {weekTrend.startsWith('+')
                     ? <TrendingUp  size={14} color="#39D98A" />
                     : <TrendingDown size={14} color="#F87171" />}
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: weekTrend.startsWith('+') ? '#39D98A' : '#F87171' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: weekTrend.startsWith('+') ? '#39D98A' : '#F87171' }}>
                     {weekTrend}
                   </span>
                 </>
@@ -530,13 +530,13 @@ export default function VenueDashboard() {
           </div>
           {bars.length > 0
             ? <WeeklyMiniChart bars={bars} />
-            : <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)' }}>No check-in data yet</div>
+            : <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)' }}>No check-in data yet</div>
           }
           <div style={{ marginTop: '10px', display: 'flex', gap: '16px' }}>
             {(stats?.dailyAvg ?? 0) > 0 && (
               <div>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>{stats?.dailyAvg ?? 0}</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> daily avg</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>{stats?.dailyAvg ?? 0}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> daily avg</span>
               </div>
             )}
           </div>
@@ -549,10 +549,10 @@ export default function VenueDashboard() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '1px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '1px' }}>
                 Recent visitors
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                 Last {recent.length} check-ins
               </div>
             </div>
@@ -562,7 +562,7 @@ export default function VenueDashboard() {
           {recent.length === 0 ? (
             <div style={{
               padding: '20px 0', textAlign: 'center',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)',
             }}>
               No check-ins yet — share your QR code to get started
             </div>
@@ -581,33 +581,33 @@ export default function VenueDashboard() {
                       width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
                       background: `${color}18`, border: `1.5px solid ${color}35`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color,
+                      fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color,
                     }}>
                       {initial}
                     </div>
                     {/* Name + meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F0F6FC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F0F6FC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {name}
                         </span>
                         {isFirstTime && (
-                          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px', color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '9px', color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
                             NEW
                           </span>
                         )}
                         {ci.visitNumber >= 5 && !ci.isGhost && (
-                          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px', color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '9px', color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
                             REGULAR
                           </span>
                         )}
                       </div>
-                      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
                         visit #{ci.visitNumber}
                       </div>
                     </div>
                     {/* Time */}
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
                       {(() => {
                         const diff = Date.now() - new Date(ci.createdAt).getTime();
                         const mins = Math.floor(diff / 60000);
@@ -627,7 +627,7 @@ export default function VenueDashboard() {
 
         {/* ── Quick actions ────────────────────────────────────────────────── */}
         <div style={{ marginBottom: '8px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: '0 0 12px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: '0 0 12px' }}>
             Quick Actions
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -714,7 +714,7 @@ export default function VenueDashboard() {
                 marginBottom: '12px', padding: '14px 16px',
                 background: 'rgba(37,211,102,0.07)', border: '1px solid rgba(37,211,102,0.2)',
                 borderRadius: '14px', textDecoration: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', color: '#25D366',
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#25D366',
               }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -731,7 +731,7 @@ export default function VenueDashboard() {
             marginTop: '20px', padding: '14px',
             background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)',
             borderRadius: '14px', textDecoration: 'none',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
           }}
         >
           <Eye size={16} />

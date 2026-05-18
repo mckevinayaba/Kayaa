@@ -42,7 +42,7 @@ const TYPE_TEXT: Record<Community['type'], string> = {
 function TypeBadge({ type }: { type: Community['type'] }) {
   return (
     <span style={{
-      fontSize: '10px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
+      fontSize: '10px', fontWeight: 700, fontFamily: 'Inter, sans-serif',
       padding: '2px 7px', borderRadius: '10px',
       background: TYPE_COLOR[type], color: TYPE_TEXT[type],
       whiteSpace: 'nowrap', flexShrink: 0,
@@ -94,11 +94,11 @@ function GPSPanel({
             <Navigation size={14} color="#39D98A" />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '1px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '1px' }}>
               Detected location
             </div>
             <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {effectiveSuburb}
@@ -110,7 +110,7 @@ function GPSPanel({
           style={{
             padding: '8px 16px', borderRadius: '20px', flexShrink: 0,
             background: '#39D98A', border: 'none',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: '#000', cursor: 'pointer',
             whiteSpace: 'nowrap',
           }}
@@ -131,7 +131,7 @@ function GPSPanel({
         flexShrink: 0,
       }}>
         <Loader size={14} color="#39D98A" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
           {gps.state === 'requesting' ? 'Waiting for permission…' : 'Finding your suburb…'}
         </span>
       </div>
@@ -146,7 +146,7 @@ function GPSPanel({
         background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)',
         flexShrink: 0,
       }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
           <strong style={{ color: '#F59E0B' }}>Location access denied.</strong>{' '}
           To enable it: tap the lock icon in your browser's address bar → Allow Location.
           Or search for your suburb below.
@@ -162,7 +162,7 @@ function GPSPanel({
         background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.15)',
         flexShrink: 0,
       }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
           <strong style={{ color: '#60A5FA' }}>Can't detect suburb on this device.</strong>{' '}
           Desktop browsers use IP-based location which isn't accurate enough.
           Search for your suburb below — it takes 5 seconds.
@@ -183,7 +183,7 @@ function GPSPanel({
         }}
       >
         <Navigation size={14} color="rgba(255,255,255,0.3)" />
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
           Location detection failed — <span style={{ color: '#39D98A' }}>try again</span>
         </span>
       </button>
@@ -213,10 +213,10 @@ function GPSPanel({
         <Navigation size={14} color="#39D98A" />
       </div>
       <div>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
           Use my location
         </div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
           Detect your suburb automatically
         </div>
       </div>
@@ -277,10 +277,10 @@ function RequestForm({
     return (
       <div style={{ textAlign: 'center', padding: '24px 0' }}>
         <div style={{ fontSize: '32px', marginBottom: '10px' }}>✅</div>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px' }}>
           Request sent
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
           We'll add <strong style={{ color: '#39D98A' }}>{name}</strong> when we expand to your area.
         </p>
       </div>
@@ -289,10 +289,10 @@ function RequestForm({
 
   return (
     <form onSubmit={handleSubmit} style={{ paddingTop: '4px' }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
         Request a community
       </div>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px', lineHeight: 1.5 }}>
         We'll review it and add it when we expand to your area. Missing-community searches help us prioritise.
       </p>
 
@@ -309,7 +309,7 @@ function RequestForm({
           style={{
             flex: 1, padding: '10px', borderRadius: '10px',
             background: sending ? 'rgba(57,217,138,0.5)' : '#39D98A',
-            border: 'none', fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            border: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '13px', color: '#000', cursor: sending ? 'default' : 'pointer',
           }}
         >
@@ -320,7 +320,7 @@ function RequestForm({
           style={{
             padding: '10px 16px', borderRadius: '10px',
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
           }}
         >
@@ -335,7 +335,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%', background: 'var(--color-bg)',
   border: '1px solid var(--color-border)', borderRadius: '10px',
   padding: '9px 12px', color: 'var(--color-text)',
-  fontSize: '16px', fontFamily: 'DM Sans, sans-serif',
+  fontSize: '16px', fontFamily: 'Inter, sans-serif',
   outline: 'none', boxSizing: 'border-box',
 };
 
@@ -399,13 +399,13 @@ export default function AreaSelector({
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexShrink: 0 }}>
           <div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC' }}>
               {showRequest ? 'Request a community' : 'Choose your area'}
             </span>
             {currentSuburb && !showRequest && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
                 <MapPin size={11} color="#39D98A" />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#39D98A', fontWeight: 600 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#39D98A', fontWeight: 600 }}>
                   Currently: {currentSuburb}
                 </span>
               </div>
@@ -447,7 +447,7 @@ export default function AreaSelector({
               marginBottom: '14px', flexShrink: 0,
             }}>
               <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
                 or search
               </span>
               <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
@@ -469,7 +469,7 @@ export default function AreaSelector({
                   width: '100%', background: 'rgba(255,255,255,0.04)',
                   border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
                   padding: '11px 12px 11px 34px', color: '#F0F6FC',
-                  fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '14px', fontFamily: 'Inter, sans-serif',
                   outline: 'none', boxSizing: 'border-box',
                 }}
               />
@@ -494,7 +494,7 @@ export default function AreaSelector({
               {!query.trim() && (
                 <>
                   <div style={{
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+                    fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
                     color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em',
                     textTransform: 'uppercase', marginBottom: '12px',
                   }}>
@@ -509,7 +509,7 @@ export default function AreaSelector({
                           padding: '7px 14px', borderRadius: '20px', cursor: 'pointer',
                           background: c.name === currentSuburb ? 'rgba(57,217,138,0.12)' : 'rgba(255,255,255,0.05)',
                           border: `1px solid ${c.name === currentSuburb ? 'rgba(57,217,138,0.35)' : 'rgba(255,255,255,0.08)'}`,
-                          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 500,
+                          fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500,
                           color: c.name === currentSuburb ? '#39D98A' : 'rgba(255,255,255,0.75)',
                           whiteSpace: 'nowrap',
                         }}
@@ -529,7 +529,7 @@ export default function AreaSelector({
                     }}
                   >
                     <Plus size={16} color="#39D98A" />
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
                       Can't find your community?{' '}
                       <span style={{ color: '#39D98A', fontWeight: 600 }}>Request it</span>
                     </span>
@@ -545,10 +545,10 @@ export default function AreaSelector({
                     marginBottom: '8px', paddingBottom: '6px',
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
                   }}>
-                    <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
                       {group.metro}
                     </span>
-                    <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
                       {group.province}
                     </span>
                   </div>
@@ -571,7 +571,7 @@ export default function AreaSelector({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                           <MapPin size={13} color={c.name === currentSuburb ? '#39D98A' : 'rgba(255,255,255,0.25)'} style={{ flexShrink: 0 }} />
                           <span style={{
-                            fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 500,
+                            fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
                             color: c.name === currentSuburb ? '#39D98A' : '#F0F6FC',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
@@ -593,7 +593,7 @@ export default function AreaSelector({
                 <div style={{ paddingTop: '8px' }}>
                   <div style={{
                     textAlign: 'center', padding: '20px 0 16px',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                    fontFamily: 'Inter, sans-serif', fontSize: '13px',
                     color: 'rgba(255,255,255,0.35)', lineHeight: 1.6,
                   }}>
                     No communities found for{' '}
@@ -604,10 +604,10 @@ export default function AreaSelector({
                     background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)',
                     borderRadius: '14px', padding: '16px',
                   }}>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
                       "{query}" isn't on Kayaa yet
                     </div>
-                    <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 14px', lineHeight: 1.55 }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '0 0 14px', lineHeight: 1.55 }}>
                       Request it and we'll add it when we expand to your area. Every request helps us prioritise.
                     </p>
                     <button
@@ -615,7 +615,7 @@ export default function AreaSelector({
                       style={{
                         width: '100%', padding: '10px', borderRadius: '10px',
                         background: '#39D98A', border: 'none',
-                        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                         color: '#000', cursor: 'pointer',
                       }}
                     >

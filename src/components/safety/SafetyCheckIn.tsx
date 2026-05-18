@@ -59,13 +59,13 @@ function AddContactForm({ onAdd }: { onAdd: (c: EmergencyContact) => void }) {
     width: '100%', boxSizing: 'border-box',
     background: '#0D1117', border: '1px solid #30363D',
     borderRadius: '8px', padding: '9px 12px',
-    color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+    color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px',
     outline: 'none',
   };
 
   return (
     <div style={{ background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '12px', padding: '14px', marginTop: '10px' }}>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         New Contact
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -79,7 +79,7 @@ function AddContactForm({ onAdd }: { onAdd: (c: EmergencyContact) => void }) {
             background: name.trim() && phone.replace(/\D/g, '').length >= 9 ? '#39D98A' : 'rgba(255,255,255,0.08)',
             color: name.trim() && phone.replace(/\D/g, '').length >= 9 ? '#000' : 'rgba(255,255,255,0.3)',
             border: 'none', borderRadius: '8px', padding: '10px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
           }}
         >
           Save Contact
@@ -165,10 +165,10 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
         <div style={SHEET} onClick={e => e.stopPropagation()}>
           <div style={{ textAlign: 'center', padding: '36px 24px' }}>
             <div style={{ fontSize: '52px', marginBottom: '12px' }}>🛡️</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#F0F6FC', marginBottom: '8px' }}>
               Check-in Sent!
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, marginBottom: '24px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, marginBottom: '24px' }}>
               Your {selected.size} emergency {selected.size === 1 ? 'contact' : 'contacts'} {selected.size === 1 ? 'has' : 'have'} been notified via WhatsApp.
             </div>
             <button onClick={onClose} style={GREEN_BTN}>Done</button>
@@ -187,7 +187,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Shield size={18} color="#39D98A" />
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC' }}>
               Safety Check-in
             </span>
           </div>
@@ -200,7 +200,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
         <div style={{ padding: '14px 16px', overflowY: 'auto', maxHeight: '65vh' }}>
 
           {/* Subtitle */}
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: '0 0 16px', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: '0 0 16px', lineHeight: 1.5 }}>
             Let trusted contacts know you're at{' '}
             <strong style={{ color: '#F0F6FC' }}>{placeName}</strong>
           </p>
@@ -236,15 +236,15 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
                       width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
                       background: 'rgba(57,217,138,0.2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px', color: '#39D98A',
+                      fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px', color: '#39D98A',
                     }}>
                       {c.name[0]?.toUpperCase()}
                     </div>
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 600, color: '#F0F6FC' }}>{c.name}</div>
-                      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#F0F6FC' }}>{c.name}</div>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                         {c.relationship} · <Phone size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> {c.phone}
                       </div>
                     </div>
@@ -263,8 +263,8 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
           ) : (
             <div style={{ textAlign: 'center', padding: '24px', background: 'var(--color-surface)', borderRadius: '12px', marginBottom: '12px' }}>
               <Users size={32} color="rgba(255,255,255,0.2)" style={{ marginBottom: '8px' }} />
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>No emergency contacts yet</div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>Add a contact below to get started</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>No emergency contacts yet</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>Add a contact below to get started</div>
             </div>
           )}
 
@@ -280,7 +280,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
                 background: 'transparent',
                 border: '1px dashed rgba(255,255,255,0.15)',
                 borderRadius: '10px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
                 color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
                 marginBottom: '16px',
               }}
@@ -298,7 +298,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               background: selected.size > 0 ? '#39D98A' : 'rgba(255,255,255,0.07)',
               border: 'none', borderRadius: '12px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
               color: selected.size > 0 ? '#000' : 'rgba(255,255,255,0.3)',
               cursor: selected.size > 0 ? 'pointer' : 'default',
               transition: 'background 0.2s',
@@ -308,7 +308,7 @@ export function SafetyCheckIn({ placeId, placeName, placeUrl, onClose }: SafetyC
             {sending ? 'Opening WhatsApp…' : `Send to ${selected.size || ''} ${selected.size === 1 ? 'Contact' : selected.size > 0 ? 'Contacts' : 'Contacts'}`}
           </button>
 
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'center', margin: '10px 0 0', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'center', margin: '10px 0 0', lineHeight: 1.5 }}>
             Opens WhatsApp with a pre-filled safety message. Contacts are stored on your device only.
           </p>
         </div>
@@ -337,6 +337,6 @@ const SHEET: React.CSSProperties = {
 const GREEN_BTN: React.CSSProperties = {
   width: '100%', padding: '13px',
   background: '#39D98A', border: 'none', borderRadius: '12px',
-  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
   color: '#000', cursor: 'pointer',
 };

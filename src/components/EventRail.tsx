@@ -34,7 +34,7 @@ export default function EventRail({ events, venues }: EventRailProps) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px', paddingRight: '2px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
           Events this week
         </h2>
         <span style={{ fontSize: '12px', color: 'var(--color-accent)' }}>{events.length} on</span>
@@ -90,7 +90,7 @@ export default function EventRail({ events, venues }: EventRailProps) {
 
               {/* Title */}
               <div style={{
-                fontFamily: 'Syne, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 fontWeight: 700,
                 fontSize: '13px',
                 color: 'var(--color-text)',

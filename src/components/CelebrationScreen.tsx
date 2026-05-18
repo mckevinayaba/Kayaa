@@ -323,7 +323,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
         {/* ── Heading ─────────────────────────────────────────────── */}
         <div className="cs-line1" style={{ marginBottom: '14px', width: '100%', maxWidth: '340px' }}>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontWeight: 800,
             fontSize: isMilestone ? '28px' : '24px',
             color: '#F0F6FC',
@@ -336,7 +336,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
 
           {/* Subtext — quiet, small */}
           <p className="cs-subtext" style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: '12px',
             fontWeight: 600,
             color: accentColor,
@@ -352,7 +352,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
         {/* ── Message ─────────────────────────────────────────────── */}
         <div className="cs-line2" style={{ marginBottom: '40px', width: '100%', maxWidth: '300px' }}>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: '15px',
             color: 'rgba(255,255,255,0.55)',
             lineHeight: 1.65,
@@ -397,7 +397,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
                 color: '#25D366',
                 borderRadius: '14px', padding: '15px',
                 textDecoration: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px',
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366">
@@ -417,7 +417,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
               color: isGoldMoment ? '#000' : '#0D1117',
               borderRadius: '14px', padding: '15px',
               textDecoration: 'none',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
             }}
           >
             Back to {venue.name.length > 20 ? 'the venue' : venue.name.split("'")[0].trim()}
@@ -430,7 +430,7 @@ export default function CelebrationScreen({ venue, score, onDismiss, userName: _
               background: 'none', border: 'none',
               color: 'rgba(255,255,255,0.25)',
               fontSize: '12px', cursor: 'pointer', padding: '8px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}
           >
             Continue ({countdown}s)

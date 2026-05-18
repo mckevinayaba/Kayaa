@@ -49,7 +49,7 @@ export default function EmergencyContacts() {
     width: '100%', boxSizing: 'border-box',
     background: 'var(--color-surface)', border: '1px solid #30363D',
     borderRadius: '10px', padding: '12px 14px',
-    color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+    color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px',
     outline: 'none',
   };
 
@@ -76,7 +76,7 @@ export default function EmergencyContacts() {
         >
           <ArrowLeft size={18} color="var(--color-text)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0 }}>
           Emergency Contacts
         </h1>
       </div>
@@ -92,7 +92,7 @@ export default function EmergencyContacts() {
           borderRadius: '12px',
         }}>
           <Shield size={16} color="#39D98A" style={{ flexShrink: 0, marginTop: '1px' }} />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(57,217,138,0.9)', lineHeight: 1.5, margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(57,217,138,0.9)', lineHeight: 1.5, margin: 0 }}>
             These contacts are notified via WhatsApp when you tap <strong>Safety Check-in</strong> at a place. Stored on your device only.
           </p>
         </div>
@@ -116,17 +116,17 @@ export default function EmergencyContacts() {
                   width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
                   background: 'rgba(57,217,138,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px', color: '#39D98A',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px', color: '#39D98A',
                 }}>
                   {c.name[0]?.toUpperCase()}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
                     {c.name}
                   </div>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Phone size={10} />
                     {c.phone}
                     {c.relationship && <span style={{ marginLeft: '6px', color: 'rgba(255,255,255,0.3)' }}>· {c.relationship}</span>}
@@ -149,10 +149,10 @@ export default function EmergencyContacts() {
         {contacts.length === 0 && !showAddForm && (
           <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
             <div style={{ fontSize: '44px', marginBottom: '12px' }}>🛡️</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
               No contacts yet
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)' }}>
               Add people to notify when you check in somewhere
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function EmergencyContacts() {
             display: 'flex', flexDirection: 'column', gap: '10px',
             marginBottom: '16px',
           }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A', marginBottom: '4px' }}>
               New Contact
             </div>
 
@@ -186,7 +186,7 @@ export default function EmergencyContacts() {
             />
 
             {error && (
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#EF4444' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#EF4444' }}>
                 {error}
               </div>
             )}
@@ -197,7 +197,7 @@ export default function EmergencyContacts() {
                 style={{
                   flex: 1, padding: '12px',
                   background: '#39D98A', border: 'none', borderRadius: '10px',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                   color: '#000', cursor: 'pointer',
                 }}
               >
@@ -209,7 +209,7 @@ export default function EmergencyContacts() {
                   padding: '12px 20px',
                   background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '10px',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px',
                   color: 'rgba(255,255,255,0.55)', cursor: 'pointer',
                 }}
               >
@@ -226,7 +226,7 @@ export default function EmergencyContacts() {
               padding: '15px',
               background: '#39D98A',
               border: 'none', borderRadius: '14px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px',
               color: '#0D1117', cursor: 'pointer',
               boxShadow: '0 4px 16px rgba(57,217,138,0.3)',
             }}

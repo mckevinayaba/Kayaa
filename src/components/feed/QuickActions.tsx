@@ -89,7 +89,7 @@ export default function QuickActions({ onCompose: _onCompose, onAddPlace }: Quic
 
           {/* Label */}
           <span style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: '10px', fontWeight: 600,
             color: 'var(--color-muted)',
             textAlign: 'center',

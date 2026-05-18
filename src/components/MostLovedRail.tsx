@@ -22,7 +22,7 @@ export default function MostLovedRail({ venues, city }: { venues: Venue[]; city:
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
           Most loved in {city}
         </h2>
         <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>💛</span>
@@ -114,7 +114,7 @@ export default function MostLovedRail({ venues, city }: { venues: Venue[]; city:
                 )}
 
                 <div style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700,
                   fontSize: hasCover ? '12px' : '13px',
                   color: hasCover ? '#fff' : 'var(--color-text)',
                   marginBottom: '4px',

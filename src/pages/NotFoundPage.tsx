@@ -49,7 +49,7 @@ export default function NotFoundPage() {
 
       {/* Headline */}
       <h1 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800,
+        fontFamily: 'Inter, sans-serif', fontWeight: 800,
         fontSize: '24px', color: '#F0F6FC',
         margin: '0 0 10px', lineHeight: 1.2,
       }}>
@@ -58,7 +58,7 @@ export default function NotFoundPage() {
 
       {/* Body */}
       <p style={{
-        fontFamily: 'DM Sans, sans-serif',
+        fontFamily: 'Inter, sans-serif',
         fontSize: '15px', color: 'rgba(255,255,255,0.45)',
         lineHeight: 1.65, margin: '0 0 36px',
         maxWidth: '300px',
@@ -74,7 +74,7 @@ export default function NotFoundPage() {
           width: '100%', maxWidth: '320px', minHeight: '52px',
           background: '#39D98A', color: '#0D1117',
           border: 'none', borderRadius: '14px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
           cursor: 'pointer', marginBottom: '12px',
         }}
       >
@@ -88,7 +88,7 @@ export default function NotFoundPage() {
           width: '100%', maxWidth: '320px', minHeight: '48px',
           background: 'transparent', color: 'rgba(255,255,255,0.45)',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '15px',
           cursor: 'pointer',
         }}
       >
@@ -98,7 +98,7 @@ export default function NotFoundPage() {
       {/* Branding anchor — bottom of screen */}
       <div style={{
         position: 'fixed', bottom: '32px',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700,
+        fontFamily: 'Inter, sans-serif', fontWeight: 700,
         fontSize: '18px', color: '#39D98A',
         letterSpacing: '-0.5px',
       }}>

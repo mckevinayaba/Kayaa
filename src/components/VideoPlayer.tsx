@@ -177,7 +177,7 @@ export default function VideoPlayer({
         }}>
           <span style={{ fontSize: '24px' }}>⚠️</span>
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.5)',
           }}>
             Video unavailable
@@ -214,7 +214,7 @@ export default function VideoPlayer({
             }}>
               {label ? (
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
                   color: 'rgba(255,255,255,0.7)',
                 }}>
                   {label}
@@ -222,7 +222,7 @@ export default function VideoPlayer({
               ) : <span />}
               {duration > 0 && (
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
                   color: 'rgba(255,255,255,0.6)',
                   background: 'rgba(0,0,0,0.5)', borderRadius: '4px', padding: '2px 6px',
                 }}>

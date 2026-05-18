@@ -46,7 +46,7 @@ export default function VisualFilters({ filters, activeFilter, onSelect }: Visua
                 ? '#39D98A'
                 : 'var(--color-surface)',
               color: active ? '#000' : 'var(--color-muted)',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               fontSize: '13px', fontWeight: 600,
               cursor: 'pointer', whiteSpace: 'nowrap',
               transition: 'all 0.15s',

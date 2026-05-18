@@ -43,7 +43,7 @@ export default function NeighbourhoodGate({ onDone }: Props) {
     border: 'none',
     borderRadius: '14px',
     padding: '15px',
-    fontFamily: 'Syne, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: 700,
     fontSize: '15px',
     cursor: 'pointer',
@@ -57,7 +57,7 @@ export default function NeighbourhoodGate({ onDone }: Props) {
     border: '1px solid rgba(255,255,255,0.12)',
     borderRadius: '14px',
     padding: '13px',
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: 600,
     fontSize: '14px',
     cursor: 'pointer',
@@ -100,7 +100,7 @@ export default function NeighbourhoodGate({ onDone }: Props) {
           }}>
             <MapPin size={18} color="#39D98A" />
           </div>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: '#fff' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px', color: '#fff' }}>
             Your neighbourhood
           </span>
         </div>

@@ -57,7 +57,7 @@ export function VenueStatusBadge({ status, size = 'sm' }: Props) {
           animation: pulse ? 'statusPulse 2s ease-in-out infinite' : 'none',
         }} />
         <span style={{
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontSize, color: dotColor, fontWeight: 600,
           whiteSpace: 'nowrap',
         }}>

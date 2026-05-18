@@ -76,7 +76,7 @@ function PostRow({
             {cat.emoji} {cat.label}
           </span>
           <div style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '14px', color: 'var(--color-text)',
             lineHeight: 1.3,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -111,7 +111,7 @@ function PostRow({
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
           📍 {post.neighbourhood} · {formatAge(post.createdAt)}
         </span>
         {(post.status === 'expired' || isExpired) && onRepost && (
@@ -123,7 +123,7 @@ function PostRow({
               border: 'none', borderRadius: '20px',
               padding: '5px 12px', fontSize: '11px', fontWeight: 700,
               cursor: reposting ? 'default' : 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               opacity: reposting ? 0.6 : 1,
             }}
           >
@@ -249,11 +249,11 @@ export default function BoardMinePage() {
           <ArrowLeft size={20} color="var(--color-text)" />
         </button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)' }}>
             My Posts
           </div>
           {!loading && (
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
               {totalActive > 0 ? `${totalActive} live` : 'No active posts'}
             </div>
           )}
@@ -292,7 +292,7 @@ export default function BoardMinePage() {
                 background: active ? '#39D98A' : 'var(--color-surface)',
                 color: active ? '#000' : 'var(--color-muted)',
                 fontSize: '12px', fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                 display: 'flex', alignItems: 'center', gap: '5px',
               }}
             >
@@ -315,16 +315,16 @@ export default function BoardMinePage() {
       {/* Content */}
       <div style={{ padding: '14px 16px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
             Loading…
           </div>
         ) : posts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ fontSize: '36px', marginBottom: '12px' }}>📋</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '6px' }}>
               No posts yet
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '20px' }}>
               Post something on the board and it'll appear here
             </div>
             <button
@@ -333,7 +333,7 @@ export default function BoardMinePage() {
                 background: '#39D98A', color: '#000',
                 border: 'none', borderRadius: '20px',
                 padding: '12px 24px', fontSize: '14px', fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               }}
             >
               Create first post
@@ -341,7 +341,7 @@ export default function BoardMinePage() {
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '14px' }}>
               No {activeTab} posts
             </div>
             <button
@@ -353,7 +353,7 @@ export default function BoardMinePage() {
                 padding: '8px 18px',
                 fontSize: '13px', fontWeight: 600,
                 color: 'var(--color-muted)', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}
             >
               See active posts →

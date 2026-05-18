@@ -121,7 +121,7 @@ function PlaceRow({ venue, userLat, userLon }: {
         {/* Name + trust badges */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', flexWrap: 'nowrap' }}>
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
             color: 'var(--color-text)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             maxWidth: '160px',
@@ -160,26 +160,26 @@ function PlaceRow({ venue, userLat, userLon }: {
           {actLabel && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: actColor, display: 'inline-block' }} />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: actColor, fontWeight: 600 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: actColor, fontWeight: 600 }}>
                 {actLabel}
               </span>
             </span>
           )}
           {openLabel && (
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
               color: openStatus.state === 'closing_soon' ? '#FBBF24' : '#39D98A',
             }}>
               {openLabel}
             </span>
           )}
           {dist != null && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
               {dist < 1 ? `${Math.round(dist * 1000)}m` : `${dist.toFixed(1)}km`} away
             </span>
           )}
           {venue.lastCheckinAt && !actLabel && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
               Last visit {timeAgo(venue.lastCheckinAt)}
             </span>
           )}
@@ -224,14 +224,14 @@ function ClusterTile({ cluster, count, hasActive, onClick }: {
       </div>
       <div>
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
           color: empty ? 'rgba(255,255,255,0.35)' : 'var(--color-text)',
           marginBottom: '3px', lineHeight: 1.3,
         }}>
           {cluster.label}
         </div>
         <div style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+          fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
           color: empty ? 'rgba(255,255,255,0.2)' : cluster.color,
         }}>
           {count === 0 ? 'None listed' : count === 1 ? '1 place' : `${count} places`}
@@ -326,10 +326,10 @@ export default function NeighbourhoodPage() {
     return (
       <div style={{ padding: '40px 24px', textAlign: 'center' }}>
         <MapPin size={28} color="rgba(255,255,255,0.25)" style={{ marginBottom: '12px' }} />
-        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', margin: '0 0 8px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', margin: '0 0 8px' }}>
           Set your neighbourhood
         </p>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 24px', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 24px', lineHeight: 1.6 }}>
           Tap the neighbourhood chip at the top to set your area and see what's nearby.
         </p>
         <button
@@ -338,7 +338,7 @@ export default function NeighbourhoodPage() {
             background: 'rgba(57,217,138,0.12)', color: '#39D98A',
             border: '1px solid rgba(57,217,138,0.25)',
             borderRadius: '12px', padding: '10px 20px',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             cursor: 'pointer',
           }}
         >
@@ -376,17 +376,17 @@ export default function NeighbourhoodPage() {
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px',
               color: 'var(--color-text)', margin: 0, lineHeight: 1.2,
             }}>
               {cluster.emoji} {cluster.label}
             </h1>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
               {areaLabel}
             </p>
           </div>
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: count > 0 ? cluster.color : 'rgba(255,255,255,0.25)',
             flexShrink: 0,
           }}>
@@ -408,13 +408,13 @@ export default function NeighbourhoodPage() {
                 {cluster.emoji}
               </div>
               <p style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px',
                 color: 'var(--color-text)', margin: '0 0 8px',
               }}>
                 No {cluster.label.toLowerCase()} in {areaLabel} yet
               </p>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px',
                 color: 'var(--color-muted)', margin: '0 0 24px', lineHeight: 1.65,
               }}>
                 Be the first to add a {cluster.label.toLowerCase()} here
@@ -427,7 +427,7 @@ export default function NeighbourhoodPage() {
                   background: '#39D98A', color: '#0D1117',
                   border: 'none', borderRadius: '12px',
                   padding: '12px 24px',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                   cursor: 'pointer',
                 }}
               >
@@ -458,7 +458,7 @@ export default function NeighbourhoodPage() {
               >
                 <Plus size={15} color="#39D98A" />
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '13px',
                   color: 'rgba(255,255,255,0.4)',
                 }}>
                   Know another {cluster.label.toLowerCase()} in {areaLabel}?
@@ -479,7 +479,7 @@ export default function NeighbourhoodPage() {
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '22px' }}>
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
           color: '#F0F6FC', margin: '0 0 2px', lineHeight: 1.2,
         }}>
           Discover
@@ -487,13 +487,13 @@ export default function NeighbourhoodPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
           <MapPin size={11} color="rgba(255,255,255,0.3)" />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.35)',
           }}>
             {areaLabel}
           </span>
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
           {totalPlaces === 0
             ? 'No places listed yet — be the first to add one'
             : `${totalPlaces} place${totalPlaces !== 1 ? 's' : ''} across ${totalPresent} categor${totalPresent !== 1 ? 'ies' : 'y'} — tap a type to explore`
@@ -521,7 +521,7 @@ export default function NeighbourhoodPage() {
       {gaps.length > 0 && (
         <div>
           <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             color: 'var(--color-text)', margin: '0 0 12px', letterSpacing: '-0.01em',
           }}>
             Help grow {areaLabel}
@@ -544,7 +544,7 @@ export default function NeighbourhoodPage() {
               >
                 <span style={{ fontSize: '18px', flexShrink: 0 }}>{c.emoji}</span>
                 <p style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '13px',
                   color: 'var(--color-muted)', margin: 0, flex: 1, lineHeight: 1.4,
                 }}>
                   No <strong style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
@@ -552,7 +552,7 @@ export default function NeighbourhoodPage() {
                   </strong> listed in {areaLabel} yet
                 </p>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px',
                   color: '#39D98A', fontWeight: 700, flexShrink: 0,
                 }}>
                   Add →
@@ -564,7 +564,7 @@ export default function NeighbourhoodPage() {
           {/* Remaining gaps collapsed into a chip row if more than 4 */}
           {gaps.length > 4 && (
             <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.25)', margin: '4px 0 0',
             }}>
               {gaps.slice(4).map(c => c.emoji + ' ' + c.label).join(' · ')} · also missing
@@ -583,7 +583,7 @@ export default function NeighbourhoodPage() {
         }}>
           <span style={{ fontSize: '18px' }}>🏘️</span>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5,
           }}>
             <strong style={{ color: '#39D98A' }}>{areaLabel}</strong> has places across all major categories.

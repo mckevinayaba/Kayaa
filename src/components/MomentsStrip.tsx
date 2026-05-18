@@ -148,7 +148,7 @@ function MomentViewer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MomentsIcon size={13} />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.5)', letterSpacing: '0.01em',
           }}>
             {moment.neighbourhood}
@@ -234,19 +234,19 @@ function MomentViewer({
         onClick={e => e.stopPropagation()}
       >
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+          fontFamily: 'Inter, sans-serif', fontWeight: 500,
           fontSize: '16px', color: '#F0F6FC',
           margin: '0 0 8px', lineHeight: 1.45,
         }}>
           {moment.caption}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.38)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.38)' }}>
             {timeAgo(moment.createdAt)}
           </span>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: remaining === 'expired' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.35)',
           }}>
             <Clock size={10} />
@@ -322,7 +322,7 @@ function MomentBubble({
 
       {/* Caption — 1 line, max CAPTION_MAX px wide */}
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+        fontFamily: 'Inter, sans-serif', fontSize: '10px',
         color: 'rgba(255,255,255,0.45)', lineHeight: 1.3,
         width: `${CAPTION_MAX}px`, textAlign: 'center',
         display: 'block', overflow: 'hidden',
@@ -364,7 +364,7 @@ function AddBubble({ onClick, isEmpty }: { onClick: () => void; isEmpty: boolean
 
       {/* Caption row: "share" when moments exist, "be first" when empty */}
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+        fontFamily: 'Inter, sans-serif', fontSize: '10px',
         color: 'rgba(255,255,255,0.32)', lineHeight: 1.3,
         width: `${CAPTION_MAX}px`, textAlign: 'center',
         display: 'block', overflow: 'hidden',
@@ -422,7 +422,7 @@ export default function MomentsStrip({
         }}>
           <MomentsIcon size={13} />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.35)',
             letterSpacing: '0.02em',
           }}>
@@ -430,7 +430,7 @@ export default function MomentsStrip({
           </span>
           {!isEmpty && (
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+              fontFamily: 'Inter, sans-serif', fontSize: '10px',
               color: 'rgba(255,255,255,0.18)',
             }}>
               · {moments.length} today
@@ -438,7 +438,7 @@ export default function MomentsStrip({
           )}
           {isEmpty && neighbourhood && (
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '10px',
+              fontFamily: 'Inter, sans-serif', fontSize: '10px',
               color: 'rgba(255,255,255,0.15)', fontStyle: 'italic',
             }}>
               · none yet in {neighbourhood}

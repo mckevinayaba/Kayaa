@@ -141,7 +141,7 @@ function WhatsAppCTA({ post }: { post: BoardPost }) {
         border: '1px solid rgba(37,211,102,0.25)',
         borderRadius: '10px',
         color: '#25D366',
-        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
         textDecoration: 'none',
       }}
     >
@@ -189,25 +189,25 @@ function JobCard({ post, isMine, onMarkResolved }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <Briefcase size={13} color={cfg.color} />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
             color: cfg.color, background: `${cfg.color}18`,
             padding: '1px 8px', borderRadius: '10px',
           }}>
             {cfg.label}
           </span>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           {formatAge(post.createdAt)}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
         {post.title}
       </div>
 
       {post.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
           margin: '0 0 8px', lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
@@ -217,12 +217,12 @@ function JobCard({ post, isMine, onMarkResolved }: {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
             📍 {post.neighbourhood}
           </span>
           {post.price != null && (
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
               color: cfg.color, background: `${cfg.color}18`,
               padding: '2px 8px', borderRadius: '10px',
             }}>
@@ -236,7 +236,7 @@ function JobCard({ post, isMine, onMarkResolved }: {
             style={{
               background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
               padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
             }}
           >
             Resolve
@@ -274,25 +274,25 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <Wrench size={13} color={svcCfg.color} />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
             color: svcCfg.color, background: `${svcCfg.color}18`,
             padding: '1px 8px', borderRadius: '10px',
           }}>
             {svcCfg.label}
           </span>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           {formatAge(post.createdAt)}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
         {post.title}
       </div>
 
       {post.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
           margin: '0 0 8px', lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
@@ -302,11 +302,11 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
             📍 {post.neighbourhood}
           </span>
           {post.videoUrl && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(96,165,250,0.7)', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(96,165,250,0.7)', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
               🎬 Video
             </span>
           )}
@@ -314,7 +314,7 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {post.price != null && (
             <span style={{
-              fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 700, color: '#60A5FA',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: '#60A5FA',
             }}>
               R{post.price.toLocaleString()}
             </span>
@@ -325,7 +325,7 @@ function ServiceCard({ post, isMine, onMarkResolved }: {
               style={{
                 background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
                 padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
-                cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               }}
             >
               Resolve
@@ -367,29 +367,29 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <Home size={13} color="#34D399" />
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
             color: '#34D399', background: 'rgba(52,211,153,0.12)',
             padding: '1px 8px', borderRadius: '10px',
           }}>
             {subType}
           </span>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           {formatAge(post.createdAt)}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3 }}>
         {post.title}
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#34D399', marginBottom: '6px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#34D399', marginBottom: '6px' }}>
         {priceLabel}
       </div>
 
       {post.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
           margin: '0 0 8px', lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
@@ -399,11 +399,11 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
             📍 {post.neighbourhood}
           </span>
           {post.videoUrl && (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(52,211,153,0.7)', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(52,211,153,0.7)', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', borderRadius: '20px', padding: '1px 7px' }}>
               🎬 Video
             </span>
           )}
@@ -414,7 +414,7 @@ function HousingListCard({ post, isMine, onMarkTaken }: {
             style={{
               background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px',
               padding: '4px 10px', fontSize: '11px', color: 'rgba(255,255,255,0.45)',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
             }}
           >
             Mark taken
@@ -443,22 +443,22 @@ function NoticeCard({ post }: { post: BoardPost }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <Megaphone size={13} color="#F59E0B" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#F59E0B' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: '#F59E0B' }}>
             Notice
           </span>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           {formatAge(post.createdAt)}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '6px', lineHeight: 1.3 }}>
         {post.title}
       </div>
 
       {post.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)',
           margin: '0 0 8px', lineHeight: 1.6,
           display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
@@ -466,7 +466,7 @@ function NoticeCard({ post }: { post: BoardPost }) {
         </p>
       )}
 
-      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
         📍 {post.neighbourhood}
       </span>
     </div>
@@ -501,23 +501,23 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
           color: fresh ? '#EF4444' : cat.color,
           background: fresh ? 'rgba(239,68,68,0.12)' : `${cat.color}18`,
           padding: '2px 8px', borderRadius: '20px',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}>
           {cat.emoji} {cat.label}
         </span>
-        <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
           {formatAge(post.createdAt)}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: post.description ? '4px' : '8px', lineHeight: 1.35 }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: post.description ? '4px' : '8px', lineHeight: 1.35 }}>
         {post.title}
       </div>
 
       {post.description && (
         <p style={{
           fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 10px', lineHeight: 1.55,
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
           {post.description}
@@ -525,14 +525,14 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
       )}
 
       {post.price != null && (
-        <div style={{ fontSize: '15px', fontWeight: 700, color: '#39D98A', marginBottom: '10px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: '#39D98A', marginBottom: '10px', fontFamily: 'Inter, sans-serif' }}>
           R{post.price.toLocaleString()}
         </div>
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif' }}>
+          <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif' }}>
             📍 {post.neighbourhood}
           </span>
           {post.images.length > 0 && <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>· 📷 {post.images.length}</span>}
@@ -545,7 +545,7 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
             <a
               href={`https://wa.me/${post.contactWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`}
               target="_blank" rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#25D366', color: '#000', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif', textDecoration: 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#25D366', color: '#000', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', textDecoration: 'none' }}
             >
               <MessageCircle size={12} /> WhatsApp
             </a>
@@ -553,7 +553,7 @@ function GenericCard({ post, isMine, onMarkTaken, onMarkResolved }: {
           {isMine && post.status === 'active' && (
             <button
               onClick={() => (post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation') ? onMarkTaken(post.id) : onMarkResolved(post.id)}
-              style={{ background: 'var(--color-border)', color: 'var(--color-muted)', border: 'none', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+              style={{ background: 'var(--color-border)', color: 'var(--color-muted)', border: 'none', borderRadius: '20px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
             >
               {post.category === 'for_sale' || post.category === 'free' || post.category === 'accommodation' ? 'Mark taken' : 'Resolve'}
             </button>
@@ -667,17 +667,17 @@ export default function BoardPage() {
         }}>
           <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: '1px' }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#EF4444', fontFamily: 'DM Sans, sans-serif' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#EF4444', fontFamily: 'Inter, sans-serif' }}>
               {freshSafetyPosts.length} safety alert{freshSafetyPosts.length > 1 ? 's' : ''} in your area
             </div>
-            <div style={{ fontSize: '12px', color: 'rgba(239,68,68,0.7)', fontFamily: 'DM Sans, sans-serif', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(239,68,68,0.7)', fontFamily: 'Inter, sans-serif', marginTop: '2px' }}>
               {freshSafetyPosts[0].title}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={e => e.stopPropagation()}>
             <button
               onClick={() => navigate('/alerts')}
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0, fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: '#EF4444', fontWeight: 700 }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', flexShrink: 0, fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#EF4444', fontWeight: 700 }}
             >
               Alerts →
             </button>
@@ -696,14 +696,14 @@ export default function BoardPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
             <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.1em',
               color: 'rgba(255,255,255,0.35)', margin: '0 0 4px',
             }}>
               Community board
             </p>
             <h1 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px',
               color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
             }}>
               {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
@@ -715,7 +715,7 @@ export default function BoardPage() {
               background: 'transparent', border: '1px solid var(--color-border)',
               borderRadius: '20px', padding: '6px 12px',
               fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)',
-              cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
             }}
           >
             My posts
@@ -726,7 +726,7 @@ export default function BoardPage() {
       {/* ── First-visit hint ── */}
       {!boardHintDismissed && !loading && (
         <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
             This is the {display || 'community'} board. Post anything useful — safety alerts, announcements, lost items, or events.
           </p>
           <button
@@ -754,7 +754,7 @@ export default function BoardPage() {
                 border: `1px solid ${active ? '#39D98A' : 'rgba(255,255,255,0.1)'}`,
                 background: active ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.04)',
                 color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 fontWeight: active ? 700 : 500, cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
               } as React.CSSProperties}
@@ -786,7 +786,7 @@ export default function BoardPage() {
                 border: 'none',
                 borderBottom: active ? `2px solid ${tab.color}` : '2px solid transparent',
                 color: active ? tab.color : 'rgba(255,255,255,0.4)',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 fontWeight: active ? 700 : 500,
                 fontSize: '13px',
                 cursor: 'pointer',
@@ -818,10 +818,10 @@ export default function BoardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '18px' }}>🏠</span>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#34D399' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#34D399' }}>
                   Full housing board
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', marginTop: '1px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', marginTop: '1px' }}>
                   Rooms · Rentals · Short stays · Lodges
                 </div>
               </div>
@@ -852,7 +852,7 @@ export default function BoardPage() {
                   background: active ? `${cat.color}18` : 'rgba(255,255,255,0.04)',
                   color: active ? cat.color : 'rgba(255,255,255,0.45)',
                   fontSize: '12px', fontWeight: active ? 700 : 500,
-                  fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -934,13 +934,13 @@ export default function BoardPage() {
               <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setGeoScope('nearby')}
-                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See nearby posts
                 </button>
                 <button
                   onClick={() => setGeoScope('everywhere')}
-                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See all areas
                 </button>
@@ -950,7 +950,7 @@ export default function BoardPage() {
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '14px' }}>
                 <button
                   onClick={() => setGeoScope('everywhere')}
-                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See all areas
                 </button>
@@ -968,7 +968,7 @@ export default function BoardPage() {
                 onMarkResolved={handleMarkResolved}
               />
             ))}
-            <p style={{ textAlign: 'center', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px', marginBottom: 0 }}>
+            <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px', marginBottom: 0 }}>
               {posts.length} post{posts.length !== 1 ? 's' : ''} · {geoScope === 'my_area' ? (display || 'your area') : geoScope === 'nearby' ? `${display || 'your area'} + nearby` : 'all areas'}
             </p>
           </div>
@@ -982,7 +982,7 @@ export default function BoardPage() {
             border: '1px dashed rgba(57,217,138,0.25)',
             borderRadius: '14px', padding: '16px',
             background: 'transparent', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+            fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
             color: 'rgba(57,217,138,0.7)',
             WebkitTapHighlightColor: 'transparent',
           } as React.CSSProperties}

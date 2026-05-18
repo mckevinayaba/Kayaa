@@ -36,7 +36,7 @@ function UpdateForm({
 
   return (
     <div style={{ marginTop: '10px', padding: '12px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '10px' }}>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
         Update stock status:
       </div>
       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
@@ -49,7 +49,7 @@ function UpdateForm({
               background: inStock === val ? (val ? 'rgba(57,217,138,0.2)' : 'rgba(239,68,68,0.2)') : 'var(--color-surface)',
               border: `1px solid ${inStock === val ? (val ? '#39D98A' : '#EF4444') : 'var(--color-border)'}`,
               borderRadius: '8px',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700,
               color: inStock === val ? (val ? '#39D98A' : '#EF4444') : 'rgba(255,255,255,0.5)',
               cursor: 'pointer',
             }}
@@ -68,7 +68,7 @@ function UpdateForm({
             width: '100%', boxSizing: 'border-box', marginBottom: '8px',
             background: '#0D1117', border: '1px solid #30363D', borderRadius: '8px',
             padding: '8px 10px', color: '#F0F6FC',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', outline: 'none',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px', outline: 'none',
           }}
         />
       )}
@@ -79,7 +79,7 @@ function UpdateForm({
           width: '100%', padding: '9px',
           background: inStock !== null ? '#39D98A' : 'rgba(255,255,255,0.07)',
           border: 'none', borderRadius: '8px',
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
           color: inStock !== null ? '#000' : 'rgba(255,255,255,0.3)',
           cursor: inStock !== null ? 'pointer' : 'default',
         }}
@@ -107,14 +107,14 @@ function ResultCard({ item, searchQuery }: { item: StockItem; searchQuery: strin
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
             <span style={{ fontSize: '18px' }}>{localItem.placeEmoji}</span>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
               {localItem.placeName}
             </span>
           </div>
           {localItem.distanceKm !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
               <MapPin size={10} color="rgba(255,255,255,0.35)" />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
                 {localItem.distanceKm < 1
                   ? `${Math.round(localItem.distanceKm * 1000)}m away`
                   : `${localItem.distanceKm.toFixed(1)}km away`}
@@ -130,13 +130,13 @@ function ResultCard({ item, searchQuery }: { item: StockItem; searchQuery: strin
 
       {/* Status + price + age */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700, color: statusColor }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: statusColor }}>
           {localItem.inStock ? 'In Stock' : 'Out of Stock'}
           {localItem.inStock && localItem.price ? ` · R${localItem.price}` : ''}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
           <Clock size={10} color="rgba(255,255,255,0.3)" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
             {formatStockAge(localItem.lastUpdated)}
           </span>
         </div>
@@ -161,7 +161,7 @@ function ResultCard({ item, searchQuery }: { item: StockItem; searchQuery: strin
             marginTop: '10px', width: '100%', padding: '7px',
             background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '8px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
           }}
         >
@@ -212,14 +212,14 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
           <Package size={15} color="#39D98A" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
             Is it in stock nearby?
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
             Bread, milk, airtime… tap to search
           </div>
         </div>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A', flexShrink: 0 }}>
           Search →
         </span>
       </button>
@@ -259,10 +259,10 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
             Is It In Stock?
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
             Check nearby spazas &amp; shops
           </p>
         </div>
@@ -288,7 +288,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
             width: '100%', boxSizing: 'border-box',
             background: '#0D1117', border: '1px solid #30363D',
             borderRadius: '10px', padding: '10px 40px 10px 36px',
-            color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px',
             outline: 'none',
           }}
         />
@@ -299,7 +299,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
               position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
               background: '#39D98A', border: 'none', borderRadius: '7px',
               padding: '4px 10px', cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
             }}
           >
             Go
@@ -310,7 +310,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
       {/* Popular item chips */}
       {!searched && (
         <>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
             Popular searches:
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
@@ -321,7 +321,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
                 style={{
                   padding: '5px 11px', borderRadius: '20px',
                   background: '#0D1117', border: '1px solid #30363D',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
                   color: 'rgba(255,255,255,0.65)', cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
@@ -337,7 +337,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
       {loading && (
         <div style={{ textAlign: 'center', padding: '28px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <RefreshCw size={20} color="#39D98A" style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
             Checking nearby spazas…
           </span>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -347,7 +347,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
       {/* Results */}
       {!loading && searched && results.length > 0 && (
         <>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '12px 0 8px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '12px 0 8px' }}>
             {results.length} {results.length === 1 ? 'place' : 'places'} with{' '}
             <strong style={{ color: '#F0F6FC' }}>{query}</strong>
           </p>
@@ -363,10 +363,10 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
       {!loading && searched && results.length === 0 && (
         <div style={{ textAlign: 'center', padding: '28px 16px', background: '#0D1117', borderRadius: '12px', marginTop: '8px' }}>
           <Package size={32} color="rgba(255,255,255,0.15)" style={{ marginBottom: '8px' }} />
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>
             No stock info yet for <strong style={{ color: '#F0F6FC' }}>{query}</strong>
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
             Be the first to update your local spaza!
           </div>
         </div>
@@ -380,7 +380,7 @@ export function StockChecker({ area = '', compact = false }: StockCheckerProps) 
             marginTop: '12px', width: '100%', padding: '8px',
             background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '8px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.3)', cursor: 'pointer',
           }}
         >

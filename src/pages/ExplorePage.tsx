@@ -85,23 +85,23 @@ function VenueRow({ venue, userLat, userLon }: { venue: Venue; userLat?: number;
         {emoji}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {venue.name}
           {venue.isVerified && <span style={{ color: '#39D98A', fontSize: '11px', marginLeft: '5px' }}>✓</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stColor, display: 'inline-block' }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: stColor, fontWeight: 600 }}>{stLabel}</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: stColor, fontWeight: 600 }}>{stLabel}</span>
           </span>
           <span style={{ color: 'var(--color-border)', fontSize: '10px' }}>·</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '130px' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '130px' }}>
             {venue.neighborhood || venue.city}
           </span>
           {dist != null && (
             <>
               <span style={{ color: 'var(--color-border)', fontSize: '10px' }}>·</span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
                 {dist < 1 ? `${Math.round(dist * 1000)}m` : `${dist.toFixed(1)}km`}
               </span>
             </>
@@ -113,7 +113,7 @@ function VenueRow({ venue, userLat, userLon }: { venue: Venue; userLat?: number;
         style={{
           background: '#39D98A', color: '#0D1117', border: 'none',
           borderRadius: '20px', padding: '8px 14px', flexShrink: 0,
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer',
         }}
       >
         Check in →
@@ -216,10 +216,10 @@ export default function ExplorePage() {
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div>
-            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0, lineHeight: 1.2 }}>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0, lineHeight: 1.2 }}>
               Discover
             </h1>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
               {loading ? '…' : `${filtered.length} places near ${areaLabel}`}
             </p>
           </div>
@@ -290,7 +290,7 @@ export default function ExplorePage() {
               { label: 'Trust',    options: VERIFIED_OPTIONS, value: verifiedOnly ? 'Verified only' : 'All places', set: (v: string) => setVerifiedOnly(v === 'Verified only') },
             ].map(({ label, options, value, set }) => (
               <div key={label} style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
                   {label}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -305,7 +305,7 @@ export default function ExplorePage() {
                           border: active ? 'none' : '1px solid var(--color-border)',
                           background: active ? 'rgba(57,217,138,0.15)' : 'var(--color-surface2)',
                           color: active ? '#39D98A' : 'var(--color-muted)',
-                          fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+                          fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
                           cursor: 'pointer',
                         }}
                       >
@@ -319,7 +319,7 @@ export default function ExplorePage() {
 
             <button
               onClick={() => { setDistFilter('Any'); setStatusFilter('Any status'); setVerifiedOnly(false); setShowAdv(false); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: '12px', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', padding: 0, marginTop: '4px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: '12px', fontFamily: 'Inter, sans-serif', cursor: 'pointer', padding: 0, marginTop: '4px' }}
             >
               <X size={12} /> Clear filters
             </button>
@@ -353,11 +353,11 @@ export default function ExplorePage() {
             ) : filtered.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                 <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔍</div>
-                <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '8px' }}>No places match these filters</h3>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>Try widening the distance or status filter.</p>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '8px' }}>No places match these filters</h3>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>Try widening the distance or status filter.</p>
                 <button
                   onClick={() => { setDistFilter('Any'); setStatusFilter('Any status'); setVerifiedOnly(false); setFilterCat('all'); }}
-                  style={{ background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.3)', color: '#39D98A', borderRadius: '10px', padding: '9px 20px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+                  style={{ background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.3)', color: '#39D98A', borderRadius: '10px', padding: '9px 20px', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
                 >
                   Reset filters
                 </button>
@@ -367,7 +367,7 @@ export default function ExplorePage() {
                 {filtered.map(v => <VenueRow key={v.id} venue={v} userLat={userLat} userLon={userLon} />)}
                 <button
                   onClick={() => navigate('/onboarding')}
-                  style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', cursor: 'pointer', marginTop: '4px' }}
+                  style={{ width: '100%', background: 'none', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', color: 'rgba(255,255,255,0.3)', fontFamily: 'Inter, sans-serif', fontSize: '12px', cursor: 'pointer', marginTop: '4px' }}
                 >
                   ➕ Add your place to Kayaa
                 </button>
@@ -388,10 +388,10 @@ export default function ExplorePage() {
           pointerEvents: 'none',
         }}>
           <Users size={13} color="#39D98A" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700, color: '#39D98A' }}>
             {activeNowCount}
           </span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
             active now
           </span>
         </div>

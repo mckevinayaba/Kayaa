@@ -60,13 +60,13 @@ function ToggleRow({
     }}>
       <div style={{ flex: 1 }}>
         <div style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
           color: highlight ? '#39D98A' : '#fff',
           marginBottom: '3px',
         }}>
           {title}
         </div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
           {description}
         </div>
       </div>
@@ -99,7 +99,7 @@ function ToggleRow({
 function SectionLabel({ children, style }: { children: string; style?: React.CSSProperties }) {
   return (
     <div style={{
-      fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+      fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
       color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em',
       marginBottom: '10px', marginTop: '4px',
       ...style,
@@ -142,7 +142,7 @@ export default function NotificationSettings() {
         >
           <ArrowLeft size={18} color="#fff" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
           Notifications
         </h1>
       </div>
@@ -155,7 +155,7 @@ export default function NotificationSettings() {
           marginBottom: '14px',
         }}>
           <Bell size={18} color="rgba(255,255,255,0.4)" />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
             Only useful, no-spam notifications
           </p>
         </div>
@@ -208,7 +208,7 @@ export default function NotificationSettings() {
         />
 
         {/* Note */}
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6, marginTop: '12px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', lineHeight: 1.6, marginTop: '12px' }}>
           Push notifications require browser permission. Preferences saved locally.
         </p>
       </div>

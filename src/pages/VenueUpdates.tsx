@@ -74,11 +74,11 @@ function UpdateCard({
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
               {update.title}
             </span>
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 600,
               color: cfg.color, background: `${cfg.color}15`, borderRadius: '6px',
               padding: '2px 7px', flexShrink: 0,
             }}>
@@ -86,11 +86,11 @@ function UpdateCard({
             </span>
           </div>
           {update.content && (
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '0 0 6px', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '0 0 6px', lineHeight: 1.5 }}>
               {update.content}
             </p>
           )}
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
             {fmtRelative(update.createdAt)}
             {update.expiresAt && ` · expires ${new Date(update.expiresAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}`}
           </div>
@@ -152,7 +152,7 @@ function NewUpdateForm({
   const inputStyle = {
     width: '100%', background: '#0D1117', border: '1px solid #30363D',
     borderRadius: '10px', padding: '11px 12px',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#F0F6FC',
+    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#F0F6FC',
     outline: 'none', boxSizing: 'border-box' as const,
   };
 
@@ -168,7 +168,7 @@ function NewUpdateForm({
       background: 'var(--color-surface)', border: '1px solid #39D98A30',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '14px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '14px' }}>
         New Update
       </div>
 
@@ -186,7 +186,7 @@ function NewUpdateForm({
                 padding: '5px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer',
                 background: active ? `${cfg.color}20` : 'rgba(255,255,255,0.05)',
                 outline: active ? `1px solid ${cfg.color}` : '1px solid transparent',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
                 color: active ? cfg.color : 'rgba(255,255,255,0.5)',
                 transition: 'all 0.15s',
               }}
@@ -199,7 +199,7 @@ function NewUpdateForm({
 
       {/* Title */}
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
           Headline *
         </div>
         <input
@@ -214,7 +214,7 @@ function NewUpdateForm({
 
       {/* Content */}
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
           Details (optional)
         </div>
         <textarea
@@ -229,7 +229,7 @@ function NewUpdateForm({
 
       {/* Expiry */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>
           Show for
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -247,7 +247,7 @@ function NewUpdateForm({
                 flex: 1, padding: '7px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
                 background: expiresIn === opt.val ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.04)',
                 outline: expiresIn === opt.val ? '1px solid rgba(57,217,138,0.4)' : '1px solid transparent',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+                fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
                 color: expiresIn === opt.val ? '#39D98A' : 'rgba(255,255,255,0.4)',
               }}
             >
@@ -265,7 +265,7 @@ function NewUpdateForm({
           style={{
             flex: 1, padding: '13px', borderRadius: '12px', border: 'none', cursor: 'pointer',
             background: !title.trim() || posting ? 'rgba(57,217,138,0.3)' : '#39D98A',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
           }}
         >
           {posting ? 'Posting…' : 'Post Update'}
@@ -275,7 +275,7 @@ function NewUpdateForm({
           style={{
             padding: '13px 16px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.05)', border: '1px solid #30363D', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.5)',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.5)',
           }}
         >
           Cancel
@@ -385,7 +385,7 @@ export default function VenueUpdates() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
           Post an Update
         </h1>
         {!showForm && (
@@ -395,7 +395,7 @@ export default function VenueUpdates() {
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '8px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
               background: '#39D98A',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
             }}
           >
             <Plus size={14} /> New
@@ -413,7 +413,7 @@ export default function VenueUpdates() {
             borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             <Check size={16} color="#39D98A" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#39D98A' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#39D98A' }}>
               Update posted! Visitors on your venue page will see it.
             </span>
           </div>
@@ -421,7 +421,7 @@ export default function VenueUpdates() {
 
         {/* ── No-venue state ─────────────────────────────────────────────── */}
         {!venueId && (
-          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
             No venue found. <a href="/onboarding" style={{ color: '#39D98A' }}>Add your place first.</a>
           </div>
         )}
@@ -439,10 +439,10 @@ export default function VenueUpdates() {
             borderRadius: '16px', marginBottom: '16px',
           }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📣</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
               Post your first update
             </div>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: '20px', maxWidth: '280px', margin: '0 auto 20px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: '20px', maxWidth: '280px', margin: '0 auto 20px' }}>
               Share specials, menu changes, events or announcements. They appear on your venue page.
             </p>
             <button
@@ -451,7 +451,7 @@ export default function VenueUpdates() {
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '12px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 background: '#39D98A',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
               }}
             >
               <Plus size={16} />
@@ -463,7 +463,7 @@ export default function VenueUpdates() {
         {/* ── Updates list ───────────────────────────────────────────────── */}
         {updates.length > 0 && (
           <>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px' }}>
               {updates.length} update{updates.length !== 1 ? 's' : ''} posted
             </div>
             {updates.map(u => (

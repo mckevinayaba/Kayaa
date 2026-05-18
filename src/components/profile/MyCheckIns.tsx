@@ -45,10 +45,10 @@ export function MyCheckIns({ history }: MyCheckInsProps) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0' }}>
         <div style={{ fontSize: '48px', marginBottom: '12px' }}>📍</div>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '8px' }}>
           No check-ins yet
         </h3>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '20px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '20px' }}>
           Start exploring places in your neighbourhood to build your history.
         </p>
       </div>
@@ -84,12 +84,12 @@ export function MyCheckIns({ history }: MyCheckInsProps) {
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {item.venueName}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
                 {item.visitCount} visit{item.visitCount !== 1 ? 's' : ''} · {timeAgo(item.lastVisit)}
               </div>
             </div>

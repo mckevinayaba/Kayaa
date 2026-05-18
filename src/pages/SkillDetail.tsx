@@ -62,7 +62,7 @@ function DetailBlock({ title, children }: { title: string; children: React.React
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}
       >
-        <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
           {title}
         </span>
         {open
@@ -110,12 +110,12 @@ export default function SkillDetail() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '24px' }}>
         <span style={{ fontSize: '40px' }}>🔍</span>
-        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', textAlign: 'center' }}>
           This listing is no longer available
         </p>
         <button
           onClick={() => navigate('/board')}
-          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px', padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
+          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px', padding: '12px 24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
         >
           Browse Skills
         </button>
@@ -148,7 +148,7 @@ export default function SkillDetail() {
           <ArrowLeft size={18} color="#fff" />
         </button>
 
-        <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', flex: 1, textAlign: 'center', padding: '0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', flex: 1, textAlign: 'center', padding: '0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {post.title}
         </span>
 
@@ -182,17 +182,17 @@ export default function SkillDetail() {
               {emoji}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: '0 0 6px', lineHeight: 1.25 }}>
+              <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: '0 0 6px', lineHeight: 1.25 }}>
                 {post.title}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <MapPin size={12} color="rgba(255,255,255,0.4)" />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
                   {post.neighbourhood}
                 </span>
                 <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '10px' }}>•</span>
                 <Clock size={12} color="rgba(255,255,255,0.4)" />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
                   {timeAgo(post.createdAt)}
                 </span>
               </div>
@@ -205,7 +205,7 @@ export default function SkillDetail() {
               display: 'inline-block',
               background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.25)',
               borderRadius: '8px', padding: '6px 14px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#39D98A',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#39D98A',
             }}>
               {rate}
             </div>
@@ -231,7 +231,7 @@ export default function SkillDetail() {
                   position: 'absolute', bottom: '10px', right: '10px',
                   background: 'rgba(0,0,0,0.6)', borderRadius: '8px',
                   padding: '3px 8px',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: '#fff',
+                  fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: '#fff',
                 }}>
                   {imgIdx + 1}/{post.images.length}
                 </div>
@@ -269,7 +269,7 @@ export default function SkillDetail() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '14px 0', borderRadius: '14px',
                 background: '#25D366', textDecoration: 'none',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
                 boxShadow: '0 4px 16px rgba(37,211,102,0.3)',
               }}
             >
@@ -285,7 +285,7 @@ export default function SkillDetail() {
                 padding: '14px 0', borderRadius: '14px',
                 background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)',
                 textDecoration: 'none',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff',
               }}
             >
               <Phone size={18} color="#fff" />
@@ -297,7 +297,7 @@ export default function SkillDetail() {
               padding: '14px 0', borderRadius: '14px',
               background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
               textAlign: 'center',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)',
             }}>
               No contact info provided
             </div>
@@ -308,7 +308,7 @@ export default function SkillDetail() {
         {post.description && (
           <DetailBlock title="About this service">
             <p style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontSize: '14px',
               color: 'rgba(255,255,255,0.75)', lineHeight: 1.7, margin: 0,
             }}>
               {post.description}
@@ -337,10 +337,10 @@ export default function SkillDetail() {
                 borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
               }}
             >
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
                 {item!.label}
               </span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600, color: '#fff' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#fff' }}>
                 {item!.value}
               </span>
             </div>
@@ -354,7 +354,7 @@ export default function SkillDetail() {
           display: 'flex', gap: '10px', alignItems: 'flex-start',
         }}>
           <span style={{ fontSize: '16px', flexShrink: 0, lineHeight: 1.4 }}>⚠️</span>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, margin: 0 }}>
             Always meet service providers in a public place first. Kayaa does not verify listings — use your judgement.
           </p>
         </div>
@@ -364,7 +364,7 @@ export default function SkillDetail() {
           href={`mailto:hello@kayaa.co.za?subject=Report listing: ${encodeURIComponent(post.title)}&body=Post ID: ${post.id}%0APlease describe the issue:`}
           style={{
             display: 'block', textAlign: 'center',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.2)', textDecoration: 'none',
           }}
         >

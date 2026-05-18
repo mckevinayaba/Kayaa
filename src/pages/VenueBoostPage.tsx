@@ -89,7 +89,7 @@ export default function VenueBoostPage() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
           Boost Your Place
         </h1>
       </div>
@@ -104,11 +104,11 @@ export default function VenueBoostPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
             <Zap size={20} color="#39D98A" />
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#F0F6FC' }}>
               Plans launching soon
             </span>
           </div>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: '0 0 18px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: '0 0 18px' }}>
             Kayaa is building paid plans for owners who want more reach in their neighbourhood.
             Everything that exists today stays free — always.
           </p>
@@ -120,7 +120,7 @@ export default function VenueBoostPage() {
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               padding: '12px 24px', borderRadius: '12px', textDecoration: 'none',
               background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
               color: '#25D366',
             }}
           >
@@ -147,12 +147,12 @@ export default function VenueBoostPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: plan.accent }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: plan.accent }}>
                       {plan.name}
                     </span>
                     {plan.badge && (
                       <span style={{
-                        fontFamily: 'DM Sans, sans-serif', fontWeight: 800, fontSize: '9px',
+                        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '9px',
                         color: '#0D1117', background: plan.accent,
                         borderRadius: '5px', padding: '2px 6px', letterSpacing: '0.04em',
                       }}>
@@ -161,7 +161,7 @@ export default function VenueBoostPage() {
                     )}
                     {plan.available && (
                       <span style={{
-                        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '9px',
+                        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '9px',
                         color: '#39D98A', background: 'rgba(57,217,138,0.12)',
                         border: '1px solid rgba(57,217,138,0.25)',
                         borderRadius: '5px', padding: '2px 6px',
@@ -170,7 +170,7 @@ export default function VenueBoostPage() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '3px 0 0', lineHeight: 1.4 }}>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '3px 0 0', lineHeight: 1.4 }}>
                     {plan.tagline}
                   </p>
                 </div>
@@ -179,14 +179,14 @@ export default function VenueBoostPage() {
                     ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <TrendingUp size={13} color="#39D98A" />
-                        <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
                           Free forever
                         </span>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Star size={12} color={plan.accent as string} />
-                        <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: plan.accent as string }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: plan.accent as string }}>
                           {plan.price}
                         </span>
                       </div>
@@ -205,7 +205,7 @@ export default function VenueBoostPage() {
                       style={{ flexShrink: 0 }}
                     />
                     <span style={{
-                      fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                      fontFamily: 'Inter, sans-serif', fontSize: '13px',
                       color: plan.available ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.4)',
                       lineHeight: 1.4,
                     }}>
@@ -220,7 +220,7 @@ export default function VenueBoostPage() {
 
         {/* ── Footer note ──────────────────────────────────────────────────── */}
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
           color: 'rgba(255,255,255,0.25)', textAlign: 'center',
           lineHeight: 1.6, marginTop: '24px',
         }}>

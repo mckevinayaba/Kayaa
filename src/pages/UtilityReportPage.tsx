@@ -188,7 +188,7 @@ export default function UtilityReportPage() {
       background: '#0D1117',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: 'DM Sans, sans-serif',
+      fontFamily: 'Inter, sans-serif',
     }}>
 
       {/* ── Header ── */}
@@ -212,7 +212,7 @@ export default function UtilityReportPage() {
 
         <div style={{ flex: 1 }}>
           <p style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '16px', color: '#F0F6FC', margin: 0, lineHeight: 1.2,
           }}>
             {step === 'success'
@@ -273,7 +273,7 @@ export default function UtilityReportPage() {
                   <span style={{ fontSize: '24px', flexShrink: 0 }}>{opt.icon}</span>
                   <div>
                     <p style={{
-                      fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                      fontFamily: 'Inter, sans-serif', fontWeight: 700,
                       fontSize: '14px',
                       color: opt.isRestoration ? '#39D98A' : theme.color,
                       margin: 0,
@@ -321,7 +321,7 @@ export default function UtilityReportPage() {
             }}>
               <span style={{ fontSize: '14px' }}>{selectedOption.icon}</span>
               <span style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                 color: selectedOption.isRestoration ? '#39D98A' : theme.color,
               }}>
                 {selectedOption.label}
@@ -342,7 +342,7 @@ export default function UtilityReportPage() {
                 <p style={{
                   margin: 0, fontSize: '13px',
                   color: theme.color,
-                  fontFamily: 'Syne, sans-serif', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600,
                 }}>
                   {dupCount} {dupCount === 1 ? 'person has' : 'people have'} already reported this — your report adds to the count.
                 </p>
@@ -368,7 +368,7 @@ export default function UtilityReportPage() {
                   border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '12px', padding: '12px 14px',
                   color: '#F0F6FC', fontSize: '14px',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                   outline: 'none',
                 }}
               />
@@ -394,7 +394,7 @@ export default function UtilityReportPage() {
                       border: `1px solid ${startedWhen === w ? theme.color : 'rgba(255,255,255,0.1)'}`,
                       background: startedWhen === w ? theme.colorFaint : '#161B22',
                       color: startedWhen === w ? theme.color : 'rgba(255,255,255,0.45)',
-                      fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '14px',
+                      fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px',
                       cursor: 'pointer',
                     }}
                   >
@@ -424,7 +424,7 @@ export default function UtilityReportPage() {
                   border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '12px', padding: '12px 14px',
                   color: '#F0F6FC', fontSize: '14px',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                   resize: 'none', outline: 'none',
                 }}
               />
@@ -484,7 +484,7 @@ export default function UtilityReportPage() {
                     display: 'flex', alignItems: 'center',
                     justifyContent: 'center', gap: '8px',
                     color: 'rgba(255,255,255,0.35)',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                    fontFamily: 'Inter, sans-serif', fontSize: '14px',
                   }}
                 >
                   <Camera size={16} />
@@ -542,7 +542,7 @@ export default function UtilityReportPage() {
             </div>
 
             <h2 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800,
+              fontFamily: 'Inter, sans-serif', fontWeight: 800,
               fontSize: '20px', color: '#F0F6FC',
               margin: '0 0 10px',
             }}>
@@ -571,7 +571,7 @@ export default function UtilityReportPage() {
                 width: '100%', maxWidth: '300px', minHeight: '52px',
                 background: theme.color, color: '#0D1117',
                 border: 'none', borderRadius: '14px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
                 cursor: 'pointer', marginBottom: '10px',
               }}
             >
@@ -584,7 +584,7 @@ export default function UtilityReportPage() {
                 width: '100%', maxWidth: '300px', minHeight: '48px',
                 background: 'transparent', color: 'rgba(255,255,255,0.4)',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '15px',
                 cursor: 'pointer',
               }}
             >
@@ -609,7 +609,7 @@ export default function UtilityReportPage() {
               background: (!loading && areaDetail.trim()) ? theme.color : 'rgba(255,255,255,0.08)',
               color: (!loading && areaDetail.trim()) ? '#0D1117' : 'rgba(255,255,255,0.25)',
               border: 'none', borderRadius: '14px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
               cursor: (!loading && areaDetail.trim()) ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background 0.2s, color 0.2s',

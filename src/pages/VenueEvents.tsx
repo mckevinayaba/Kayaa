@@ -55,10 +55,10 @@ function EventCard({
           border: `1px solid ${past ? 'var(--color-border)' : 'rgba(244,114,182,0.25)'}`,
           borderRadius: '10px', padding: '6px 4px',
         }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: past ? 'rgba(255,255,255,0.4)' : '#F472B6', lineHeight: 1 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: past ? 'rgba(255,255,255,0.4)' : '#F472B6', lineHeight: 1 }}>
             {new Date(event.eventDate).getDate()}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>
             {new Date(event.eventDate).toLocaleDateString('en-ZA', { month: 'short' })}
           </div>
         </div>
@@ -66,16 +66,16 @@ function EventCard({
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
               {event.title}
             </span>
             {past && (
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', padding: '2px 6px' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', padding: '2px 6px' }}>
                 Past
               </span>
             )}
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
               color: event.price === 0 ? '#39D98A' : '#FBBF24',
               background: event.price === 0 ? 'rgba(57,217,138,0.1)' : 'rgba(251,191,36,0.1)',
               borderRadius: '6px', padding: '2px 7px',
@@ -84,12 +84,12 @@ function EventCard({
             </span>
           </div>
 
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
             📅 {fmtEventDate(event.eventDate)}
           </div>
 
           {event.description && (
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '6px 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '6px 0 0', lineHeight: 1.5 }}>
               {event.description}
             </p>
           )}
@@ -150,7 +150,7 @@ function CreateEventForm({
   const inputStyle = {
     width: '100%', background: '#0D1117', border: '1px solid #30363D',
     borderRadius: '10px', padding: '11px 12px',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: '#F0F6FC',
+    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#F0F6FC',
     outline: 'none', boxSizing: 'border-box' as const,
   };
 
@@ -175,13 +175,13 @@ function CreateEventForm({
       background: 'var(--color-surface)', border: '1px solid rgba(244,114,182,0.25)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '14px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', marginBottom: '14px' }}>
         New Event
       </div>
 
       {/* Title */}
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Event name *</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Event name *</div>
         <input
           type="text"
           placeholder="e.g. Saturday Night Braai, Gospel Service, Stokvel…"
@@ -195,18 +195,18 @@ function CreateEventForm({
       {/* Date + Time */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
         <div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Date *</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Date *</div>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
         </div>
         <div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Time *</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Time *</div>
           <input type="time" value={time} onChange={e => setTime(e.target.value)} style={inputStyle} />
         </div>
       </div>
 
       {/* Description */}
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Description (optional)</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '5px' }}>Description (optional)</div>
         <textarea
           placeholder="What's happening? Who should come? Any special guests?"
           value={description}
@@ -219,7 +219,7 @@ function CreateEventForm({
 
       {/* Pricing */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Admission</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Admission</div>
         <div style={{ display: 'flex', gap: '8px', marginBottom: isFree ? 0 : '10px' }}>
           {[{ val: true, label: '🎟️ Free' }, { val: false, label: '💳 Paid' }].map(opt => (
             <button
@@ -229,7 +229,7 @@ function CreateEventForm({
                 flex: 1, padding: '9px', borderRadius: '10px', border: 'none', cursor: 'pointer',
                 background: isFree === opt.val ? 'rgba(57,217,138,0.12)' : 'rgba(255,255,255,0.04)',
                 outline: isFree === opt.val ? '1px solid rgba(57,217,138,0.4)' : '1px solid transparent',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
                 color: isFree === opt.val ? '#39D98A' : 'rgba(255,255,255,0.5)',
               }}
             >
@@ -258,7 +258,7 @@ function CreateEventForm({
           style={{
             flex: 1, padding: '13px', borderRadius: '12px', border: 'none', cursor: canPost && !posting ? 'pointer' : 'default',
             background: canPost && !posting ? '#39D98A' : 'rgba(57,217,138,0.3)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
           }}
         >
           {posting ? 'Adding…' : 'Add Event'}
@@ -268,7 +268,7 @@ function CreateEventForm({
           style={{
             padding: '13px 16px', borderRadius: '12px',
             background: 'rgba(255,255,255,0.05)', border: '1px solid #30363D', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.5)',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.5)',
           }}
         >
           Cancel
@@ -385,7 +385,7 @@ export default function VenueEvents() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
           Events
         </h1>
         {!showForm && (
@@ -395,7 +395,7 @@ export default function VenueEvents() {
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '8px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
               background: '#39D98A',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#000',
             }}
           >
             <Plus size={14} /> New
@@ -413,7 +413,7 @@ export default function VenueEvents() {
             borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             <Check size={16} color="#39D98A" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#39D98A' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#39D98A' }}>
               Event added! It will appear on your venue page and in the community calendar.
             </span>
           </div>
@@ -421,7 +421,7 @@ export default function VenueEvents() {
 
         {/* ── No venue ─────────────────────────────────────────────────── */}
         {!venueId && (
-          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
             No venue found. <a href="/onboarding" style={{ color: '#39D98A' }}>Add your place first.</a>
           </div>
         )}
@@ -441,10 +441,10 @@ export default function VenueEvents() {
                 borderRadius: '16px', marginBottom: '16px',
               }}>
                 <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
                   No upcoming events
                 </div>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, maxWidth: '260px', margin: '0 auto 20px' }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, maxWidth: '260px', margin: '0 auto 20px' }}>
                   Add a braai, service, stokvel or gig — it appears in the community events calendar.
                 </p>
                 <button
@@ -453,7 +453,7 @@ export default function VenueEvents() {
                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                     padding: '12px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                     background: '#39D98A',
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#000',
                   }}
                 >
                   <Plus size={16} />
@@ -463,7 +463,7 @@ export default function VenueEvents() {
             ) : (
               upcoming.length > 0 && (
                 <>
-                  <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={12} />
                     {upcoming.length} upcoming event{upcoming.length !== 1 ? 's' : ''}
                   </div>
@@ -483,7 +483,7 @@ export default function VenueEvents() {
                     width: '100%', padding: '10px', marginTop: '8px',
                     background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)',
                     borderRadius: '10px', cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
                     color: 'rgba(255,255,255,0.35)',
                   }}
                 >

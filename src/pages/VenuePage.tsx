@@ -115,7 +115,7 @@ function VenueNotFound() {
       justifyContent: 'center', minHeight: '70vh', padding: '32px', textAlign: 'center',
     }}>
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏚️</div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px', color: 'var(--color-text)' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', marginBottom: '8px', color: 'var(--color-text)' }}>
         This place isn't on Kayaa yet
       </h2>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: '28px' }}>
@@ -124,7 +124,7 @@ function VenueNotFound() {
       <Link to="/onboarding" style={{
         display: 'block', background: 'var(--color-accent)', color: '#000',
         textDecoration: 'none', borderRadius: '12px', padding: '13px 28px',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '16px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '16px',
       }}>
         Add this place
       </Link>
@@ -357,7 +357,7 @@ function PhotoGalleryHero({
 
         {/* Venue name */}
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
           color: '#fff', lineHeight: 1.15, margin: '0 0 5px',
           textShadow: '0 2px 12px rgba(0,0,0,0.8)',
         }}>
@@ -454,7 +454,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
       minHeight: '72px',
     }}>
       {icon}
-      <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '11px', letterSpacing: '0.02em', textAlign: 'center' }}>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '11px', letterSpacing: '0.02em', textAlign: 'center' }}>
         {label}
       </span>
     </div>
@@ -466,7 +466,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
         <div style={{
           background: 'rgba(57,217,138,0.10)', border: '1px solid rgba(57,217,138,0.25)',
           borderRadius: '10px', padding: '10px 14px', marginBottom: '10px',
-          fontSize: '13px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif',
+          fontSize: '13px', color: '#39D98A', fontFamily: 'Inter, sans-serif',
         }}>
           {toast}
         </div>
@@ -510,7 +510,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             padding: '13px', borderRadius: '14px',
             background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
             color: 'var(--color-text)',
           }}>
             <Navigation size={16} color="var(--color-muted)" />
@@ -526,12 +526,12 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
           padding: '13px 16px', marginBottom: '10px',
           background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px',
         }}>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Syne, sans-serif', flex: 1 }}>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#39D98A', fontFamily: 'Inter, sans-serif', flex: 1 }}>
             On my way ✓
           </span>
           <button
             onClick={handleCancel}
-            style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+            style={{ background: 'none', border: 'none', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
           >
             Cancel
           </button>
@@ -543,7 +543,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
             width: '100%', background: 'transparent',
             border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px',
             padding: '14px 20px', color: '#fff',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             cursor: 'pointer', textAlign: 'center', marginBottom: '10px',
           }}
         >
@@ -552,7 +552,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
       )}
 
       {headingLoaded && headingCount > 0 && (
-        <p style={{ fontSize: '13px', color: '#39D98A', textAlign: 'center', margin: '0 0 10px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>
+        <p style={{ fontSize: '13px', color: '#39D98A', textAlign: 'center', margin: '0 0 10px', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
           {headingCount === 1 ? '1 person is heading here' : `${headingCount} people are heading here`}
         </p>
       )}
@@ -564,7 +564,7 @@ function ActionGrid({ venue, onShare, onCheckIn }: { venue: Venue; onShare: () =
           width: '100%', background: 'transparent',
           border: '1px solid rgba(57,217,138,0.3)', borderRadius: '14px',
           padding: '13px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
           color: '#39D98A', cursor: 'pointer',
         }}
       >
@@ -585,7 +585,7 @@ function OpeningHoursSection({ venue }: { venue: Venue }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         Opening hours
       </h2>
       <div style={{
@@ -600,7 +600,7 @@ function OpeningHoursSection({ venue }: { venue: Venue }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <Clock size={14} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, margin: 0,
             whiteSpace: 'pre-wrap',
           }}>
@@ -648,7 +648,7 @@ function RecentActivityFeed({ venueId }: { venueId: string }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', margin: 0, letterSpacing: '-0.01em' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', margin: 0, letterSpacing: '-0.01em' }}>
           Recent activity
         </h2>
         <span style={{
@@ -677,19 +677,19 @@ function RecentActivityFeed({ venueId }: { venueId: string }) {
               width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
               background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
             }}>
               {c.visitorName === 'Someone' ? '👤' : c.visitorName[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                 {c.visitorName}
               </span>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)' }}>
                 {' '}checked in
               </span>
             </div>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
               {timeAgo(c.createdAt)}
             </span>
           </div>
@@ -728,7 +728,7 @@ function UserVisitBadge({ venueId }: { venueId: string }) {
         {VISIT_BADGE_ICON[score.badgeTier] ?? '✓'}
       </span>
       <div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif', marginBottom: '1px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif', marginBottom: '1px' }}>
           You've been here {score.visitCount} {score.visitCount === 1 ? 'time' : 'times'}
         </div>
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.48)' }}>
@@ -791,7 +791,7 @@ function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentS
                 background: '#161B22', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '10px', padding: '10px 12px',
                 fontSize: '12px', color: 'rgba(255,255,255,0.65)',
-                lineHeight: 1.55, fontFamily: 'DM Sans, sans-serif',
+                lineHeight: 1.55, fontFamily: 'Inter, sans-serif',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
               }}>
                 Regulars are people who visit this place often. 5 visits and you become one.
@@ -851,7 +851,7 @@ function EventsSection({ events }: { events: Event[] }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', letterSpacing: '-0.01em' }}>Upcoming events</h2>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', letterSpacing: '-0.01em' }}>Upcoming events</h2>
         {events.length > 0 && (
           <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)', background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px' }}>
             {events.length} upcoming
@@ -876,12 +876,12 @@ function EventsSection({ events }: { events: Event[] }) {
                     <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>
                       {new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}
                     </div>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', lineHeight: 1 }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', lineHeight: 1 }}>
                       {new Date(event.startsAt).getDate()}
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>{event.title}</div>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '3px' }}>{event.title}</div>
                     {event.description && (
                       <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '6px', lineHeight: 1.4 }}>{event.description}</div>
                     )}
@@ -912,7 +912,7 @@ function EventsSection({ events }: { events: Event[] }) {
                       borderRadius: '20px', padding: '6px 14px',
                       fontSize: '12px', fontWeight: 700, cursor: 'pointer',
                       color: going ? '#39D98A' : 'var(--color-muted)',
-                      fontFamily: 'DM Sans, sans-serif',
+                      fontFamily: 'Inter, sans-serif',
                       display: 'flex', alignItems: 'center', gap: '5px',
                     }}
                   >
@@ -1015,7 +1015,7 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
           marginBottom: chips.length > 0 || hasTags ? '10px' : 0,
         }}>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontSize: '14px',
             color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, margin: 0,
           }}>
             {displayDesc}
@@ -1025,7 +1025,7 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
               onClick={() => setExpanded(e => !e)}
               style={{
                 marginTop: '8px', background: 'none', border: 'none', padding: 0,
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
                 color: '#39D98A', cursor: 'pointer',
               }}
             >
@@ -1046,7 +1046,7 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
                 fontSize: '11px', fontWeight: 700, color: chip.color,
                 background: chip.bg, border: `1px solid ${chip.border}`,
                 borderRadius: '20px', padding: '4px 10px',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}
             >
               {chip.icon}
@@ -1065,7 +1065,7 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
               background: 'var(--color-surface2)',
               border: '1px solid var(--color-border)',
               borderRadius: '20px', padding: '4px 10px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               {tag}
             </span>
@@ -1134,10 +1134,10 @@ function OwnerNextStepNudge({ venue, isOwner }: { venue: Venue; isOwner: boolean
     }}>
       <span style={{ fontSize: '28px', flexShrink: 0 }}>{step.emoji}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 3px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 3px' }}>
           {step.heading}
         </p>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 10px', lineHeight: 1.5 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 10px', lineHeight: 1.5 }}>
           {step.body}
         </p>
         <a
@@ -1145,7 +1145,7 @@ function OwnerNextStepNudge({ venue, isOwner }: { venue: Venue; isOwner: boolean
           onClick={e => { e.preventDefault(); window.location.href = step!.path; }}
           style={{
             display: 'inline-block',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: '#39D98A', textDecoration: 'none',
             background: 'rgba(57,217,138,0.1)',
             border: '1px solid rgba(57,217,138,0.25)',
@@ -1185,7 +1185,7 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
     width: '100%', boxSizing: 'border-box',
     background: 'var(--color-surface2)', border: '1px solid var(--color-border)',
     borderRadius: '10px', padding: '12px 14px',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--color-text)',
+    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--color-text)',
     outline: 'none',
   };
 
@@ -1233,10 +1233,10 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: '0 0 4px' }}>
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: '0 0 4px' }}>
               Claim {venue.name}
             </h2>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
               Tell us who you are. We'll review within 24 hours and notify you by email.
             </p>
           </div>
@@ -1248,15 +1248,15 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
         {status === 'done' ? (
           <div style={{ textAlign: 'center', padding: '28px 0 8px' }}>
             <div style={{ fontSize: '52px', marginBottom: '14px' }}>✅</div>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: 'var(--color-text)', margin: '0 0 8px' }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px', color: 'var(--color-text)', margin: '0 0 8px' }}>
               Request received
             </h3>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.65, margin: '0 0 24px' }}>
               We'll review your claim for <strong style={{ color: 'var(--color-text)' }}>{venue.name}</strong> and reply to <strong style={{ color: 'var(--color-text)' }}>{form.email}</strong> within 24 hours.
             </p>
             <button
               onClick={onClose}
-              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '12px 32px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
+              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '12px 32px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
             >
               Done
             </button>
@@ -1266,7 +1266,7 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
 
             {/* Role selector */}
             <div>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 My role
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -1282,10 +1282,10 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
                       textAlign: 'center', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: form.role === r.value ? '#39D98A' : 'var(--color-text)' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: form.role === r.value ? '#39D98A' : 'var(--color-text)' }}>
                       {r.label}
                     </div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
                       {r.desc}
                     </div>
                   </button>
@@ -1335,13 +1335,13 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
                 onChange={e => setForm(f => ({ ...f, confirmed: e.target.checked }))}
                 style={{ marginTop: '2px', accentColor: '#39D98A', flexShrink: 0 }}
               />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.55 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.55 }}>
                 I confirm I am authorised to manage <strong style={{ color: 'var(--color-text)' }}>{venue.name}</strong> and that this information is accurate.
               </span>
             </label>
 
             {status === 'error' && (
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#EF4444', margin: 0 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#EF4444', margin: 0 }}>
                 Something went wrong — please try again.
               </p>
             )}
@@ -1353,7 +1353,7 @@ function ClaimModal({ venue, onClose, onSubmitted }: { venue: Venue; onClose: ()
                 background: canSubmit ? 'var(--color-accent)' : 'rgba(57,217,138,0.2)',
                 color: canSubmit ? '#000' : 'rgba(255,255,255,0.25)',
                 border: 'none', borderRadius: '20px', padding: '15px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px',
                 cursor: canSubmit ? 'pointer' : 'not-allowed',
                 transition: 'all 0.2s',
               }}
@@ -1413,10 +1413,10 @@ function ClaimCTA({ venue }: { venue: Venue }) {
           ✅
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: '0 0 2px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: '0 0 2px' }}>
             Claim submitted
           </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
             We will be in touch within 48 hours.
           </p>
         </div>
@@ -1443,10 +1443,10 @@ function ClaimCTA({ venue }: { venue: Venue }) {
           ⏳
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#FBBF24', margin: '0 0 2px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#FBBF24', margin: '0 0 2px' }}>
             Ownership claim under review
           </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
             A request to manage this place has been submitted and is awaiting approval.
           </p>
         </div>
@@ -1479,10 +1479,10 @@ function ClaimCTA({ venue }: { venue: Venue }) {
           <Store size={18} color="#39D98A" />
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: '0 0 2px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: '0 0 2px' }}>
             Is this your business? 👋
           </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
             Let us know and we will give you tools to manage it on Kayaa. Free.
           </p>
         </div>
@@ -1522,7 +1522,7 @@ function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
   if (updates.length === 0) return null;
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         From the owner
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1540,20 +1540,20 @@ function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: u.content ? '8px' : '0' }}>
                 <span style={{ fontSize: '14px', lineHeight: 1 }}>{cfg.emoji}</span>
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
                   color: cfg.color, letterSpacing: '0.06em', textTransform: 'uppercase',
                 }}>
                   {cfg.label}
                 </span>
-                <span style={{ marginLeft: 'auto', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
+                <span style={{ marginLeft: 'auto', fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'var(--color-muted)' }}>
                   {timeAgoShort(u.createdAt)}
                 </span>
               </div>
-              <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px', lineHeight: 1.35 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px', lineHeight: 1.35 }}>
                 {u.title}
               </p>
               {u.content && (
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.55 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.55 }}>
                   {u.content}
                 </p>
               )}
@@ -1577,7 +1577,7 @@ function LockedPostCard({ post: _post, venueName, visitCount }: { post: Post; ve
       </div>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,17,23,0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center', gap: '8px' }}>
         <span style={{ fontSize: '28px' }}>🔒</span>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Regulars only</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Regulars only</div>
         <p style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>{venueName} shared this with their regulars.</p>
         <p style={{ fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: 0 }}>
           {visitCount === 0
@@ -1604,10 +1604,10 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
         textAlign: 'center',
       }}>
         <div style={{ fontSize: '32px', marginBottom: '10px' }}>💬</div>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
           No posts yet
         </div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 18px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 18px' }}>
           Be the first to share something about {venueName}. A tip, a question, a recommendation — anything helps.
         </p>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
@@ -1616,7 +1616,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
             style={{
               padding: '9px 18px', borderRadius: '10px',
               background: 'rgba(57,217,138,0.12)', border: '1px solid rgba(57,217,138,0.3)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
               color: '#39D98A', cursor: 'pointer',
             }}
           >
@@ -1627,7 +1627,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
             style={{
               padding: '9px 18px', borderRadius: '10px',
               background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
               color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
             }}
           >
@@ -1640,7 +1640,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>What people say</h2>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>What people say</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {posts.map((post) => {
           if (post.audience === 'regulars_only' && visitCount < 3) {
@@ -1654,7 +1654,7 @@ function PostsSection({ posts, venueName, venueId, venueSlug }: { posts: Post[];
                 </span>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, background: 'rgba(57,217,138,0.1)', border: '1.5px solid rgba(57,217,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, background: 'rgba(57,217,138,0.1)', border: '1.5px solid rgba(57,217,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A' }}>
                   {post.authorName[0]}
                 </div>
                 <div>
@@ -1683,7 +1683,7 @@ function GalleryStrip({ venue, onImageClick }: { venue: Venue; onImageClick: (id
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
         Inside {venue.name}
       </h2>
       <div style={{
@@ -1729,7 +1729,7 @@ function ImageLightbox({ images, index, onClose, onNavigate }: { images: string[
       <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 201, width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <X size={18} color="#fff" />
       </button>
-      <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'DM Sans, sans-serif', background: 'rgba(0,0,0,0.4)', borderRadius: '20px', padding: '4px 12px' }}>
+      <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter, sans-serif', background: 'rgba(0,0,0,0.4)', borderRadius: '20px', padding: '4px 12px' }}>
         {index + 1} / {images.length}
       </div>
       <img src={images[index]} alt={`Photo ${index + 1}`} onClick={e => e.stopPropagation()} style={{ maxWidth: '100vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '4px' }} />
@@ -1761,7 +1761,7 @@ function VideoCard({ venue }: { venue: Venue }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700,
+        fontFamily: 'Inter, sans-serif', fontWeight: 700,
         fontSize: '16px', color: 'var(--color-text)',
         marginBottom: '12px', letterSpacing: '-0.01em',
       }}>
@@ -1796,17 +1796,17 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
     if (!venue.address) return null;
     return (
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
           Location
         </h2>
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
             <div>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.55 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.55 }}>
                 {venue.address}
               </p>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
                 {venue.neighborhood}, {venue.city}
               </p>
             </div>
@@ -1820,7 +1820,7 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '14px', letterSpacing: '-0.01em' }}>
         Location
       </h2>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
@@ -1830,15 +1830,15 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
           <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {venue.address && (
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '0 0 2px', lineHeight: 1.5 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '0 0 2px', lineHeight: 1.5 }}>
                 {venue.address}
               </p>
             )}
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>
               {venue.neighborhood}, {venue.city}
             </p>
             {distance !== null && (
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Navigation size={12} />
                 {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} from you
               </p>
@@ -1855,7 +1855,7 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             padding: '11px', borderRadius: '10px',
             background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: '#39D98A', textDecoration: 'none',
           }}
         >
@@ -1892,7 +1892,7 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
           marginBottom: '8px', gap: '8px',
         }}>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, margin: 0,
           }}>
             Checking in tells Kayaa you visited this place. The more people check in, the more visible this business becomes.
@@ -1911,7 +1911,7 @@ function StickyCheckinBar({ venue }: { venue: Venue }) {
           background: '#39D98A', color: '#0D1117',
           borderRadius: '12px', height: '48px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
         }}>
           Check in here
         </div>
@@ -2049,7 +2049,7 @@ export default function VenuePage() {
             <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid #22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
               📸
             </div>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e' }}>
               Watch today's story from {venue.name.split(' ')[0]}
             </span>
           </button>
@@ -2113,7 +2113,7 @@ export default function VenuePage() {
           style={{
             display: 'block', width: '100%', textAlign: 'center',
             background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.25)', padding: '8px 0 20px',
             transition: 'color 0.15s',
           }}
@@ -2137,7 +2137,7 @@ export default function VenuePage() {
           padding: '10px 16px',
           display: 'flex', gap: '8px', alignItems: 'center',
         }}>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: '#39D98A', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: '#39D98A', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
             Your place
           </span>
           <div style={{ flex: 1, display: 'flex', gap: '6px' }}>
@@ -2153,7 +2153,7 @@ export default function VenuePage() {
                   flex: 1, padding: '8px 6px', borderRadius: '10px',
                   background: 'rgba(57,217,138,0.1)',
                   border: '1px solid rgba(57,217,138,0.2)',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
                   color: '#39D98A', cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}

@@ -113,7 +113,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%', background: 'var(--color-surface)',
   border: '1px solid var(--color-border)', borderRadius: '14px',
   padding: '15px 16px', color: 'var(--color-text)', fontSize: '16px',
-  fontFamily: 'DM Sans, sans-serif', outline: 'none',
+  fontFamily: 'Inter, sans-serif', outline: 'none',
   boxSizing: 'border-box', minHeight: '52px',
 };
 
@@ -245,7 +245,7 @@ function CoverPhotoUpload({ sessionId, onUploaded, currentUrl }: CoverPhotoUploa
               borderTopColor: '#39D98A',
               animation: 'obSpin 0.8s linear infinite',
             }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
               Sorting your photo...
             </span>
           </div>
@@ -255,7 +255,7 @@ function CoverPhotoUpload({ sessionId, onUploaded, currentUrl }: CoverPhotoUploa
         {!preview && !processing && (
           <div style={{ textAlign: 'center', padding: '32px 20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📷</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
               Tap to add a photo of your business
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -270,7 +270,7 @@ function CoverPhotoUpload({ sessionId, onUploaded, currentUrl }: CoverPhotoUploa
             position: 'absolute', bottom: '10px', right: '10px',
             background: 'rgba(57,217,138,0.92)', color: '#000',
             fontSize: '11px', fontWeight: 700, padding: '4px 10px',
-            borderRadius: '20px', fontFamily: 'Syne, sans-serif',
+            borderRadius: '20px', fontFamily: 'Inter, sans-serif',
           }}>
             ✓ Photo ready
           </div>
@@ -284,7 +284,7 @@ function CoverPhotoUpload({ sessionId, onUploaded, currentUrl }: CoverPhotoUploa
               position: 'absolute', bottom: '10px', left: '10px',
               background: 'rgba(13,17,23,0.72)', border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: '20px', padding: '4px 10px',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
               color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
             }}
           >
@@ -524,7 +524,7 @@ function VideoUpload({ sessionId, onUploaded, currentUrl }: VideoUploadProps) {
         >
           <div style={{ textAlign: 'center', padding: '24px 20px' }}>
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>🎥</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '6px' }}>
               Tap to add your place video
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -836,7 +836,7 @@ export default function OnboardingPage() {
 
           {/* ── Name ── */}
           <h1 className="s4-name" style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
             color: '#F0F6FC', margin: '0 0 6px', lineHeight: 1.2,
           }}>
             {form.venueName}
@@ -844,13 +844,13 @@ export default function OnboardingPage() {
 
           {/* ── One-liner ── */}
           <p className="s4-line" style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', fontSize: '16px',
             color: '#39D98A', fontWeight: 600, margin: '0 0 6px',
           }}>
             Your place is live.
           </p>
           <p className="s4-line" style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontSize: '14px',
             color: 'rgba(255,255,255,0.45)', margin: '0 0 36px', lineHeight: 1.5,
           }}>
             People in {form.suburb || form.city || 'your area'} can find you now.
@@ -867,7 +867,7 @@ export default function OnboardingPage() {
                 width: '100%', minHeight: '56px',
                 background: '#39D98A', color: '#0D1117',
                 borderRadius: '16px', textDecoration: 'none',
-                fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px',
                 boxSizing: 'border-box',
               } as React.CSSProperties}
             >
@@ -885,7 +885,7 @@ export default function OnboardingPage() {
                 background: 'rgba(37,211,102,0.08)', color: '#25D366',
                 border: '1.5px solid rgba(37,211,102,0.3)',
                 borderRadius: '16px', textDecoration: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '15px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
                 boxSizing: 'border-box',
               } as React.CSSProperties}
             >
@@ -902,7 +902,7 @@ export default function OnboardingPage() {
                 background: 'none', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '14px', padding: '14px',
                 width: '100%', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 600,
+                fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600,
                 color: 'rgba(255,255,255,0.5)',
               }}
             >
@@ -914,7 +914,7 @@ export default function OnboardingPage() {
                 <div ref={qrWrapRef} onClick={downloadQR} style={{ display: 'inline-block', padding: '14px', borderRadius: '12px', background: '#fff', cursor: 'pointer' }} title="Tap to save">
                   <QRCodeCanvas value={qrUrl} size={160} level="M" marginSize={0} />
                 </div>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '10px 0 0', lineHeight: 1.5 }}>
                   Print this and put it at your counter.<br />Tap to save.
                 </p>
               </div>
@@ -925,7 +925,7 @@ export default function OnboardingPage() {
               onClick={() => { setForm(empty); setStep(1); window.scrollTo(0, 0); try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px',
                 color: 'rgba(255,255,255,0.3)', padding: '8px 0',
               }}
             >
@@ -935,7 +935,7 @@ export default function OnboardingPage() {
             {/* Email notice — small, below the fold, only if provided */}
             {form.ownerEmail && (
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, margin: '4px 0 0',
               }}>
                 We sent a sign-in link to {form.ownerEmail}
@@ -953,7 +953,7 @@ export default function OnboardingPage() {
       <div style={{ padding: '16px 16px 100px' }}>
         <style>{`@keyframes obSpin { to { transform: rotate(360deg); } }`}</style>
         <StepIndicator current={3} />
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Last step</h1>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Last step</h1>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
           Who runs{' '}
           <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.venueName}</span>?
@@ -1004,7 +1004,7 @@ export default function OnboardingPage() {
           <button onClick={() => { setStep(2); window.scrollTo(0, 0); }} disabled={submitting} style={{ width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: submitting ? 'default' : 'pointer' }}>
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
-          <button onClick={goStep4} disabled={submitting} style={{ flex: 1, minHeight: '52px', background: submitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: submitting ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <button onClick={goStep4} disabled={submitting} style={{ flex: 1, minHeight: '52px', background: submitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: submitting ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             {submitting ? (
               <><span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', display: 'inline-block', animation: 'obSpin 0.7s linear infinite' }} />Creating…</>
             ) : 'Create my Kayaa →'}
@@ -1019,7 +1019,7 @@ export default function OnboardingPage() {
     return (
       <div style={{ padding: '16px 16px 100px' }}>
         <StepIndicator current={2} />
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Show your place</h1>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Show your place</h1>
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
           More photos and a short video help people feel your vibe before they visit.
         </p>
@@ -1028,7 +1028,7 @@ export default function OnboardingPage() {
           {/* Gallery */}
           <div>
             <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Gallery photos</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Gallery photos</span>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
               Add up to 8 photos — the inside, the chairs, the energy. Optional, but it makes a big difference.
@@ -1044,7 +1044,7 @@ export default function OnboardingPage() {
           {/* Video */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Add a short video</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Add a short video</span>
               <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: '20px' }}>Optional</span>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
@@ -1062,7 +1062,7 @@ export default function OnboardingPage() {
           <button onClick={() => { setStep(1); window.scrollTo(0, 0); }} style={{ width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
-          <button onClick={goStep3} style={{ flex: 1, minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}>
+          <button onClick={goStep3} style={{ flex: 1, minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}>
             Continue →
           </button>
         </div>
@@ -1075,7 +1075,7 @@ export default function OnboardingPage() {
     <div style={{ padding: '16px 16px 100px' }}>
       <StepIndicator current={1} />
 
-      <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
         Tell us about your business
       </h1>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
@@ -1091,7 +1091,7 @@ export default function OnboardingPage() {
         padding: '16px 18px',
         marginBottom: hasDraft ? '16px' : '28px',
       }}>
-        <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 10px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 10px' }}>
           You run a place people already return to.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
@@ -1100,7 +1100,7 @@ export default function OnboardingPage() {
             '🤝 Turn walk-ins into known regulars',
             "📊 See who keeps coming back — and who's drifted",
           ].map(item => (
-            <p key={item} style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.65)', margin: 0, lineHeight: 1.5 }}>
+            <p key={item} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.65)', margin: 0, lineHeight: 1.5 }}>
               {item}
             </p>
           ))}
@@ -1115,7 +1115,7 @@ export default function OnboardingPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
         }}>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
               You have an unsaved draft
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
@@ -1131,13 +1131,13 @@ export default function OnboardingPage() {
                 } catch { /* ignore */ }
                 setHasDraft(false);
               }}
-              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
             >
               Resume
             </button>
             <button
               onClick={() => { try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } setHasDraft(false); }}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 10px', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', cursor: 'pointer' }}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', cursor: 'pointer' }}
             >
               Discard
             </button>
@@ -1204,7 +1204,7 @@ export default function OnboardingPage() {
 
         {/* Cover photo */}
         <div>
-          <label style={{ ...labelStyle, color: 'var(--color-text)', fontSize: '15px', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>
+          <label style={{ ...labelStyle, color: 'var(--color-text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
             📸 Show us your business{' '}
             <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
           </label>
@@ -1232,7 +1232,7 @@ export default function OnboardingPage() {
           width: '100%', minHeight: '56px',
           background: 'var(--color-accent)', color: '#000',
           border: 'none', borderRadius: '14px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
           cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           transition: 'opacity 0.2s',

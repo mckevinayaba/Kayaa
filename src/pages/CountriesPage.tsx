@@ -23,7 +23,7 @@ function NotifyInline({ country }: { country: Country }) {
 
   if (submitted) {
     return (
-      <div style={{ fontSize: '12px', color: '#39D98A', fontFamily: 'DM Sans, sans-serif', marginTop: '10px' }}>
+      <div style={{ fontSize: '12px', color: '#39D98A', fontFamily: 'Inter, sans-serif', marginTop: '10px' }}>
         ✓ We'll notify you when {country.name} launches
       </div>
     );
@@ -44,7 +44,7 @@ function NotifyInline({ country }: { country: Country }) {
               border: `1px solid ${err ? '#EF4444' : 'var(--color-border)'}`,
               borderRadius: '10px', padding: '8px 12px',
               color: 'var(--color-text)', fontSize: '13px',
-              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+              fontFamily: 'Inter, sans-serif', outline: 'none',
             }}
           />
           <button
@@ -53,13 +53,13 @@ function NotifyInline({ country }: { country: Country }) {
               background: '#39D98A', color: '#000', border: 'none',
               borderRadius: '10px', padding: '8px 12px', fontWeight: 700,
               fontSize: '12px', cursor: submitting ? 'default' : 'pointer',
-              fontFamily: 'DM Sans, sans-serif', opacity: submitting ? 0.6 : 1,
+              fontFamily: 'Inter, sans-serif', opacity: submitting ? 0.6 : 1,
             }}
           >
             {submitting ? '…' : 'Notify'}
           </button>
         </div>
-        {err && <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', fontFamily: 'DM Sans, sans-serif' }}>{err}</div>}
+        {err && <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{err}</div>}
       </div>
     );
   }
@@ -71,7 +71,7 @@ function NotifyInline({ country }: { country: Country }) {
         marginTop: '10px', background: 'transparent',
         border: '1px solid rgba(245,166,35,0.4)', borderRadius: '20px',
         padding: '5px 12px', color: '#F5A623', fontSize: '11px',
-        fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+        fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
       }}
     >
       Notify me when live
@@ -108,20 +108,20 @@ function ActiveCountryCard({ country }: { country: Country }) {
           🟢 Live now
         </span>
       </div>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '4px' }}>
         {country.name}
       </div>
-      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '10px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '10px' }}>
         {country.currency_symbol} {country.currency_code}
       </div>
-      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6 }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', lineHeight: 1.6 }}>
         {country.launch_cities.slice(0, 3).join(' · ')}
         {country.launch_cities.length > 3 && ` +${country.launch_cities.length - 3} more`}
       </div>
       <div style={{
         marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: '#39D98A', color: '#000', borderRadius: '10px',
-        padding: '8px 14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+        padding: '8px 14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
       }}>
         Open kayaa →
       </div>
@@ -149,10 +149,10 @@ function ComingSoonCard({ country }: { country: Country }) {
           🟡 Coming soon
         </span>
       </div>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '4px' }}>
         {country.name}
       </div>
-      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '8px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '8px' }}>
         {country.currency_symbol} {country.currency_code}
       </div>
       <NotifyInline country={country} />
@@ -169,13 +169,13 @@ export default function CountriesPage() {
     <div style={{ padding: '24px 16px calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <p style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'DM Sans, sans-serif' }}>
+        <p style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>
           kayaa across Africa
         </p>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px', color: 'var(--color-text)', margin: '0 0 8px' }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px', color: 'var(--color-text)', margin: '0 0 8px' }}>
           Where we're live
         </h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', lineHeight: 1.6, margin: 0 }}>
           Every neighbourhood in Africa deserves its own digital home. We're building it, city by city.
         </p>
       </div>
@@ -183,7 +183,7 @@ export default function CountriesPage() {
       {/* Active */}
       {active.length > 0 && (
         <div style={{ marginBottom: '28px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
             Active markets
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -195,7 +195,7 @@ export default function CountriesPage() {
       {/* Coming soon */}
       {coming.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '12px' }}>
             Expanding next
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -210,10 +210,10 @@ export default function CountriesPage() {
         borderRadius: '20px', padding: '24px 20px',
       }}>
         <div style={{ fontSize: '24px', marginBottom: '12px' }}>🌍</div>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)', marginBottom: '10px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)', marginBottom: '10px' }}>
           Built for African neighbourhoods
         </h3>
-        <p style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.7, margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', lineHeight: 1.7, margin: 0 }}>
           From the barbershop on the corner to the shisanyama behind the church — every recurring place people return to deserves a living community page. kayaa puts places on the map, one neighbourhood at a time.
         </p>
       </div>

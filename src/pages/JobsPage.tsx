@@ -68,24 +68,24 @@ function JobCard({ job, onClick }: { job: DisplayJob; onClick?: () => void }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
           color: badgeColor, background: `${badgeColor}18`,
           borderRadius: '20px', padding: '2px 8px',
         }}>
           {isSkill ? '💡 Skills' : '💼 Hiring'}
         </span>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
           {job.timeDisplay}
         </span>
       </div>
 
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '4px' }}>
         {job.title}
       </div>
 
       {job.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.52)',
           margin: '0 0 8px', lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
@@ -94,11 +94,11 @@ function JobCard({ job, onClick }: { job: DisplayJob; onClick?: () => void }) {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
           📍 {job.neighbourhood}
         </span>
         {job.isSeed && (
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>example</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>example</span>
         )}
       </div>
     </div>
@@ -166,14 +166,14 @@ export default function JobsPage() {
 
       {/* ── Header ── */}
       <div style={{ padding: '16px 16px 0' }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>
           {suburb ? `${suburb} · Jobs & Skills` : 'Jobs & Skills'}
         </p>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px', color: '#FFFFFF', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px', color: '#FFFFFF', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
           {suburb ? `${suburb} Jobs` : 'Local Jobs'}
         </h1>
         {!isSeedMode && !loading && (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: '0 0 12px' }}>
             {realJobs.length} listing{realJobs.length !== 1 ? 's' : ''} · {geoScope === 'my_area' ? (suburb || 'your area') : geoScope === 'nearby' ? `${suburb || 'your area'} + nearby` : 'all areas'}
           </p>
         )}
@@ -195,7 +195,7 @@ export default function JobsPage() {
                   border: `1px solid ${active ? '#39D98A' : 'rgba(255,255,255,0.1)'}`,
                   background: active ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.04)',
                   color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px',
                   fontWeight: active ? 700 : 500, cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
                 } as React.CSSProperties}
@@ -208,7 +208,7 @@ export default function JobsPage() {
 
         {!jobsHintDismissed && !loading && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '12px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
               Jobs and skills in {suburb || 'your area'}. Post a job or offer your skills. It's free.
             </p>
             <button
@@ -234,7 +234,7 @@ export default function JobsPage() {
                 border: `1px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
                 background: active ? `${color}18` : 'rgba(255,255,255,0.04)',
                 color: active ? color : 'rgba(255,255,255,0.45)',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 fontWeight: active ? 700 : 500, cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
               } as React.CSSProperties}
@@ -254,17 +254,17 @@ export default function JobsPage() {
         ) : filtered.length === 0 ? (
           <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>💼</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
               {filter !== 'all'
                 ? `No ${filter === 'Hiring' ? 'hiring' : 'skills'} listings yet.`
                 : `No jobs in ${geoScope === 'my_area' ? (suburb || 'your area') : geoScope === 'nearby' ? 'your area or nearby' : 'any area'} yet.`}
             </div>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Know someone hiring? Or have a skill to offer?
             </p>
             <button
               onClick={() => navigate('/board/new?cat=jobs')}
-              style={{ background: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px' }}
+              style={{ background: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px' }}
             >
               Post a job or skill
             </button>
@@ -274,13 +274,13 @@ export default function JobsPage() {
               <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setGeoScope('nearby')}
-                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.25)', background: 'rgba(57,217,138,0.06)', color: '#39D98A', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See nearby jobs
                 </button>
                 <button
                   onClick={() => setGeoScope('everywhere')}
-                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See all areas
                 </button>
@@ -290,7 +290,7 @@ export default function JobsPage() {
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '14px' }}>
                 <button
                   onClick={() => setGeoScope('everywhere')}
-                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '7px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   See all areas
                 </button>
@@ -311,7 +311,7 @@ export default function JobsPage() {
             border: '1px dashed rgba(167,139,250,0.3)',
             borderRadius: '14px', padding: '16px',
             background: 'transparent', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+            fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
             color: 'rgba(167,139,250,0.7)',
             WebkitTapHighlightColor: 'transparent',
           } as React.CSSProperties}

@@ -74,7 +74,7 @@ export function SafetyAlertOptIn({ suburb, compact }: Props) {
           background: optedIn ? 'rgba(57,217,138,0.12)' : 'var(--color-surface)',
           border: `1px solid ${optedIn ? 'rgba(57,217,138,0.3)' : 'rgba(255,255,255,0.08)'}`,
           borderRadius: '18px', cursor: saving ? 'default' : 'pointer',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
           color: optedIn ? '#39D98A' : 'rgba(255,255,255,0.55)',
           WebkitTapHighlightColor: 'transparent',
           transition: 'all 0.2s',
@@ -124,7 +124,7 @@ export function SafetyAlertOptIn({ suburb, compact }: Props) {
         }
         <div>
           <div style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
             fontSize: '14px',
             color: optedIn ? '#FBBF24' : 'rgba(255,255,255,0.7)',
@@ -132,7 +132,7 @@ export function SafetyAlertOptIn({ suburb, compact }: Props) {
             {suburb} safety alerts
           </div>
           <div style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: '12px',
             color: 'rgba(255,255,255,0.35)',
             marginTop: '1px',

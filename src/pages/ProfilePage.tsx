@@ -95,7 +95,7 @@ export default function ProfilePage() {
         padding: '14px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
           Profile
         </h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -144,7 +144,7 @@ export default function ProfilePage() {
               background: `${BADGE_COLOR[topBadgeTier]}22`,
               border: `1px solid ${BADGE_COLOR[topBadgeTier]}50`,
               borderRadius: '20px', padding: '2px 8px',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '9px', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontSize: '9px', fontWeight: 700,
               color: BADGE_COLOR[topBadgeTier], whiteSpace: 'nowrap',
             }}>
               {BADGE_LABEL[topBadgeTier]}
@@ -154,7 +154,7 @@ export default function ProfilePage() {
           {/* Info */}
           <div style={{ flex: 1, paddingTop: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0 }}>
                 {localProfile.name
                   || (user?.user_metadata?.full_name as string | undefined)
                   || (user?.user_metadata?.name as string | undefined)
@@ -172,17 +172,17 @@ export default function ProfilePage() {
             {(localProfile.neighborhood || localProfile.city) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px', marginBottom: '4px' }}>
                 <MapPin size={13} color="rgba(255,255,255,0.4)" />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
                   {[localProfile.neighborhood, localProfile.city].filter(Boolean).join(', ')}
                 </span>
               </div>
             )}
             {localProfile.bio && (
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '5px 0 0', lineHeight: 1.5 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '5px 0 0', lineHeight: 1.5 }}>
                 {localProfile.bio}
               </p>
             )}
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '6px' }}>
               ID …{visitorId.slice(-6)}
             </div>
           </div>
@@ -196,10 +196,10 @@ export default function ProfilePage() {
             { label: 'Regulars',  value: regularsCount },
           ].map(({ label, value }) => (
             <div key={label} style={{ textAlign: 'center', padding: '10px 4px' }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff', opacity: histLoading ? 0.4 : 1, transition: 'opacity 0.2s' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff', opacity: histLoading ? 0.4 : 1, transition: 'opacity 0.2s' }}>
                 {value}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                 {label}
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
 
       {/* ── Quick actions ──────────────────────────────────────────────────── */}
       <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '12px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '12px' }}>
           Quick Actions
         </h3>
 
@@ -236,10 +236,10 @@ export default function ProfilePage() {
                 <Plus size={22} color="#000" />
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px', color: '#000' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px', color: '#000' }}>
                   Add Your Place
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(0,0,0,0.6)', marginTop: '1px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(0,0,0,0.6)', marginTop: '1px' }}>
                   List your business on Kayaa
                 </div>
               </div>
@@ -302,7 +302,7 @@ export default function ProfilePage() {
                 padding: '7px 14px', borderRadius: '20px', flexShrink: 0,
                 background: tab === t.id ? '#39D98A' : 'rgba(255,255,255,0.06)',
                 border: 'none', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                 color: tab === t.id ? '#000' : 'rgba(255,255,255,0.55)',
                 transition: 'background 0.15s',
               }}
@@ -322,7 +322,7 @@ export default function ProfilePage() {
 
       {/* ── Settings & more ───────────────────────────────────────────────── */}
       <div style={{ padding: '20px 16px' }}>
-        <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '12px' }}>
+        <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#fff', marginBottom: '12px' }}>
           More
         </h3>
 
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '14px', borderRadius: '14px',
                 background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                 color: '#EF4444', cursor: 'pointer',
               }}
             >
@@ -366,7 +366,7 @@ export default function ProfilePage() {
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 padding: '14px', borderRadius: '14px',
                 background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                 color: '#39D98A', cursor: 'pointer',
               }}
             >
@@ -407,10 +407,10 @@ function ActionRow({
           {icon}
         </div>
         <div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: active ? '#39D98A' : '#fff' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: active ? '#39D98A' : '#fff' }}>
             {label}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>
             {sub}
           </div>
         </div>
@@ -431,7 +431,7 @@ function SettingsRow({ label, onClick }: { label: string; onClick: () => void })
         cursor: 'pointer',
       }}
     >
-      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.75)' }}>
         {label}
       </span>
       <ChevronRight size={16} color="rgba(255,255,255,0.3)" />

@@ -12,7 +12,7 @@ const inputStyle: React.CSSProperties = {
   padding: '0 16px',
   color: '#F0F6FC',
   fontSize: '15px',
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   outline: 'none',
   boxSizing: 'border-box',
 };
@@ -22,7 +22,7 @@ const labelStyle: React.CSSProperties = {
   fontSize: '12px',
   fontWeight: 700,
   color: 'rgba(255,255,255,0.45)',
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
   marginBottom: '6px',
@@ -104,7 +104,7 @@ export default function WaitlistPage() {
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
         <span style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '22px', color: '#39D98A', letterSpacing: '-0.5px',
         }}>
           kayaa
@@ -112,7 +112,7 @@ export default function WaitlistPage() {
         <Link
           to="/welcome"
           style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             fontWeight: 600, color: 'rgba(255,255,255,0.5)',
             textDecoration: 'none',
           }}
@@ -133,14 +133,14 @@ export default function WaitlistPage() {
             <div style={{ textAlign: 'center', paddingTop: '20px' }}>
               <div style={{ fontSize: '56px', marginBottom: '24px', lineHeight: 1 }}>🎉</div>
               <h1 style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                fontFamily: 'Inter, sans-serif', fontWeight: 800,
                 fontSize: '28px', color: '#F0F6FC',
                 marginBottom: '12px', lineHeight: 1.2,
               }}>
                 You're on the list!
               </h1>
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '15px',
+                fontFamily: 'Inter, sans-serif', fontSize: '15px',
                 color: 'rgba(255,255,255,0.55)', lineHeight: 1.65,
                 marginBottom: '32px',
               }}>
@@ -155,7 +155,7 @@ export default function WaitlistPage() {
                 marginBottom: '28px',
               }}>
                 <p style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '14px',
                   color: 'rgba(255,255,255,0.65)', margin: '0 0 12px', lineHeight: 1.5,
                 }}>
                   Know a place that should be on Kayaa?
@@ -163,7 +163,7 @@ export default function WaitlistPage() {
                 <Link
                   to="/onboarding"
                   style={{
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700,
                     fontSize: '14px', color: '#39D98A', textDecoration: 'none',
                   }}
                 >
@@ -174,7 +174,7 @@ export default function WaitlistPage() {
               <Link
                 to="/welcome"
                 style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '13px',
                   color: 'rgba(255,255,255,0.35)', textDecoration: 'none',
                 }}
               >
@@ -187,7 +187,7 @@ export default function WaitlistPage() {
             <>
               <div style={{ marginBottom: '32px' }}>
                 <h1 style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 800,
                   fontSize: '28px', color: '#F0F6FC',
                   marginBottom: '10px', lineHeight: 1.2,
                 }}>
@@ -195,7 +195,7 @@ export default function WaitlistPage() {
                   <span style={{ color: '#39D98A' }}>That's good.</span>
                 </h1>
                 <p style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '15px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '15px',
                   color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0,
                 }}>
                   Tell us where you are and we'll let you know when
@@ -282,7 +282,7 @@ export default function WaitlistPage() {
                             ? '#39D98A'
                             : 'rgba(255,255,255,0.1)'}`,
                           borderRadius: '12px',
-                          fontFamily: 'DM Sans, sans-serif',
+                          fontFamily: 'Inter, sans-serif',
                           fontWeight: 600, fontSize: '14px',
                           color: form.user_type === opt.value
                             ? '#39D98A'
@@ -301,7 +301,7 @@ export default function WaitlistPage() {
                 {error && (
                   <p style={{
                     fontSize: '13px', color: '#F87171',
-                    fontFamily: 'DM Sans, sans-serif', margin: 0,
+                    fontFamily: 'Inter, sans-serif', margin: 0,
                   }}>
                     {error}
                   </p>
@@ -315,7 +315,7 @@ export default function WaitlistPage() {
                     width: '100%', minHeight: '54px',
                     background: submitting ? 'rgba(57,217,138,0.5)' : '#39D98A',
                     color: '#0D1117', border: 'none', borderRadius: '14px',
-                    fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                    fontFamily: 'Inter, sans-serif', fontWeight: 800,
                     fontSize: '16px', cursor: submitting ? 'default' : 'pointer',
                     marginTop: '4px',
                   }}
@@ -326,7 +326,7 @@ export default function WaitlistPage() {
 
               {/* WhatsApp fallback */}
               <p style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px',
                 color: 'rgba(255,255,255,0.3)', textAlign: 'center',
                 marginTop: '20px', lineHeight: 1.5,
               }}>

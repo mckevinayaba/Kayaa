@@ -196,7 +196,7 @@ export default function SetupPage() {
           📍
         </div>
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '24px', color: '#F0F6FC',
           marginBottom: '8px', lineHeight: 1.2,
         }}>
@@ -204,7 +204,7 @@ export default function SetupPage() {
         </h1>
         <p style={{
           fontSize: '14px', color: 'rgba(255,255,255,0.45)',
-          fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6,
+          fontFamily: 'Inter, sans-serif', lineHeight: 1.6,
         }}>
           Kayaa shows you what's happening in your neighbourhood.
         </p>
@@ -223,7 +223,7 @@ export default function SetupPage() {
             <MapPin size={15} color="#39D98A" />
             <span style={{
               fontSize: '15px', fontWeight: 600, color: '#F0F6FC',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               {confirmedArea}{confirmedCity && confirmedCity !== confirmedArea ? `, ${confirmedCity}` : ''}
             </span>
@@ -233,7 +233,7 @@ export default function SetupPage() {
             style={{
               background: 'transparent', border: 'none',
               color: 'rgba(255,255,255,0.35)', fontSize: '12px',
-              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', cursor: 'pointer',
               padding: '2px 6px',
             }}
           >
@@ -252,7 +252,7 @@ export default function SetupPage() {
             gap: '8px', width: '100%', minHeight: '54px',
             background: '#39D98A', color: '#0D1117',
             border: 'none', borderRadius: '14px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             cursor: detecting ? 'default' : 'pointer',
             marginBottom: '16px',
             opacity: detecting ? 0.8 : 1,
@@ -282,7 +282,7 @@ export default function SetupPage() {
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
             <span style={{
               fontSize: '11px', color: 'rgba(255,255,255,0.25)',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               or search
             </span>
@@ -300,7 +300,7 @@ export default function SetupPage() {
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '12px', padding: '0 16px',
               color: '#F0F6FC', fontSize: '15px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               outline: 'none', boxSizing: 'border-box',
               marginBottom: '8px',
             }}
@@ -326,13 +326,13 @@ export default function SetupPage() {
               >
                 <span style={{
                   fontSize: '14px', color: '#F0F6FC',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 500,
                 }}>
                   {a.suburb}
                 </span>
                 <span style={{
                   fontSize: '12px', color: 'rgba(255,255,255,0.35)',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                 }}>
                   {a.city}
                 </span>
@@ -353,13 +353,13 @@ export default function SetupPage() {
               >
                 <span style={{
                   fontSize: '14px', color: '#F0F6FC',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 500,
                 }}>
                   Use "{query.trim()}"
                 </span>
                 <span style={{
                   fontSize: '11px', color: '#39D98A',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600,
                 }}>
                   Custom area →
                 </span>
@@ -379,7 +379,7 @@ export default function SetupPage() {
             background: confirmedArea ? '#39D98A' : 'rgba(57,217,138,0.2)',
             color: confirmedArea ? '#0D1117' : 'rgba(57,217,138,0.5)',
             border: 'none', borderRadius: '14px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
             cursor: confirmedArea ? 'pointer' : 'default',
             marginBottom: '12px',
           }}
@@ -392,7 +392,7 @@ export default function SetupPage() {
           style={{
             width: '100%', background: 'transparent', border: 'none',
             color: 'rgba(255,255,255,0.3)', fontSize: '13px',
-            fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', cursor: 'pointer',
             padding: '6px',
           }}
         >
@@ -410,7 +410,7 @@ export default function SetupPage() {
       {/* Header */}
       <div style={{ paddingTop: '56px', paddingBottom: '32px', textAlign: 'center' }}>
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '24px', color: '#F0F6FC',
           marginBottom: '8px', lineHeight: 1.2,
         }}>
@@ -418,7 +418,7 @@ export default function SetupPage() {
         </h1>
         <p style={{
           fontSize: '14px', color: 'rgba(255,255,255,0.45)',
-          fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6,
+          fontFamily: 'Inter, sans-serif', lineHeight: 1.6,
         }}>
           We'll tailor your experience from the start.
         </p>
@@ -447,13 +447,13 @@ export default function SetupPage() {
               <div>
                 <div style={{
                   fontSize: '15px', fontWeight: 700, color: '#F0F6FC',
-                  fontFamily: 'Syne, sans-serif', marginBottom: '4px',
+                  fontFamily: 'Inter, sans-serif', marginBottom: '4px',
                 }}>
                   {intent.title}
                 </div>
                 <div style={{
                   fontSize: '13px', color: 'rgba(255,255,255,0.45)',
-                  fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5,
+                  fontFamily: 'Inter, sans-serif', lineHeight: 1.5,
                 }}>
                   {intent.desc}
                 </div>
@@ -485,7 +485,7 @@ export default function SetupPage() {
             background: selectedIntent ? '#39D98A' : 'rgba(57,217,138,0.2)',
             color: selectedIntent ? '#0D1117' : 'rgba(57,217,138,0.5)',
             border: 'none', borderRadius: '14px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
             cursor: selectedIntent ? 'pointer' : 'default',
             marginBottom: '12px',
           }}
@@ -497,7 +497,7 @@ export default function SetupPage() {
           style={{
             width: '100%', background: 'transparent', border: 'none',
             color: 'rgba(255,255,255,0.3)', fontSize: '13px',
-            fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', cursor: 'pointer',
             padding: '6px',
           }}
         >
@@ -516,7 +516,7 @@ export default function SetupPage() {
         padding: '20px 24px 0',
       }}>
         <span style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
           fontSize: '18px', color: '#39D98A', letterSpacing: '-0.5px',
         }}>
           kayaa

@@ -72,7 +72,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
         Regulars ({count.toLocaleString()})
       </h2>
 
@@ -83,7 +83,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
         {/* Count line */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <Users size={16} color="rgba(255,255,255,0.4)" />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
             {count === 1 ? '1 person loves this place' : `${count.toLocaleString()} people love this place`}
           </p>
         </div>
@@ -102,7 +102,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
                     border: '2px solid var(--color-surface)',
                     background: `${color}1A`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                     color,
                     marginLeft: i === 0 ? 0 : '-10px',
                     flexShrink: 0,
@@ -120,7 +120,7 @@ export function Regulars({ venueId, count }: RegularsProps) {
                 border: '2px solid var(--color-surface)',
                 background: 'rgba(255,255,255,0.06)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
                 color: 'rgba(255,255,255,0.45)',
                 marginLeft: '-10px',
                 flexShrink: 0,

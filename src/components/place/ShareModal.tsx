@@ -137,7 +137,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
           padding: '4px 16px 14px',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', margin: 0 }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', margin: 0 }}>
             Share {place.emoji} {place.name}
           </h2>
           <button
@@ -177,10 +177,10 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
                   : m.emoji}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: m.fg }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: m.fg }}>
                   {m.label}
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: m.bg === '#25D366' ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: m.bg === '#25D366' ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.45)', marginTop: '1px' }}>
                   {m.sublabel}
                 </div>
               </div>
@@ -195,7 +195,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
             paddingTop: '12px',
             marginBottom: '10px',
           }}>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               More options
             </span>
           </div>
@@ -212,7 +212,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
                 }}
               >
                 <span style={{ fontSize: '22px', lineHeight: 1 }}>{m.emoji}</span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
                   {m.label}
                 </span>
               </button>

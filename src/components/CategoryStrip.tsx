@@ -41,7 +41,7 @@ export default function CategoryStrip({ value, onChange, chips }: Props) {
               background: active ? '#39D98A' : 'var(--color-surface)',
               color: active ? '#000' : 'var(--color-muted)',
               fontSize: '12px', fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               cursor: 'pointer', whiteSpace: 'nowrap',
               transition: 'all 0.15s',
             }}

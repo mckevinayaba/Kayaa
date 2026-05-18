@@ -75,7 +75,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
           textAlign: 'left', gap: '12px',
         }}
       >
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', color: '#fff', flex: 1 }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#fff', flex: 1 }}>
           {q}
         </span>
         {open
@@ -84,7 +84,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       </button>
       {open && (
         <div style={{ padding: '0 16px 14px' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: 0 }}>
             {a}
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function Help() {
         >
           <ArrowLeft size={18} color="#fff" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: '#fff', margin: 0 }}>
           Help & Support
         </h1>
       </div>
@@ -139,8 +139,8 @@ export default function Help() {
               <MessageCircle size={22} color="#fff" />
             </div>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>WhatsApp Support</div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '1px' }}>Get help instantly</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>WhatsApp Support</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '1px' }}>Get help instantly</div>
             </div>
           </a>
 
@@ -157,15 +157,15 @@ export default function Help() {
               <Mail size={20} color="rgba(255,255,255,0.5)" />
             </div>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Email Support</div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>hello@kayaa.co.za</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Email Support</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>hello@kayaa.co.za</div>
             </div>
           </a>
         </div>
 
         {/* Help topics */}
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '14px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '14px' }}>
             Help Topics
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -177,10 +177,10 @@ export default function Help() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
                   <span style={{ fontSize: '28px', lineHeight: 1, flexShrink: 0 }}>{topic.icon}</span>
                   <div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff', marginBottom: '2px' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff', marginBottom: '2px' }}>
                       {topic.title}
                     </div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                       {topic.description}
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function Help() {
                   {topic.items.map(item => (
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#39D98A', flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
                         {item}
                       </span>
                     </li>
@@ -202,7 +202,7 @@ export default function Help() {
 
         {/* FAQ */}
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '14px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', marginBottom: '14px' }}>
             Frequently Asked Questions
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -212,10 +212,10 @@ export default function Help() {
 
         {/* Version footer */}
         <div style={{ textAlign: 'center', paddingTop: '8px' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', margin: '0 0 4px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', margin: '0 0 4px' }}>
             Kayaa v1.0.0
           </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.2)', margin: 0 }}>
             Built with ❤️ for South African neighbourhoods
           </p>
         </div>

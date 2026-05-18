@@ -170,7 +170,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
 
         {/* Headline */}
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '22px', color: '#F0F6FC',
           margin: '0 0 10px', lineHeight: 1.2,
         }}>
@@ -179,7 +179,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
 
         {/* Body */}
         <p style={{
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontSize: '14px', color: 'rgba(255,255,255,0.45)',
           lineHeight: 1.65, margin: '0 0 8px',
           maxWidth: '280px',
@@ -190,7 +190,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
         {/* Extra help after repeated retries */}
         {repeatedFailure && errorKind !== 'render' && (
           <p style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: '13px', color: 'rgba(255,255,255,0.28)',
             lineHeight: 1.6, margin: '0 0 24px',
             maxWidth: '280px',
@@ -208,7 +208,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
             width: '100%', maxWidth: '300px', minHeight: '52px',
             background: '#39D98A', color: '#0D1117',
             border: 'none', borderRadius: '14px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
             cursor: 'pointer', marginBottom: '10px',
           }}
         >
@@ -223,7 +223,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
               width: '100%', maxWidth: '300px', minHeight: '48px',
               background: 'transparent', color: 'rgba(255,255,255,0.4)',
               border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '15px',
               cursor: 'pointer',
             }}
           >
@@ -235,7 +235,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
         {retryCount > 0 && errorKind !== 'render' && (
           <p style={{
             marginTop: '16px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.2)',
           }}>
             Retried {retryCount} time{retryCount !== 1 ? 's' : ''}
@@ -245,7 +245,7 @@ export default class ChunkErrorBoundary extends Component<Props, State> {
         {/* Brand */}
         <div style={{
           position: 'fixed', bottom: '32px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
           fontSize: '18px', color: '#39D98A',
           letterSpacing: '-0.5px',
         }}>

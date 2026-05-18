@@ -71,7 +71,7 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
     if (!hoursText) return null;
     return (
       <div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
           Hours
         </h2>
         <div style={{
@@ -80,7 +80,7 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
           display: 'flex', alignItems: 'flex-start', gap: '12px',
         }}>
           <Clock size={18} color="rgba(255,255,255,0.4)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
             {hoursText}
           </p>
         </div>
@@ -100,7 +100,7 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', marginBottom: '12px' }}>
         Hours
       </h2>
 
@@ -117,10 +117,10 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Clock size={18} color="rgba(255,255,255,0.4)" />
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px', color: statusColor }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: statusColor }}>
                 {summary}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
                 {todaySlot ? `${fmt12(todaySlot.open)} – ${fmt12(todaySlot.close)}` : 'Closed today'}
               </div>
             </div>
@@ -147,13 +147,13 @@ export function OpeningHours({ hours, hoursText, currentStatus }: OpeningHoursPr
                   }}
                 >
                   <span style={{
-                    fontFamily: 'DM Sans, sans-serif', fontWeight: isToday ? 700 : 500,
+                    fontFamily: 'Inter, sans-serif', fontWeight: isToday ? 700 : 500,
                     fontSize: '13px',
                     color: isToday ? '#39D98A' : 'rgba(255,255,255,0.75)',
                   }}>
                     {LABELS[i]}{isToday ? ' (today)' : ''}
                   </span>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: slot ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.25)' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: slot ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.25)' }}>
                     {slot ? `${fmt12(slot.open)} – ${fmt12(slot.close)}` : 'Closed'}
                   </span>
                 </div>

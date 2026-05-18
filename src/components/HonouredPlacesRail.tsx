@@ -42,13 +42,13 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
       <div style={{ marginBottom: '28px' }}>
         <div style={{ marginBottom: '10px' }}>
           <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '15px', color: '#F0F6FC', margin: '0 0 3px',
           }}>
             Places locals honour ✨
           </h2>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.35)', margin: 0,
           }}>
             These places hold memory, trust, and meaning
@@ -67,20 +67,20 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
           <span style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>✨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
               fontSize: '13px', color: '#F0F6FC', marginBottom: '3px',
             }}>
               No honours in {suburb} yet
             </div>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.4)', lineHeight: 1.45,
             }}>
               Find a place you trust and tap ✨ Honour on its page — be the first.
             </div>
           </div>
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+            fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
             color: '#F59E0B', flexShrink: 0,
           }}>
             Discover →
@@ -96,14 +96,14 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
       {/* Section header */}
       <div style={{ marginBottom: '12px' }}>
         <h2 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
           fontSize: '15px', color: '#F0F6FC',
           margin: '0 0 3px',
         }}>
           Places locals honour ✨
         </h2>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
           color: 'rgba(255,255,255,0.35)', margin: 0,
         }}>
           These places hold memory, trust, and meaning
@@ -151,7 +151,7 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
 
               {/* Venue name */}
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '13px', color: '#F0F6FC',
                 marginBottom: '3px', lineHeight: 1.25,
                 overflow: 'hidden', textOverflow: 'ellipsis',
@@ -162,7 +162,7 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
 
               {/* Area */}
               <div style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                fontFamily: 'Inter, sans-serif', fontSize: '11px',
                 color: 'rgba(255,255,255,0.38)', marginBottom: '9px',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
@@ -175,7 +175,7 @@ export default function HonouredPlacesRail({ suburb, city, showTeaser = true }: 
                 background: 'rgba(245,158,11,0.12)',
                 border: '1px solid rgba(245,158,11,0.18)',
                 borderRadius: '20px', padding: '2px 8px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '11px', color: '#F59E0B',
               }}>
                 ✨ {count} {count === 1 ? 'honour' : 'honours'}

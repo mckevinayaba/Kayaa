@@ -32,7 +32,7 @@ function FieldLabel({ children, required }: { children: string; required?: boole
   return (
     <label style={{
       display: 'block',
-      fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+      fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
       color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.07em',
       marginBottom: '7px',
     }}>
@@ -49,7 +49,7 @@ function inputStyle(focused?: boolean): React.CSSProperties {
     border: `1px solid ${focused ? '#39D98A' : 'rgba(255,255,255,0.08)'}`,
     borderRadius: '12px', padding: '13px 14px',
     color: '#fff', fontSize: '15px',
-    fontFamily: 'DM Sans, sans-serif', outline: 'none',
+    fontFamily: 'Inter, sans-serif', outline: 'none',
     transition: 'border-color 0.15s',
   };
 }
@@ -148,10 +148,10 @@ export default function PostSkill() {
         }}>
           <CheckCircle size={36} color="#39D98A" />
         </div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff', margin: 0, textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px', color: '#fff', margin: 0, textAlign: 'center' }}>
           Skill posted!
         </h2>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, textAlign: 'center' }}>
           Your service listing is now live in {suburb}
         </p>
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
@@ -160,7 +160,7 @@ export default function PostSkill() {
             style={{
               padding: '12px 24px', borderRadius: '12px',
               background: '#39D98A', border: 'none',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
               color: '#000', cursor: 'pointer',
             }}
           >
@@ -171,7 +171,7 @@ export default function PostSkill() {
             style={{
               padding: '12px 24px', borderRadius: '12px',
               background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px',
               color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
             }}
           >
@@ -200,7 +200,7 @@ export default function PostSkill() {
         >
           <ArrowLeft size={18} color="#fff" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#fff', margin: 0 }}>
           Post Your Skill
         </h1>
         <button
@@ -210,7 +210,7 @@ export default function PostSkill() {
             padding: '8px 18px', borderRadius: '10px',
             background: canSubmit && !submitting ? '#39D98A' : 'rgba(255,255,255,0.08)',
             border: 'none', cursor: canSubmit && !submitting ? 'pointer' : 'default',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: canSubmit && !submitting ? '#000' : 'rgba(255,255,255,0.25)',
             transition: 'all 0.15s',
           }}
@@ -226,7 +226,7 @@ export default function PostSkill() {
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)',
           borderRadius: '12px', padding: '12px 14px',
         }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#93C5FD', margin: 0, lineHeight: 1.55 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#93C5FD', margin: 0, lineHeight: 1.55 }}>
             💡 Be specific about what you offer, your pricing, and how people can reach you. Listings stay active for 30 days.
           </p>
         </div>
@@ -251,7 +251,7 @@ export default function PostSkill() {
                     background: active ? '#39D98A' : 'var(--color-surface)',
                     color: active ? '#000' : 'rgba(255,255,255,0.6)',
                     fontSize: '12px', fontWeight: active ? 700 : 500,
-                    fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                     transition: 'all 0.12s',
                     flexShrink: 0,
                   }}
@@ -281,7 +281,7 @@ export default function PostSkill() {
             }
             style={inputStyle(focused === 'title')}
           />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'right', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'right', marginTop: '3px', fontFamily: 'Inter, sans-serif' }}>
             {70 - title.length} left
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function PostSkill() {
               resize: 'none',
             }}
           />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'right', marginTop: '3px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'right', marginTop: '3px', fontFamily: 'Inter, sans-serif' }}>
             {450 - description.length} left
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function PostSkill() {
             min="0"
             style={inputStyle(focused === 'price')}
           />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
             Leave blank if rate varies — you can mention it in the description
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function PostSkill() {
             placeholder="e.g., 0821234567"
             style={inputStyle(focused === 'wa')}
           />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
             Clients will contact you directly on WhatsApp
           </div>
         </div>
@@ -390,7 +390,7 @@ export default function PostSkill() {
                 }}
               >
                 <Camera size={20} color="rgba(255,255,255,0.35)" />
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans, sans-serif' }}>
+                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'Inter, sans-serif' }}>
                   {uploading ? '…' : 'Add'}
                 </span>
               </button>
@@ -402,7 +402,7 @@ export default function PostSkill() {
             style={{ display: 'none' }}
             onChange={handleImageAdd}
           />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '6px', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '6px', fontFamily: 'Inter, sans-serif' }}>
             Up to 4 photos — show examples of your work
           </div>
         </div>
@@ -414,7 +414,7 @@ export default function PostSkill() {
           background: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.07)',
         }}>
           <span style={{ fontSize: '14px' }}>📍</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
             Will be posted in <strong style={{ color: '#fff' }}>{suburb}</strong>
           </span>
         </div>
@@ -424,7 +424,7 @@ export default function PostSkill() {
           <div style={{
             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
             borderRadius: '10px', padding: '10px 14px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#FCA5A5',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#FCA5A5',
           }}>
             {error}
           </div>
@@ -439,7 +439,7 @@ export default function PostSkill() {
             background: canSubmit && !submitting ? '#39D98A' : 'rgba(255,255,255,0.07)',
             border: 'none',
             color: canSubmit && !submitting ? '#000' : 'rgba(255,255,255,0.2)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px',
             cursor: canSubmit && !submitting ? 'pointer' : 'default',
             transition: 'all 0.15s',
             boxShadow: canSubmit && !submitting ? '0 4px 20px rgba(57,217,138,0.3)' : 'none',
@@ -448,7 +448,7 @@ export default function PostSkill() {
           {submitting ? 'Posting…' : 'Post Your Skill'}
         </button>
 
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', margin: 0 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', textAlign: 'center', margin: 0 }}>
           By posting you agree to Kayaa's community guidelines
         </p>
       </div>

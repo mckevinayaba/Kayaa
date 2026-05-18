@@ -64,16 +64,16 @@ function SummaryCard({ report }: { report: CommunityReportData }) {
       background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {report.month}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         {items.map(it => (
           <div key={it.label}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px', color: it.accent, lineHeight: 1 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px', color: it.accent, lineHeight: 1 }}>
               {it.value}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
               {it.label}
             </div>
           </div>
@@ -81,16 +81,16 @@ function SummaryCard({ report }: { report: CommunityReportData }) {
       </div>
       <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
         <div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
             {report.busiestDay}
           </span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> busiest day</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> busiest day</span>
         </div>
         <div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
             {report.avgFrequency}×
           </span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> avg frequency</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}> avg frequency</span>
         </div>
       </div>
     </div>
@@ -106,10 +106,10 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
       background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
         Weekly Rhythm
       </div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>
         4-week average check-ins per day
       </div>
 
@@ -120,7 +120,7 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
             const isMax = b.avg === max && max > 0;
             return (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: isMax ? '#39D98A' : 'rgba(255,255,255,0.35)', fontWeight: isMax ? 700 : 400 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: isMax ? '#39D98A' : 'rgba(255,255,255,0.35)', fontWeight: isMax ? 700 : 400 }}>
                   {b.avg > 0 ? b.avg.toFixed(1) : ''}
                 </span>
                 <div style={{
@@ -128,10 +128,10 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
                   background: isMax ? '#39D98A' : 'rgba(57,217,138,0.2)',
                   transition: 'height 0.4s ease',
                 }} />
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: isMax ? '#39D98A' : 'rgba(255,255,255,0.4)', fontWeight: isMax ? 700 : 400 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: isMax ? '#39D98A' : 'rgba(255,255,255,0.4)', fontWeight: isMax ? 700 : 400 }}>
                   {b.day}
                 </span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
                   {b.total > 0 ? b.total : ''}
                 </span>
               </div>
@@ -139,7 +139,7 @@ function WeeklyChart({ bars }: { bars: WeeklyBar[] }) {
           })}
         </div>
       ) : (
-        <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontFamily: 'DM Sans, sans-serif', fontSize: '13px' }}>
+        <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontFamily: 'Inter, sans-serif', fontSize: '13px' }}>
           No check-in data yet
         </div>
       )}
@@ -160,10 +160,10 @@ function HourlyHeatmap({ hours }: { hours: number[] }) {
       background: 'var(--color-surface)', border: '1px solid var(--color-border)',
       borderRadius: '16px', padding: '16px', marginBottom: '16px',
     }}>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '4px' }}>
         Busiest Hours
       </div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '14px' }}>
         Last 30 days — when visitors arrive
       </div>
 
@@ -182,11 +182,11 @@ function HourlyHeatmap({ hours }: { hours: number[] }) {
                 padding: '6px 2px', textAlign: 'center',
               }}
             >
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '9px', color: intensity > 0.5 ? '#0D1117' : 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: intensity > 0.5 ? '#0D1117' : 'rgba(255,255,255,0.4)' }}>
                 {amPm(h)}
               </div>
               {count > 0 && (
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px', color: intensity > 0.5 ? '#0D1117' : 'rgba(255,255,255,0.6)', marginTop: '2px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px', color: intensity > 0.5 ? '#0D1117' : 'rgba(255,255,255,0.6)', marginTop: '2px' }}>
                   {count}
                 </div>
               )}
@@ -209,10 +209,10 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
             Your Regulars
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             {regulars.length} total visitors tracked
           </div>
         </div>
@@ -220,7 +220,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
       </div>
 
       {shown.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
           No visitors yet — share your QR code!
         </div>
       ) : (
@@ -233,7 +233,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
               border: `1px solid ${r.isLapsed ? 'rgba(251,191,36,0.12)' : 'var(--color-border)'}`,
             }}>
               {/* Rank */}
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px', color: 'rgba(255,255,255,0.25)', width: '18px', textAlign: 'right', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: 'rgba(255,255,255,0.25)', width: '18px', textAlign: 'right', flexShrink: 0 }}>
                 {i + 1}
               </span>
               {/* Avatar */}
@@ -242,23 +242,23 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
                 background: `${BADGE_COLOR[r.badgeTier]}20`,
                 border: `1px solid ${BADGE_COLOR[r.badgeTier]}40`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
                 color: BADGE_COLOR[r.badgeTier],
               }}>
                 {r.name[0]?.toUpperCase() ?? '?'}
               </div>
               {/* Name + last visit */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F0F6FC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', color: '#F0F6FC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.name}
                 </div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: r.isLapsed ? '#FBBF24' : 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: r.isLapsed ? '#FBBF24' : 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
                   {r.isLapsed ? '⚠️ 14+ days ago' : `Last: ${fmtDate(r.lastVisit)}`}
                 </div>
               </div>
               {/* Badge + visits */}
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: BADGE_COLOR[r.badgeTier] }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: BADGE_COLOR[r.badgeTier] }}>
                   {r.visitCount}×
                 </div>
                 <div style={{ fontSize: '12px' }} title={r.badgeTier}>{BADGE_EMOJI[r.badgeTier]}</div>
@@ -275,7 +275,7 @@ function RegularsList({ regulars }: { regulars: StudioRegular[] }) {
             marginTop: '12px', width: '100%', padding: '10px',
             background: 'rgba(255,255,255,0.04)', border: '1px solid #30363D',
             borderRadius: '10px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
             color: 'rgba(255,255,255,0.5)',
           }}
         >
@@ -308,7 +308,7 @@ function TrendBadge({ current, previous }: { current: number; previous: number }
       background: up ? 'rgba(57,217,138,0.1)' : 'rgba(248,113,113,0.1)',
       border: `1px solid ${up ? 'rgba(57,217,138,0.25)' : 'rgba(248,113,113,0.25)'}`,
       borderRadius: '20px', padding: '2px 7px',
-      fontFamily: 'DM Sans, sans-serif',
+      fontFamily: 'Inter, sans-serif',
     }}>
       {up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
       {up ? '+' : '-'}{pct}% vs last week
@@ -329,10 +329,10 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC' }}>
             Profile Views
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
             People who opened your place page
           </div>
         </div>
@@ -342,7 +342,7 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
       {total === 0 ? (
         <div style={{
           padding: '16px 0', textAlign: 'center',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.25)',
         }}>
           No view data yet
@@ -350,10 +350,10 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
       ) : (
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '32px', color: '#60A5FA', lineHeight: 1 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '32px', color: '#60A5FA', lineHeight: 1 }}>
               {thisWeek}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
               This week
             </div>
             <div style={{ marginTop: '6px' }}>
@@ -362,10 +362,10 @@ function ViewsCard({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number 
           </div>
           {lastWeek > 0 && (
             <div style={{ paddingBottom: '22px' }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '20px', color: 'rgba(255,255,255,0.3)', lineHeight: 1 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '20px', color: 'rgba(255,255,255,0.3)', lineHeight: 1 }}>
                 {lastWeek}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
                 Last week
               </div>
             </div>
@@ -470,7 +470,7 @@ export default function VenueAnalytics() {
     return (
       <div style={{ padding: '80px 24px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>
           No venue found. Add your place first.
         </p>
       </div>
@@ -495,11 +495,11 @@ export default function VenueAnalytics() {
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0 }}>
             Full Analytics
           </h1>
           {venueName && (
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
               {venueName}
             </div>
           )}
@@ -519,12 +519,12 @@ export default function VenueAnalytics() {
             borderRadius: '14px', padding: '14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: '#39D98A', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '30px', color: '#39D98A', lineHeight: 1 }}>
                 {today}
               </span>
               <span style={{ fontSize: '14px' }}>✅</span>
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Today
             </div>
           </div>
@@ -535,12 +535,12 @@ export default function VenueAnalytics() {
             borderRadius: '14px', padding: '14px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '30px', color: '#60A5FA', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '30px', color: '#60A5FA', lineHeight: 1 }}>
                 {week}
               </span>
               <TrendingUp size={16} color="rgba(96,165,250,0.6)" />
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
               This week
             </div>
             <TrendBadge current={week} previous={prevWeek} />
@@ -569,7 +569,7 @@ export default function VenueAnalytics() {
           display: 'flex', gap: '12px', alignItems: 'flex-start',
         }}>
           <Zap size={18} color="#39D98A" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
             Tip: Place your QR code near the checkout to boost scan rates by up to 3×.
             Visitors who check in 5+ times automatically earn a regular badge.
           </p>

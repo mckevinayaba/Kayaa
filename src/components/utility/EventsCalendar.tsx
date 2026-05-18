@@ -106,12 +106,12 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
     width: '100%', boxSizing: 'border-box' as const,
     background: '#0D1117', border: '1px solid #30363D',
     borderRadius: '8px', padding: '9px 12px',
-    color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', outline: 'none',
+    color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '13px', outline: 'none',
   };
 
   return (
     <div style={{ marginTop: '12px', padding: '14px', background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '12px' }}>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '10px' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '10px' }}>
         Create a community event:
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -127,7 +127,7 @@ function CreateEventForm({ onDone }: { onDone: () => void }) {
           style={{
             padding: '9px', borderRadius: '8px', border: 'none',
             background: title && location && date && time ? '#60A5FA' : 'rgba(255,255,255,0.07)',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: title && location && date && time ? '#000' : 'rgba(255,255,255,0.3)',
             cursor: title && location && date && time ? 'pointer' : 'default',
           }}
@@ -194,11 +194,11 @@ function EventCard({ event }: { event: CommunityEvent }) {
           {emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '2px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', marginBottom: '2px' }}>
             {event.title}
           </div>
           {event.description && (
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.4 }}>
               {event.description.slice(0, 70)}{event.description.length > 70 ? '…' : ''}
             </div>
           )}
@@ -209,13 +209,13 @@ function EventCard({ event }: { event: CommunityEvent }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <Clock size={11} color="rgba(255,255,255,0.35)" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
             {formatEventDate(event.startTime)} · {formatTime(event.startTime)} – {formatTime(event.endTime)}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <MapPin size={11} color="rgba(255,255,255,0.35)" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             {event.location}
           </span>
         </div>
@@ -225,7 +225,7 @@ function EventCard({ event }: { event: CommunityEvent }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Users size={11} color="rgba(255,255,255,0.35)" />
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             {count} {count === 1 ? 'attending' : 'attending'}
           </span>
         </div>
@@ -236,7 +236,7 @@ function EventCard({ event }: { event: CommunityEvent }) {
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '6px 12px', borderRadius: '20px', border: 'none',
             background: going ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.07)',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
             color: going ? '#39D98A' : 'rgba(255,255,255,0.55)',
             cursor: toggling ? 'default' : 'pointer',
           }}
@@ -295,10 +295,10 @@ export function EventsCalendar() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
             Community Events
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
             What's happening near you
           </p>
         </div>
@@ -309,7 +309,7 @@ export function EventsCalendar() {
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 12px', borderRadius: '20px', border: 'none',
               background: showCreate ? 'rgba(96,165,250,0.2)' : 'rgba(96,165,250,0.1)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
               color: '#60A5FA', cursor: 'pointer',
             }}
           >
@@ -337,7 +337,7 @@ export function EventsCalendar() {
               style={{
                 flex: 1, padding: '7px 4px', borderRadius: '8px', border: 'none',
                 background: active ? '#60A5FA' : 'rgba(255,255,255,0.05)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                 color: active ? '#000' : 'rgba(255,255,255,0.5)',
                 cursor: 'pointer',
               }}
@@ -373,10 +373,10 @@ export function EventsCalendar() {
       {!loading && filtered.length === 0 && !showCreate && (
         <div style={{ textAlign: 'center', padding: '24px 16px', background: '#0D1117', borderRadius: '12px' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>📅</div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>
             No events {filter === 'today' ? 'today' : filter === 'week' ? 'this week' : 'yet'}
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginBottom: '12px' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginBottom: '12px' }}>
             Be the first to post something happening near you
           </div>
           <button
@@ -384,7 +384,7 @@ export function EventsCalendar() {
             style={{
               padding: '8px 20px', borderRadius: '20px', border: 'none',
               background: 'rgba(96,165,250,0.15)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
               color: '#60A5FA', cursor: 'pointer',
             }}
           >

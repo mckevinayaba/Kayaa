@@ -114,14 +114,14 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
         }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>{emoji}</div>
           <div style={{ fontSize: '28px', marginBottom: '12px' }}>✅</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', marginBottom: '8px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', marginBottom: '8px' }}>
             Checked in!
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
             You're at {venue.name}
           </p>
           {!navigator.onLine && (
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#F59E0B', marginTop: '8px' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F59E0B', marginTop: '8px' }}>
               📡 Will sync when you're back online
             </p>
           )}
@@ -164,10 +164,10 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}>
           <div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#fff', margin: 0 }}>
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#fff', margin: 0 }}>
               {emoji} Check in at {venue.name}
             </h2>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
               {venue.category}
             </p>
           </div>
@@ -194,7 +194,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
               borderRadius: '10px', padding: '10px 12px', marginBottom: '14px',
             }}>
               <WifiOff size={14} color="#F59E0B" />
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#F59E0B' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F59E0B' }}>
                 You're offline — check-in will sync when you reconnect
               </span>
             </div>
@@ -203,7 +203,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
           {/* Note textarea */}
           <div style={{ marginBottom: '14px' }}>
             <label style={{
-              display: 'block', fontFamily: 'DM Sans, sans-serif',
+              display: 'block', fontFamily: 'Inter, sans-serif',
               fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.55)',
               textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px',
             }}>
@@ -219,12 +219,12 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
                 width: '100%', background: '#0D1117',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
                 padding: '12px', color: '#fff',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontSize: '14px',
                 resize: 'none', outline: 'none', boxSizing: 'border-box',
                 lineHeight: 1.55,
               }}
             />
-            <div style={{ textAlign: 'right', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
+            <div style={{ textAlign: 'right', fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>
               {note.length} / 280
             </div>
           </div>
@@ -232,7 +232,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
           {/* Visibility toggle */}
           <div style={{ marginBottom: '18px' }}>
             <label style={{
-              display: 'block', fontFamily: 'DM Sans, sans-serif',
+              display: 'block', fontFamily: 'Inter, sans-serif',
               fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.55)',
               textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px',
             }}>
@@ -258,10 +258,10 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
                     {icon}
                   </span>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: isPublic === val ? '#39D98A' : 'rgba(255,255,255,0.7)' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: isPublic === val ? '#39D98A' : 'rgba(255,255,255,0.7)' }}>
                       {label}
                     </div>
-                    <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
                       {sub}
                     </div>
                   </div>
@@ -277,7 +277,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
             style={{
               width: '100%', background: loading ? 'rgba(57,217,138,0.5)' : '#39D98A',
               border: 'none', borderRadius: '14px', padding: '16px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
               color: '#000', cursor: loading ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background 0.15s',
@@ -298,7 +298,7 @@ export function CheckInModal({ venue, onClose, onSuccess }: CheckInModalProps) {
             onClick={onClose}
             style={{
               display: 'block', textAlign: 'center',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.35)', textDecoration: 'none',
               padding: '4px 0 8px',
             }}

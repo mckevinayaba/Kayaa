@@ -40,7 +40,7 @@ function PhotoCard({
           position: 'absolute', top: '6px', left: '6px',
           background: '#FBBF24', borderRadius: '6px',
           padding: '2px 7px',
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px', color: '#000',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px', color: '#000',
           display: 'flex', alignItems: 'center', gap: '3px',
         }}>
           <Star size={9} fill="#000" />
@@ -142,7 +142,7 @@ function UploadSlot({ onUpload }: { onUpload: (file: File) => void }) {
         onChange={e => handleFiles(e.target.files)}
       />
       <Upload size={20} color="rgba(57,217,138,0.6)" />
-      <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 1.4, padding: '0 8px' }}>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 1.4, padding: '0 8px' }}>
         Tap to upload
       </span>
     </div>
@@ -300,7 +300,7 @@ export default function VenuePhotos() {
         >
           <ArrowLeft size={20} color="rgba(255,255,255,0.6)" />
         </button>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px', color: '#F0F6FC', margin: 0, flex: 1 }}>
           Manage Photos
         </h1>
         <Camera size={18} color="rgba(167,139,250,0.7)" />
@@ -312,13 +312,13 @@ export default function VenuePhotos() {
         {savedMsg && (
           <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Check size={14} color="#39D98A" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#39D98A' }}>{savedMsg}</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#39D98A' }}>{savedMsg}</span>
           </div>
         )}
         {errorMsg && (
           <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <X size={14} color="#F87171" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171' }}>{errorMsg}</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#F87171' }}>{errorMsg}</span>
           </div>
         )}
 
@@ -326,7 +326,7 @@ export default function VenuePhotos() {
         {uploading && (
           <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid rgba(96,165,250,0.3)', borderTop: '2px solid #60A5FA', animation: 'spin 0.8s linear infinite' }} />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Uploading…</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Uploading…</span>
           </div>
         )}
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -339,7 +339,7 @@ export default function VenuePhotos() {
             `📷 ${photos.length}/12 photos`,
           ].map(tip => (
             <span key={tip} style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)',
+              fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px',
               padding: '4px 10px',
             }}>
@@ -350,7 +350,7 @@ export default function VenuePhotos() {
 
         {/* ── No venue ─────────────────────────────────────────────────── */}
         {!venueId && (
-          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ textAlign: 'center', padding: '60px 16px', fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
             No venue found. <a href="/onboarding" style={{ color: '#39D98A' }}>Add your place first.</a>
           </div>
         )}
@@ -380,10 +380,10 @@ export default function VenuePhotos() {
             borderRadius: '16px',
           }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📷</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
               No photos yet
             </div>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: '0', maxWidth: '260px', margin: '0 auto' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: '0', maxWidth: '260px', margin: '0 auto' }}>
               Venues with photos get 2× more profile views. Upload a cover photo to get started.
             </p>
           </div>
@@ -397,7 +397,7 @@ export default function VenuePhotos() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '13px', borderRadius: '12px', textDecoration: 'none',
               background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.5)',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.5)',
             }}
           >
             View your public venue page →

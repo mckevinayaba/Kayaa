@@ -127,7 +127,7 @@ export default function WelcomePage() {
         </div>
 
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
           color: '#F0F6FC', marginBottom: '10px', lineHeight: 1.2,
         }}>
           Check your inbox
@@ -136,13 +136,13 @@ export default function WelcomePage() {
         <p style={{
           fontSize: '15px', color: 'rgba(255,255,255,0.52)',
           lineHeight: 1.65, marginBottom: '6px',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}>
           We sent a sign-in link to
         </p>
         <p style={{
           fontSize: '15px', fontWeight: 700, color: '#F0F6FC',
-          marginBottom: '28px', fontFamily: 'DM Sans, sans-serif',
+          marginBottom: '28px', fontFamily: 'Inter, sans-serif',
         }}>
           {email}
         </p>
@@ -169,13 +169,13 @@ export default function WelcomePage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
                 fontSize: '11px', fontWeight: 700, color: '#39D98A',
-                fontFamily: 'Syne, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}>
                 {i + 1}
               </div>
               <span style={{
                 fontSize: '14px', color: 'rgba(255,255,255,0.75)',
-                fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5, paddingTop: '2px',
+                fontFamily: 'Inter, sans-serif', lineHeight: 1.5, paddingTop: '2px',
               }}>
                 {text}
               </span>
@@ -185,7 +185,7 @@ export default function WelcomePage() {
             marginTop: '14px', paddingTop: '12px',
             borderTop: '1px solid rgba(255,255,255,0.06)',
             fontSize: '12px', color: 'rgba(255,255,255,0.35)',
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
           }}>
             ⏳ Link expires in 1 hour
           </div>
@@ -202,7 +202,7 @@ export default function WelcomePage() {
               gap: '6px', minHeight: '54px',
               background: '#39D98A', color: '#0D1117',
               borderRadius: '14px', textDecoration: 'none',
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
               boxSizing: 'border-box',
             }}
           >
@@ -218,7 +218,7 @@ export default function WelcomePage() {
               background: 'var(--color-surface)', color: 'rgba(255,255,255,0.75)',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: '14px', textDecoration: 'none',
-              fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: '15px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '15px',
               boxSizing: 'border-box',
             }}
           >
@@ -236,7 +236,7 @@ export default function WelcomePage() {
           style={{
             background: 'transparent', border: 'none',
             color: 'rgba(255,255,255,0.45)', fontSize: '14px',
-            fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', cursor: 'pointer',
           }}
         >
           ← Use a different method
@@ -258,7 +258,7 @@ export default function WelcomePage() {
           to="/about"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontSize: '14px',
             color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
             transition: 'color 0.15s',
           }}
@@ -276,7 +276,7 @@ export default function WelcomePage() {
       }}>
         {/* Wordmark */}
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '40px', color: '#39D98A',
           letterSpacing: '-1px', marginBottom: '36px',
           lineHeight: 1,
@@ -296,7 +296,7 @@ export default function WelcomePage() {
         </div>
 
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '28px', color: '#F0F6FC',
           lineHeight: 1.2, marginBottom: '10px',
         }}>
@@ -304,7 +304,7 @@ export default function WelcomePage() {
         </h1>
         <p style={{
           fontSize: '15px', color: 'rgba(255,255,255,0.52)',
-          lineHeight: 1.6, fontFamily: 'DM Sans, sans-serif',
+          lineHeight: 1.6, fontFamily: 'Inter, sans-serif',
           maxWidth: '300px',
         }}>
           See the places your area runs on.
@@ -324,7 +324,7 @@ export default function WelcomePage() {
               gap: '10px', width: '100%', minHeight: '56px',
               background: '#ffffff', color: '#1a1a1a',
               border: 'none', borderRadius: '14px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '16px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
               cursor: googleLoading ? 'default' : 'pointer',
               opacity: googleLoading ? 0.7 : 1,
               transition: 'opacity 0.15s',
@@ -343,7 +343,7 @@ export default function WelcomePage() {
           {/* "Quickest" label — tells new users which path to pick */}
           {!googleLoading && (
             <p style={{
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               fontSize: '12px', color: 'rgba(57,217,138,0.8)',
               textAlign: 'center', margin: '6px 0 0',
               fontWeight: 600,
@@ -361,7 +361,7 @@ export default function WelcomePage() {
           <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
           <span style={{
             fontSize: '12px', color: 'rgba(255,255,255,0.25)',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+            fontFamily: 'Inter, sans-serif', fontWeight: 500,
           }}>
             or
           </span>
@@ -381,7 +381,7 @@ export default function WelcomePage() {
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '14px',
                 color: 'rgba(255,255,255,0.5)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '15px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '15px',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s',
               }}
@@ -390,7 +390,7 @@ export default function WelcomePage() {
               Continue with email
             </button>
             <p style={{
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               fontSize: '11px', color: 'rgba(255,255,255,0.22)',
               textAlign: 'center', margin: '5px 0 0',
             }}>
@@ -414,7 +414,7 @@ export default function WelcomePage() {
                 border: `1px solid ${error ? '#F87171' : 'rgba(255,255,255,0.15)'}`,
                 borderRadius: '14px', padding: '0 16px',
                 color: '#F0F6FC', fontSize: '16px',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Inter, sans-serif',
                 outline: 'none', boxSizing: 'border-box',
               }}
             />
@@ -422,7 +422,7 @@ export default function WelcomePage() {
             {error && (
               <p style={{
                 fontSize: '13px', color: '#F87171',
-                fontFamily: 'DM Sans, sans-serif', margin: '0 4px',
+                fontFamily: 'Inter, sans-serif', margin: '0 4px',
               }}>
                 {error}
               </p>
@@ -435,7 +435,7 @@ export default function WelcomePage() {
                 width: '100%', minHeight: '54px',
                 background: emailLoading ? 'rgba(57,217,138,0.6)' : '#39D98A',
                 color: '#0D1117', border: 'none', borderRadius: '14px',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
                 cursor: emailLoading ? 'default' : 'pointer',
               }}
             >
@@ -447,7 +447,7 @@ export default function WelcomePage() {
               style={{
                 background: 'transparent', border: 'none',
                 color: 'rgba(255,255,255,0.35)', fontSize: '13px',
-                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                 padding: '6px', alignSelf: 'center',
               }}
             >
@@ -460,7 +460,7 @@ export default function WelcomePage() {
         {error && step === 'welcome' && (
           <p style={{
             fontSize: '13px', color: '#F87171', textAlign: 'center',
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
           }}>
             {error}
           </p>
@@ -474,13 +474,13 @@ export default function WelcomePage() {
       }}>
         <p style={{
           fontSize: '13px', color: 'rgba(255,255,255,0.3)',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}>
           Free to join. No card needed.
         </p>
         <p style={{
           fontSize: '12px', color: 'rgba(255,255,255,0.2)',
-          fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5,
+          fontFamily: 'Inter, sans-serif', lineHeight: 1.5,
         }}>
           By continuing you agree to Kayaa's Terms and Privacy Policy.
         </p>

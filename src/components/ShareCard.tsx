@@ -74,12 +74,12 @@ const BASE: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   overflow: 'hidden',
 };
 
 const WORDMARK: React.CSSProperties = {
-  fontFamily: 'Syne, sans-serif',
+  fontFamily: 'Inter, sans-serif',
   fontWeight: 800,
   fontSize: '13px',
   color: '#39D98A',
@@ -97,7 +97,7 @@ const CORNER_URL: React.CSSProperties = {
   right: '28px',
   fontSize: '11px',
   color: 'rgba(255,255,255,0.35)',
-  fontFamily: 'DM Sans, sans-serif',
+  fontFamily: 'Inter, sans-serif',
 };
 
 function Pill({ label, color, bg }: { label: string; color: string; bg: string }) {
@@ -105,7 +105,7 @@ function Pill({ label, color, bg }: { label: string; color: string; bg: string }
     <span style={{
       fontSize: '11px', fontWeight: 700, color, background: bg,
       padding: '3px 10px', borderRadius: '20px', whiteSpace: 'nowrap',
-      fontFamily: 'DM Sans, sans-serif',
+      fontFamily: 'Inter, sans-serif',
     }}>
       {label}
     </span>
@@ -144,7 +144,7 @@ function PlaceCard({ data }: { data: PlaceCardData }) {
 
       {/* Name */}
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
         color: '#FFFFFF', lineHeight: 1.15, marginBottom: '10px',
         maxWidth: '100%', overflow: 'hidden',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -184,7 +184,7 @@ function EventCard({ data }: { data: EventCardData }) {
       </div>
 
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px',
         color: '#FFFFFF', lineHeight: 1.15, marginBottom: '10px',
         overflow: 'hidden', display: '-webkit-box',
         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -225,7 +225,7 @@ function JobCard({ data }: { data: JobCardData }) {
       </div>
 
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px',
         color: '#FFFFFF', lineHeight: 1.15, marginBottom: '12px',
         overflow: 'hidden', display: '-webkit-box',
         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -258,7 +258,7 @@ function SkillCard({ data }: { data: SkillCardData }) {
       </div>
 
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px',
         color: '#FFFFFF', lineHeight: 1.15, marginBottom: '10px',
         overflow: 'hidden', display: '-webkit-box',
         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -299,7 +299,7 @@ function MilestoneCard({ data }: { data: MilestoneCardData }) {
       </div>
 
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '40px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '40px',
         color: '#FFFFFF', lineHeight: 1, marginBottom: '10px',
       }}>
         Visit {data.visitNumber}
@@ -330,14 +330,14 @@ function RegularCardCard({ data }: { data: RegularCardData }) {
         width: '64px', height: '64px', borderRadius: '50%',
         background: 'rgba(57,217,138,0.15)', border: '2px solid rgba(57,217,138,0.4)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px',
         color: '#39D98A', marginBottom: '14px',
       }}>
         {initial}
       </div>
 
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
         color: '#FFFFFF', lineHeight: 1.2, marginBottom: '4px',
       }}>
         {data.name}'s Regular Card

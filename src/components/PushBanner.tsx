@@ -105,10 +105,10 @@ export default function PushBanner() {
       {done ? (
         /* ── Confirmation ── */
         <div style={{ flex: 1, paddingTop: '2px' }}>
-          <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: 0 }}>
             ✓ {displaySuburb} alerts on
           </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '3px 0 0' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '3px 0 0' }}>
             We'll only ping you for things that matter.
           </p>
         </div>
@@ -116,10 +116,10 @@ export default function PushBanner() {
         /* ── Prompt ── */
         <>
           <div style={{ flex: 1, paddingTop: '2px' }}>
-            <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.35 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.35 }}>
               Get {displaySuburb} alerts
             </p>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '3px 0 10px', lineHeight: 1.45 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '3px 0 10px', lineHeight: 1.45 }}>
               Safety, outages, and important place updates — nothing noisy.
             </p>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -129,7 +129,7 @@ export default function PushBanner() {
                 style={{
                   background: '#39D98A', color: '#0D1117', border: 'none',
                   borderRadius: '8px', padding: '7px 16px',
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                   cursor: loading ? 'default' : 'pointer',
                   opacity: loading ? 0.7 : 1,
                   transition: 'opacity 0.15s',
@@ -144,7 +144,7 @@ export default function PushBanner() {
                   background: 'transparent', color: 'rgba(255,255,255,0.45)',
                   border: '1px solid rgba(255,255,255,0.12)',
                   borderRadius: '8px', padding: '7px 14px',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px',
                   cursor: 'pointer',
                 }}
               >

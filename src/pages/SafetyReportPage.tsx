@@ -115,7 +115,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         background: 'none', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', gap: '6px',
         padding: '4px 0', color: 'rgba(255,255,255,0.5)',
-        fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+        fontFamily: 'Inter, sans-serif', fontSize: '14px',
       }}
     >
       <ArrowLeft size={16} color="rgba(255,255,255,0.5)" />
@@ -128,7 +128,7 @@ function FieldLabel({ children, required }: { children: React.ReactNode; require
   return (
     <label style={{
       display: 'block',
-      fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+      fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
       color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em',
       textTransform: 'uppercase', marginBottom: '8px',
     }}>
@@ -145,7 +145,7 @@ const INPUT_STYLE: React.CSSProperties = {
   borderRadius: '12px',
   padding: '12px 14px',
   color: '#F0F6FC',
-  fontSize: '15px', fontFamily: 'DM Sans, sans-serif',
+  fontSize: '15px', fontFamily: 'Inter, sans-serif',
   outline: 'none',
 };
 
@@ -168,21 +168,21 @@ function TypeScreen({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <Shield size={18} color="#EF4444" />
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
               color: '#EF4444', letterSpacing: '0.06em', textTransform: 'uppercase',
             }}>
               Safety report
             </span>
           </div>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontFamily: 'Inter, sans-serif', fontWeight: 800,
             fontSize: '22px', color: '#F0F6FC', margin: '0 0 6px',
             lineHeight: 1.2,
           }}>
             What happened?
           </h1>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55,
           }}>
             Select the type that best describes the incident.
@@ -223,13 +223,13 @@ function TypeScreen({
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '14px', color: '#F0F6FC', marginBottom: '2px',
               }}>
                 {cfg.label}
               </div>
               <div style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: 'rgba(255,255,255,0.38)', lineHeight: 1.4,
               }}>
                 {cfg.hint}
@@ -355,13 +355,13 @@ function DetailsScreen({
           </div>
           <div>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
               color: cfg.color, letterSpacing: '0.06em', textTransform: 'uppercase',
             }}>
               {cfg.label}
             </div>
             <h1 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800,
+              fontFamily: 'Inter, sans-serif', fontWeight: 800,
               fontSize: '18px', color: '#F0F6FC', margin: 0, lineHeight: 1.2,
             }}>
               Report details
@@ -389,7 +389,7 @@ function DetailsScreen({
             style={INPUT_STYLE}
           />
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.2)', textAlign: 'right', marginTop: '4px',
           }}>
             {title.length}/120
@@ -408,7 +408,7 @@ function DetailsScreen({
             style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: '100px', lineHeight: 1.55 }}
           />
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.2)', textAlign: 'right', marginTop: '4px',
           }}>
             {details.length}/1000
@@ -433,7 +433,7 @@ function DetailsScreen({
             />
           </div>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.25)', margin: '5px 0 0', lineHeight: 1.5,
           }}>
             {suburb
@@ -455,7 +455,7 @@ function DetailsScreen({
                   border: `1px solid ${timeMode === mode ? 'rgba(57,217,138,0.4)' : 'rgba(255,255,255,0.1)'}`,
                   background: timeMode === mode ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.03)',
                   color: timeMode === mode ? '#39D98A' : 'rgba(255,255,255,0.45)',
-                  fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 }}
@@ -524,12 +524,12 @@ function DetailsScreen({
               >
                 <Camera size={20} color="rgba(255,255,255,0.3)" />
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px',
                   color: 'rgba(255,255,255,0.35)',
                 }}>
                   Photo
                 </span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
                   up to 20 MB
                 </span>
               </button>
@@ -556,12 +556,12 @@ function DetailsScreen({
               >
                 <Video size={20} color="rgba(255,255,255,0.3)" />
                 <span style={{
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px',
                   color: 'rgba(255,255,255,0.35)',
                 }}>
                   Video
                 </span>
-                <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)' }}>
                   up to 60 sec
                 </span>
               </button>
@@ -575,13 +575,13 @@ function DetailsScreen({
             style={{ display: 'none' }}
           />
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.25)', margin: '6px 0 0', lineHeight: 1.5,
           }}>
             Add a photo or short clip if it helps explain what happened.
           </p>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.15)', margin: '4px 0 0', lineHeight: 1.5,
           }}>
             Only share media that's relevant and safe to post. Avoid showing victims, minors, or private details.
@@ -597,13 +597,13 @@ function DetailsScreen({
         }}>
           <div style={{ flex: 1 }}>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
               fontSize: '13px', color: '#F0F6FC', marginBottom: '2px',
             }}>
               Post anonymously
             </div>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.35)', lineHeight: 1.5,
             }}>
               Your name won't appear on the report. Your account is still linked internally for safety purposes.
@@ -638,7 +638,7 @@ function DetailsScreen({
             padding: '10px 14px', borderRadius: '10px',
             background: 'rgba(239,68,68,0.08)',
             border: '1px solid rgba(239,68,68,0.25)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: '#FCA5A5', lineHeight: 1.5,
           }}>
             {error}
@@ -664,7 +664,7 @@ function DetailsScreen({
         }}>
           <span style={{ fontSize: '14px', flexShrink: 0 }}>🚨</span>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.3)', margin: 0, lineHeight: 1.5,
           }}>
             In immediate danger? Call{' '}
@@ -683,7 +683,7 @@ function DetailsScreen({
             borderRadius: '14px', border: 'none',
             background: canSubmit && !submitting ? '#EF4444' : 'rgba(239,68,68,0.25)',
             color: canSubmit && !submitting ? '#fff' : 'rgba(255,255,255,0.3)',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
             cursor: canSubmit && !submitting ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             transition: 'background 0.15s, color 0.15s',
@@ -702,7 +702,7 @@ function DetailsScreen({
           )}
         </button>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontSize: '11px',
           color: 'rgba(255,255,255,0.2)', textAlign: 'center',
           margin: '8px 0 0', lineHeight: 1.5,
         }}>
@@ -744,13 +744,13 @@ function SuccessScreen({
         ✅
       </div>
       <h2 style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800,
+        fontFamily: 'Inter, sans-serif', fontWeight: 800,
         fontSize: '20px', color: '#F0F6FC', margin: '0 0 10px', lineHeight: 1.2,
       }}>
         Report submitted
       </h2>
       <p style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+        fontFamily: 'Inter, sans-serif', fontSize: '14px',
         color: 'rgba(255,255,255,0.45)', margin: '0 0 8px', lineHeight: 1.6,
         maxWidth: '280px',
       }}>
@@ -762,7 +762,7 @@ function SuccessScreen({
         <strong style={{ color: '#F0F6FC' }}>{suburb || 'your neighbourhood'}</strong>.
       </p>
       <p style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+        fontFamily: 'Inter, sans-serif', fontSize: '12px',
         color: 'rgba(255,255,255,0.25)', margin: '0 0 32px', lineHeight: 1.5,
         maxWidth: '260px',
       }}>
@@ -778,7 +778,7 @@ function SuccessScreen({
         marginBottom: '24px', textAlign: 'left',
       }}>
         <div style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
           color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em',
           textTransform: 'uppercase', marginBottom: '10px',
         }}>
@@ -796,7 +796,7 @@ function SuccessScreen({
             borderBottom: '1px solid rgba(255,255,255,0.05)',
           }}>
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px',
               color: 'rgba(255,255,255,0.5)',
             }}>
               {label}
@@ -804,7 +804,7 @@ function SuccessScreen({
             <a
               href={`tel:${number}`}
               style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                fontFamily: 'Inter, sans-serif', fontWeight: 800,
                 fontSize: '15px', color: '#39D98A',
                 textDecoration: 'none',
               }}
@@ -821,7 +821,7 @@ function SuccessScreen({
           width: '100%', maxWidth: '320px',
           padding: '13px', borderRadius: '14px', border: 'none',
           background: '#39D98A', color: '#0D1117',
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px',
           cursor: 'pointer',
         }}
       >
@@ -867,13 +867,13 @@ export default function SafetyReportPage() {
       }}>
         <div style={{ fontSize: '36px', marginBottom: '16px' }}>🔒</div>
         <h2 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '18px', color: '#F0F6FC', margin: '0 0 8px',
         }}>
           Sign in to report
         </h2>
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.4)', margin: '0 0 24px', lineHeight: 1.6,
           maxWidth: '260px',
         }}>
@@ -884,7 +884,7 @@ export default function SafetyReportPage() {
           style={{
             padding: '12px 28px', borderRadius: '12px', border: 'none',
             background: '#39D98A', color: '#0D1117',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '14px',
             cursor: 'pointer',
           }}
         >
@@ -955,7 +955,7 @@ export default function SafetyReportPage() {
           padding: '10px 16px',
           background: 'rgba(239,68,68,0.1)',
           borderBottom: '1px solid rgba(239,68,68,0.2)',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: '#FCA5A5', lineHeight: 1.5,
           display: 'flex', alignItems: 'center', gap: '8px',
         }}>

@@ -103,7 +103,7 @@ function HousingCard({ post }: { post: BoardPost }) {
             display: 'flex', alignItems: 'center', gap: '5px',
           }}>
             <span style={{ fontSize: '12px' }}>{filter.emoji}</span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
               {filter.label}
             </span>
           </div>
@@ -119,7 +119,7 @@ function HousingCard({ post }: { post: BoardPost }) {
             borderRadius: '20px', padding: '2px 10px', marginBottom: '8px',
           }}>
             <span style={{ fontSize: '11px' }}>{filter.emoji}</span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
               {filter.label}
             </span>
           </div>
@@ -127,7 +127,7 @@ function HousingCard({ post }: { post: BoardPost }) {
 
         {/* Title */}
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
           fontSize: '15px', color: '#F0F6FC', marginBottom: '4px',
           lineHeight: 1.3,
         }}>
@@ -136,7 +136,7 @@ function HousingCard({ post }: { post: BoardPost }) {
 
         {/* Price */}
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '17px', color, marginBottom: '6px',
         }}>
           {formatPrice(post)}
@@ -145,7 +145,7 @@ function HousingCard({ post }: { post: BoardPost }) {
         {/* Description */}
         {post.description && (
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.52)', lineHeight: 1.5,
             marginBottom: '10px',
             display: '-webkit-box', WebkitLineClamp: 2,
@@ -162,11 +162,11 @@ function HousingCard({ post }: { post: BoardPost }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <MapPin size={11} color="rgba(255,255,255,0.3)" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
               {post.neighbourhood}
             </span>
           </div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
             {timeAgo(post.createdAt)}
           </span>
         </div>
@@ -181,7 +181,7 @@ function HousingCard({ post }: { post: BoardPost }) {
               background: 'rgba(37,211,102,0.1)',
               border: '1px solid rgba(37,211,102,0.25)',
               color: '#25D366',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
               WebkitTapHighlightColor: 'transparent',
@@ -252,27 +252,27 @@ function SeedHousingCard({ listing }: { listing: SeedHousing }) {
           borderRadius: '20px', padding: '2px 10px', marginBottom: '8px',
         }}>
           <span style={{ fontSize: '11px' }}>{filter.emoji}</span>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color }}>
             {filter.label}
           </span>
         </div>
 
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          fontFamily: 'Inter, sans-serif', fontWeight: 700,
           fontSize: '15px', color: '#F0F6FC', marginBottom: '4px', lineHeight: 1.3,
         }}>
           {listing.title}
         </div>
 
         <div style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '17px', color, marginBottom: '6px',
         }}>
           {listing.price}
         </div>
 
         <div style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.52)', lineHeight: 1.5,
           marginBottom: '10px',
         }}>
@@ -282,14 +282,14 @@ function SeedHousingCard({ listing }: { listing: SeedHousing }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <MapPin size={11} color="rgba(255,255,255,0.3)" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
               {listing.neighbourhood}
             </span>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginLeft: '4px' }}>
               {listing.time}
             </span>
           </div>
-          <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.18)' }}>
             local example
           </span>
         </div>
@@ -371,7 +371,7 @@ export default function HousingPage() {
         </button>
         <div>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontFamily: 'Inter, sans-serif', fontWeight: 800,
             fontSize: '20px', color: '#F0F6FC', margin: 0,
           }}>
             Housing &amp; Rooms
@@ -380,7 +380,7 @@ export default function HousingPage() {
             display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px',
           }}>
             <MapPin size={11} color="#34D399" />
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#34D399' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#34D399' }}>
               {areaLabel}{expanded ? ' (area expanded)' : ''}
             </span>
           </div>
@@ -406,7 +406,7 @@ export default function HousingPage() {
                 background: active ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)',
                 border: `1px solid ${active ? '#34D399' : 'rgba(255,255,255,0.08)'}`,
                 cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: active ? 700 : 500,
+                fontFamily: 'Inter, sans-serif', fontWeight: active ? 700 : 500,
                 fontSize: '13px', color: active ? '#34D399' : 'rgba(255,255,255,0.5)',
                 transition: 'all 0.15s',
                 WebkitTapHighlightColor: 'transparent',
@@ -431,7 +431,7 @@ export default function HousingPage() {
           <div>
             {/* Starter listings so the page never looks empty */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Local examples
               </span>
               <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
@@ -448,7 +448,7 @@ export default function HousingPage() {
                 border: '1px dashed rgba(52,211,153,0.25)',
                 borderRadius: '14px', padding: '14px',
                 background: 'transparent', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+                fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
                 color: 'rgba(52,211,153,0.7)',
                 WebkitTapHighlightColor: 'transparent',
               } as React.CSSProperties}
@@ -461,7 +461,7 @@ export default function HousingPage() {
             {filtered.map(post => <HousingCard key={post.id} post={post} />)}
             <div style={{
               textAlign: 'center', padding: '8px 0 16px',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.25)',
             }}>
               {filtered.length} listing{filtered.length === 1 ? '' : 's'} in {areaLabel}

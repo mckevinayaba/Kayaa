@@ -97,7 +97,7 @@ export default function ActivityIndicator({
     if (parts.length === 0) return null;
     return (
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+        fontFamily: 'Inter, sans-serif', fontSize: '11px',
         color: 'rgba(255,255,255,0.4)', fontWeight: 500,
       }}>
         {parts.join('  ·  ')}
@@ -113,7 +113,7 @@ export default function ActivityIndicator({
           display: 'inline-flex', alignItems: 'center', gap: '4px',
           background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)',
           borderRadius: '20px', padding: '3px 10px',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+          fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
           color: '#60A5FA',
         }}>
           👁 {activity.viewing} viewing
@@ -124,7 +124,7 @@ export default function ActivityIndicator({
           display: 'inline-flex', alignItems: 'center', gap: '4px',
           background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
           borderRadius: '20px', padding: '3px 10px',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+          fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
           color: '#39D98A',
         }}>
           📍 {activity.checkedInToday} today
@@ -135,7 +135,7 @@ export default function ActivityIndicator({
           display: 'inline-flex', alignItems: 'center', gap: '4px',
           background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
           borderRadius: '20px', padding: '3px 10px',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600,
+          fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600,
           color: '#F97316',
         }}>
           🔥 Trending

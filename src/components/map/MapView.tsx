@@ -148,10 +148,10 @@ export default function MapView({
             background:var(--color-surface);color:#fff;
             padding:10px 12px;border-radius:10px;
             border:1px solid rgba(255,255,255,0.08);
-            font-family:'DM Sans',sans-serif;
+            font-family:'Inter',sans-serif;
             min-width:140px;
           ">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:3px">
+            <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:13px;margin-bottom:3px">
               ${emoji} ${v.name}
             </div>
             <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">

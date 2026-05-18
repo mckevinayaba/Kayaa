@@ -94,7 +94,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
     <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', margin: 0 }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', margin: 0 }}>
           Recent Activity
         </h2>
         <span style={{
@@ -128,7 +128,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
                 width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
                 background: `${color}18`, border: `1.5px solid ${color}35`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color,
               }}>
                 {initial}
               </div>
@@ -136,10 +136,10 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
               {/* Content */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
                     {displayName}
                   </span>
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
                     checked in
                   </span>
                   <MapPin size={12} color="#39D98A" />
@@ -147,7 +147,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
 
                 {a.note && (
                   <p style={{
-                    fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                    fontFamily: 'Inter, sans-serif', fontSize: '13px',
                     color: 'rgba(255,255,255,0.7)', lineHeight: 1.55,
                     margin: '0 0 6px',
                   }}>
@@ -157,7 +157,7 @@ export function RecentActivity({ venueId, limit = 10 }: RecentActivityProps) {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Clock size={11} color="rgba(255,255,255,0.3)" />
-                  <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
                     {timeAgo(a.createdAt)}
                   </span>
                 </div>

@@ -114,10 +114,10 @@ export default function AppLayout() {
         }}>
           {/* User identity */}
           <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
               {firstName || 'Kayaa member'}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
               {user.email}
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function AppLayout() {
               style={{
                 width: '100%', display: 'flex', alignItems: 'center',
                 padding: '12px 16px', background: 'transparent', border: 'none',
-                fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                fontFamily: 'Inter, sans-serif', fontSize: '14px',
                 color: 'rgba(255,255,255,0.75)', cursor: 'pointer', textAlign: 'left',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
               }}
@@ -150,7 +150,7 @@ export default function AppLayout() {
             onClick={handleSignOut}
             style={{
               width: '100%', padding: '12px 16px', background: 'transparent', border: 'none',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+              fontFamily: 'Inter, sans-serif', fontSize: '14px',
               color: '#F87171', cursor: 'pointer', textAlign: 'left',
             }}
           >
@@ -177,7 +177,7 @@ export default function AppLayout() {
           style={{ textDecoration: 'none', justifySelf: 'start' }}
         >
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '20px', color: '#39D98A', letterSpacing: '-0.5px',
           }}>
             kayaa
@@ -207,7 +207,7 @@ export default function AppLayout() {
           <span style={{
             fontSize: '13px', fontWeight: 700,
             color: displaySuburb ? 'var(--color-text)' : 'var(--color-muted)',
-            fontFamily: 'Syne, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             maxWidth: '120px',
             overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
           }}>
@@ -254,7 +254,7 @@ export default function AppLayout() {
                 />
               ) : (
                 <span style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 800,
                   fontSize: '13px', color: '#39D98A',
                 }}>
                   {initial}
@@ -267,7 +267,7 @@ export default function AppLayout() {
               style={{
                 padding: '6px 14px', borderRadius: '20px',
                 background: '#39D98A', color: '#0D1117',
-                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                 textDecoration: 'none',
               }}
             >
@@ -356,7 +356,7 @@ export default function AppLayout() {
                     <span style={{
                       fontSize: '10px',
                       fontWeight: isActive ? 700 : 400,
-                      fontFamily: 'DM Sans, sans-serif',
+                      fontFamily: 'Inter, sans-serif',
                       letterSpacing: '0.01em',
                       color: isActive ? '#39D98A' : '#444444',
                       transition: 'color 0.15s',

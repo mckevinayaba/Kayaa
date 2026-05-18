@@ -69,7 +69,7 @@ export function VerificationBadge({
       }}>
         <Icon size={iconSize} color={color} strokeWidth={2.5} />
         <span style={{
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontSize: size === 'lg' ? '12px' : '11px',
           fontWeight: 700,
           color,

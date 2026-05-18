@@ -24,7 +24,7 @@ export default function HappeningTonight({ events }: { events: TonightEvent[] })
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
           Happening tonight
         </h2>
         <span style={{ fontSize: '12px', color: 'var(--color-accent)' }}>{events.length} on</span>
@@ -58,7 +58,7 @@ export default function HappeningTonight({ events }: { events: TonightEvent[] })
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
                     color: 'var(--color-text)', marginBottom: '2px',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>

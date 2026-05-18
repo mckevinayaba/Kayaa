@@ -70,7 +70,7 @@ function SkillCard({ post }: { post: BoardPost }) {
           background: 'rgba(167,139,250,0.15)',
           padding: '2px 8px', borderRadius: '20px',
           marginBottom: '8px',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}>
           {cat.emoji} {cat.label}
         </div>
@@ -78,7 +78,7 @@ function SkillCard({ post }: { post: BoardPost }) {
 
       {/* Title */}
       <div style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 700,
+        fontFamily: 'Inter, sans-serif', fontWeight: 700,
         fontSize: '15px', color: '#F0F6FC',
         marginBottom: '4px', lineHeight: 1.3,
       }}>
@@ -88,7 +88,7 @@ function SkillCard({ post }: { post: BoardPost }) {
       {/* Description */}
       {post.description && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(240,246,252,0.6)', lineHeight: 1.55,
           margin: '0 0 12px',
           display: '-webkit-box',
@@ -114,7 +114,7 @@ function SkillCard({ post }: { post: BoardPost }) {
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px',
               color: '#F0F6FC', fontWeight: 600,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
@@ -122,7 +122,7 @@ function SkillCard({ post }: { post: BoardPost }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '1px' }}>
               <MapPin size={10} color="rgba(255,255,255,0.35)" />
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'DM Sans, sans-serif' }}>
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'Inter, sans-serif' }}>
                 {post.neighbourhood}
               </span>
             </div>
@@ -131,7 +131,7 @@ function SkillCard({ post }: { post: BoardPost }) {
 
         {post.price != null && (
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontSize: '15px',
             fontWeight: 800, color: '#39D98A', flexShrink: 0,
           }}>
             R{post.price.toLocaleString()}
@@ -222,10 +222,10 @@ export default function SkillsBrowse() {
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
           <div>
-            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0, lineHeight: 1 }}>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', color: 'var(--color-text)', margin: 0, lineHeight: 1 }}>
               Skills & Services
             </h1>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '3px 0 0' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '3px 0 0' }}>
               {loading ? 'Loading…' : `${visible.length} available near ${suburb || city}`}
             </p>
           </div>
@@ -243,7 +243,7 @@ export default function SkillsBrowse() {
               width: '100%', boxSizing: 'border-box',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               borderRadius: '12px', padding: '10px 14px 10px 36px',
-              color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+              color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif',
               outline: 'none',
             }}
           />
@@ -268,7 +268,7 @@ export default function SkillsBrowse() {
                   background: active ? '#39D98A' : 'var(--color-surface)',
                   color: active ? '#000' : 'var(--color-muted)',
                   fontSize: '12px', fontWeight: 700,
-                  fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -286,10 +286,10 @@ export default function SkillsBrowse() {
         ) : visible.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
               {search ? 'No results found' : 'No skills listed yet'}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '20px' }}>
               {search ? 'Try a different search term' : `Be the first to post your skill in ${suburb || city}`}
             </div>
             {!search && (
@@ -297,7 +297,7 @@ export default function SkillsBrowse() {
                 onClick={() => navigate('/skills/new')}
                 style={{
                   background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px',
-                  padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                  padding: '12px 24px', fontFamily: 'Inter, sans-serif', fontWeight: 700,
                   fontSize: '14px', cursor: 'pointer',
                 }}
               >
@@ -325,7 +325,7 @@ export default function SkillsBrowse() {
             background: '#39D98A',
             border: 'none',
             borderRadius: '14px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontFamily: 'Inter, sans-serif', fontWeight: 800,
             fontSize: '15px', color: '#0D1117',
             cursor: 'pointer',
             boxShadow: '0 6px 24px rgba(57,217,138,0.35)',

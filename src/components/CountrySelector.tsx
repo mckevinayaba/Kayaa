@@ -27,7 +27,7 @@ function NotifyRow({ country }: { country: Country }) {
     return (
       <div style={{
         fontSize: '12px', color: '#39D98A',
-        fontFamily: 'DM Sans, sans-serif',
+        fontFamily: 'Inter, sans-serif',
         padding: '8px 0',
       }}>
         ✓ We'll notify you when {country.name} launches
@@ -51,7 +51,7 @@ function NotifyRow({ country }: { country: Country }) {
               border: `1px solid ${err ? '#EF4444' : 'var(--color-border)'}`,
               borderRadius: '10px', padding: '9px 12px',
               color: 'var(--color-text)', fontSize: '13px',
-              fontFamily: 'DM Sans, sans-serif', outline: 'none',
+              fontFamily: 'Inter, sans-serif', outline: 'none',
             }}
           />
           <button
@@ -62,14 +62,14 @@ function NotifyRow({ country }: { country: Country }) {
               border: 'none', borderRadius: '10px',
               padding: '9px 14px', fontWeight: 700,
               fontSize: '13px', cursor: submitting ? 'default' : 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               opacity: submitting ? 0.6 : 1,
             }}
           >
             {submitting ? '…' : 'Notify me'}
           </button>
         </div>
-        {err && <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', fontFamily: 'DM Sans, sans-serif' }}>{err}</div>}
+        {err && <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{err}</div>}
       </div>
     );
   }
@@ -82,7 +82,7 @@ function NotifyRow({ country }: { country: Country }) {
         border: '1px solid rgba(245,166,35,0.4)',
         borderRadius: '20px', padding: '4px 10px',
         color: '#F5A623', fontSize: '11px', fontWeight: 700,
-        cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+        cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         flexShrink: 0,
       }}
     >
@@ -97,7 +97,7 @@ function CmLanguagePicker({ onDone }: { onDone: () => void }) {
   const { setPreferredLanguage } = useCountry();
   return (
     <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '16px' }}>
-      <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 12px' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 12px' }}>
         What language do you prefer?
       </p>
       <div style={{ display: 'flex', gap: '10px' }}>
@@ -108,7 +108,7 @@ function CmLanguagePicker({ onDone }: { onDone: () => void }) {
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             borderRadius: '12px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '14px', color: 'var(--color-text)',
           }}
         >
@@ -121,7 +121,7 @@ function CmLanguagePicker({ onDone }: { onDone: () => void }) {
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             borderRadius: '12px', cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '14px', color: 'var(--color-text)',
           }}
         >
@@ -187,14 +187,14 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
           <div>
             <h2 style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800,
+              fontFamily: 'Inter, sans-serif', fontWeight: 800,
               fontSize: '20px', color: 'var(--color-text)', margin: 0,
             }}>
               Select your country
             </h2>
             <p style={{
               fontSize: '13px', color: 'var(--color-muted)',
-              margin: '4px 0 0', fontFamily: 'DM Sans, sans-serif',
+              margin: '4px 0 0', fontFamily: 'Inter, sans-serif',
             }}>
               kayaa is available in these countries
             </p>
@@ -238,14 +238,14 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
                   {/* Name + currency */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                      fontFamily: 'Inter, sans-serif', fontWeight: 700,
                       fontSize: '15px', color: 'var(--color-text)',
                     }}>
                       {country.name}
                     </div>
                     <div style={{
                       fontSize: '12px', color: 'var(--color-muted)',
-                      fontFamily: 'DM Sans, sans-serif', marginTop: '1px',
+                      fontFamily: 'Inter, sans-serif', marginTop: '1px',
                     }}>
                       {country.currency_symbol} {country.currency_code}
                     </div>
@@ -288,7 +288,7 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
           borderTop: '1px solid var(--color-border)',
           textAlign: 'center',
           fontSize: '13px', color: 'var(--color-muted)',
-          fontFamily: 'DM Sans, sans-serif', lineHeight: 1.6,
+          fontFamily: 'Inter, sans-serif', lineHeight: 1.6,
         }}>
           More countries coming soon.<br />
           <span style={{ color: '#39D98A', fontWeight: 600 }}>kayaa</span> is building across Africa.
@@ -298,7 +298,7 @@ export default function CountrySelector({ onClose }: { onClose: () => void }) {
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
               color: '#39D98A', fontSize: '12px', fontWeight: 600,
-              fontFamily: 'DM Sans, sans-serif', marginTop: '8px', padding: 0,
+              fontFamily: 'Inter, sans-serif', marginTop: '8px', padding: 0,
             }}
           >
             See where kayaa is expanding →

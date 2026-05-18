@@ -18,7 +18,7 @@ function Field({
     <div style={{ marginBottom: '20px' }}>
       <label style={{
         display: 'block',
-        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
         color: 'rgba(255,255,255,0.5)',
         textTransform: 'uppercase', letterSpacing: '0.06em',
         marginBottom: '8px',
@@ -28,7 +28,7 @@ function Field({
       {children}
       {hint && (
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontSize: '11px',
           color: 'rgba(255,255,255,0.3)', margin: '6px 0 0', lineHeight: 1.5,
         }}>
           {hint}
@@ -59,7 +59,7 @@ export default function VenueEditDetails() {
     width: '100%', boxSizing: 'border-box',
     background: 'var(--color-surface)', border: '1px solid #30363D',
     borderRadius: '10px', padding: '12px 14px',
-    fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+    fontFamily: 'Inter, sans-serif', fontSize: '14px',
     color: '#F0F6FC', outline: 'none',
     lineHeight: 1.5,
   };
@@ -140,7 +140,7 @@ export default function VenueEditDetails() {
   if (!venueId) {
     return (
       <div style={{ padding: '80px 24px', textAlign: 'center' }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
           No venue found. <a href="/onboarding" style={{ color: '#39D98A' }}>Add your place first.</a>
         </p>
       </div>
@@ -166,7 +166,7 @@ export default function VenueEditDetails() {
         </button>
 
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px',
           color: '#F0F6FC', margin: 0,
         }}>
           Edit Details
@@ -179,7 +179,7 @@ export default function VenueEditDetails() {
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '8px 14px', borderRadius: '10px', border: 'none',
             background: saved ? 'rgba(57,217,138,0.2)' : '#39D98A',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
             color: saved ? '#39D98A' : '#000',
             cursor: saving ? 'default' : 'pointer',
             transition: 'all 0.2s',
@@ -207,10 +207,10 @@ export default function VenueEditDetails() {
             🏪
           </div>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
               {venueName}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
               Editing your listing details
             </div>
           </div>
@@ -226,13 +226,13 @@ export default function VenueEditDetails() {
         }}>
           <div style={{ flex: 1 }}>
             <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
               color: isOpen ? '#39D98A' : 'rgba(255,255,255,0.5)',
             }}>
               {isOpen ? 'Open now' : 'Closed'}
             </div>
             <div style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
               color: 'rgba(255,255,255,0.35)', marginTop: '2px',
             }}>
               {isOpen
@@ -269,7 +269,7 @@ export default function VenueEditDetails() {
           </div>
           <div style={{
             display: 'flex', justifyContent: 'flex-end',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: description.length > 240 ? '#FBBF24' : 'rgba(255,255,255,0.2)',
             marginTop: '4px',
           }}>
@@ -316,7 +316,7 @@ export default function VenueEditDetails() {
           <div style={{
             padding: '12px 14px', borderRadius: '10px', marginBottom: '16px',
             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#F87171',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#F87171',
           }}>
             {error}
           </div>
@@ -329,7 +329,7 @@ export default function VenueEditDetails() {
           style={{
             width: '100%', padding: '15px', borderRadius: '12px', border: 'none',
             background: saved ? 'rgba(57,217,138,0.15)' : '#39D98A',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
             color: saved ? '#39D98A' : '#000',
             cursor: saving ? 'default' : 'pointer',
             transition: 'all 0.2s',
@@ -342,7 +342,7 @@ export default function VenueEditDetails() {
         </button>
 
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
           color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: '12px',
         }}>
           Changes appear on your venue page immediately.

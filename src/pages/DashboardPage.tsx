@@ -68,7 +68,7 @@ function Avatar({ initial, color, size = 36 }: { initial: string; color: string;
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       background: `${color}18`, border: `1.5px solid ${color}40`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Syne, sans-serif', fontWeight: 700,
+      fontFamily: 'Inter, sans-serif', fontWeight: 700,
       fontSize: size > 36 ? '16px' : '13px', color,
     }}>
       {initial}
@@ -156,14 +156,14 @@ function PilotChecklist({ venueId, venueCreatedAt, venueDescription, checkinCoun
   if (allDone) return (
     <div style={{ marginBottom: '24px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px', padding: '20px', textAlign: 'center' }}>
       <div style={{ fontSize: '28px', marginBottom: '8px' }}>🎉</div>
-      <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '4px' }}>You're all set!</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '4px' }}>You're all set!</div>
       <div style={{ fontSize: '13px', color: 'var(--color-muted)' }}>Your place is fully launched on Kayaa.</div>
     </div>
   );
 
   return (
     <div style={{ marginBottom: '24px' }}>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
         Getting started ({doneCount}/{items.length})
       </h2>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
@@ -225,7 +225,7 @@ function StatTilesRow({ stats, loading }: { stats: StudioStats | null; loading: 
           borderRadius: '14px', padding: '14px 12px',
         }}>
           <div style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '28px',
             color: t.color, lineHeight: 1, marginBottom: '4px',
           }}>
             {t.value}
@@ -259,7 +259,7 @@ function SlowDayAlert({ todayCount, dailyAvg, onNudge }: {
     }}>
       <span style={{ fontSize: '20px', flexShrink: 0 }}>🌤</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F5A623', marginBottom: '4px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F5A623', marginBottom: '4px' }}>
           It's quiet right now
         </div>
         <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
@@ -313,7 +313,7 @@ function WeeklyRhythmChart({ bars }: { bars: WeeklyBar[] }) {
                   x={x + barW / 2} y={y - 5}
                   textAnchor="middle" fontSize="9"
                   fill={isMax ? '#39D98A' : 'rgba(255,255,255,0.4)'}
-                  fontFamily="DM Sans, sans-serif"
+                  fontFamily="Inter, sans-serif"
                 >
                   {bar.avg}
                 </text>
@@ -322,7 +322,7 @@ function WeeklyRhythmChart({ bars }: { bars: WeeklyBar[] }) {
                 x={x + barW / 2} y={chartH + 15}
                 textAnchor="middle" fontSize="10"
                 fill={isMax ? '#39D98A' : 'rgba(255,255,255,0.4)'}
-                fontFamily="DM Sans, sans-serif"
+                fontFamily="Inter, sans-serif"
                 fontWeight={isMax ? '700' : '400'}
               >
                 {bar.day}
@@ -448,7 +448,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowStorySheet(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: 'var(--color-surface)', borderRadius: '20px 20px 0 0', padding: '20px 16px 40px', maxHeight: '80vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>Post today's story</h2>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>Post today's story</h2>
               <button onClick={() => setShowStorySheet(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><XIcon size={18} color="var(--color-muted)" /></button>
             </div>
 
@@ -459,11 +459,11 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
                 <input ref={videoInputRef} type="file" accept="video/*" capture="environment" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleStoryMediaSelect(f, 'video'); }} />
                 <button onClick={() => photoInputRef.current?.click()} style={{ flex: 1, padding: '20px 8px', borderRadius: '14px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   <Camera size={24} color="#39D98A" />
-                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Photo</span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Photo</span>
                 </button>
                 <button onClick={() => videoInputRef.current?.click()} style={{ flex: 1, padding: '20px 8px', borderRadius: '14px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   <Video size={24} color="#60A5FA" />
-                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Short Video</span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Short Video</span>
                 </button>
               </div>
             ) : (
@@ -491,7 +491,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
                   value={storyCaption}
                   onChange={e => setStoryCaption(e.target.value.slice(0, 80))}
                   placeholder="What's happening today? (optional — 80 chars max)"
-                  style={{ width: '100%', minHeight: '72px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', minHeight: '72px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
@@ -500,7 +500,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
               {/* Quick captions */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
                 {['Fresh in today 💈', 'Busy right now — short wait', 'Closed today, back tomorrow', 'Special price until 6pm'].map(q => (
-                  <button key={q} onClick={() => setStoryCaption(q.slice(0, 80))} style={{ fontSize: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '4px 10px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                  <button key={q} onClick={() => setStoryCaption(q.slice(0, 80))} style={{ fontSize: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '4px 10px', color: 'var(--color-muted)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
                     {q}
                   </button>
                 ))}
@@ -512,7 +512,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
             <button
               onClick={handlePostStory}
               disabled={!storyMediaUrl || storyPosting || storyUploading}
-              style={{ width: '100%', minHeight: '52px', background: !storyMediaUrl || storyPosting ? 'rgba(57,217,138,0.4)' : '#39D98A', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: !storyMediaUrl ? 'default' : 'pointer' }}
+              style={{ width: '100%', minHeight: '52px', background: !storyMediaUrl || storyPosting ? 'rgba(57,217,138,0.4)' : '#39D98A', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: !storyMediaUrl ? 'default' : 'pointer' }}
             >
               {storyPosting ? 'Posting…' : 'Post Story — live for 24 hours'}
             </button>
@@ -531,19 +531,19 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
         <div style={{ marginBottom: '20px', background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '22px' }}>📸</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e', marginBottom: '2px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#22c55e', marginBottom: '2px' }}>
               Story active — {hoursLeft(activeStory.expiresAt)}h remaining
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{storyViews} view{storyViews !== 1 ? 's' : ''}</div>
           </div>
-          <button onClick={handleDeleteStory} style={{ background: 'none', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', padding: '6px 10px', color: '#F87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', flexShrink: 0 }}>
+          <button onClick={handleDeleteStory} style={{ background: 'none', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', padding: '6px 10px', color: '#F87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>
             Delete
           </button>
         </div>
       ) : (
         <button
           onClick={() => setShowStorySheet(true)}
-          style={{ width: '100%', marginBottom: '20px', padding: '16px', background: 'transparent', border: '1.5px solid rgba(57,217,138,0.35)', borderRadius: '14px', color: '#39D98A', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          style={{ width: '100%', marginBottom: '20px', padding: '16px', background: 'transparent', border: '1.5px solid rgba(57,217,138,0.35)', borderRadius: '14px', color: '#39D98A', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
           <Camera size={16} />
           📸 Post what's happening today
@@ -558,7 +558,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
       {/* Weekly rhythm */}
       {weeklyBars.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
             Weekly rhythm
           </h2>
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px 12px 8px' }}>
@@ -573,7 +573,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
       {/* Heading your way */}
       {headingList.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
             Heading your way 🚶
           </h2>
           <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(245,166,35,0.25)', borderRadius: '14px', overflow: 'hidden' }}>
@@ -598,7 +598,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
 
       {/* Who came in today */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
           Who came in today
         </h2>
         {todayCheckIns.length === 0 ? (
@@ -634,17 +634,17 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
 
       {/* Quick actions */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>
           Quick actions
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Link to={`/venue/${venueSlug}`} style={{ textDecoration: 'none', flex: 1 }}>
-            <button style={{ width: '100%', padding: '12px 8px', borderRadius: '12px', background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', color: 'var(--color-accent)', fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', minHeight: '48px' }}>
+            <button style={{ width: '100%', padding: '12px 8px', borderRadius: '12px', background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.25)', color: 'var(--color-accent)', fontSize: '13px', fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer', minHeight: '48px' }}>
               View page
             </button>
           </Link>
           <Link to={`/venue/${venueSlug}/checkin`} style={{ textDecoration: 'none', flex: 1 }}>
-            <button style={{ width: '100%', padding: '12px 8px', borderRadius: '12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)', fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', minHeight: '48px' }}>
+            <button style={{ width: '100%', padding: '12px 8px', borderRadius: '12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)', fontSize: '13px', fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer', minHeight: '48px' }}>
               Test check-in
             </button>
           </Link>
@@ -653,19 +653,19 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
 
       {/* Post box */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>Post an update</h2>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '12px', color: 'var(--color-text)' }}>Post an update</h2>
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px' }}>
           <textarea
             value={postText} onChange={e => setPostText(e.target.value)}
             placeholder="What's happening today at your place..." maxLength={200}
-            style={{ width: '100%', minHeight: '80px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box' }}
+            style={{ width: '100%', minHeight: '80px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box' }}
           />
           {/* Audience selector */}
           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginBottom: '6px', fontFamily: 'DM Sans, sans-serif' }}>Who can see this post?</div>
+            <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>Who can see this post?</div>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
               {(['public', 'regulars_only'] as const).map(a => (
-                <button key={a} onClick={() => setPostAudience(a)} style={{ flex: 1, padding: '7px 4px', borderRadius: '10px', background: postAudience === a ? 'var(--color-accent)' : 'var(--color-bg)', border: postAudience === a ? 'none' : '1px solid var(--color-border)', color: postAudience === a ? '#000' : 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+                <button key={a} onClick={() => setPostAudience(a)} style={{ flex: 1, padding: '7px 4px', borderRadius: '10px', background: postAudience === a ? 'var(--color-accent)' : 'var(--color-bg)', border: postAudience === a ? 'none' : '1px solid var(--color-border)', color: postAudience === a ? '#000' : 'var(--color-muted)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
                   {a === 'public' ? '🌍 Everyone' : '🔒 Regulars only'}
                 </button>
               ))}
@@ -679,7 +679,7 @@ function HomeTab({ checkIns, venueId, venueSlug, venueCreatedAt, venueDescriptio
           {postError && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{postError}</p>}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
             <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{postText.length}/200</span>
-            <button onClick={handlePost} disabled={posting} style={{ background: posted ? 'rgba(57,217,138,0.2)' : 'var(--color-accent)', color: posted ? 'var(--color-accent)' : '#000', border: 'none', borderRadius: '10px', padding: '8px 20px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: posting ? 'default' : 'pointer', transition: 'all 0.2s' }}>
+            <button onClick={handlePost} disabled={posting} style={{ background: posted ? 'rgba(57,217,138,0.2)' : 'var(--color-accent)', color: posted ? 'var(--color-accent)' : '#000', border: 'none', borderRadius: '10px', padding: '8px 20px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', cursor: posting ? 'default' : 'pointer', transition: 'all 0.2s' }}>
               {posted ? 'Posted ✓' : posting ? 'Posting…' : 'Post'}
             </button>
           </div>
@@ -730,7 +730,7 @@ function StudioRegularsTab({ regulars, loading, venueName, lapsedCount }: {
         <div style={{ background: 'rgba(245,166,35,0.07)', border: '1px solid rgba(245,166,35,0.2)', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
           <span style={{ fontSize: '18px' }}>⏰</span>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F5A623', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F5A623', marginBottom: '4px' }}>
               {lapsedCount} regular{lapsedCount !== 1 ? 's' : ''} haven't visited in 14+ days
             </div>
             <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>
@@ -748,7 +748,7 @@ function StudioRegularsTab({ regulars, loading, venueName, lapsedCount }: {
             background: filter === f.key ? 'var(--color-accent)' : 'var(--color-surface)',
             border: `1px solid ${filter === f.key ? 'var(--color-accent)' : 'var(--color-border)'}`,
             color: filter === f.key ? '#000' : 'var(--color-muted)',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '12px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
             cursor: 'pointer', whiteSpace: 'nowrap',
           }}>
             {f.label}
@@ -762,7 +762,7 @@ function StudioRegularsTab({ regulars, loading, venueName, lapsedCount }: {
         <input
           type="text" value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Search regulars..."
-          style={{ width: '100%', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '11px 12px 11px 34px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+          style={{ width: '100%', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '11px 12px 11px 34px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
         />
       </div>
 
@@ -844,12 +844,12 @@ function EventsTab({ events, venueId, onEventAdded }: {
     onEventAdded({ id: `tmp-${Date.now()}`, venueId, title: title.trim(), description: '', startsAt: datetime, isFree: priceNum === 0, price: priceNum > 0 ? priceNum : undefined, createdAt: new Date().toISOString() });
   }
 
-  const inputSt: React.CSSProperties = { width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '10px 12px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', outline: 'none', boxSizing: 'border-box', minHeight: '44px' };
+  const inputSt: React.CSSProperties = { width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '10px 12px', color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', minHeight: '44px' };
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px' }}>Upcoming events</h2>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px' }}>Upcoming events</h2>
         {events.length > 0 && <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)', background: 'rgba(57,217,138,0.1)', padding: '2px 8px', borderRadius: '20px' }}>{events.length} on</span>}
       </div>
       {events.length === 0 && !showForm && (
@@ -864,10 +864,10 @@ function EventsTab({ events, venueId, onEventAdded }: {
             <div key={event.id} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <div style={{ flexShrink: 0, width: '48px', background: 'var(--color-surface2)', borderRadius: '10px', padding: '6px 4px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase' }}>{new Date(event.startsAt).toLocaleDateString('en-ZA', { month: 'short' })}</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', lineHeight: 1 }}>{new Date(event.startsAt).getDate()}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', lineHeight: 1 }}>{new Date(event.startsAt).getDate()}</div>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>{event.title}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>{event.title}</div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{new Date(event.startsAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}</span>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: event.isFree ? '#39D98A' : '#F5A623' }}>{event.isFree ? 'Free' : `R${event.price}`}</span>
@@ -893,14 +893,14 @@ function EventsTab({ events, venueId, onEventAdded }: {
             <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price in ZAR (leave blank for free)" style={inputSt} />
             {formError && <p style={{ fontSize: '12px', color: '#F87171' }}>{formError}</p>}
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => { setShowForm(false); setFormError(''); }} style={{ flex: 1, minHeight: '44px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAdd} disabled={saving} style={{ flex: 2, minHeight: '44px', background: saving ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)', border: 'none', borderRadius: '10px', color: '#000', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', cursor: saving ? 'default' : 'pointer' }}>{saving ? 'Saving…' : 'Save event'}</button>
+              <button onClick={() => { setShowForm(false); setFormError(''); }} style={{ flex: 1, minHeight: '44px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleAdd} disabled={saving} style={{ flex: 2, minHeight: '44px', background: saving ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)', border: 'none', borderRadius: '10px', color: '#000', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', cursor: saving ? 'default' : 'pointer' }}>{saving ? 'Saving…' : 'Save event'}</button>
             </div>
           </div>
         </div>
       )}
       {!showForm && (
-        <button onClick={() => setShowForm(true)} style={{ width: '100%', minHeight: '52px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-accent)', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+        <button onClick={() => setShowForm(true)} style={{ width: '100%', minHeight: '52px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
           <Plus size={16} /> Add event
         </button>
       )}
@@ -941,14 +941,14 @@ function SetupTab({ venue }: { venue: Venue }) {
       <head>
         <title>Kayaa Check-In Card — ${venue.name}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans&display=swap');
-          body { margin: 0; background: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'DM Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+          body { margin: 0; background: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Inter', sans-serif; }
           .card { width: 148mm; min-height: 105mm; border: 2px solid #39D98A; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
-          h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin: 0; color: #0D1117; }
+          h1 { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 22px; margin: 0; color: #0D1117; }
           p { font-size: 13px; color: #555; margin: 0; line-height: 1.5; }
           img { width: 200px; height: 200px; }
           .url { font-size: 11px; color: #888; margin-top: 4px; }
-          .badge { background: #39D98A; color: #000; font-weight: 700; font-size: 12px; padding: 4px 14px; border-radius: 20px; font-family: 'Syne', sans-serif; }
+          .badge { background: #39D98A; color: #000; font-weight: 700; font-size: 12px; padding: 4px 14px; border-radius: 20px; font-family: 'Inter', sans-serif; }
           @media print { body { margin: 0; } }
         </style>
       </head>
@@ -970,7 +970,7 @@ function SetupTab({ venue }: { venue: Venue }) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--color-text)' }}>Your check-in QR code</h2>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--color-text)' }}>Your check-in QR code</h2>
       <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
         Print this and place it at your counter. Customers scan to check in instantly — no app needed.
       </p>
@@ -980,7 +980,7 @@ function SetupTab({ venue }: { venue: Venue }) {
           <QRCodeCanvas value={qrUrl} size={240} level="M" marginSize={0} />
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '4px' }}>{venue.name}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '4px' }}>{venue.name}</div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/checkin/{venue.id.slice(0, 8)}…</div>
         </div>
       </div>
@@ -989,14 +989,14 @@ function SetupTab({ venue }: { venue: Venue }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <button
           onClick={downloadQR}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-accent)', border: 'none', borderRadius: '14px', color: '#000', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-accent)', border: 'none', borderRadius: '14px', color: '#000', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
         >
           <Download size={16} />
           Download QR as PNG
         </button>
         <button
           onClick={printCard}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-text)', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
         >
           <Printer size={16} />
           Print Check-In Card
@@ -1004,7 +1004,7 @@ function SetupTab({ venue }: { venue: Venue }) {
       </div>
 
       <div style={{ marginTop: '24px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', marginBottom: '10px', color: 'var(--color-text)' }}>Placement tips</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', marginBottom: '10px', color: 'var(--color-text)' }}>Placement tips</div>
         {[
           'Stick it at eye level at the counter or entrance',
           "Print at least A5 size so it's easy to scan",
@@ -1055,7 +1055,7 @@ function ReportTab({ venue, reportData, loading }: {
     <div>
       <style>{`@media print { .no-print { display: none !important; } .print-card { background: #fff !important; color: #000 !important; border: 1px solid #ddd !important; } .print-stat { border: 1px solid #ddd !important; } }`}</style>
 
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--color-text)' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--color-text)' }}>
         Community Proof Report
       </h2>
       <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '20px', lineHeight: 1.5 }}>
@@ -1070,7 +1070,7 @@ function ReportTab({ venue, reportData, loading }: {
           <div className="print-card" style={{ background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)' }}>{venue.name}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: 'var(--color-text)' }}>{venue.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{reportData?.month ?? '—'} · Community report</div>
               </div>
             </div>
@@ -1078,7 +1078,7 @@ function ReportTab({ venue, reportData, loading }: {
               {stats.map((s, i) => (
                 <div key={i} className="print-stat" style={{ background: 'var(--color-bg)', borderRadius: '12px', padding: '12px' }}>
                   <div style={{ fontSize: '20px', marginBottom: '4px' }}>{s.icon}</div>
-                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px', color: s.color, lineHeight: 1, marginBottom: '4px' }}>{s.value}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px', color: s.color, lineHeight: 1, marginBottom: '4px' }}>{s.value}</div>
                   <div style={{ fontSize: '11px', color: 'var(--color-muted)', lineHeight: 1.3 }}>{s.label}</div>
                 </div>
               ))}
@@ -1095,14 +1095,14 @@ function ReportTab({ venue, reportData, loading }: {
             <a
               href={`https://wa.me/?text=${shareText}`}
               target="_blank" rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: '#25D366', border: 'none', borderRadius: '14px', color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: '#25D366', border: 'none', borderRadius: '14px', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' }}
             >
               <Share2 size={16} />
               Share via WhatsApp
             </a>
             <button
               onClick={printReport}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-text)', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
             >
               <Printer size={16} />
               Download as PDF
@@ -1137,7 +1137,7 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
   return (
     <div>
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '8px' }}>{venue.name}</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '8px' }}>{venue.name}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
           <MapPin size={12} color="var(--color-muted)" />
           <span style={{ fontSize: '13px', color: 'var(--color-muted)' }}>{venue.address ? `${venue.address} · ` : ''}{venue.neighborhood}, {venue.city}</span>
@@ -1147,11 +1147,11 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
 
       {/* Plan tiers */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '10px' }}>Your plan</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', marginBottom: '10px' }}>Your plan</div>
         <div style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '2px' }}>Kayaa Free</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-accent)', marginBottom: '2px' }}>Kayaa Free</div>
               <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Free forever</div>
             </div>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.12)', padding: '4px 10px', borderRadius: '20px' }}>Active</span>
@@ -1166,7 +1166,7 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
             <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '2px' }}>Kayaa Pro</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '2px' }}>Kayaa Pro</div>
               <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>R99–199/mo · Coming soon</div>
             </div>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#F5A623', background: 'rgba(245,166,35,0.12)', padding: '4px 10px', borderRadius: '20px' }}>Soon</span>
@@ -1178,8 +1178,8 @@ function SettingsTab({ venue, venueId }: { venue: Venue; venueId: string }) {
             </div>
           ))}
           <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-            <input type="text" value={notifyContact} onChange={e => setNotifyContact(e.target.value)} placeholder="Phone or email" style={{ flex: 1, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)', fontSize: '13px', fontFamily: 'DM Sans, sans-serif', outline: 'none' }} />
-            <button onClick={saveNotify} style={{ background: notifySaved ? 'rgba(245,166,35,0.2)' : 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: '8px', padding: '8px 14px', color: '#F5A623', fontSize: '12px', fontWeight: 700, fontFamily: 'Syne, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <input type="text" value={notifyContact} onChange={e => setNotifyContact(e.target.value)} placeholder="Phone or email" style={{ flex: 1, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '8px 10px', color: 'var(--color-text)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' }} />
+            <button onClick={saveNotify} style={{ background: notifySaved ? 'rgba(245,166,35,0.2)' : 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: '8px', padding: '8px 14px', color: '#F5A623', fontSize: '12px', fontWeight: 700, fontFamily: 'Inter, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {notifySaved ? 'Saved ✓' : 'Notify me'}
             </button>
           </div>
@@ -1216,7 +1216,7 @@ function CheckInHistorySection() {
   if (history.length === 0) return (
     <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '24px 16px', textAlign: 'center', marginBottom: '16px' }}>
       <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏪</div>
-      <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px', fontFamily: 'Syne, sans-serif' }}>No check-ins yet</p>
+      <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px', fontFamily: 'Inter, sans-serif' }}>No check-ins yet</p>
       <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.5 }}>Find a place nearby and tap <strong>Check In</strong>.</p>
     </div>
   );
@@ -1233,7 +1233,7 @@ function CheckInHistorySection() {
               <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '22px', flexShrink: 0 }}>{catEmoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{item.venueName}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{item.venueName}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '11px', fontWeight: 700, color: '#39D98A', background: 'rgba(57,217,138,0.1)', padding: '1px 7px', borderRadius: '20px' }}>{HIST_BADGE_ICON[item.badgeTier]} {item.badgeTier}</span>
                     <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{item.visitCount} visit{item.visitCount !== 1 ? 's' : ''}</span>
@@ -1377,16 +1377,16 @@ export default function DashboardPage() {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '16px' }}>
       <style>{`@keyframes dbSpin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid rgba(57,217,138,0.2)', borderTopColor: '#39D98A', animation: 'dbSpin 0.8s linear infinite' }} />
-      <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif' }}>Loading your dashboard…</span>
+      <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif' }}>Loading your dashboard…</span>
     </div>
   );
 
   if (loadError) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', padding: '32px', textAlign: 'center' }}>
       <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
-      <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', marginBottom: '8px' }}>Something went wrong</h2>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', marginBottom: '8px' }}>Something went wrong</h2>
       <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>Could not load your dashboard. Check your connection and try again.</p>
-      <button onClick={() => window.location.reload()} style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '12px', padding: '12px 28px', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>Retry</button>
+      <button onClick={() => window.location.reload()} style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '12px', padding: '12px 28px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>Retry</button>
     </div>
   );
 
@@ -1408,7 +1408,7 @@ export default function DashboardPage() {
         <div style={{ marginBottom: '16px' }}>
           <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '4px' }}>{getGreeting()}, {firstName} 👋</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '20px', lineHeight: 1.2 }}>{venue.name}</h1>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '20px', lineHeight: 1.2 }}>{venue.name}</h1>
             <div className="live-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#39D98A', flexShrink: 0 }} />
           </div>
           <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>{getTodayLabel()}</p>
@@ -1431,7 +1431,7 @@ export default function DashboardPage() {
             background: 'transparent', border: 'none',
             borderBottom: tab === t.key ? '2px solid var(--color-accent)' : '2px solid transparent',
             color: tab === t.key ? 'var(--color-accent)' : 'var(--color-muted)',
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
             cursor: 'pointer', transition: 'color 0.15s, border-color 0.15s',
             whiteSpace: 'nowrap',
           }}>
@@ -1466,7 +1466,7 @@ export default function DashboardPage() {
 
       {/* Personal check-in history — always visible at bottom */}
       <div style={{ padding: '0 16px 120px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>Your Check-In History</h2>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '12px' }}>Your Check-In History</h2>
         <CheckInHistorySection />
       </div>
     </>

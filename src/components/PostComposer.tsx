@@ -98,7 +98,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '17px', color: '#F0F6FC', margin: 0 }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '17px', color: '#F0F6FC', margin: 0 }}>
             Share with your neighbourhood
           </h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
@@ -109,7 +109,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
         {/* Alert warning */}
         {isAlert && (
           <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px' }}>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#FCA5A5', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#FCA5A5', margin: 0, lineHeight: 1.5 }}>
               🚨 Alerts are for urgent neighbourhood safety or emergency information only.
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
                   border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
                   background: active ? `${c.color}25` : 'transparent',
                   color: active ? c.color : 'rgba(255,255,255,0.55)',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -142,8 +142,8 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
 
         {/* Neighbourhood chip */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-          <span style={{ fontSize: '11px', fontFamily: 'DM Sans, sans-serif', color: 'rgba(255,255,255,0.45)' }}>Posting to:</span>
-          <span style={{ fontSize: '12px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '20px', padding: '3px 10px' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'Inter, sans-serif', color: 'rgba(255,255,255,0.45)' }}>Posting to:</span>
+          <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '20px', padding: '3px 10px' }}>
             📍 {neighbourhood || 'Your area'}
           </span>
         </div>
@@ -159,14 +159,14 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
               width: '100%', boxSizing: 'border-box',
               background: '#0D1117', border: `1px solid ${content.length > 0 ? accentBorder + '60' : 'var(--color-border)'}`,
               borderRadius: '12px', padding: '14px', paddingBottom: '30px',
-              color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '15px',
+              color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '15px',
               lineHeight: 1.6, outline: 'none', resize: 'vertical',
               transition: 'border-color 0.2s',
             }}
           />
           <span style={{
             position: 'absolute', bottom: '10px', right: '12px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: content.length >= MAX_CHARS ? '#EF4444' : 'rgba(255,255,255,0.3)',
           }}>
             {content.length}/{MAX_CHARS}
@@ -192,7 +192,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
               display: 'flex', alignItems: 'center', gap: '8px',
               background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)',
               borderRadius: '10px', padding: '10px 16px', marginBottom: '16px',
-              color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans, sans-serif',
+              color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif',
               fontSize: '13px', cursor: uploading ? 'wait' : 'pointer', width: '100%',
             }}
           >
@@ -204,7 +204,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
 
         {/* Error */}
         {error && (
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#FCA5A5', margin: '0 0 12px' }}>{error}</p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#FCA5A5', margin: '0 0 12px' }}>{error}</p>
         )}
 
         {/* Submit */}
@@ -214,7 +214,7 @@ export default function PostComposer({ neighbourhood, onClose, onPosted }: Props
           style={{
             width: '100%', background: submitting || !content.trim() ? 'rgba(57,217,138,0.4)' : '#39D98A',
             color: '#0D1117', border: 'none', borderRadius: '12px',
-            padding: '15px', fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            padding: '15px', fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '15px', cursor: submitting || !content.trim() ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
           }}

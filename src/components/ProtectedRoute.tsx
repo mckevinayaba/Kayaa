@@ -29,7 +29,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           borderTopColor: '#39D98A',
           animation: 'prSpin 0.8s linear infinite',
         }} />
-        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif' }}>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif' }}>
           Checking session…
         </span>
       </div>

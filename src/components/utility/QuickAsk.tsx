@@ -73,10 +73,10 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
           padding: '20px 0', gap: '10px',
         }}>
           <CheckCircle size={36} color="#39D98A" />
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC' }}>
             Question posted!
           </div>
-          <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 1.5 }}>
             Your neighbours can now see and answer it on the Board.
           </div>
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
@@ -84,7 +84,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
               onClick={() => setPostedId(null)}
               style={{
                 padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)',
-                background: 'transparent', fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+                background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: '12px',
                 color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
               }}
             >
@@ -96,7 +96,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '8px 16px', borderRadius: '20px', border: 'none',
                 background: 'rgba(57,217,138,0.15)',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                 color: '#39D98A', textDecoration: 'none',
               }}
             >
@@ -117,10 +117,10 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: '0 0 2px' }}>
             Quick Ask
           </h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
             Ask your neighbours anything
           </p>
         </div>
@@ -144,7 +144,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 11px', borderRadius: '20px',
               background: '#0D1117', border: '1px solid #30363D',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
               color: 'rgba(255,255,255,0.65)', cursor: saving ? 'default' : 'pointer',
               whiteSpace: 'nowrap',
             }}
@@ -173,7 +173,7 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
             width: '100%', boxSizing: 'border-box',
             background: '#0D1117', border: '1px solid #30363D',
             borderRadius: '10px', padding: '11px 44px 11px 34px',
-            color: '#F0F6FC', fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+            color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px',
             outline: 'none',
           }}
         />
@@ -193,13 +193,13 @@ export function QuickAsk({ neighbourhood = 'Randburg' }: QuickAskProps) {
       </div>
 
       {saving && (
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '8px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '8px' }}>
           Posting to the Board…
         </div>
       )}
 
       {/* Footer hint */}
-      <div style={{ marginTop: '10px', fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
+      <div style={{ marginTop: '10px', fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
         Posts anonymously · lives on the Board for 7 days
       </div>
     </div>

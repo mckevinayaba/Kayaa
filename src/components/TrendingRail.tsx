@@ -22,7 +22,7 @@ export default function TrendingRail({ venues }: { venues: TrendingVenue[] }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
           Trending this week
         </h2>
         <span style={{ fontSize: '12px', color: 'var(--color-accent)' }}>🔥 live</span>
@@ -114,7 +114,7 @@ export default function TrendingRail({ venues }: { venues: TrendingVenue[] }) {
                 )}
 
                 <div style={{
-                  fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700,
                   fontSize: hasCover ? '12px' : '13px',
                   color: hasCover ? '#fff' : 'var(--color-text)',
                   marginBottom: '4px',

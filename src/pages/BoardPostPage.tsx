@@ -156,15 +156,15 @@ export default function BoardPostPage() {
     return (
       <div style={{ padding: '16px', textAlign: 'center', paddingTop: '80px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
         <div style={{ fontSize: '36px', marginBottom: '12px' }}>📋</div>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', marginBottom: '6px' }}>
           Post not found
         </div>
-        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', marginBottom: '20px' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', marginBottom: '20px' }}>
           This post may have been removed or expired.
         </div>
         <button
           onClick={() => navigate('/board')}
-          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '20px', padding: '11px 24px', fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px' }}
+          style={{ background: '#39D98A', color: '#000', border: 'none', borderRadius: '20px', padding: '11px 24px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '13px' }}
         >
           Back to Board
         </button>
@@ -180,7 +180,7 @@ export default function BoardPostPage() {
       {isFreshSafety && (
         <div style={{ background: '#EF4444', padding: '10px 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
           <AlertTriangle size={16} color="#fff" />
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
             Active safety alert · posted {formatAge(post.createdAt)}
           </span>
         </div>
@@ -194,7 +194,7 @@ export default function BoardPostPage() {
         >
           <ArrowLeft size={20} color="var(--color-text)" />
         </button>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'var(--color-muted)' }}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--color-muted)' }}>
           The Board
         </span>
       </div>
@@ -217,7 +217,7 @@ export default function BoardPostPage() {
 
         {/* Title */}
         <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800,
+          fontFamily: 'Inter, sans-serif', fontWeight: 800,
           fontSize: '22px', color: 'var(--color-text)',
           margin: '0 0 8px', lineHeight: 1.3,
         }}>
@@ -225,7 +225,7 @@ export default function BoardPostPage() {
         </h1>
 
         {/* Meta */}
-        <div style={{ display: 'flex', gap: '10px', fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', fontSize: '12px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '16px', flexWrap: 'wrap' }}>
           <span>📍 {post.neighbourhood}</span>
           <span>· {formatAge(post.createdAt)}</span>
           {post.videoUrl && <span>· 🎬 Video</span>}
@@ -242,7 +242,7 @@ export default function BoardPostPage() {
           <div style={{
             fontSize: '28px', fontWeight: 800,
             color: '#39D98A', marginBottom: '16px',
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Inter, sans-serif',
           }}>
             R{post.price.toLocaleString()}
           </div>
@@ -306,7 +306,7 @@ export default function BoardPostPage() {
             <p style={{
               fontSize: '14px', color: 'var(--color-text)',
               lineHeight: 1.65, margin: 0,
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               whiteSpace: 'pre-wrap',
             }}>
               {post.description}
@@ -326,7 +326,7 @@ export default function BoardPostPage() {
               background: '#25D366', color: '#000',
               borderRadius: '14px', padding: '16px',
               fontSize: '16px', fontWeight: 800,
-              fontFamily: 'DM Sans, sans-serif', textDecoration: 'none',
+              fontFamily: 'Inter, sans-serif', textDecoration: 'none',
               marginBottom: '12px',
             }}
           >
@@ -352,7 +352,7 @@ export default function BoardPostPage() {
               background: 'none', border: 'none', cursor: liking ? 'default' : 'pointer',
               padding: '8px 12px', borderRadius: '10px',
               color: liked ? '#F87171' : 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
               transition: 'color 0.15s',
             }}
           >
@@ -373,7 +373,7 @@ export default function BoardPostPage() {
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '8px 12px', borderRadius: '10px',
               color: 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
             }}
           >
             <MessageCircle size={18} color="rgba(255,255,255,0.45)" />
@@ -388,7 +388,7 @@ export default function BoardPostPage() {
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '8px 12px', borderRadius: '10px',
               color: 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600,
             }}
           >
             <Share2 size={18} color="rgba(255,255,255,0.45)" />
@@ -403,7 +403,7 @@ export default function BoardPostPage() {
               marginLeft: 'auto',
               padding: '8px 10px', borderRadius: '10px',
               color: 'rgba(255,255,255,0.2)', textDecoration: 'none',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
             }}
           >
             Report
@@ -413,7 +413,7 @@ export default function BoardPostPage() {
         {/* ── Comments ───────────────────────────────────────────────────── */}
         <div style={{ marginBottom: '80px' }}>
           <h2 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
             color: 'var(--color-text)', margin: '0 0 14px',
           }}>
             Comments {comments.length > 0 ? `(${comments.length})` : ''}
@@ -422,7 +422,7 @@ export default function BoardPostPage() {
           {comments.length === 0 ? (
             <div style={{
               textAlign: 'center', padding: '24px 0',
-              fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+              fontFamily: 'Inter, sans-serif', fontSize: '13px',
               color: 'rgba(255,255,255,0.3)',
             }}>
               No comments yet — be the first!
@@ -438,22 +438,22 @@ export default function BoardPostPage() {
                       width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
                       background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.15)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
+                      fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
                     }}>
                       {initial}
                     </div>
                     {/* Body */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                        <span style={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>
                           {c.visitorName ?? 'Anonymous'}
                         </span>
-                        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
                           {formatAge(c.createdAt)}
                         </span>
                       </div>
                       <p style={{
-                        fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                        fontFamily: 'Inter, sans-serif', fontSize: '13px',
                         color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: 0,
                       }}>
                         {c.content}
@@ -482,7 +482,7 @@ export default function BoardPostPage() {
           <div style={{ marginTop: '8px' }}>
             <div style={{
               fontSize: '11px', color: 'var(--color-muted)',
-              fontFamily: 'DM Sans, sans-serif', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px',
+              fontFamily: 'Inter, sans-serif', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px',
             }}>
               Your post
             </div>
@@ -495,7 +495,7 @@ export default function BoardPostPage() {
                     border: '1px solid var(--color-border)',
                     borderRadius: '12px', padding: '12px',
                     color: 'var(--color-text)', fontSize: '13px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                   }}
                 >
@@ -509,7 +509,7 @@ export default function BoardPostPage() {
                     border: '1px solid var(--color-border)',
                     borderRadius: '12px', padding: '12px',
                     color: 'var(--color-text)', fontSize: '13px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                   }}
                 >
@@ -546,10 +546,10 @@ export default function BoardPostPage() {
               padding: '24px 20px 40px',
               width: '100%', boxSizing: 'border-box',
             }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', marginBottom: '8px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text)', marginBottom: '8px' }}>
                 {confirming === 'delete' ? 'Delete this post?' : confirming === 'taken' ? 'Mark as taken?' : 'Mark as resolved?'}
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '20px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '20px' }}>
                 {confirming === 'delete'
                   ? 'This will permanently remove the post from the board.'
                   : 'This post will be moved off the board and shown as closed.'}
@@ -563,7 +563,7 @@ export default function BoardPostPage() {
                     border: '1px solid var(--color-border)',
                     borderRadius: '12px', padding: '14px',
                     color: 'var(--color-muted)', fontSize: '14px', fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   }}
                 >
                   Cancel
@@ -577,7 +577,7 @@ export default function BoardPostPage() {
                     border: 'none', borderRadius: '12px', padding: '14px',
                     color: '#000', fontSize: '14px', fontWeight: 800,
                     cursor: actioning ? 'default' : 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Inter, sans-serif',
                     opacity: actioning ? 0.6 : 1,
                   }}
                 >
@@ -605,7 +605,7 @@ export default function BoardPostPage() {
         width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
         background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A',
       }}>
         {visitorName ? visitorName[0].toUpperCase() : '?'}
       </div>
@@ -624,7 +624,7 @@ export default function BoardPostPage() {
           borderRadius: '20px',
           padding: '9px 16px',
           color: '#fff', fontSize: '14px',
-          fontFamily: 'DM Sans, sans-serif',
+          fontFamily: 'Inter, sans-serif',
           outline: 'none',
         }}
       />

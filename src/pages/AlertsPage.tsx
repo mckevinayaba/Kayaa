@@ -159,7 +159,7 @@ function AlertCard({ item }: { item: AlertItem }) {
               /* Structured incident type badge */
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
                 color: incidentDisplay.color, background: `${incidentDisplay.color}18`,
                 borderRadius: '20px', padding: '2px 8px',
                 textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -170,7 +170,7 @@ function AlertCard({ item }: { item: AlertItem }) {
               /* Legacy badge */
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
                 color: cat.color, background: `${cat.color}15`,
                 borderRadius: '20px', padding: '2px 7px',
                 textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -182,7 +182,7 @@ function AlertCard({ item }: { item: AlertItem }) {
 
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '10px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '10px',
               color: sev.color,
             }}>
               <span style={{
@@ -194,7 +194,7 @@ function AlertCard({ item }: { item: AlertItem }) {
           </div>
 
           <span style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.3)',
           }}>
             {timeAgo(item.happenedAt ?? item.createdAt)}
@@ -204,7 +204,7 @@ function AlertCard({ item }: { item: AlertItem }) {
         {/* Title (structured reports) */}
         {isStructured && item.title && (
           <p style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
             color: '#F0F6FC', margin: '0 0 5px', lineHeight: 1.3,
           }}>
             {item.title}
@@ -213,7 +213,7 @@ function AlertCard({ item }: { item: AlertItem }) {
 
         {/* Message / details */}
         <p style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+          fontFamily: 'Inter, sans-serif', fontSize: '13px',
           color: 'rgba(255,255,255,0.75)',
           margin: '0 0 8px', lineHeight: 1.55,
         }}>
@@ -224,7 +224,7 @@ function AlertCard({ item }: { item: AlertItem }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '3px',
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.3)',
           }}>
             <MapPin size={9} color="rgba(255,255,255,0.25)" />
@@ -234,7 +234,7 @@ function AlertCard({ item }: { item: AlertItem }) {
             <>
               <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)' }}>·</span>
               <span style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                fontFamily: 'Inter, sans-serif', fontSize: '11px',
                 color: 'rgba(255,255,255,0.3)',
               }}>
                 {item.author}
@@ -303,7 +303,7 @@ function UtilityReportCard({ report }: { report: UtilityReport }) {
       }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: '5px',
-          fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
           color: accent, background: `${accent}18`,
           borderRadius: '20px', padding: '2px 9px',
           textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -311,7 +311,7 @@ function UtilityReportCard({ report }: { report: UtilityReport }) {
           {meta.icon} {meta.label}
         </span>
         <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+          fontFamily: 'Inter, sans-serif', fontSize: '11px',
           color: 'rgba(255,255,255,0.3)',
         }}>
           {timeAgo(report.createdAt)}
@@ -321,7 +321,7 @@ function UtilityReportCard({ report }: { report: UtilityReport }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: '3px',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
           color: 'rgba(255,255,255,0.6)',
         }}>
           <MapPin size={10} color="rgba(255,255,255,0.3)" />
@@ -331,7 +331,7 @@ function UtilityReportCard({ report }: { report: UtilityReport }) {
           <>
             <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.15)' }}>·</span>
             <span style={{
-              fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+              fontFamily: 'Inter, sans-serif', fontSize: '11px',
               color: accent, fontWeight: 700,
             }}>
               {report.reportCount} reports
@@ -343,7 +343,7 @@ function UtilityReportCard({ report }: { report: UtilityReport }) {
       {report.note && (
         <p style={{
           margin: '7px 0 0',
-          fontFamily: 'DM Sans, sans-serif', fontSize: '12px',
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
           color: 'rgba(255,255,255,0.45)', lineHeight: 1.55,
         }}>
           {report.note}
@@ -371,14 +371,14 @@ function SectionLabel({ label, color, count }: { label: string; color: string; c
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '10px' }}>
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
         color, textTransform: 'uppercase', letterSpacing: '0.07em',
       }}>
         {label}
       </span>
       {count !== undefined && count > 0 && (
         <span style={{
-          fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
           color: '#000', background: color, borderRadius: '20px', padding: '1px 6px',
         }}>
           {count}
@@ -397,7 +397,7 @@ function StatusPill({
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: '5px',
-      fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '11px',
+      fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
       color, background: bg, borderRadius: '20px', padding: '3px 8px',
       whiteSpace: 'nowrap',
     }}>
@@ -435,7 +435,7 @@ function StatusTile({
       }}
     >
       <span style={{
-        fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '10px',
+        fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px',
         color: 'rgba(255,255,255,0.38)', letterSpacing: '0.06em',
         textTransform: 'uppercase',
         display: 'flex', alignItems: 'center', gap: '4px',
@@ -670,13 +670,13 @@ export default function AlertsPage() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '13px', color: '#F0F6FC',
               }}>
                 Report a power issue
               </div>
               <div style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                fontFamily: 'Inter, sans-serif', fontSize: '11px',
                 color: 'rgba(255,255,255,0.35)', marginTop: '1px',
               }}>
                 Power out · load shedding · flickering · streetlights
@@ -761,13 +761,13 @@ export default function AlertsPage() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '13px', color: '#F0F6FC',
               }}>
                 Report a water issue
               </div>
               <div style={{
-                fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+                fontFamily: 'Inter, sans-serif', fontSize: '11px',
                 color: 'rgba(255,255,255,0.35)', marginTop: '1px',
               }}>
                 No water · low pressure · dirty water · leak / burst pipe
@@ -868,7 +868,7 @@ export default function AlertsPage() {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Local examples
             </span>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
@@ -899,13 +899,13 @@ export default function AlertsPage() {
         }}>
           <MapPin size={28} color="rgba(255,255,255,0.15)" style={{ marginBottom: '12px' }} />
           <p style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: '0 0 6px',
           }}>
             No neighbourhood set
           </p>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+            fontFamily: 'Inter, sans-serif', fontSize: '13px',
             color: 'rgba(255,255,255,0.25)', margin: 0, lineHeight: 1.6,
           }}>
             Tap your location in the top bar to see alerts and community updates for your area.
@@ -928,10 +928,10 @@ export default function AlertsPage() {
           }}>
             <span style={{ fontSize: '16px' }}>🟢</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 700, color: '#39D98A' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: '#39D98A' }}>
                 All clear in {suburb}
               </div>
-              <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
                 No active safety or service alerts right now
               </div>
             </div>
@@ -939,7 +939,7 @@ export default function AlertsPage() {
 
           {/* Starter community examples */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '4px 0 2px' }}>
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Local examples
             </span>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
@@ -987,14 +987,14 @@ export default function AlertsPage() {
       }}>
         <div>
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.1em',
             color: 'rgba(255,255,255,0.35)', margin: '0 0 4px',
           }}>
             Neighbourhood alerts
           </p>
           <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '26px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px',
             color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
           }}>
             {suburb ? `${suburb} Alerts` : 'Alerts'}
@@ -1037,13 +1037,13 @@ export default function AlertsPage() {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
             fontSize: '13px', color: '#F0F6FC',
           }}>
             Report a safety incident
           </div>
           <div style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '11px',
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
             color: 'rgba(255,255,255,0.35)', marginTop: '1px',
           }}>
             Crime · suspicious · missing · road · fire
@@ -1085,7 +1085,7 @@ export default function AlertsPage() {
                 ? <StatusPill dot="#60A5FA" label={`${waterReports.filter(r => !r.issueType.endsWith('_restored')).length} issue${waterReports.filter(r => !r.issueType.endsWith('_restored')).length !== 1 ? 's' : ''}`} color="#60A5FA" bg="rgba(96,165,250,0.15)" />
                 : suburb
                   ? <WaterStatus area={suburb} compact />
-                  : <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.25)' }}>Set suburb</span>
+                  : <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.25)' }}>Set suburb</span>
           }
         />
 
@@ -1128,7 +1128,7 @@ export default function AlertsPage() {
                 background: active ? '#39D98A' : 'rgba(255,255,255,0.04)',
                 color: active ? '#000' : 'rgba(255,255,255,0.5)',
                 fontSize: '12px', fontWeight: 700,
-                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                 whiteSpace: 'nowrap',
               }}
             >

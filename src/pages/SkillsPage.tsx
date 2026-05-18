@@ -75,10 +75,10 @@ function SkillCard({ post }: { post: BoardPost }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px' }}>
           <span style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '3px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', lineHeight: 1.3, marginBottom: '3px' }}>
               {post.title.replace(/^[^\w]*/, '').trim()}
             </div>
-            <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
               📍 {post.neighbourhood}
             </div>
           </div>
@@ -88,7 +88,7 @@ function SkillCard({ post }: { post: BoardPost }) {
         {/* Description */}
         {post.description && (
           <p style={{
-            fontFamily: 'DM Sans, sans-serif', fontSize: '14px', color: 'rgba(240,246,252,0.85)',
+            fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(240,246,252,0.85)',
             lineHeight: 1.6, margin: '0 0 12px', padding: 0,
             overflow: 'hidden', display: '-webkit-box',
             WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
@@ -100,11 +100,11 @@ function SkillCard({ post }: { post: BoardPost }) {
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           {rate ? (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: '#39D98A' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 700, color: '#39D98A' }}>
               {rate}
             </span>
           ) : (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.35)' }}>
               Rate on request
             </span>
           )}
@@ -118,14 +118,14 @@ function SkillCard({ post }: { post: BoardPost }) {
                 background: '#25D366', color: '#000',
                 textDecoration: 'none', borderRadius: '6px',
                 padding: '7px 16px',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 700, fontSize: '12px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
                 display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0,
               }}
             >
               WhatsApp →
             </a>
           ) : (
-            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
               View →
             </span>
           )}
@@ -186,10 +186,10 @@ export default function SkillsPage() {
 
       {/* Header */}
       <div style={{ padding: '20px 16px 0' }}>
-        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '24px', color: 'var(--color-text)', margin: '0 0 4px' }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', color: 'var(--color-text)', margin: '0 0 4px' }}>
           Skills & Services
         </h1>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 16px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 16px' }}>
           {loading ? 'Loading…' : `${visible.length} skill${visible.length !== 1 ? 's' : ''} available near you`}
         </p>
 
@@ -205,7 +205,7 @@ export default function SkillsPage() {
               width: '100%', boxSizing: 'border-box',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)',
               borderRadius: '12px', padding: '11px 14px 11px 36px',
-              color: 'var(--color-text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+              color: 'var(--color-text)', fontSize: '14px', fontFamily: 'Inter, sans-serif',
               outline: 'none',
             }}
           />
@@ -232,7 +232,7 @@ export default function SkillsPage() {
                 background: active ? '#39D98A' : 'var(--color-surface)',
                 color: active ? '#000' : 'var(--color-muted)',
                 fontSize: '12px', fontWeight: 700,
-                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -249,17 +249,17 @@ export default function SkillsPage() {
         ) : visible.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔧</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '8px' }}>
               No skills listed yet{filter !== 'all' ? ' in this category' : ''}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'DM Sans, sans-serif', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', fontFamily: 'Inter, sans-serif', marginBottom: '20px' }}>
               Be the first to post your skill in {suburb || city}
             </div>
             <button
               onClick={() => navigate('/skills/new')}
               style={{
                 background: '#39D98A', color: '#000', border: 'none', borderRadius: '12px',
-                padding: '12px 24px', fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                padding: '12px 24px', fontFamily: 'Inter, sans-serif', fontWeight: 700,
                 fontSize: '14px', cursor: 'pointer',
               }}
             >
