@@ -16,6 +16,7 @@ import {
   getVenueRecCountsBatch,
   getFollowedVenueIds,
   getFollowingFeedItems,
+  getLocalVenueUpdates,
 } from '../lib/api';
 import type { VibeType, BoardPost, LocalJob, UtilityReport, FollowingFeedItem } from '../lib/api';
 import type { Venue } from '../types';
@@ -472,6 +473,101 @@ function FollowingFeedContent({
   );
 }
 
+// ─── Business Updates Strip (home feed) ──────────────────────────────────────
+// Shows recent owner updates from local businesses. Visually distinct from
+// neighbour posts so users can immediately tell "this is from a business."
+
+function BusinessUpdatesStrip({
+  items,
+  suburb,
+}: {
+  items: FollowingFeedItem[];
+  suburb: string;
+}) {
+  const navigate = useNavigate();
+  if (items.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <SectionHeader
+        label={`Business updates · ${suburb || 'your area'}`}
+        linkLabel="Browse businesses"
+        onLink={() => navigate('/neighbourhood')}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {items.map(item => {
+          const cfg = FOLLOWING_UPDATE_CFG[item.updateType] ?? FOLLOWING_UPDATE_CFG.general;
+          const catEmoji = getCategoryEmoji(item.venueCategory);
+          return (
+            <div
+              key={item.id}
+              onClick={() => navigate(`/venue/${item.venueSlug}`)}
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderLeft: `3px solid ${cfg.color}`,
+                borderRadius: '12px',
+                padding: '12px 14px',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              {/* Business identity row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                  background: `${cfg.color}12`, border: `1px solid ${cfg.color}28`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px',
+                }}>
+                  {catEmoji}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
+                    color: '#F0F6FC', margin: 0,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {item.venueName}
+                  </p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
+                    {item.venueCategory} · {item.venueNeighborhood}
+                  </p>
+                </div>
+                <span style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
+                  color: cfg.color, background: `${cfg.color}18`,
+                  borderRadius: '20px', padding: '2px 8px', flexShrink: 0,
+                }}>
+                  {cfg.emoji} {cfg.label}
+                </span>
+              </div>
+              {/* Update content */}
+              <p style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: '#F0F6FC', margin: '0 0 3px', lineHeight: 1.4,
+              }}>
+                {item.updateTitle}
+              </p>
+              {item.updateContent && (
+                <p style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)',
+                  margin: '0 0 5px', lineHeight: 1.5,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                } as React.CSSProperties}>
+                  {item.updateContent}
+                </p>
+              )}
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
+                {timeAgo(item.createdAt)} · tap to view →
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
@@ -534,6 +630,9 @@ export default function FeedPage() {
   const [followingItems,   setFollowingItems]   = useState<FollowingFeedItem[]>([]);
   const [followingLoading, setFollowingLoading] = useState(false);
   const [followingLoaded,  setFollowingLoaded]  = useState(false);
+
+  // ─── Local business updates (home feed strip) ─────────────────────────────
+  const [localBusinessUpdates, setLocalBusinessUpdates] = useState<FollowingFeedItem[]>([]);
 
   // ─── Home scope: My Area / Nearby / Everywhere ────────────────────────────
   const [scope, setScope] = useState<HomeScope>(
@@ -676,6 +775,15 @@ export default function FeedPage() {
             })
             .catch(() => {});
         }
+
+        // Local business updates — fetch up to 6, slice by scope in useMemo
+        if (suburb || city) {
+          getLocalVenueUpdates(suburb || '', city || '', 6)
+            .then(items => setLocalBusinessUpdates(items))
+            .catch(() => {});
+        } else {
+          setLocalBusinessUpdates([]);
+        }
       })
       .catch(() => {
         setRefreshing(false); refreshingRef.current = false;
@@ -765,6 +873,12 @@ export default function FeedPage() {
       neighbourhood: SEED_JOB.neighbourhood, timeDisplay: SEED_JOB.time, isSeed: true,
     }];
   }, [jobsLoaded, jobPosts, scope]);
+
+  // Business updates: 2 for My Area, 3 for Nearby, 4 for Everywhere
+  const displayBusinessUpdates = useMemo(() => {
+    const limit = scope === 'my_area' ? 2 : scope === 'nearby' ? 3 : 4;
+    return localBusinessUpdates.slice(0, limit);
+  }, [localBusinessUpdates, scope]);
 
   // Live pulse — venues with a check-in in the last 2 hours
   const activeNow = useMemo(
@@ -1018,6 +1132,9 @@ export default function FeedPage() {
           </div>
         );
       })()}
+
+      {/* ── FEED 1b: Local business updates ──────────────────────────────── */}
+      <BusinessUpdatesStrip items={displayBusinessUpdates} suburb={suburb} />
 
       {/* ── FEED 2: Community board posts ─────────────────────────────────── */}
       {boardLoaded && displayBoardPosts.length > 0 ? (

@@ -63,6 +63,21 @@ interface VenueCardProps {
   distance?: number | null;  // km from user — shown when available
 }
 
+/**
+ * Returns an "active business" signal based on recent check-in data.
+ * Only shows when backed by real, recent activity — never stale or misleading.
+ */
+function getActiveSignal(v: Venue): { label: string; color: string } | null {
+  if (v.checkinsToday && v.checkinsToday > 0) {
+    return { label: '🟢 Active today', color: '#39D98A' };
+  }
+  if (v.lastCheckinAt) {
+    const daysAgo = (Date.now() - new Date(v.lastCheckinAt).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysAgo < 7) return { label: '✅ Active this week', color: '#39D98A' };
+  }
+  return null;
+}
+
 /** Returns a lightweight popularity signal based on follower count, regulars, and check-ins. */
 function getPopularitySignal(v: Venue): { label: string; color: string } | null {
   const ageMs = Date.now() - new Date(v.createdAt).getTime();
@@ -83,6 +98,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
   const [shareOpen, setShareOpen] = useState(false);
   const todayCount = venue.checkinsToday ?? 0;
   const popularitySignal = getPopularitySignal(venue);
+  const activeSignal     = getActiveSignal(venue);
   // Three activity states — never based on hardcoded status field
   const activitySignal: 'active' | 'someone' | 'quiet' =
     todayCount >= 3 ? 'active' : todayCount >= 1 ? 'someone' : 'quiet';
@@ -354,19 +370,33 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             })()}
           </div>
 
-          {/* Popularity signal */}
-          {popularitySignal && (
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontSize: '11px', fontWeight: 700,
-                color: popularitySignal.color, fontFamily: 'Inter, sans-serif',
-                background: `${popularitySignal.color}12`,
-                border: `1px solid ${popularitySignal.color}28`,
-                borderRadius: '20px', padding: '3px 9px',
-              }}>
-                {popularitySignal.label}
-              </span>
+          {/* Active + Popularity signals */}
+          {(activeSignal || popularitySignal) && (
+            <div style={{ marginBottom: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {activeSignal && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  fontSize: '11px', fontWeight: 700,
+                  color: activeSignal.color, fontFamily: 'Inter, sans-serif',
+                  background: `${activeSignal.color}12`,
+                  border: `1px solid ${activeSignal.color}28`,
+                  borderRadius: '20px', padding: '3px 9px',
+                }}>
+                  {activeSignal.label}
+                </span>
+              )}
+              {popularitySignal && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  fontSize: '11px', fontWeight: 700,
+                  color: popularitySignal.color, fontFamily: 'Inter, sans-serif',
+                  background: `${popularitySignal.color}12`,
+                  border: `1px solid ${popularitySignal.color}28`,
+                  borderRadius: '20px', padding: '3px 9px',
+                }}>
+                  {popularitySignal.label}
+                </span>
+              )}
             </div>
           )}
 

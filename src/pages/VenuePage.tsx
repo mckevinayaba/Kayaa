@@ -2205,13 +2205,24 @@ function timeAgoShort(iso: string): string {
 
 function OwnerUpdatesSection({
   updates,
+  venueName,
   isOwner = false,
   onPostUpdate,
 }: {
   updates: VenueOwnerUpdate[];
+  venueName: string;
   isOwner?: boolean;
   onPostUpdate?: () => void;
 }) {
+  // Derive active status directly from the freshest update
+  const activeStatus: { label: string; color: string } | null = (() => {
+    if (updates.length === 0) return null;
+    const msAgo = Date.now() - new Date(updates[0].createdAt).getTime();
+    if (msAgo < 24 * 60 * 60 * 1000)     return { label: '🟢 Updated today',    color: '#39D98A' };
+    if (msAgo < 7  * 24 * 60 * 60 * 1000) return { label: '✅ Active this week', color: '#39D98A' };
+    return null;
+  })();
+
   if (updates.length === 0) {
     // Show first-update nudge only to the owner when there are no updates yet
     if (!isOwner) return null;
@@ -2239,11 +2250,40 @@ function OwnerUpdatesSection({
   }
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>
-        From the owner
-      </h2>
+      {/* Section header — title + active badge + owner post button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', margin: 0, letterSpacing: '-0.01em' }}>
+          Latest from {venueName}
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {activeStatus && (
+            <span style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
+              color: activeStatus.color,
+              background: `${activeStatus.color}14`,
+              border: `1px solid ${activeStatus.color}30`,
+              borderRadius: '20px', padding: '2px 8px',
+            }}>
+              {activeStatus.label}
+            </span>
+          )}
+          {isOwner && (
+            <button
+              onClick={onPostUpdate}
+              style={{
+                background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.25)',
+                borderRadius: '20px', padding: '4px 11px', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
+                color: '#39D98A', WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              + Post
+            </button>
+          )}
+        </div>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {updates.slice(0, 1).map(u => {
+        {updates.slice(0, 3).map(u => {
           const cfg = UPDATE_TYPE_CONFIG[u.type] ?? UPDATE_TYPE_CONFIG.general;
           return (
             <div
@@ -2251,10 +2291,11 @@ function OwnerUpdatesSection({
               style={{
                 background: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
+                borderLeft: `3px solid ${cfg.color}`,
                 borderRadius: '14px', padding: '14px 16px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: u.content ? '8px' : '0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: u.content ? '8px' : '4px' }}>
                 <span style={{ fontSize: '14px', lineHeight: 1 }}>{cfg.emoji}</span>
                 <span style={{
                   fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
@@ -2897,6 +2938,14 @@ export default function VenuePage() {
           );
         })()}
 
+        {/* ── A5: Business channel — latest updates (moved up for prominence) ─ */}
+        <OwnerUpdatesSection
+          updates={ownerUpdates}
+          venueName={venue.name}
+          isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
+          onPostUpdate={() => setShowPostUpdateModal(true)}
+        />
+
         {/* ── B: Quick stats — regulars, today, week, distance ─────────────── */}
         <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} followerCount={followerCount} />
 
@@ -2928,13 +2977,6 @@ export default function VenuePage() {
 
         {/* ── I: Intro video (only when uploaded) ──────────────────────────── */}
         {venue.introVideo && <VideoCard venue={venue} />}
-
-        {/* ── J: Owner updates (only when posted, or first-update nudge for owner) */}
-        <OwnerUpdatesSection
-          updates={ownerUpdates}
-          isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
-          onPostUpdate={() => setShowPostUpdateModal(true)}
-        />
 
         {/* ── K: Events (only when events exist — no empty state) ──────────── */}
         {events.length > 0 && <EventsSection events={events} />}

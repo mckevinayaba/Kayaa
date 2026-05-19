@@ -3310,3 +3310,57 @@ export async function createOwnerUpdate(venueId: string, payload: {
     return String(e);
   }
 }
+
+/**
+ * Returns recent owner updates from businesses in a given suburb/city.
+ * Used in the home feed to surface local business activity across My Area,
+ * Nearby, and Everywhere scopes. Reuses FollowingFeedItem so the same
+ * rendering component works for both the Following tab and home feed strips.
+ */
+export async function getLocalVenueUpdates(
+  suburb: string,
+  city: string,
+  limit = 6,
+): Promise<FollowingFeedItem[]> {
+  if (!suburb && !city) return [];
+  try {
+    // Step 1 — get venue IDs in the target area
+    let vq = supabase.from('venues').select('id');
+    if (suburb) vq = vq.ilike('location', `%${suburb}%`);
+    else if (city) vq = vq.ilike('location', `%${city}%`);
+    const { data: venueRows } = await vq;
+    const venueIds = (venueRows ?? []).map((r: { id: string }) => r.id);
+    if (venueIds.length === 0) return [];
+
+    // Step 2 — fetch recent updates from those venues (last 7 days, not expired)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('venue_updates')
+      .select('id, title, content, type, created_at, venue_id, venues!inner(id, name, category, neighborhood, slug, cover_image)')
+      .in('venue_id', venueIds)
+      .gte('created_at', sevenDaysAgo)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data as any[]).map(r => ({
+      id: r.id,
+      type: 'owner_update' as const,
+      venueId: r.venues.id,
+      venueName: r.venues.name,
+      venueCategory: r.venues.category,
+      venueNeighborhood: r.venues.neighborhood,
+      venueSlug: r.venues.slug,
+      venueCoverImage: r.venues.cover_image ?? undefined,
+      updateTitle: r.title,
+      updateContent: r.content ?? null,
+      updateType: (r.type as VenueOwnerUpdate['type']) ?? 'general',
+      createdAt: r.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
