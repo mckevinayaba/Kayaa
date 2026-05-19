@@ -63,6 +63,17 @@ interface VenueCardProps {
   distance?: number | null;  // km from user — shown when available
 }
 
+/** Returns a lightweight popularity signal based on follower count, regulars, and check-ins. */
+function getPopularitySignal(v: Venue): { label: string; color: string } | null {
+  const ageMs = Date.now() - new Date(v.createdAt).getTime();
+  if (ageMs < 14 * 24 * 60 * 60 * 1000 && v.regularsCount < 3) return null;
+  if (v.followerCount >= 8 || v.regularsCount >= 12 || v.checkinsThisWeek >= 20)
+    return { label: '❤️ Popular nearby', color: '#F472B6' };
+  if (v.followerCount >= 3 || v.regularsCount >= 6 || v.checkinsThisWeek >= 8)
+    return { label: '👥 Locals love this', color: '#A78BFA' };
+  return null;
+}
+
 export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0, distance = null }: VenueCardProps) {
   const navigate = useNavigate();
   const emoji  = getCategoryEmoji(venue.category);
@@ -71,6 +82,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
   const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   const [shareOpen, setShareOpen] = useState(false);
   const todayCount = venue.checkinsToday ?? 0;
+  const popularitySignal = getPopularitySignal(venue);
   // Three activity states — never based on hardcoded status field
   const activitySignal: 'active' | 'someone' | 'quiet' =
     todayCount >= 3 ? 'active' : todayCount >= 1 ? 'someone' : 'quiet';
@@ -341,6 +353,22 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               );
             })()}
           </div>
+
+          {/* Popularity signal */}
+          {popularitySignal && (
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', fontWeight: 700,
+                color: popularitySignal.color, fontFamily: 'Inter, sans-serif',
+                background: `${popularitySignal.color}12`,
+                border: `1px solid ${popularitySignal.color}28`,
+                borderRadius: '20px', padding: '3px 9px',
+              }}>
+                {popularitySignal.label}
+              </span>
+            </div>
+          )}
 
           {/* Recommendation reason or neighbour count */}
           {(recommendationReason || recCount > 0) && (

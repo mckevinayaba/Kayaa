@@ -14,14 +14,18 @@ import {
   getLocalJobs,
   getUtilityReports,
   getVenueRecCountsBatch,
+  getFollowedVenueIds,
+  getFollowingFeedItems,
 } from '../lib/api';
-import type { VibeType, BoardPost, LocalJob, UtilityReport } from '../lib/api';
+import type { VibeType, BoardPost, LocalJob, UtilityReport, FollowingFeedItem } from '../lib/api';
 import type { Venue } from '../types';
 import VenueCard from '../components/VenueCard';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
 import PushBanner from '../components/PushBanner';
 import { useCountry } from '../contexts/CountryContext';
+import { useAuth } from '../contexts/AuthContext';
+import { getCategoryEmoji } from '../lib/venueUtils';
 
 // ─── Scope models ─────────────────────────────────────────────────────────────
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
@@ -253,6 +257,221 @@ function UtilityPillStrip({ suburb }: { suburb: string }) {
   );
 }
 
+// ─── Following update type config ────────────────────────────────────────────
+
+const FOLLOWING_UPDATE_CFG: Record<string, { emoji: string; label: string; color: string }> = {
+  general:      { emoji: '📢', label: 'Update',       color: '#39D98A' },
+  special:      { emoji: '🎉', label: 'Special',      color: '#F5A623' },
+  menu:         { emoji: '🍽️', label: 'Menu',         color: '#60A5FA' },
+  event:        { emoji: '📅', label: 'Event',        color: '#A78BFA' },
+  announcement: { emoji: '📣', label: 'Announcement', color: '#FBBF24' },
+};
+
+// ─── Feed mode tabs ───────────────────────────────────────────────────────────
+
+function FeedModeTabs({
+  mode, onChange,
+}: { mode: 'home' | 'following'; onChange: (m: 'home' | 'following') => void }) {
+  return (
+    <div style={{
+      display: 'flex', gap: '0',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      marginBottom: '20px', marginLeft: '-16px', marginRight: '-16px',
+      paddingLeft: '16px',
+    }}>
+      {(['home', 'following'] as const).map(m => {
+        const active = mode === m;
+        return (
+          <button
+            key={m}
+            onClick={() => onChange(m)}
+            style={{
+              padding: '10px 16px 11px',
+              background: 'none',
+              border: 'none',
+              borderBottom: active ? '2px solid #39D98A' : '2px solid transparent',
+              cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: active ? 700 : 500,
+              fontSize: '14px',
+              color: active ? '#F0F6FC' : 'rgba(255,255,255,0.38)',
+              transition: 'all 0.15s',
+              WebkitTapHighlightColor: 'transparent',
+              marginBottom: '-1px',
+            } as React.CSSProperties}
+          >
+            {m === 'home' ? 'Home' : 'Following'}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Following feed view ──────────────────────────────────────────────────────
+
+function FollowingFeedContent({
+  isSignedIn,
+  followedCount,
+  items,
+  loading,
+  loaded,
+  onBrowse,
+}: {
+  isSignedIn: boolean;
+  followedCount: number;
+  items: FollowingFeedItem[];
+  loading: boolean;
+  loaded: boolean;
+  onBrowse: () => void;
+}) {
+  const navigate = useNavigate();
+
+  // Case: not signed in
+  if (!isSignedIn) {
+    return (
+      <div style={{ paddingTop: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔐</div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', margin: '0 0 8px' }}>
+          Sign in to follow businesses
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 20px', lineHeight: 1.6 }}>
+          Follow your favourite local spots and see their updates right here.
+        </p>
+        <button
+          onClick={() => navigate('/welcome')}
+          style={{ background: '#39D98A', color: '#0D1117', border: 'none', borderRadius: '10px', padding: '11px 24px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px' }}
+        >
+          Get started
+        </button>
+      </div>
+    );
+  }
+
+  // Loading
+  if (loading) {
+    return (
+      <div style={{ paddingTop: '8px' }}>
+        <FeedItemSkeleton />
+        <FeedItemSkeleton />
+        <FeedItemSkeleton />
+      </div>
+    );
+  }
+
+  // Case A: signed in but follows nobody
+  if (loaded && followedCount === 0) {
+    return (
+      <div style={{ paddingTop: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏪</div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', margin: '0 0 8px' }}>
+          You're not following any businesses yet
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 20px', lineHeight: 1.6 }}>
+          Follow local businesses to see their updates, specials, and announcements here.
+        </p>
+        <button
+          onClick={onBrowse}
+          style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '11px 24px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px' }}
+        >
+          Browse businesses near you
+        </button>
+      </div>
+    );
+  }
+
+  // Case B: follows businesses but none have posted yet
+  if (loaded && followedCount > 0 && items.length === 0) {
+    return (
+      <div style={{ paddingTop: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#F0F6FC', margin: '0 0 8px' }}>
+          No updates yet
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px', lineHeight: 1.6 }}>
+          The {followedCount} {followedCount === 1 ? 'business' : 'businesses'} you follow {followedCount === 1 ? "hasn't" : "haven't"} posted an update yet.
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: '0 0 20px' }}>
+          Check back later — or follow more businesses.
+        </p>
+        <button
+          onClick={onBrowse}
+          style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '11px 24px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px' }}
+        >
+          Find more businesses
+        </button>
+      </div>
+    );
+  }
+
+  // Feed items
+  return (
+    <div>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: '0 0 14px' }}>
+        From businesses you follow
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {items.map(item => {
+          const cfg = FOLLOWING_UPDATE_CFG[item.updateType] ?? FOLLOWING_UPDATE_CFG.general;
+          const catEmoji = getCategoryEmoji(item.venueCategory);
+          return (
+            <div
+              key={item.id}
+              onClick={() => navigate(`/venue/${item.venueSlug}`)}
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '14px',
+                padding: '14px 16px',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              {/* Business identity */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                  background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+                }}>
+                  {catEmoji}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.venueName}
+                  </p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
+                    {item.venueCategory} · {item.venueNeighborhood}
+                  </p>
+                </div>
+                <span style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700,
+                  color: cfg.color, background: `${cfg.color}18`,
+                  borderRadius: '20px', padding: '2px 8px', flexShrink: 0,
+                }}>
+                  {cfg.emoji} {cfg.label}
+                </span>
+              </div>
+              {/* Update content */}
+              <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 4px', lineHeight: 1.4 }}>
+                {item.updateTitle}
+              </p>
+              {item.updateContent && (
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: '0 0 8px', lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                  {item.updateContent}
+                </p>
+              )}
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
+                {timeAgo(item.createdAt)} · tap to visit →
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
@@ -298,6 +517,23 @@ export default function FeedPage() {
   const [vibeWinners,         setVibeWinners]         = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
   const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
   const [recCounts,           setRecCounts]           = useState<Record<string, number>>({});
+
+  const { user } = useAuth();
+
+  // ─── Feed mode: Home | Following ─────────────────────────────────────────
+  const [feedMode, setFeedMode] = useState<'home' | 'following'>(
+    () => (localStorage.getItem('kayaa_feed_mode') as 'home' | 'following' | null) ?? 'home'
+  );
+  function handleFeedModeChange(m: 'home' | 'following') {
+    setFeedMode(m);
+    localStorage.setItem('kayaa_feed_mode', m);
+  }
+
+  // ─── Following feed state ─────────────────────────────────────────────────
+  const [followedVenueIds, setFollowedVenueIds] = useState<string[]>([]);
+  const [followingItems,   setFollowingItems]   = useState<FollowingFeedItem[]>([]);
+  const [followingLoading, setFollowingLoading] = useState(false);
+  const [followingLoaded,  setFollowingLoaded]  = useState(false);
 
   // ─── Home scope: My Area / Nearby / Everywhere ────────────────────────────
   const [scope, setScope] = useState<HomeScope>(
@@ -447,6 +683,37 @@ export default function FeedPage() {
       });
   }, [areaLabel, selectedCountry.code, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ─── Following feed fetch ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (feedMode !== 'following') return;
+    if (!user) { setFollowingLoaded(true); return; }
+    setFollowingLoading(true);
+    setFollowingLoaded(false);
+    getFollowedVenueIds()
+      .then(ids => {
+        setFollowedVenueIds(ids);
+        if (ids.length === 0) {
+          setFollowingItems([]);
+          setFollowingLoading(false);
+          setFollowingLoaded(true);
+          return;
+        }
+        return getFollowingFeedItems(ids)
+          .then(items => {
+            setFollowingItems(items);
+          })
+          .catch(() => {})
+          .finally(() => {
+            setFollowingLoading(false);
+            setFollowingLoaded(true);
+          });
+      })
+      .catch(() => {
+        setFollowingLoading(false);
+        setFollowingLoaded(true);
+      });
+  }, [feedMode, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Computed: scope-aware selections ────────────────────────────────────
 
   // Places: 2 for My Area, 3 for Nearby, 4 for Everywhere
@@ -527,6 +794,23 @@ export default function FeedPage() {
   return (
     <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+      {/* ── Feed mode: Home | Following ──────────────────────────────────── */}
+      <FeedModeTabs mode={feedMode} onChange={handleFeedModeChange} />
+
+      {/* ── FOLLOWING FEED ──────────────────────────────────────────────── */}
+      {feedMode === 'following' && (
+        <FollowingFeedContent
+          isSignedIn={!!user}
+          followedCount={followedVenueIds.length}
+          items={followingItems}
+          loading={followingLoading}
+          loaded={followingLoaded}
+          onBrowse={() => navigate('/neighbourhood')}
+        />
+      )}
+
+      {feedMode === 'home' && <>
 
       {/* Accessible live region */}
       <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">
@@ -932,6 +1216,8 @@ export default function FeedPage() {
 
       {/* Neighbourhood gate */}
       {showAreaGate && <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />}
+
+      </>} {/* end feedMode === 'home' */}
 
       {/* Floating Post button */}
       <button

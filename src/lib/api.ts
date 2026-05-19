@@ -3225,3 +3225,88 @@ export async function unfollowBusiness(venueId: string): Promise<string | null> 
     return String(e);
   }
 }
+
+// ─── Following Feed ───────────────────────────────────────────────────────────
+
+export interface FollowingFeedItem {
+  id: string;
+  type: 'owner_update';
+  venueId: string;
+  venueName: string;
+  venueCategory: string;
+  venueNeighborhood: string;
+  venueSlug: string;
+  venueCoverImage?: string;
+  updateTitle: string;
+  updateContent: string | null;
+  updateType: VenueOwnerUpdate['type'];
+  createdAt: string;
+}
+
+/** Returns venue IDs followed by the current signed-in user. */
+export async function getFollowedVenueIds(): Promise<string[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data } = await supabase
+      .from('business_follows')
+      .select('venue_id')
+      .eq('user_id', user.id);
+    return (data ?? []).map((r: { venue_id: string }) => r.venue_id);
+  } catch {
+    return [];
+  }
+}
+
+/** Returns recent owner updates from a list of followed venues, with venue info. */
+export async function getFollowingFeedItems(venueIds: string[]): Promise<FollowingFeedItem[]> {
+  if (venueIds.length === 0) return [];
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('venue_updates')
+    .select('id, title, content, type, created_at, venue_id, venues!inner(id, name, category, neighborhood, slug, cover_image)')
+    .in('venue_id', venueIds)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error || !data) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any[]).map(r => ({
+    id: r.id,
+    type: 'owner_update' as const,
+    venueId: r.venues.id,
+    venueName: r.venues.name,
+    venueCategory: r.venues.category,
+    venueNeighborhood: r.venues.neighborhood,
+    venueSlug: r.venues.slug,
+    venueCoverImage: r.venues.cover_image ?? undefined,
+    updateTitle: r.title,
+    updateContent: r.content ?? null,
+    updateType: (r.type as VenueOwnerUpdate['type']) ?? 'general',
+    createdAt: r.created_at,
+  }));
+}
+
+/** Insert a new owner update for a venue. Returns null on success, error string on failure. */
+export async function createOwnerUpdate(venueId: string, payload: {
+  title: string;
+  content?: string;
+  type: VenueOwnerUpdate['type'];
+  expires_at?: string | null;
+}): Promise<string | null> {
+  try {
+    const { error } = await supabase
+      .from('venue_updates')
+      .insert({
+        venue_id: venueId,
+        title: payload.title,
+        content: payload.content?.trim() || null,
+        type: payload.type,
+        expires_at: payload.expires_at ?? null,
+      });
+    return error?.message ?? null;
+  } catch (e) {
+    return String(e);
+  }
+}

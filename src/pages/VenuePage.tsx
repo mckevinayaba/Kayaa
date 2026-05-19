@@ -26,6 +26,7 @@ import {
   getVenueRecommendations, getMyVenueRecommendation,
   upsertVenueRecommendation, removeVenueRecommendation,
   checkFollowsBusiness, getBusinessFollowerCount, followBusiness, unfollowBusiness,
+  createOwnerUpdate,
   type VenueRecommendation,
 } from '../lib/api';
 import type { VenueRecentStats, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
@@ -108,6 +109,263 @@ function VenueSkeleton() {
       </div>
     </div>
   );
+}
+
+// ─── Post Update Modal ────────────────────────────────────────────────────────
+
+type PostUpdateStatus = 'idle' | 'submitting' | 'done' | 'error';
+
+const UPDATE_TYPE_OPTIONS: { value: VenueOwnerUpdate['type']; label: string; emoji: string; hint: string }[] = [
+  { value: 'general',      label: 'General update', emoji: '📢', hint: 'e.g. "Power is back, we\'re open!"' },
+  { value: 'special',      label: 'Special / deal',  emoji: '🎉', hint: 'e.g. "Weekend special — R50 off haircuts"' },
+  { value: 'announcement', label: 'Announcement',    emoji: '📣', hint: 'e.g. "We\'re moving to a new location"' },
+  { value: 'menu',         label: 'Menu / stock',    emoji: '🍽️', hint: 'e.g. "Fresh stock arrived today"' },
+  { value: 'event',        label: 'Event',           emoji: '📅', hint: 'e.g. "Live music this Saturday 6pm"' },
+];
+
+const EXPIRY_OPTIONS = [
+  { value: '', label: 'No expiry' },
+  { value: '24h', label: 'Expires in 24 hours' },
+  { value: '3d',  label: 'Expires in 3 days' },
+  { value: '7d',  label: 'Expires in 7 days' },
+];
+
+function expiryToDate(val: string): string | null {
+  if (!val) return null;
+  const now = new Date();
+  if (val === '24h') now.setHours(now.getHours() + 24);
+  else if (val === '3d') now.setDate(now.getDate() + 3);
+  else if (val === '7d') now.setDate(now.getDate() + 7);
+  return now.toISOString();
+}
+
+function PostUpdateModal({
+  venue, onClose, onPosted,
+}: {
+  venue: { id: string; name: string };
+  onClose: () => void;
+  onPosted: () => void;
+}) {
+  const [title,   setTitle]   = useState('');
+  const [content, setContent] = useState('');
+  const [type,    setType]    = useState<VenueOwnerUpdate['type']>('general');
+  const [expiry,  setExpiry]  = useState('');
+  const [status,  setStatus]  = useState<PostUpdateStatus>('idle');
+  const [errMsg,  setErrMsg]  = useState('');
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: '10px', padding: '11px 14px',
+    fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#F0F6FC',
+    outline: 'none', resize: 'none' as const,
+  };
+
+  const currentTypeCfg = UPDATE_TYPE_OPTIONS.find(o => o.value === type)!;
+
+  async function handleSubmit() {
+    if (!title.trim()) return;
+    setStatus('submitting');
+    setErrMsg('');
+    const err = await createOwnerUpdate(venue.id, {
+      title: title.trim(),
+      content: content.trim() || undefined,
+      type,
+      expires_at: expiryToDate(expiry),
+    });
+    if (err) {
+      setStatus('error');
+      setErrMsg(err);
+    } else {
+      setStatus('done');
+      setTimeout(() => { onPosted(); onClose(); }, 1200);
+    }
+  }
+
+  // Lock body scroll
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  if (status === 'done') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(7,10,15,0.88)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: '#39D98A' }}>Update posted!</p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Your followers will see it in their Following feed.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(7,10,15,0.88)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
+    >
+      {/* Sheet */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#161B22',
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: '20px 20px 0 0',
+          padding: `0 16px calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+          maxHeight: '92vh',
+          overflowY: 'auto',
+        }}
+      >
+        {/* Handle + header */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+          <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', paddingTop: '8px' }}>
+          <div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px', color: '#F0F6FC', margin: 0, lineHeight: 1.2 }}>
+              Post an update
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.38)', margin: '3px 0 0' }}>
+              {venue.name} · visible to followers
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', fontSize: '22px', padding: '4px', lineHeight: 1 }}>×</button>
+        </div>
+
+        {/* Type selector */}
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', marginBottom: '16px', paddingBottom: '2px' } as React.CSSProperties}>
+          {UPDATE_TYPE_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setType(opt.value)}
+              style={{
+                flexShrink: 0,
+                padding: '6px 12px',
+                borderRadius: '20px',
+                border: type === opt.value ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                background: type === opt.value ? '#39D98A' : 'rgba(255,255,255,0.04)',
+                color: type === opt.value ? '#0D1117' : 'rgba(255,255,255,0.55)',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              {opt.emoji} {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Title */}
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.55)', display: 'block', marginBottom: '6px' }}>
+            What's the update? *
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder={currentTypeCfg.hint}
+            maxLength={120}
+            style={inputStyle}
+          />
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', margin: '4px 0 0', textAlign: 'right' }}>
+            {title.length}/120
+          </p>
+        </div>
+
+        {/* Content */}
+        <div style={{ marginBottom: '12px' }}>
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.55)', display: 'block', marginBottom: '6px' }}>
+            More details <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optional)</span>
+          </label>
+          <textarea
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder="Add more context, hours, prices…"
+            maxLength={400}
+            rows={3}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Expiry */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.55)', display: 'block', marginBottom: '6px' }}>
+            Expiry
+          </label>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {EXPIRY_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setExpiry(opt.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  border: expiry === opt.value ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  background: expiry === opt.value ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.03)',
+                  color: expiry === opt.value ? '#39D98A' : 'rgba(255,255,255,0.45)',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
+                  cursor: 'pointer',
+                } as React.CSSProperties}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Error */}
+        {status === 'error' && (
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F87171', margin: '0 0 10px', background: 'rgba(248,113,113,0.1)', borderRadius: '8px', padding: '8px 12px' }}>
+            {errMsg || 'Something went wrong. Please try again.'}
+          </p>
+        )}
+
+        {/* Submit */}
+        <button
+          onClick={handleSubmit}
+          disabled={!title.trim() || status === 'submitting'}
+          style={{
+            width: '100%', padding: '15px',
+            background: title.trim() ? '#39D98A' : 'rgba(57,217,138,0.25)',
+            border: 'none', borderRadius: '14px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
+            color: title.trim() ? '#0D1117' : 'rgba(57,217,138,0.5)',
+            cursor: title.trim() ? 'pointer' : 'default',
+            transition: 'background 0.15s',
+          }}
+        >
+          {status === 'submitting' ? 'Posting…' : 'Post update'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Neighbourhood Favourite signal ──────────────────────────────────────────
+
+function getNeighbourhoodSignal(
+  followerCount: number,
+  regularsCount: number,
+  weeklyCheckins: number,
+  createdAt: string,
+): { label: string; color: string } | null {
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const isVeryNew = ageMs < 14 * 24 * 60 * 60 * 1000 && regularsCount < 3;
+  if (isVeryNew) return null;
+
+  // Strong signal
+  if (followerCount >= 8 || regularsCount >= 12 || weeklyCheckins >= 20) {
+    return { label: '❤️ Popular in the neighbourhood', color: '#F472B6' };
+  }
+  // Soft signal
+  if (followerCount >= 3 || regularsCount >= 6 || weeklyCheckins >= 8) {
+    return { label: '👥 Locals love this place', color: '#A78BFA' };
+  }
+  return null;
 }
 
 // ─── 404 state ────────────────────────────────────────────────────────────────
@@ -1945,8 +2203,40 @@ function timeAgoShort(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function OwnerUpdatesSection({ updates }: { updates: VenueOwnerUpdate[] }) {
-  if (updates.length === 0) return null;
+function OwnerUpdatesSection({
+  updates,
+  isOwner = false,
+  onPostUpdate,
+}: {
+  updates: VenueOwnerUpdate[];
+  isOwner?: boolean;
+  onPostUpdate?: () => void;
+}) {
+  if (updates.length === 0) {
+    // Show first-update nudge only to the owner when there are no updates yet
+    if (!isOwner) return null;
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <div
+          onClick={onPostUpdate}
+          style={{
+            background: 'rgba(57,217,138,0.04)',
+            border: '1.5px dashed rgba(57,217,138,0.3)',
+            borderRadius: '14px', padding: '16px',
+            cursor: 'pointer', textAlign: 'center',
+          }}
+        >
+          <span style={{ fontSize: '24px', display: 'block', marginBottom: '6px' }}>📢</span>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#39D98A', margin: '0 0 4px' }}>
+            Share your first update with neighbours
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55 }}>
+            Tell people what's happening — fresh stock, new hours, a weekend special.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ marginBottom: '20px' }}>
       <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', marginBottom: '14px', letterSpacing: '-0.01em' }}>
@@ -2372,7 +2662,8 @@ export default function VenuePage() {
   const [followerCount,     setFollowerCount]     = useState(0);
   const [followLoading,     setFollowLoading]     = useState(false);
 
-  const [ownerUpdates, setOwnerUpdates] = useState<VenueOwnerUpdate[]>([]);
+  const [ownerUpdates,        setOwnerUpdates]        = useState<VenueOwnerUpdate[]>([]);
+  const [showPostUpdateModal, setShowPostUpdateModal] = useState(false);
 
   // Phase 3: distance + liked
   const [distance, setDistance] = useState<number | null>(null);
@@ -2547,6 +2838,65 @@ export default function VenuePage() {
           )}
         </button>
 
+        {/* ── A3: Owner channel banner ──────────────────────────────────────── */}
+        {!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId) && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'rgba(57,217,138,0.06)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            borderRadius: '12px', padding: '10px 14px',
+            marginBottom: '8px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px' }}>🏪</span>
+              <div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', margin: 0, lineHeight: 1.2 }}>
+                  You manage this business
+                </p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
+                  {followerCount > 0 ? `${followerCount} follower${followerCount !== 1 ? 's' : ''}` : 'No followers yet'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPostUpdateModal(true)}
+              style={{
+                background: '#39D98A', border: 'none', borderRadius: '8px',
+                padding: '7px 13px', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+                color: '#0D1117', flexShrink: 0,
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              📢 Post update
+            </button>
+          </div>
+        )}
+
+        {/* ── A4: Neighbourhood favourite signal ────────────────────────────── */}
+        {(() => {
+          const signal = getNeighbourhoodSignal(
+            followerCount,
+            venue.regularsCount,
+            recentStats.weeklyCheckins,
+            venue.createdAt,
+          );
+          if (!signal) return null;
+          return (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              background: `${signal.color}12`,
+              border: `1px solid ${signal.color}30`,
+              borderRadius: '20px', padding: '5px 12px',
+              marginBottom: '8px',
+            }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: signal.color }}>
+                {signal.label}
+              </span>
+            </div>
+          );
+        })()}
+
         {/* ── B: Quick stats — regulars, today, week, distance ─────────────── */}
         <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} followerCount={followerCount} />
 
@@ -2579,8 +2929,12 @@ export default function VenuePage() {
         {/* ── I: Intro video (only when uploaded) ──────────────────────────── */}
         {venue.introVideo && <VideoCard venue={venue} />}
 
-        {/* ── J: Owner updates (only when posted) ──────────────────────────── */}
-        <OwnerUpdatesSection updates={ownerUpdates} />
+        {/* ── J: Owner updates (only when posted, or first-update nudge for owner) */}
+        <OwnerUpdatesSection
+          updates={ownerUpdates}
+          isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
+          onPostUpdate={() => setShowPostUpdateModal(true)}
+        />
 
         {/* ── K: Events (only when events exist — no empty state) ──────────── */}
         {events.length > 0 && <EventsSection events={events} />}
@@ -2630,14 +2984,14 @@ export default function VenuePage() {
             Your place
           </span>
           <div style={{ flex: 1, display: 'flex', gap: '6px' }}>
-            {[
-              { label: '✏️ Edit',    path: '/venue/edit'    },
-              { label: '📣 Update',  path: '/owner'         },
-              { label: '📊 Stats',   path: '/owner'         },
-            ].map(a => (
+            {([
+              { label: '✏️ Edit',    action: () => { window.location.href = '/venue/edit'; } },
+              { label: '📣 Update',  action: () => setShowPostUpdateModal(true)              },
+              { label: '📊 Stats',   action: () => { window.location.href = '/owner'; }      },
+            ] as { label: string; action: () => void }[]).map(a => (
               <button
                 key={a.label}
-                onClick={() => { window.location.href = a.path; }}
+                onClick={a.action}
                 style={{
                   flex: 1, padding: '8px 6px', borderRadius: '10px',
                   background: 'rgba(57,217,138,0.1)',
@@ -2645,7 +2999,7 @@ export default function VenuePage() {
                   fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
                   color: '#39D98A', cursor: 'pointer',
                   whiteSpace: 'nowrap',
-                }}
+                } as React.CSSProperties}
               >
                 {a.label}
               </button>
@@ -2685,6 +3039,18 @@ export default function VenuePage() {
           contentType="place"
           contentId={venue.id}
           onClose={() => setShowReportModal(false)}
+        />
+      )}
+
+      {/* ── Post Update modal (owner only) ────────────────────────────────── */}
+      {showPostUpdateModal && venue && (
+        <PostUpdateModal
+          venue={{ id: venue.id, name: venue.name }}
+          onClose={() => setShowPostUpdateModal(false)}
+          onPosted={() => {
+            setShowPostUpdateModal(false);
+            getVenueOwnerUpdates(venue.id).then(setOwnerUpdates);
+          }}
         />
       )}
     </div>
