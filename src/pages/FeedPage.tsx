@@ -8,19 +8,15 @@ import NeighbourhoodGate from '../components/NeighbourhoodGate';
 import PostComposer from '../components/PostComposer';
 import {
   getAllVenues,
-  getHeadingThereCountsBatch, getVibeWinnersBatch,
-  getActiveStoryVenuesBatch,
   getBoardPosts,
   getLocalJobs,
   getUtilityReports,
-  getVenueRecCountsBatch,
   getFollowedVenueIds,
   getFollowingFeedItems,
   getLocalVenueUpdates,
 } from '../lib/api';
-import type { VibeType, BoardPost, LocalJob, UtilityReport, FollowingFeedItem } from '../lib/api';
+import type { BoardPost, LocalJob, UtilityReport, FollowingFeedItem } from '../lib/api';
 import type { Venue } from '../types';
-import VenueCard from '../components/VenueCard';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
 import PushBanner from '../components/PushBanner';
@@ -30,7 +26,7 @@ import { getCategoryEmoji } from '../lib/venueUtils';
 
 // ─── Scope models ─────────────────────────────────────────────────────────────
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
-type HomeScope = 'my_area' | 'nearby' | 'everywhere';
+type HomeScope = 'my_area' | 'nearby' | 'everywhere' | 'following';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -86,7 +82,7 @@ function venueInScope(
 
 function scopeToFeedScope(s: HomeScope): FeedScope {
   if (s === 'nearby') return 'nearby';
-  if (s === 'everywhere') return 'explore_all';
+  if (s === 'everywhere' || s === 'following') return 'explore_all';
   return 'this_neighbourhood';
 }
 
@@ -132,25 +128,6 @@ const CAT_LABELS: Record<string, string> = {
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
-function VenueCardSkeleton() {
-  return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-warm)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-card)', overflow: 'hidden', marginBottom: '14px' }}>
-      <div style={{ width: '100%', paddingTop: '56.25%', background: 'linear-gradient(90deg, var(--color-surface2) 25%, rgba(255,255,255,0.04) 50%, var(--color-surface2) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
-      <div style={{ padding: '15px 18px 16px', borderLeft: '3px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ height: '10px', width: '28%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '10px' }} />
-        <div style={{ height: '18px', width: '62%', background: 'var(--color-surface2)', borderRadius: '5px', marginBottom: '8px' }} />
-        <div style={{ height: '11px', width: '42%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '14px' }} />
-        <div style={{ height: '12px', width: '88%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '6px' }} />
-        <div style={{ height: '12px', width: '70%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '16px' }} />
-        <div style={{ height: '1px', background: 'var(--color-border-warm)', marginBottom: '14px' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ height: '11px', width: '22%', background: 'var(--color-surface2)', borderRadius: '4px' }} />
-          <div style={{ height: '32px', width: '86px', background: 'var(--color-surface2)', borderRadius: '100px' }} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function FeedItemSkeleton() {
   return (
@@ -171,25 +148,35 @@ function ScopeTabs({
     { id: 'my_area',    label: suburb ? suburb : 'My Area' },
     { id: 'nearby',     label: 'Nearby'                    },
     { id: 'everywhere', label: 'Everywhere'                },
+    { id: 'following',  label: 'Following'                 },
   ];
   return (
-    <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+    <div style={{ display: 'flex', gap: '5px', marginBottom: '20px' }}>
       {tabs.map(tab => {
         const active = scope === tab.id;
+        const isFollowing = tab.id === 'following';
         return (
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
             style={{
-              flex: tab.id === 'my_area' ? 1.8 : 1,
-              padding: '10px 4px',
+              flex: 1,
+              padding: '9px 2px',
               borderRadius: '100px',
-              border: active ? 'none' : '1px solid rgba(255,255,255,0.12)',
-              background: active ? '#39D98A' : 'rgba(255,255,255,0.04)',
-              color: active ? '#0D1117' : 'rgba(255,255,255,0.45)',
+              border: active
+                ? 'none'
+                : isFollowing
+                  ? '1px solid rgba(167,139,250,0.22)'
+                  : '1px solid rgba(255,255,255,0.12)',
+              background: active
+                ? isFollowing ? '#A78BFA' : '#39D98A'
+                : 'rgba(255,255,255,0.04)',
+              color: active
+                ? '#0D1117'
+                : isFollowing ? 'rgba(167,139,250,0.7)' : 'rgba(255,255,255,0.45)',
               fontFamily: 'Inter, sans-serif',
               fontWeight: active ? 800 : 600,
-              fontSize: '13px',
+              fontSize: '12px',
               cursor: 'pointer',
               transition: 'all 0.15s',
               whiteSpace: 'nowrap' as const,
@@ -268,46 +255,7 @@ const FOLLOWING_UPDATE_CFG: Record<string, { emoji: string; label: string; color
   announcement: { emoji: '📣', label: 'Announcement', color: '#FBBF24' },
 };
 
-// ─── Feed mode tabs ───────────────────────────────────────────────────────────
-
-function FeedModeTabs({
-  mode, onChange,
-}: { mode: 'home' | 'following'; onChange: (m: 'home' | 'following') => void }) {
-  return (
-    <div style={{
-      display: 'flex', gap: '0',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
-      marginBottom: '20px', marginLeft: '-16px', marginRight: '-16px',
-      paddingLeft: '16px',
-    }}>
-      {(['home', 'following'] as const).map(m => {
-        const active = mode === m;
-        return (
-          <button
-            key={m}
-            onClick={() => onChange(m)}
-            style={{
-              padding: '10px 16px 11px',
-              background: 'none',
-              border: 'none',
-              borderBottom: active ? '2px solid #39D98A' : '2px solid transparent',
-              cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: active ? 700 : 500,
-              fontSize: '14px',
-              color: active ? '#F0F6FC' : 'rgba(255,255,255,0.38)',
-              transition: 'all 0.15s',
-              WebkitTapHighlightColor: 'transparent',
-              marginBottom: '-1px',
-            } as React.CSSProperties}
-          >
-            {m === 'home' ? 'Home' : 'Following'}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+// FeedModeTabs removed — Following is now a unified scope tab in ScopeTabs
 
 // ─── Following feed view ──────────────────────────────────────────────────────
 
@@ -568,6 +516,78 @@ function BusinessUpdatesStrip({
   );
 }
 
+// ─── Places discovery strip (compact horizontal scroll — module, not hero) ───
+
+function PlacesDiscoveryStrip({
+  venues, loading, scope, suburb, areaLabel, onBrowse, onAddPlace,
+}: {
+  venues: Venue[];
+  loading: boolean;
+  scope: Exclude<HomeScope, 'following'>;
+  suburb: string;
+  areaLabel: string;
+  onBrowse: () => void;
+  onAddPlace: () => void;
+}) {
+  const navigate = useNavigate();
+  const label = scope === 'my_area'
+    ? `Places in ${suburb || 'your area'}`
+    : scope === 'nearby' ? 'Places nearby' : 'Places everywhere';
+
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <SectionHeader label={label} linkLabel="Browse all" onLink={onBrowse} />
+      {loading ? (
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px' } as React.CSSProperties}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ flexShrink: 0, width: '110px', height: '82px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px' }} />
+          ))}
+        </div>
+      ) : venues.length > 0 ? (
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+          {venues.map(v => {
+            const emoji = getCategoryEmoji(v.category);
+            return (
+              <div
+                key={v.id}
+                onClick={() => navigate(`/venue/${v.slug}`)}
+                style={{ flexShrink: 0, width: '110px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 10px', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+              >
+                <div style={{ fontSize: '22px', marginBottom: '7px', lineHeight: 1 }}>{emoji}</div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#F0F6FC', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.neighborhood || v.category}</p>
+              </div>
+            );
+          })}
+          <div
+            onClick={onAddPlace}
+            style={{ flexShrink: 0, width: '82px', background: 'rgba(57,217,138,0.04)', border: '1.5px dashed rgba(57,217,138,0.22)', borderRadius: '12px', padding: '12px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '5px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+          >
+            <span style={{ fontSize: '18px', color: '#39D98A', lineHeight: 1 }}>＋</span>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '10px', color: '#39D98A', margin: 0, textAlign: 'center', lineHeight: 1.3 }}>Add place</p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ border: '1.5px dashed rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
+          <div style={{ fontSize: '26px', marginBottom: '8px' }}>🗺️</div>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px' }}>
+            {scope === 'everywhere' ? 'No places on Kayaa yet' : `${suburb || areaLabel} is unmapped`}
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '0 0 14px' }}>
+            Be the first to add a business.
+          </p>
+          <button
+            onClick={onAddPlace}
+            style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '8px 16px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+          >
+            Add the first business
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FeedPage() {
@@ -608,22 +628,7 @@ export default function FeedPage() {
   const refreshingRef = useRef(false);
   const liveRegion    = useRef<HTMLDivElement>(null);
 
-  // Interactivity batch data
-  const [headingCounts,       setHeadingCounts]       = useState<Record<string, number>>({});
-  const [vibeWinners,         setVibeWinners]         = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
-  const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
-  const [recCounts,           setRecCounts]           = useState<Record<string, number>>({});
-
   const { user } = useAuth();
-
-  // ─── Feed mode: Home | Following ─────────────────────────────────────────
-  const [feedMode, setFeedMode] = useState<'home' | 'following'>(
-    () => (localStorage.getItem('kayaa_feed_mode') as 'home' | 'following' | null) ?? 'home'
-  );
-  function handleFeedModeChange(m: 'home' | 'following') {
-    setFeedMode(m);
-    localStorage.setItem('kayaa_feed_mode', m);
-  }
 
   // ─── Following feed state ─────────────────────────────────────────────────
   const [followedVenueIds, setFollowedVenueIds] = useState<string[]>([]);
@@ -758,24 +763,6 @@ export default function FeedPage() {
           setAlertsLoaded(true);
         }
 
-        // Batch interactivity + rec counts
-        const ids = venues.map(vv => vv.id);
-        if (ids.length > 0) {
-          Promise.all([
-            getHeadingThereCountsBatch(ids),
-            getVibeWinnersBatch(ids),
-            getActiveStoryVenuesBatch(ids),
-            getVenueRecCountsBatch(ids),
-          ])
-            .then(([hc, vw, as_, rc]) => {
-              setHeadingCounts(hc);
-              setVibeWinners(vw);
-              setActiveStoryVenueIds(as_);
-              setRecCounts(rc);
-            })
-            .catch(() => {});
-        }
-
         // Local business updates — fetch up to 6, slice by scope in useMemo
         if (suburb || city) {
           getLocalVenueUpdates(suburb || '', city || '', 6)
@@ -793,7 +780,7 @@ export default function FeedPage() {
 
   // ─── Following feed fetch ─────────────────────────────────────────────────
   useEffect(() => {
-    if (feedMode !== 'following') return;
+    if (scope !== 'following') return;
     if (!user) { setFollowingLoaded(true); return; }
     setFollowingLoading(true);
     setFollowingLoaded(false);
@@ -820,7 +807,7 @@ export default function FeedPage() {
         setFollowingLoading(false);
         setFollowingLoaded(true);
       });
-  }, [feedMode, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scope, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Computed: scope-aware selections ────────────────────────────────────
 
@@ -893,12 +880,7 @@ export default function FeedPage() {
       ? `near ${suburb || 'you'}`
       : 'everywhere';
 
-  // Places section label
-  const placesLabel = scope === 'my_area'
-    ? `Places in ${suburb || 'your area'}`
-    : scope === 'nearby' ? 'Places nearby' : 'Places everywhere';
-
-  const [welcomeDismissed, setWelcomeDismissed] = useState(
+const [welcomeDismissed, setWelcomeDismissed] = useState(
     () => localStorage.getItem('kayaa_welcome_dismissed') === 'true'
   );
   const showWelcomeHint = !loading && !welcomeDismissed;
@@ -908,23 +890,6 @@ export default function FeedPage() {
   return (
     <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
-      {/* ── Feed mode: Home | Following ──────────────────────────────────── */}
-      <FeedModeTabs mode={feedMode} onChange={handleFeedModeChange} />
-
-      {/* ── FOLLOWING FEED ──────────────────────────────────────────────── */}
-      {feedMode === 'following' && (
-        <FollowingFeedContent
-          isSignedIn={!!user}
-          followedCount={followedVenueIds.length}
-          items={followingItems}
-          loading={followingLoading}
-          loaded={followingLoaded}
-          onBrowse={() => navigate('/neighbourhood')}
-        />
-      )}
-
-      {feedMode === 'home' && <>
 
       {/* Accessible live region */}
       <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">
@@ -948,6 +913,24 @@ export default function FeedPage() {
           </div>
         </div>
       )}
+
+      {/* ── Unified scope tabs: My Area | Nearby | Everywhere | Following ── */}
+      <ScopeTabs scope={scope} onChange={handleScopeChange} suburb={suburb} />
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          ── FOLLOWING SCOPE
+          ═════════════════════════════════════════════════════════════════════ */}
+      {scope === 'following' ? (
+        <FollowingFeedContent
+          isSignedIn={!!user}
+          followedCount={followedVenueIds.length}
+          items={followingItems}
+          loading={followingLoading}
+          loaded={followingLoaded}
+          onBrowse={() => navigate('/neighbourhood')}
+        />
+      ) : (
+        <>
 
       {/* Offline banner */}
       {!isOnline && (
@@ -1083,18 +1066,14 @@ export default function FeedPage() {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          ── 2. SCOPE TABS — My Area | Nearby | Everywhere
-          ═════════════════════════════════════════════════════════════════════ */}
-      <ScopeTabs scope={scope} onChange={handleScopeChange} suburb={suburb} />
-
-      {/* ── 3. PostBar + Push ───────────────────────────────────────────────── */}
+      {/* ── PostBar + PushBanner ────────────────────────────────────────── */}
       <PostBar suburb={suburb || areaLabel} onPost={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
       <PushBanner />
 
       {/* ══════════════════════════════════════════════════════════════════════
           ── FEED STREAM — ordered by relevance:
-          1. Urgent alert  2. Community posts  3. Jobs  4. Places  5. Ask CTA  6. Status
+          1. Urgent alert  2. Community posts  3. Jobs  4. Business updates
+          5. Places (discovery strip)  6. Ask CTA  7. Status
           ═════════════════════════════════════════════════════════════════════ */}
 
       {/* ── FEED 1: Urgent utility alert ──────────────────────────────────── */}
@@ -1132,9 +1111,6 @@ export default function FeedPage() {
           </div>
         );
       })()}
-
-      {/* ── FEED 1b: Local business updates ──────────────────────────────── */}
-      <BusinessUpdatesStrip items={displayBusinessUpdates} suburb={suburb} />
 
       {/* ── FEED 2: Community board posts ─────────────────────────────────── */}
       {boardLoaded && displayBoardPosts.length > 0 ? (
@@ -1216,54 +1192,21 @@ export default function FeedPage() {
         </div>
       ) : null}
 
-      {/* ── FEED 4: Places near you ────────────────────────────────────────── */}
-      <div style={{ marginBottom: '28px' }}>
-        <SectionHeader label={placesLabel} linkLabel="Browse all" onLink={() => navigate('/neighbourhood')} />
+      {/* ── FEED 4: Business updates strip ──────────────────────────────────── */}
+      <BusinessUpdatesStrip items={displayBusinessUpdates} suburb={suburb} />
 
-        {loading ? (
-          <>
-            <VenueCardSkeleton />
-            {scope !== 'my_area' && <VenueCardSkeleton />}
-          </>
-        ) : placesNearYou.length > 0 ? (
-          placesNearYou.map(venue => (
-            <VenueCard
-              key={venue.id}
-              venue={venue}
-              headingCount={headingCounts[venue.id] ?? 0}
-              vibeWinner={vibeWinners[venue.id] ?? null}
-              hasActiveStory={activeStoryVenueIds.has(venue.id)}
-              recCount={recCounts[venue.id] ?? 0}
-              distance={
-                userLat != null && userLon != null &&
-                venue.latitude != null && venue.longitude != null
-                  ? haversineKm(userLat, userLon, venue.latitude, venue.longitude)
-                  : null
-              }
-            />
-          ))
-        ) : (
-          <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🗺️</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              {scope === 'everywhere'
-                ? 'No places on Kayaa yet'
-                : `${suburb || areaLabel} is waiting to be discovered`}
-            </div>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Be the first to add a business and put your area on the map.
-            </p>
-            <button
-              onClick={() => navigate('/onboarding')}
-              style={{ background: 'rgba(57,217,138,0.1)', color: '#39D98A', border: '1px solid rgba(57,217,138,0.3)', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
-            >
-              Add the first business
-            </button>
-          </div>
-        )}
-      </div>
+      {/* ── FEED 5: Places discovery strip (module, not hero) ────────────────── */}
+      <PlacesDiscoveryStrip
+        venues={placesNearYou}
+        loading={loading}
+        scope={scope as Exclude<HomeScope, 'following'>}
+        suburb={suburb}
+        areaLabel={areaLabel}
+        onBrowse={() => navigate('/neighbourhood')}
+        onAddPlace={() => setQuickAddOpen(true)}
+      />
 
-      {/* ── FEED 5: Ask the neighbourhood ─────────────────────────────────── */}
+      {/* ── FEED 6: Ask the neighbourhood ─────────────────────────────────── */}
       {boardLoaded && (
         <div
           onClick={() => navigate('/board/new?cat=ask')}
@@ -1292,7 +1235,7 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── FEED 6: Neighbourhood status (calm "all clear" when no alert) ──── */}
+      {/* ── FEED 7: Neighbourhood status (calm "all clear" when no alert) ──── */}
       {alertsLoaded && !utilityAlert && (
         <div style={{ marginBottom: '20px' }}>
           <SectionHeader label="Neighbourhood Status" linkLabel="See all alerts" linkColor="#60A5FA" onLink={() => navigate('/alerts')} />
@@ -1310,10 +1253,31 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── Utility pill strip (quick access at bottom of feed) ─────────────── */}
+      {/* ── Utility pill strip ──────────────────────────────────────────────── */}
       <UtilityPillStrip suburb={suburb} />
 
-      {/* ── Welcome hint — first visit only ─────────────────────────────────── */}
+      {/* ── Sparse state — neighbourhood has no activity yet ─────────────────── */}
+      {!loading && boardLoaded && jobsLoaded && scope !== 'everywhere' && !!suburb &&
+        boardPosts.length === 0 && jobPosts.length === 0 &&
+        displayBusinessUpdates.length === 0 && !utilityAlert && (
+        <div style={{ marginBottom: '20px', border: '1.5px dashed rgba(57,217,138,0.16)', borderRadius: '16px', padding: '24px 18px', textAlign: 'center' }}>
+          <div style={{ fontSize: '28px', marginBottom: '10px' }}>🌱</div>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: '0 0 6px' }}>
+            Be the first to post in {suburb}
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 16px', lineHeight: 1.6 }}>
+            Share what's happening — a tip, an event, a job, or just say hello to your neighbours.
+          </p>
+          <button
+            onClick={() => setShowComposer(true)}
+            style={{ background: '#39D98A', color: '#0D1117', border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', WebkitTapHighlightColor: 'transparent' } as React.CSSProperties}
+          >
+            Post something
+          </button>
+        </div>
+      )}
+
+      {/* ── Welcome hint — first visit only ──────────────────────────────────── */}
       {showWelcomeHint && (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px' }}>
           <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
@@ -1334,18 +1298,21 @@ export default function FeedPage() {
       {/* Neighbourhood gate */}
       {showAreaGate && <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />}
 
-      </>} {/* end feedMode === 'home' */}
+        </>
+      )} {/* end scope !== 'following' */}
 
-      {/* Floating Post button */}
-      <button
-        onClick={() => setShowComposer(true)}
-        title="Post to your neighbourhood"
-        style={{ position: 'fixed', bottom: '80px', right: '16px', zIndex: 50, width: '52px', height: '52px', borderRadius: '50%', background: '#39D98A', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(57,217,138,0.45)', cursor: 'pointer', transition: 'transform 0.15s, filter 0.15s' }}
-        onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
-        onMouseLeave={e => (e.currentTarget.style.filter = '')}
-      >
-        <PenSquare size={22} color="#0D1117" />
-      </button>
+      {/* Floating Post button — only in neighbourhood scopes */}
+      {scope !== 'following' && (
+        <button
+          onClick={() => setShowComposer(true)}
+          title="Post to your neighbourhood"
+          style={{ position: 'fixed', bottom: '80px', right: '16px', zIndex: 50, width: '52px', height: '52px', borderRadius: '50%', background: '#39D98A', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(57,217,138,0.45)', cursor: 'pointer', transition: 'transform 0.15s, filter 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
+          onMouseLeave={e => (e.currentTarget.style.filter = '')}
+        >
+          <PenSquare size={22} color="#0D1117" />
+        </button>
+      )}
 
       {/* Post composer */}
       {showComposer && (
