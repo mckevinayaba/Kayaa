@@ -23,9 +23,9 @@ import QuickAddPlace from '../components/QuickAddPlace';
 import PushBanner from '../components/PushBanner';
 import { useCountry } from '../contexts/CountryContext';
 
-// ─── Scope model ──────────────────────────────────────────────────────────────
+// ─── Scope models ─────────────────────────────────────────────────────────────
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
-
+type HomeScope = 'my_area' | 'nearby' | 'everywhere';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,41 +79,40 @@ function venueInScope(
   }
 }
 
+function scopeToFeedScope(s: HomeScope): FeedScope {
+  if (s === 'nearby') return 'nearby';
+  if (s === 'everywhere') return 'explore_all';
+  return 'this_neighbourhood';
+}
+
 // ─── Seed data (display-only — never saved to Supabase) ──────────────────────
-// Feed shows ONE preview item per section. Full pages show more depth.
-// Safety-sensitive content is excluded from seed data.
 
 interface SeedBoardPost { id: string; category: string; title: string; time: string }
 interface SeedJob       { id: string; type: 'Hiring' | 'Skills'; title: string; neighbourhood: string; time: string }
 interface SeedAlert     { id: string; icon: string; label: string; message: string; isNormal: boolean; time: string }
 
-// One preview board post — announcement, not a safety/crime incident
 const SEED_BOARD_POST: SeedBoardPost = {
   id: 'seed-b1', category: 'announcement',
   title: 'City Cuts Barbershop open today — walk-ins welcome until 6pm',
   time: '4 hours ago',
 };
-
-// One preview job for the feed
 const SEED_JOB: SeedJob = {
   id: 'seed-j1', type: 'Hiring',
   title: 'Domestic worker needed — 3 days per week',
   neighbourhood: 'Berea', time: 'Today',
 };
-
-// One preview alert for the feed — utility/status, not a crime/safety incident
 const SEED_ALERT: SeedAlert = {
   id: 'seed-alert-1', icon: '⚡', label: 'Status',
   message: 'No power or water issues reported in your area',
   isNormal: true, time: 'Updated just now',
 };
 
-// ─── Normalised display types (real + seed share the same render path) ────────
+// ─── Normalised display types ─────────────────────────────────────────────────
 
 interface DisplayBoardPost { id: string; category: string; title: string; timeDisplay: string; isSeed?: boolean }
 interface DisplayJob       { id: string; typeLabel: 'Hiring' | 'Skills'; title: string; neighbourhood: string; timeDisplay: string; isSeed?: boolean }
 
-// ─── Category colour / label maps ────────────────────────────────────────────
+// ─── Category maps ────────────────────────────────────────────────────────────
 
 const CAT_COLORS: Record<string, string> = {
   safety: '#EF4444', announcement: '#39D98A', announcements: '#39D98A',
@@ -126,7 +125,7 @@ const CAT_LABELS: Record<string, string> = {
   question: 'Question', recommendation: 'Recommendation', general: 'General',
 };
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── Skeletons ────────────────────────────────────────────────────────────────
 
 function VenueCardSkeleton() {
   return (
@@ -144,6 +143,89 @@ function VenueCardSkeleton() {
           <div style={{ height: '32px', width: '86px', background: 'var(--color-surface2)', borderRadius: '100px' }} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function FeedItemSkeleton() {
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px 14px', marginBottom: '8px' }}>
+      <div style={{ height: '9px', width: '30%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '9px' }} />
+      <div style={{ height: '13px', width: '85%', background: 'var(--color-surface2)', borderRadius: '4px', marginBottom: '5px' }} />
+      <div style={{ height: '13px', width: '60%', background: 'var(--color-surface2)', borderRadius: '4px' }} />
+    </div>
+  );
+}
+
+// ─── Scope tabs ───────────────────────────────────────────────────────────────
+
+function ScopeTabs({
+  scope, onChange, suburb,
+}: { scope: HomeScope; onChange: (s: HomeScope) => void; suburb: string }) {
+  const tabs: { id: HomeScope; label: string }[] = [
+    { id: 'my_area',    label: suburb ? suburb : 'My Area' },
+    { id: 'nearby',     label: 'Nearby'                    },
+    { id: 'everywhere', label: 'Everywhere'                },
+  ];
+  return (
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+      {tabs.map(tab => {
+        const active = scope === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            style={{
+              flex: tab.id === 'my_area' ? 1.8 : 1,
+              padding: '10px 4px',
+              borderRadius: '100px',
+              border: active ? 'none' : '1px solid rgba(255,255,255,0.12)',
+              background: active ? '#39D98A' : 'rgba(255,255,255,0.04)',
+              color: active ? '#0D1117' : 'rgba(255,255,255,0.45)',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: active ? 800 : 600,
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              whiteSpace: 'nowrap' as const,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Feed section header ──────────────────────────────────────────────────────
+
+function SectionHeader({
+  label, linkLabel, linkColor = '#39D98A', onLink,
+}: {
+  label: string;
+  linkLabel: string;
+  linkColor?: string;
+  onLink: () => void;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <p style={{
+        fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
+        textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: 'rgba(255,255,255,0.3)', margin: 0,
+      }}>
+        {label}
+      </p>
+      <button
+        onClick={onLink}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: linkColor }}
+      >
+        {linkLabel} →
+      </button>
     </div>
   );
 }
@@ -190,32 +272,41 @@ export default function FeedPage() {
   const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
   const [jobPosts,   setJobPosts]   = useState<LocalJob[]>([]);
 
-  // Tracks when async section fetches have resolved
-  const [boardLoaded,   setBoardLoaded]   = useState(false);
-  const [jobsLoaded,    setJobsLoaded]    = useState(false);
-  const [alertsLoaded,  setAlertsLoaded]  = useState(false);
-  const [utilityAlert,  setUtilityAlert]  = useState<UtilityReport | null>(null);
+  // Section load flags
+  const [boardLoaded,  setBoardLoaded]  = useState(false);
+  const [jobsLoaded,   setJobsLoaded]   = useState(false);
+  const [alertsLoaded, setAlertsLoaded] = useState(false);
+  const [utilityAlert, setUtilityAlert] = useState<UtilityReport | null>(null);
 
   const [showComposer, setShowComposer] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [loading,   setLoading]   = useState(true);
-  const [isOnline,  setIsOnline]  = useState(navigator.onLine);
+  const [loading,  setLoading]  = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [cacheDate, setCacheDate] = useState<string | null>(null);
 
   // Pull-to-refresh
-  const [pullDelta,   setPullDelta]   = useState(0);
-  const [refreshing,  setRefreshing]  = useState(false);
-  const [refreshKey,  setRefreshKey]  = useState(0);
+  const [pullDelta,  setPullDelta]  = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const touchStartY   = useRef(0);
   const pullDeltaRef  = useRef(0);
   const refreshingRef = useRef(false);
   const liveRegion    = useRef<HTMLDivElement>(null);
 
-  // Interactivity
+  // Interactivity batch data
   const [headingCounts,       setHeadingCounts]       = useState<Record<string, number>>({});
   const [vibeWinners,         setVibeWinners]         = useState<Record<string, { vibe: VibeType; count: number } | null>>({});
   const [activeStoryVenueIds, setActiveStoryVenueIds] = useState<Set<string>>(new Set());
   const [recCounts,           setRecCounts]           = useState<Record<string, number>>({});
+
+  // ─── Home scope: My Area / Nearby / Everywhere ────────────────────────────
+  const [scope, setScope] = useState<HomeScope>(
+    () => (localStorage.getItem('kayaa_home_scope') as HomeScope | null) ?? 'my_area'
+  );
+  function handleScopeChange(s: HomeScope) {
+    setScope(s);
+    localStorage.setItem('kayaa_home_scope', s);
+  }
 
   const [showAreaGate, setShowAreaGate] = useState(false);
   useEffect(() => {
@@ -259,7 +350,7 @@ export default function FeedPage() {
     }
   }, []);
 
-  // Pull-to-refresh
+  // Pull-to-refresh gesture
   useEffect(() => {
     function onTouchStart(e: TouchEvent) { touchStartY.current = e.touches[0].clientY; }
     function onTouchMove(e: TouchEvent) {
@@ -279,7 +370,6 @@ export default function FeedPage() {
 
   // ─── Main data fetch ──────────────────────────────────────────────────────
   useEffect(() => {
-    // Reset section-level loaded flags when area/country changes
     setBoardLoaded(false);
     setJobsLoaded(false);
     setAlertsLoaded(false);
@@ -296,28 +386,28 @@ export default function FeedPage() {
         setRefreshing(false);
         refreshingRef.current = false;
 
-        // Board: board_posts table, last 7 days — feed shows 1 preview
+        // Board: fetch up to 5 recent posts — display count varies by scope
         getBoardPosts(suburb || '', city || '')
           .then(result => {
             const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             const recent = result.posts
               .filter(p => new Date(p.createdAt).getTime() > sevenDaysAgo)
-              .slice(0, 1);
+              .slice(0, 5);
             setBoardPosts(recent);
             setBoardLoaded(true);
           })
           .catch(() => { setBoardLoaded(true); });
 
-        // Jobs: local_jobs table, exact suburb match — feed shows 1 preview
+        // Jobs: fetch up to 3 listings — display count varies by scope
         if (suburb) {
           getLocalJobs(suburb)
-            .then(jobs => { setJobPosts(jobs.slice(0, 1)); setJobsLoaded(true); })
+            .then(jobs => { setJobPosts(jobs.slice(0, 3)); setJobsLoaded(true); })
             .catch(() => { setJobsLoaded(true); });
         } else {
           setJobsLoaded(true);
         }
 
-        // Alerts preview: utility reports — show first active issue or seed status
+        // Utility alerts preview
         if (suburb) {
           Promise.all([
             getUtilityReports(suburb, 'power'),
@@ -351,70 +441,96 @@ export default function FeedPage() {
             .catch(() => {});
         }
       })
-      .catch(() => { setRefreshing(false); refreshingRef.current = false; setBoardLoaded(true); setJobsLoaded(true); setAlertsLoaded(true); });
+      .catch(() => {
+        setRefreshing(false); refreshingRef.current = false;
+        setBoardLoaded(true); setJobsLoaded(true); setAlertsLoaded(true);
+      });
   }, [areaLabel, selectedCountry.code, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Computed ────────────────────────────────────────────────────────────
+  // ─── Computed: scope-aware selections ────────────────────────────────────
 
-  // Feed shows ONE preview place; full discover page shows all
+  // Places: 2 for My Area, 3 for Nearby, 4 for Everywhere
   const placesNearYou = useMemo(() => {
-    if (!suburb && !city) return rawVenues.slice(0, 1);
+    const fScope = scopeToFeedScope(scope);
+    const limit  = scope === 'my_area' ? 2 : scope === 'nearby' ? 3 : 4;
+    if (!suburb && !city && scope !== 'everywhere') return rawVenues.slice(0, limit);
     return rawVenues
-      .filter(v => isCleanVenue(v) && venueInScope(v, 'this_neighbourhood', suburb, city, userLat, userLon))
-      .slice(0, 1);
-  }, [rawVenues, suburb, city, userLat, userLon]);
+      .filter(v => isCleanVenue(v) && venueInScope(v, fScope, suburb, city, userLat, userLon))
+      .slice(0, limit);
+  }, [rawVenues, suburb, city, userLat, userLon, scope]);
 
-  // sparseLocal note removed — feed intentionally shows one preview place
-
-  // Normalise real board post → DisplayBoardPost (1 item for feed preview), fall back to seed
+  // Board posts: 1 for My Area, 2 for Nearby, 3 for Everywhere
   const displayBoardPosts = useMemo<DisplayBoardPost[]>(() => {
     if (!boardLoaded) return [];
+    const limit = scope === 'my_area' ? 1 : scope === 'nearby' ? 2 : 3;
     if (boardPosts.length > 0) {
-      return [{
-        id: boardPosts[0].id,
-        category: boardPosts[0].category || 'general',
-        title: boardPosts[0].title || boardPosts[0].description || '',
-        timeDisplay: timeAgo(boardPosts[0].createdAt),
+      return boardPosts.slice(0, limit).map(p => ({
+        id: p.id,
+        category: p.category || 'general',
+        title: p.title || p.description || '',
+        timeDisplay: timeAgo(p.createdAt),
         isSeed: false,
-      }];
+      }));
     }
-    return [{ id: SEED_BOARD_POST.id, category: SEED_BOARD_POST.category, title: SEED_BOARD_POST.title, timeDisplay: SEED_BOARD_POST.time, isSeed: true }];
-  }, [boardLoaded, boardPosts]);
+    // Seed fallback
+    return [{
+      id: SEED_BOARD_POST.id, category: SEED_BOARD_POST.category,
+      title: SEED_BOARD_POST.title, timeDisplay: SEED_BOARD_POST.time, isSeed: true,
+    }];
+  }, [boardLoaded, boardPosts, scope]);
 
-  // Normalise real job → DisplayJob (1 item for feed preview), fall back to seed
+  // Jobs: 1 for My Area, 2 for Nearby/Everywhere
   const displayJobs = useMemo<DisplayJob[]>(() => {
     if (!jobsLoaded) return [];
+    const limit = scope === 'my_area' ? 1 : 2;
     if (jobPosts.length > 0) {
-      return [{
-        id: jobPosts[0].id,
-        typeLabel: jobPosts[0].jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
-        title: jobPosts[0].title,
-        neighbourhood: jobPosts[0].neighbourhood,
-        timeDisplay: timeAgo(jobPosts[0].createdAt),
+      return jobPosts.slice(0, limit).map(p => ({
+        id: p.id,
+        typeLabel: p.jobType === 'skill_offer' ? 'Skills' as const : 'Hiring' as const,
+        title: p.title,
+        neighbourhood: p.neighbourhood,
+        timeDisplay: timeAgo(p.createdAt),
         isSeed: false,
-      }];
+      }));
     }
-    return [{ id: SEED_JOB.id, typeLabel: SEED_JOB.type, title: SEED_JOB.title, neighbourhood: SEED_JOB.neighbourhood, timeDisplay: SEED_JOB.time, isSeed: true }];
-  }, [jobsLoaded, jobPosts]);
+    return [{
+      id: SEED_JOB.id, typeLabel: SEED_JOB.type, title: SEED_JOB.title,
+      neighbourhood: SEED_JOB.neighbourhood, timeDisplay: SEED_JOB.time, isSeed: true,
+    }];
+  }, [jobsLoaded, jobPosts, scope]);
+
+  // Live pulse — venues with a check-in in the last 2 hours
+  const activeNow = useMemo(
+    () => rawVenues.filter(v => v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000).length,
+    [rawVenues],
+  );
+
+  // Context label used in section headers e.g. "Berea" / "near Berea" / "everywhere"
+  const scopeContext = scope === 'my_area'
+    ? (suburb || 'your area')
+    : scope === 'nearby'
+      ? `near ${suburb || 'you'}`
+      : 'everywhere';
+
+  // Places section label
+  const placesLabel = scope === 'my_area'
+    ? `Places in ${suburb || 'your area'}`
+    : scope === 'nearby' ? 'Places nearby' : 'Places everywhere';
 
   const [welcomeDismissed, setWelcomeDismissed] = useState(
     () => localStorage.getItem('kayaa_welcome_dismissed') === 'true'
   );
   const showWelcomeHint = !loading && !welcomeDismissed;
 
-  const [placesHintDismissed, setPlacesHintDismissed] = useState(
-    () => localStorage.getItem('kayaa_places_hint_seen') === 'true'
-  );
-  const showPlacesHint = !loading && !placesHintDismissed;
-
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div style={{ padding: '16px', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Accessible live region */}
       <div ref={liveRegion} role="status" aria-live="polite" className="sr-only">
-        {loading ? 'Loading places…' : refreshing ? 'Refreshing…' : `${placesNearYou.length} place${placesNearYou.length !== 1 ? 's' : ''} loaded`}
+        {loading ? 'Loading…' : refreshing ? 'Refreshing…' : `${placesNearYou.length} place${placesNearYou.length !== 1 ? 's' : ''} loaded`}
       </div>
 
       {/* Pull-to-refresh indicator */}
@@ -442,13 +558,15 @@ export default function FeedPage() {
           <div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F59E0B' }}>You're offline</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px', lineHeight: 1.4 }}>
-              {cacheDate ? `Showing places saved ${new Date(cacheDate).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}. Some info may be outdated.` : 'No cached data available. Connect to the internet to load places.'}
+              {cacheDate
+                ? `Showing places saved ${new Date(cacheDate).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' })}. Some info may be outdated.`
+                : 'No cached data available. Connect to the internet to load places.'}
             </div>
           </div>
         </div>
       )}
 
-      {/* GPS confirmation banner */}
+      {/* GPS confirmation */}
       {showGpsConfirm && !manualOverride && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '12px', padding: '10px 14px', marginBottom: '12px' }}>
           <span style={{ fontSize: '15px', flexShrink: 0 }}>📍</span>
@@ -480,7 +598,9 @@ export default function FeedPage() {
               style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px' }}
             >Set</button>
           </div>
-          <button onClick={() => setShowAreaSearch(false)} style={{ marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', padding: 0 }}>Cancel — use my GPS location</button>
+          <button onClick={() => setShowAreaSearch(false)} style={{ marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', padding: 0 }}>
+            Cancel — use my GPS location
+          </button>
         </div>
       )}
 
@@ -502,13 +622,14 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── 1. Neighbourhood header ─────────────────────────────────────────── */}
-      <div style={{ marginBottom: '20px' }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(57,217,138,0.6)', margin: '0 0 6px' }}>
+      {/* ══════════════════════════════════════════════════════════════════════
+          ── 1. AREA HEADER — greeting + name + live pulse
+          ═════════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: '18px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(57,217,138,0.6)', margin: '0 0 5px' }}>
           {getGreeting()}
         </p>
-        {/* Neighbourhood title + explicit change affordance */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '28px', color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>
             {areaLabel}
           </h1>
@@ -530,80 +651,203 @@ export default function FeedPage() {
             <ChevronDown size={12} />
           </button>
         </div>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#9CA3AF', margin: '0 0 10px' }}>
-          {!suburb
-            ? 'Set your neighbourhood to see places nearby'
-            : rawVenues.length === 0
-              ? `No places in ${suburb} yet — be the first to add one`
-              : `${rawVenues.length} place${rawVenues.length !== 1 ? 's' : ''} in your neighbourhood`}
-        </p>
-        {!loading && rawVenues.length > 0 && (() => {
-          const activeNow = rawVenues.filter(v => v.lastCheckinAt && Date.now() - new Date(v.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000).length;
-          if (activeNow === 0) return null;
-          const dateStr = new Date().toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' });
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+
+        {/* Live pulse row — real signals from real data */}
+        {!loading && (
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', minHeight: '18px' }}>
+            {activeNow > 0 && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#39D98A' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 5px rgba(57,217,138,0.6)' }} />
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#39D98A', display: 'inline-block', boxShadow: '0 0 6px rgba(57,217,138,0.7)', animation: 'kDotPulse 2s ease-in-out infinite' }} />
                 {activeNow} active now
               </span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{dateStr}</span>
-            </div>
-          );
-        })()}
+            )}
+            {boardPosts.length > 0 && (
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+                {boardPosts.length} post{boardPosts.length !== 1 ? 's' : ''} today
+              </span>
+            )}
+            {jobPosts.length > 0 && (
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)' }}>
+                {jobPosts.length} job{jobPosts.length !== 1 ? 's' : ''} near you
+              </span>
+            )}
+            {rawVenues.length > 0 && activeNow === 0 && boardPosts.length === 0 && (
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                {rawVenues.length} place{rawVenues.length !== 1 ? 's' : ''} in your area
+              </span>
+            )}
+            {!suburb && rawVenues.length === 0 && (
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+                Set your area to see what's happening
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── 2. PostBar + PushBanner ─────────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          ── 2. SCOPE TABS — My Area | Nearby | Everywhere
+          ═════════════════════════════════════════════════════════════════════ */}
+      <ScopeTabs scope={scope} onChange={handleScopeChange} suburb={suburb} />
+
+      {/* ── 3. PostBar + Push ───────────────────────────────────────────────── */}
       <PostBar suburb={suburb || areaLabel} onPost={() => setShowComposer(true)} onAddPlace={() => setQuickAddOpen(true)} />
       <PushBanner />
 
-      {/* ── 3. Utility pills ────────────────────────────────────────────────── */}
-      <UtilityPillStrip suburb={suburb} />
+      {/* ══════════════════════════════════════════════════════════════════════
+          ── FEED STREAM — ordered by relevance:
+          1. Urgent alert  2. Community posts  3. Jobs  4. Places  5. Ask CTA  6. Status
+          ═════════════════════════════════════════════════════════════════════ */}
 
-      {/* ── 4. Places near you ──────────────────────────────────────────────── */}
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Places near you</p>
-          <button onClick={() => navigate('/neighbourhood')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>Browse all →</button>
-        </div>
-
-        {showPlacesHint && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
-              These are the businesses and spots in your area. Tap one to learn more or check in when you visit.
-            </p>
-            <button
-              onClick={() => { localStorage.setItem('kayaa_places_hint_seen', 'true'); setPlacesHintDismissed(true); }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', padding: 0, flexShrink: 0, fontSize: '14px', lineHeight: 1 }}
-              aria-label="Dismiss"
-            >×</button>
+      {/* ── FEED 1: Urgent utility alert ──────────────────────────────────── */}
+      {alertsLoaded && utilityAlert && (() => {
+        const POWER_LABELS: Record<string, { icon: string; label: string }> = {
+          power_out:     { icon: '⚡', label: 'Power out' },
+          load_shedding: { icon: '🔁', label: 'Load shedding' },
+          flickering:    { icon: '💡', label: 'Flickering' },
+          streetlights:  { icon: '🔦', label: 'Streetlights out' },
+        };
+        const WATER_LABELS: Record<string, { icon: string; label: string }> = {
+          no_water:    { icon: '🚱', label: 'No water' },
+          low_pressure:{ icon: '📉', label: 'Low pressure' },
+          dirty_water: { icon: '🟤', label: 'Dirty water' },
+          leak_burst:  { icon: '💧', label: 'Leak / burst pipe' },
+        };
+        const isPower = utilityAlert.category === 'power';
+        const meta = isPower
+          ? (POWER_LABELS[utilityAlert.issueType] ?? { icon: '⚡', label: 'Power issue' })
+          : (WATER_LABELS[utilityAlert.issueType] ?? { icon: '💧', label: 'Water issue' });
+        const color = isPower ? '#FBBF24' : '#60A5FA';
+        return (
+          <div style={{ marginBottom: '20px' }}>
+            <SectionHeader label="⚠️ Neighbourhood Alert" linkLabel="See all" linkColor="#60A5FA" onLink={() => navigate('/alerts')} />
+            <div onClick={() => navigate('/alerts')} style={{ background: `${color}08`, border: `1px solid ${color}30`, borderLeft: `3px solid ${color}`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{meta.icon} {meta.label}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(utilityAlert.createdAt)}</span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+                📍 {utilityAlert.areaDetail}
+                {utilityAlert.reportCount > 1 && <span style={{ color, fontWeight: 700 }}> · {utilityAlert.reportCount} reports</span>}
+              </p>
+            </div>
           </div>
-        )}
+        );
+      })()}
+
+      {/* ── FEED 2: Community board posts ─────────────────────────────────── */}
+      {boardLoaded && displayBoardPosts.length > 0 ? (
+        <div style={{ marginBottom: '20px' }}>
+          <SectionHeader
+            label={`Community · ${scopeContext}`}
+            linkLabel="See all"
+            onLink={() => navigate('/board')}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {displayBoardPosts.map(post => {
+              const color = CAT_COLORS[post.category] ?? CAT_COLORS.general;
+              const label = CAT_LABELS[post.category] ?? post.category;
+              return (
+                <div
+                  key={post.id}
+                  onClick={() => navigate('/board')}
+                  style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <span style={{ display: 'inline-block', fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
+                      {post.isSeed && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>example</span>}
+                    </div>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                    {post.title}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : !boardLoaded ? (
+        <div style={{ marginBottom: '20px' }}>
+          <FeedItemSkeleton />
+        </div>
+      ) : null}
+
+      {/* ── FEED 3: Jobs & Skills ──────────────────────────────────────────── */}
+      {jobsLoaded && displayJobs.length > 0 ? (
+        <div style={{ marginBottom: '20px' }}>
+          <SectionHeader
+            label={`Jobs & Skills · ${scopeContext}`}
+            linkLabel="Browse all"
+            linkColor="#A78BFA"
+            onLink={() => navigate('/jobs')}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {displayJobs.map(job => {
+              const isSkill = job.typeLabel === 'Skills';
+              const badgeColor = isSkill ? '#39D98A' : '#A78BFA';
+              return (
+                <div
+                  key={job.id}
+                  onClick={() => navigate('/jobs')}
+                  style={{ background: 'var(--color-surface)', border: `1px solid ${badgeColor}18`, borderLeft: `3px solid ${badgeColor}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: badgeColor, background: `${badgeColor}18`, borderRadius: '20px', padding: '2px 8px' }}>{isSkill ? '💡 Skills' : '💼 Hiring'}</span>
+                      {job.isSeed && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>example</span>}
+                    </div>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+                    {job.title}
+                  </p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>📍 {job.neighbourhood}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : !jobsLoaded ? (
+        <div style={{ marginBottom: '20px' }}>
+          <FeedItemSkeleton />
+        </div>
+      ) : null}
+
+      {/* ── FEED 4: Places near you ────────────────────────────────────────── */}
+      <div style={{ marginBottom: '28px' }}>
+        <SectionHeader label={placesLabel} linkLabel="Browse all" onLink={() => navigate('/neighbourhood')} />
 
         {loading ? (
-          <VenueCardSkeleton />
+          <>
+            <VenueCardSkeleton />
+            {scope !== 'my_area' && <VenueCardSkeleton />}
+          </>
         ) : placesNearYou.length > 0 ? (
-          <VenueCard
-              venue={placesNearYou[0]}
-              headingCount={headingCounts[placesNearYou[0].id] ?? 0}
-              vibeWinner={vibeWinners[placesNearYou[0].id] ?? null}
-              hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)}
-              recCount={recCounts[placesNearYou[0].id] ?? 0}
+          placesNearYou.map(venue => (
+            <VenueCard
+              key={venue.id}
+              venue={venue}
+              headingCount={headingCounts[venue.id] ?? 0}
+              vibeWinner={vibeWinners[venue.id] ?? null}
+              hasActiveStory={activeStoryVenueIds.has(venue.id)}
+              recCount={recCounts[venue.id] ?? 0}
               distance={
                 userLat != null && userLon != null &&
-                placesNearYou[0].latitude != null && placesNearYou[0].longitude != null
-                  ? haversineKm(userLat, userLon, placesNearYou[0].latitude, placesNearYou[0].longitude)
+                venue.latitude != null && venue.longitude != null
+                  ? haversineKm(userLat, userLon, venue.latitude, venue.longitude)
                   : null
               }
             />
+          ))
         ) : (
-          <div style={{
-            border: '1.5px dashed rgba(255,255,255,0.10)',
-            borderRadius: '16px', padding: '28px 20px', textAlign: 'center',
-          }}>
+          <div style={{ border: '1.5px dashed rgba(255,255,255,0.10)', borderRadius: '16px', padding: '28px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '10px' }}>🗺️</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>
-              {suburb || areaLabel} is waiting to be discovered.
+              {scope === 'everywhere'
+                ? 'No places on Kayaa yet'
+                : `${suburb || areaLabel} is waiting to be discovered`}
             </div>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.6, margin: '0 0 16px' }}>
               Be the first to add a business and put your area on the map.
@@ -618,48 +862,7 @@ export default function FeedPage() {
         )}
       </div>
 
-      {/* ── 5. Welcome card (first visit, dismissible) ──────────────────────── */}
-      {showWelcomeHint && (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px' }}>
-          <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>Explore nearby places, check in where you go, and stay on top of alerts.</p>
-          </div>
-          <button onClick={() => { localStorage.setItem('kayaa_welcome_dismissed', 'true'); setWelcomeDismissed(true); }} aria-label="Dismiss welcome hint" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, fontSize: '16px', lineHeight: 1 }}>×</button>
-        </div>
-      )}
-
-      {/* ── 6. From the Board — ONE preview post (real or starter) ────────── */}
-      {boardLoaded && displayBoardPosts.length > 0 && (() => {
-        const post = displayBoardPosts[0];
-        const color = CAT_COLORS[post.category] ?? CAT_COLORS.general;
-        const label = CAT_LABELS[post.category] ?? post.category;
-        return (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>From the Board</p>
-                {post.isSeed && (
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
-                )}
-              </div>
-              <button onClick={() => navigate('/board')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#39D98A' }}>See all posts →</button>
-            </div>
-            <div onClick={() => navigate('/board')} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ display: 'inline-block', fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{label}</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{post.timeDisplay}</span>
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-                {post.title}
-              </p>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ── Ask the neighbourhood teaser ──────────────────────────────────── */}
+      {/* ── FEED 5: Ask the neighbourhood ─────────────────────────────────── */}
       {boardLoaded && (
         <div
           onClick={() => navigate('/board/new?cat=ask')}
@@ -677,18 +880,10 @@ export default function FeedPage() {
         >
           <span style={{ fontSize: '20px', flexShrink: 0 }}>❓</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{
-              fontFamily: 'Inter, sans-serif', fontWeight: 700,
-              fontSize: '13px', color: '#A78BFA',
-              margin: '0 0 2px',
-            }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#A78BFA', margin: '0 0 2px' }}>
               Ask {suburb || 'the neighbourhood'}
             </p>
-            <p style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '12px',
-              color: 'rgba(255,255,255,0.4)', margin: 0,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Good mechanic near here? Best shisanyama? Your neighbours know.
             </p>
           </div>
@@ -696,100 +891,44 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* ── 7. Jobs & Skills — ONE preview listing (real or starter) ──────── */}
-      {jobsLoaded && displayJobs.length > 0 && (() => {
-        const job = displayJobs[0];
-        const isSkill = job.typeLabel === 'Skills';
-        const badgeColor = isSkill ? '#39D98A' : '#A78BFA';
-        return (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-                  Jobs &amp; Skills{suburb ? ` · ${suburb}` : ''}
-                </p>
-                {job.isSeed && (
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
-                )}
-              </div>
-              <button onClick={() => navigate('/jobs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#A78BFA' }}>Browse all jobs →</button>
+      {/* ── FEED 6: Neighbourhood status (calm "all clear" when no alert) ──── */}
+      {alertsLoaded && !utilityAlert && (
+        <div style={{ marginBottom: '20px' }}>
+          <SectionHeader label="Neighbourhood Status" linkLabel="See all alerts" linkColor="#60A5FA" onLink={() => navigate('/alerts')} />
+          <div
+            onClick={() => navigate('/alerts')}
+            style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)', borderLeft: '3px solid rgba(57,217,138,0.4)', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span style={{ fontSize: '18px', flexShrink: 0 }}>{SEED_ALERT.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '13px', color: '#39D98A', margin: '0 0 2px', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{SEED_ALERT.label}</p>
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, fontFamily: 'Inter, sans-serif' }}>{SEED_ALERT.message}</p>
             </div>
-            <div onClick={() => navigate('/jobs')} style={{ background: 'var(--color-surface)', border: `1px solid ${badgeColor}18`, borderLeft: `3px solid ${badgeColor}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color: badgeColor, background: `${badgeColor}18`, borderRadius: '20px', padding: '2px 8px' }}>{isSkill ? '💡 Skills' : '💼 Hiring'}</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{job.timeDisplay}</span>
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
-                {job.title}
-              </p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>📍 {job.neighbourhood}</p>
-            </div>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{SEED_ALERT.time}</span>
           </div>
-        );
-      })()}
+        </div>
+      )}
 
-      {/* ── 8. Alerts preview — ONE status/utility item (real or starter) ─── */}
-      {alertsLoaded && (() => {
-        const POWER_LABELS: Record<string, { icon: string; label: string }> = {
-          power_out:     { icon: '⚡', label: 'Power out' },
-          load_shedding: { icon: '🔁', label: 'Load shedding' },
-          flickering:    { icon: '💡', label: 'Flickering' },
-          streetlights:  { icon: '🔦', label: 'Streetlights out' },
-        };
-        const WATER_LABELS: Record<string, { icon: string; label: string }> = {
-          no_water:    { icon: '🚱', label: 'No water' },
-          low_pressure:{ icon: '📉', label: 'Low pressure' },
-          dirty_water: { icon: '🟤', label: 'Dirty water' },
-          leak_burst:  { icon: '💧', label: 'Leak / burst pipe' },
-        };
+      {/* ── Utility pill strip (quick access at bottom of feed) ─────────────── */}
+      <UtilityPillStrip suburb={suburb} />
 
-        if (utilityAlert) {
-          const isPower = utilityAlert.category === 'power';
-          const meta = isPower
-            ? (POWER_LABELS[utilityAlert.issueType] ?? { icon: '⚡', label: 'Power issue' })
-            : (WATER_LABELS[utilityAlert.issueType] ?? { icon: '💧', label: 'Water issue' });
-          const color = isPower ? '#FBBF24' : '#60A5FA';
-          return (
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
-                <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
-              </div>
-              <div onClick={() => navigate('/alerts')} style={{ background: `${color}08`, border: `1px solid ${color}20`, borderLeft: `3px solid ${color}55`, borderRadius: '12px', padding: '12px 14px', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 700, color, background: `${color}18`, borderRadius: '20px', padding: '2px 8px' }}>{meta.icon} {meta.label}</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(utilityAlert.createdAt)}</span>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0, lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
-                  📍 {utilityAlert.areaDetail}
-                  {utilityAlert.reportCount > 1 && <span style={{ color, fontWeight: 700 }}> · {utilityAlert.reportCount} reports</span>}
-                </p>
-              </div>
-            </div>
-          );
-        }
-
-        // Starter: calm "all clear" status card — not a fake crime/safety incident
-        return (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Neighbourhood Status</p>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '1px 6px' }}>local example</span>
-              </div>
-              <button onClick={() => navigate('/alerts')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600, color: '#60A5FA' }}>See all alerts →</button>
-            </div>
-            <div onClick={() => navigate('/alerts')} style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.15)', borderLeft: '3px solid rgba(57,217,138,0.4)', borderRadius: '12px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '18px', flexShrink: 0 }}>{SEED_ALERT.icon}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '13px', color: '#39D98A', margin: '0 0 2px', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{SEED_ALERT.label}</p>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, fontFamily: 'Inter, sans-serif' }}>{SEED_ALERT.message}</p>
-              </div>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{SEED_ALERT.time}</span>
-            </div>
+      {/* ── Welcome hint — first visit only ─────────────────────────────────── */}
+      {showWelcomeHint && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px' }}>
+          <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>
+              Explore nearby places, check in where you go, and stay on top of what's happening.
+            </p>
           </div>
-        );
-      })()}
+          <button
+            onClick={() => { localStorage.setItem('kayaa_welcome_dismissed', 'true'); setWelcomeDismissed(true); }}
+            aria-label="Dismiss welcome hint"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, fontSize: '16px', lineHeight: 1 }}
+          >×</button>
+        </div>
+      )}
 
       {/* Neighbourhood gate */}
       {showAreaGate && <NeighbourhoodGate onDone={() => setShowAreaGate(false)} />}
