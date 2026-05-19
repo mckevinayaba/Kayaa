@@ -6,17 +6,17 @@ interface CreateSheetProps {
   onClose: () => void;
 }
 
-const SECONDARY_ACTIONS = [
-  { emoji: '📋', label: 'Post to Board',   to: '/board/new'         },
-  { emoji: '💼', label: 'Post a Job',       to: '/board/new?type=job' },
-  { emoji: '🚨', label: 'Safety Alert',    to: '/report/safety'     },
-  { emoji: '📸', label: 'Share a Moment',  to: '/moments/new'       },
+const GRID_ACTIONS = [
+  { emoji: '📝', label: 'Post to Board',  to: '/board/new'           },
+  { emoji: '💼', label: 'Post a Job',     to: '/board/new?type=job'  },
+  { emoji: '🚨', label: 'Report Safety',  to: '/report/safety'       },
+  { emoji: '🎉', label: 'Share a Moment', to: '/moments/new'         },
 ];
 
 export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
   const navigate = useNavigate();
 
-  // Lock scroll while sheet is open
+  // Lock body scroll while open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -30,106 +30,169 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* ── Full-screen container — flex column so header + sheet stack ──── */}
       <div
-        onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(3px)',
-          animation: 'csBackdropIn 0.2s ease both',
-        }}
-      />
-
-      {/* Sheet */}
-      <div
-        style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
-          background: '#161B22',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '20px 20px 0 0',
-          padding: '0 16px calc(env(safe-area-inset-bottom, 0px) + 24px)',
-          animation: 'csSlideUp 0.25s cubic-bezier(0.32,0.72,0,1) both',
-          maxWidth: '640px',
-          margin: '0 auto',
+          display: 'flex', flexDirection: 'column',
+          animation: 'csOverlayIn 0.2s ease both',
         }}
       >
-        {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
-          <div style={{
-            width: '40px', height: '4px', borderRadius: '2px',
-            background: 'rgba(255,255,255,0.18)',
-          }} />
-        </div>
-
-        {/* PRIMARY: Add your business */}
-        <button
-          onClick={() => go('/onboarding')}
+        {/* ── Top area: dark scrim + context header — tap to dismiss ──────── */}
+        <div
+          onClick={onClose}
           style={{
-            width: '100%', padding: '20px 20px',
-            background: '#39D98A', border: 'none', borderRadius: '16px',
-            cursor: 'pointer', marginBottom: '12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+            flex: 1,
+            background: 'rgba(7,10,15,0.88)',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: '0 32px',
+            cursor: 'pointer',
           }}
         >
-          <span style={{ fontSize: '22px' }}>🏪</span>
-          <div style={{ textAlign: 'left' }}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              textAlign: 'center',
+              animation: 'csHeaderIn 0.22s 0.1s ease both',
+              cursor: 'default',
+            }}
+          >
             <div style={{
-              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px',
-              color: '#0D1117', lineHeight: 1.2,
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
+              color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.2,
+              marginBottom: '8px',
             }}>
-              Add your business
+              {suburb ? `Create in ${suburb}` : 'Create'}
             </div>
             <div style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '12px',
-              color: 'rgba(13,17,23,0.6)', marginTop: '2px',
+              fontFamily: 'Inter, sans-serif', fontSize: '14px',
+              color: 'rgba(255,255,255,0.45)', lineHeight: 1.55,
             }}>
-              List your place on Kayaa for free
+              Add your business or share something useful nearby.
             </div>
           </div>
-        </button>
-
-        {/* SECONDARY: 2×2 grid */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: '8px', marginBottom: '16px',
-        }}>
-          {SECONDARY_ACTIONS.map(({ emoji, label, to }) => (
-            <button
-              key={to}
-              onClick={() => go(to)}
-              style={{
-                padding: '14px 12px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '14px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '10px',
-              }}
-            >
-              <span style={{ fontSize: '18px', flexShrink: 0 }}>{emoji}</span>
-              <span style={{
-                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
-                color: 'rgba(255,255,255,0.8)', textAlign: 'left', lineHeight: 1.3,
-              }}>
-                {label}
-              </span>
-            </button>
-          ))}
         </div>
 
-        {/* Footer: neighbourhood context */}
-        <div style={{
-          textAlign: 'center',
-          fontFamily: 'Inter, sans-serif', fontSize: '12px',
-          color: 'rgba(255,255,255,0.3)',
-        }}>
-          {suburb ? `Posting to ${suburb}` : 'Set your neighbourhood to post'}
+        {/* ── Bottom sheet ─────────────────────────────────────────────────── */}
+        <div
+          style={{
+            background: '#161B22',
+            borderTop: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: '20px 20px 0 0',
+            padding: `0 16px calc(env(safe-area-inset-bottom, 0px) + 24px)`,
+            animation: 'csSlideUp 0.26s 0.04s cubic-bezier(0.32,0.72,0,1) both',
+          }}
+        >
+          {/* Drag handle */}
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 20px' }}>
+            <div style={{
+              width: '36px', height: '4px', borderRadius: '2px',
+              background: 'rgba(255,255,255,0.15)',
+            }} />
+          </div>
+
+          {/* 1. PRIMARY — Add your business */}
+          <button
+            onClick={() => go('/onboarding')}
+            style={{
+              width: '100%', padding: '18px 20px',
+              background: '#39D98A', border: 'none', borderRadius: '14px',
+              cursor: 'pointer', marginBottom: '10px',
+              display: 'flex', alignItems: 'center', gap: '14px',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: '22px', flexShrink: 0 }}>🏪</span>
+            <div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '16px',
+                color: '#0D1117', lineHeight: 1.2,
+              }}>
+                Add your business
+              </div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
+                color: 'rgba(13,17,23,0.55)', marginTop: '3px',
+              }}>
+                Free. Takes 2 minutes. No email needed.
+              </div>
+            </div>
+          </button>
+
+          {/* 2. SECONDARY STRONG — Claim your business */}
+          <button
+            onClick={() => go('/onboarding?mode=claim')}
+            style={{
+              width: '100%', padding: '14px 20px',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '14px', cursor: 'pointer', marginBottom: '12px',
+              display: 'flex', alignItems: 'center', gap: '14px',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>✋</span>
+            <div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
+                color: 'rgba(255,255,255,0.85)', lineHeight: 1.2,
+              }}>
+                Claim your business
+              </div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
+                color: 'rgba(255,255,255,0.38)', marginTop: '3px',
+              }}>
+                Already on Kayaa? Take control of your page.
+              </div>
+            </div>
+          </button>
+
+          {/* 3. GRID — smaller actions */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr',
+            gap: '8px', marginBottom: '18px',
+          }}>
+            {GRID_ACTIONS.map(({ emoji, label, to }) => (
+              <button
+                key={to}
+                onClick={() => go(to)}
+                style={{
+                  padding: '13px 12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '12px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '9px',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: '16px', flexShrink: 0 }}>{emoji}</span>
+                <span style={{
+                  fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
+                  color: 'rgba(255,255,255,0.7)', lineHeight: 1.3,
+                }}>
+                  {label}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* 4. FOOTER — neighbourhood context */}
+          <div style={{
+            textAlign: 'center',
+            fontFamily: 'Inter, sans-serif', fontSize: '12px',
+            color: 'rgba(255,255,255,0.28)',
+          }}>
+            {suburb ? `You are in ${suburb}` : 'Set your neighbourhood to post locally'}
+          </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes csBackdropIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes csSlideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+        @keyframes csOverlayIn  { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes csHeaderIn   { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes csSlideUp    { from { transform: translateY(100%) } to { transform: translateY(0) } }
       `}</style>
     </>
   );
