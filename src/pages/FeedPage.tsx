@@ -583,7 +583,19 @@ export default function FeedPage() {
         {loading ? (
           <VenueCardSkeleton />
         ) : placesNearYou.length > 0 ? (
-          <VenueCard venue={placesNearYou[0]} headingCount={headingCounts[placesNearYou[0].id] ?? 0} vibeWinner={vibeWinners[placesNearYou[0].id] ?? null} hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)} recCount={recCounts[placesNearYou[0].id] ?? 0} />
+          <VenueCard
+              venue={placesNearYou[0]}
+              headingCount={headingCounts[placesNearYou[0].id] ?? 0}
+              vibeWinner={vibeWinners[placesNearYou[0].id] ?? null}
+              hasActiveStory={activeStoryVenueIds.has(placesNearYou[0].id)}
+              recCount={recCounts[placesNearYou[0].id] ?? 0}
+              distance={
+                userLat != null && userLon != null &&
+                placesNearYou[0].latitude != null && placesNearYou[0].longitude != null
+                  ? haversineKm(userLat, userLon, placesNearYou[0].latitude, placesNearYou[0].longitude)
+                  : null
+              }
+            />
         ) : (
           <div style={{
             border: '1.5px dashed rgba(255,255,255,0.10)',

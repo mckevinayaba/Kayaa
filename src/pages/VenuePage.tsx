@@ -369,14 +369,31 @@ function PhotoGalleryHero({
         </h1>
 
         {/* Address + distance */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-            <MapPin size={12} />
-            {venue.neighborhood}, {venue.city}
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
+            <MapPin size={13} color="rgba(255,255,255,0.7)" style={{ flexShrink: 0, marginTop: '2px' } as React.CSSProperties} />
+            <div>
+              {venue.address ? (
+                <span style={{
+                  fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: 600,
+                  lineHeight: 1.35, display: 'block',
+                  textShadow: '0 1px 8px rgba(0,0,0,0.7)',
+                }}>
+                  {venue.address}
+                </span>
+              ) : null}
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', display: 'block', marginTop: venue.address ? '1px' : 0 }}>
+                {venue.neighborhood}, {venue.city}
+              </span>
+            </div>
+          </div>
           {distance !== null && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-              <Navigation size={12} />
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              fontSize: '12px', fontWeight: 700, color: '#39D98A',
+              marginLeft: '18px',
+            }}>
+              <Navigation size={11} />
               {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`} away
             </span>
           )}
@@ -2211,12 +2228,12 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
         </h2>
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '14px', padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
+            <MapPin size={16} color="#39D98A" style={{ flexShrink: 0, marginTop: '2px' } as React.CSSProperties} />
             <div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.55 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.92)', margin: '0 0 3px', lineHeight: 1.45 }}>
                 {venue.address}
               </p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>
                 {venue.neighborhood}, {venue.city}
               </p>
             </div>
@@ -2237,19 +2254,20 @@ function LocationSection({ venue, distance }: { venue: Venue; distance: number |
 
         {/* Address row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
-          <MapPin size={16} color="var(--color-muted)" style={{ flexShrink: 0, marginTop: '1px' } as React.CSSProperties} />
+          <MapPin size={16} color="#39D98A" style={{ flexShrink: 0, marginTop: '2px' } as React.CSSProperties} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {venue.address && (
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '0 0 2px', lineHeight: 1.5 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.92)', margin: '0 0 3px', lineHeight: 1.45 }}>
                 {venue.address}
               </p>
             )}
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>
               {venue.neighborhood}, {venue.city}
+              {venue.province ? `, ${venue.province}` : ''}
             </p>
             {distance !== null && (
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 600, margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Navigation size={12} />
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#39D98A', fontWeight: 700, margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '5px' } as React.CSSProperties}>
+                <Navigation size={13} />
                 {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} from you
               </p>
             )}

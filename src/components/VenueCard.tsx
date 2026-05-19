@@ -39,6 +39,19 @@ function getHumanDetail(description: string): string {
   return sentence.length > 60 ? sentence.slice(0, 57) + '…' : sentence;
 }
 
+/**
+ * Returns the street-level part of a full address (everything before the
+ * first comma), capped at `max` chars. Returns null if the street part is
+ * essentially just the neighbourhood name (no useful info to add).
+ */
+function streetPart(address: string, neighborhood: string, max = 50): string | null {
+  if (!address) return null;
+  const first = address.split(',')[0].trim();
+  if (!first || first.length <= 3) return null;
+  if (first.toLowerCase() === neighborhood.toLowerCase()) return null;
+  return first.length <= max ? first : first.slice(0, max - 1) + '…';
+}
+
 interface VenueCardProps {
   venue: Venue;
   headingCount?: number;
@@ -47,9 +60,10 @@ interface VenueCardProps {
   onStoryTap?: () => void;
   recommendationReason?: string;
   recCount?: number;  // neighbour recommendation count
+  distance?: number | null;  // km from user — shown when available
 }
 
-export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0 }: VenueCardProps) {
+export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0, distance = null }: VenueCardProps) {
   const navigate = useNavigate();
   const emoji  = getCategoryEmoji(venue.category);
   const color  = categoryColor[venue.category] ?? '#39D98A';
@@ -287,17 +301,45 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
             )}
           </div>
 
-          {/* Location + status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '11px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <MapPin size={11} color="var(--color-muted2)" />
-              <span style={{ fontSize: '12px', color: 'var(--color-muted2)' }}>
-                {venue.neighborhood}, {venue.city}
-              </span>
+          {/* Location + address + distance + status */}
+          <div style={{ marginBottom: '11px' }}>
+            {/* Row 1: neighbourhood, city, distance badge, open status */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <MapPin size={11} color="var(--color-muted2)" />
+                <span style={{ fontSize: '12px', color: 'var(--color-muted2)' }}>
+                  {venue.neighborhood}, {venue.city}
+                </span>
+              </div>
+              {distance != null && (
+                <span style={{
+                  fontSize: '11px', fontWeight: 700, color: '#39D98A',
+                  background: 'rgba(57,217,138,0.09)',
+                  border: '1px solid rgba(57,217,138,0.2)',
+                  borderRadius: '20px', padding: '2px 7px',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`} away
+                </span>
+              )}
+              {openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today' && (
+                <VenueStatusBadge status={openStatus} size="sm" />
+              )}
             </div>
-            {openStatus.state !== 'no_hours' && openStatus.state !== 'closed_today' && (
-              <VenueStatusBadge status={openStatus} size="sm" />
-            )}
+            {/* Row 2: street address (only the street-level part, not repeating suburb/city) */}
+            {(() => {
+              const street = streetPart(venue.address, venue.neighborhood);
+              if (!street) return null;
+              return (
+                <p style={{
+                  fontSize: '11px', color: 'rgba(255,255,255,0.38)',
+                  margin: '3px 0 0', lineHeight: 1.4,
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  {street}
+                </p>
+              );
+            })()}
           </div>
 
           {/* Recommendation reason or neighbour count */}

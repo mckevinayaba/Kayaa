@@ -703,7 +703,16 @@ export default function OnboardingPage() {
   }, [form, primaryCat]);
 
   // ── Step 2 → 3 ────────────────────────────────────────────────────────────
-  function goStep3() { setStep(3); window.scrollTo(0, 0); }
+  function goStep3() {
+    if (!form.streetAddress.trim()) {
+      setErrors(er => ({ ...er, streetAddress: 'Please add your business address — people need to know where to find you' }));
+      const el = document.querySelector('[data-field="streetAddress"]');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setErrors(er => ({ ...er, streetAddress: undefined }));
+    setStep(3); window.scrollTo(0, 0);
+  }
 
   // ── Step 3 → 4 (create venue + owner) ────────────────────────────────────
   async function goStep4() {
@@ -1197,23 +1206,21 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          {/* Street address — moved from Step 1 */}
-          <div>
-            <label style={labelStyle}>
-              Exact address or location{' '}
-              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
-            </label>
+          {/* Street address — required for publish */}
+          <div data-field="streetAddress">
+            <label style={labelStyle}>Business address</label>
             <p style={hintStyle}>
-              Street name, landmark, or just describe where to find you.
+              Where can people find this business? Include the street name or a nearby landmark.
             </p>
             <input
               type="text"
               value={form.streetAddress}
               onChange={set('streetAddress')}
-              placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily"
+              placeholder="e.g. 12 Main Street, Berea  ·  or  ·  Next to the taxi rank, Corner of Claim and Lily"
               autoComplete="street-address"
-              style={{ ...inputStyle, border: '1px solid var(--color-border)' }}
+              style={{ ...inputStyle, border: `1px solid ${errors.streetAddress ? '#F87171' : 'var(--color-border)'}` }}
             />
+            <p style={errorStyle(!!errors.streetAddress)}>{errors.streetAddress}</p>
           </div>
 
           {/* Gallery */}
