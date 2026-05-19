@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, FileText, Phone, MessageCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowLeft, Check, FileText, Phone, MessageCircle, MapPin, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getVenueOwnerByUserId } from '../lib/api';
@@ -46,6 +46,7 @@ export default function VenueEditDetails() {
 
   const [venueId,     setVenueId]     = useState<string | null>(null);
   const [venueName,   setVenueName]   = useState('');
+  const [address,     setAddress]     = useState('');
   const [description, setDescription] = useState('');
   const [phone,       setPhone]       = useState('');
   const [whatsapp,    setWhatsapp]    = useState('');
@@ -74,12 +75,13 @@ export default function VenueEditDetails() {
 
       const { data } = await supabase
         .from('venues')
-        .select('name, description, phone_number, whatsapp_number, status')
+        .select('name, address, description, phone_number, whatsapp_number, status')
         .eq('id', ownership.venueId)
         .maybeSingle();
 
       if (data) {
         setVenueName(data.name ?? '');
+        setAddress(data.address ?? '');
         setDescription(data.description ?? '');
         setPhone(data.phone_number ?? '');
         setWhatsapp(data.whatsapp_number ?? '');
@@ -98,9 +100,10 @@ export default function VenueEditDetails() {
     const { error: err } = await supabase
       .from('venues')
       .update({
-        description:      description.trim(),
-        phone_number:     phone.trim()    || null,
-        whatsapp_number:  whatsapp.trim() || null,
+        address:          address.trim()     || null,
+        description:      description.trim() || null,
+        phone_number:     phone.trim()       || null,
+        whatsapp_number:  whatsapp.trim()    || null,
         status:           isOpen ? 'open' : 'closed',
       })
       .eq('id', venueId);
@@ -250,6 +253,23 @@ export default function VenueEditDetails() {
             }
           </button>
         </div>
+
+        {/* ── Address ─────────────────────────────────────────────────── */}
+        <Field
+          label="Street address"
+          hint="The physical address of your business. Helps customers find you and builds trust."
+        >
+          <div style={{ position: 'relative' }}>
+            <MapPin size={14} color="rgba(255,255,255,0.25)" style={{ position: 'absolute', top: '14px', left: '13px' }} />
+            <input
+              type="text"
+              value={address}
+              onChange={e => { setAddress(e.target.value); setSaved(false); }}
+              placeholder="e.g. 12 Berea Road, Berea, Johannesburg"
+              style={{ ...inputStyle, paddingLeft: '36px' }}
+            />
+          </div>
+        </Field>
 
         {/* ── Description ─────────────────────────────────────────────── */}
         <Field

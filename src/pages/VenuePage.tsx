@@ -1214,7 +1214,7 @@ function EventsSection({ events }: { events: Event[] }) {
 // ─── Place Story Panel ────────────────────────────────────────────────────────
 // Surfaces description, trust signals, and tags early in the page scroll.
 
-function PlaceStoryPanel({ venue }: { venue: Venue }) {
+function PlaceStoryPanel({ venue, isOwner }: { venue: Venue; isOwner?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const desc = venue.description ?? '';
   const isNew = Date.now() - new Date(venue.createdAt).getTime() < NEW_PLACE_THRESHOLD_MS;
@@ -1285,10 +1285,32 @@ function PlaceStoryPanel({ venue }: { venue: Venue }) {
   });
 
   const hasTags = !!(venue.tags && venue.tags.length > 0);
-  if (!desc && chips.length === 0 && !hasTags) return null;
+  if (!desc && chips.length === 0 && !hasTags && !isOwner) return null;
 
   return (
     <div style={{ marginBottom: '20px' }}>
+      {/* Owner: show inline add-description prompt when empty */}
+      {!desc && isOwner && (
+        <a
+          href="/venue/edit"
+          onClick={e => { e.preventDefault(); window.location.href = '/venue/edit'; }}
+          style={{
+            display: 'block', textDecoration: 'none',
+            border: '1.5px dashed rgba(255,255,255,0.12)',
+            borderRadius: '14px', padding: '16px', textAlign: 'center',
+            marginBottom: chips.length > 0 || hasTags ? '10px' : 0,
+          }}
+        >
+          <span style={{ fontSize: '22px', display: 'block', marginBottom: '5px' }}>✏️</span>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'rgba(255,255,255,0.55)', margin: '0 0 3px' }}>
+            Tell neighbours what your business does
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0, lineHeight: 1.5 }}>
+            A short description helps customers know what to expect. Tap to add.
+          </p>
+        </a>
+      )}
+
       {/* Description card */}
       {desc && (
         <div style={{
@@ -1761,84 +1783,122 @@ function NeighbourRecommendations({ venue }: { venue: { id: string; name: string
   );
 }
 
-// ─── Owner Next Step Nudge ────────────────────────────────────────────────────
-// Shown only to the verified owner. Shows ONE next step at a time.
-// Calmer, simpler, no lists — just the most impactful thing to do right now.
+// ─── Owner Panel ─────────────────────────────────────────────────────────────
+// Rich compact panel visible only to the verified business owner.
+// Shows profile completeness %, 2 recommended next steps, and quick action buttons.
 
-type NudgeStep = { emoji: string; heading: string; body: string; cta: string; path: string };
-
-function OwnerNextStepNudge({ venue, isOwner }: { venue: Venue; isOwner: boolean }) {
-  if (!isOwner) return null;
-
+function OwnerPanel({
+  venue,
+  followerCount,
+  hasUpdates,
+  onPostUpdate,
+}: {
+  venue: Venue;
+  followerCount: number;
+  hasUpdates: boolean;
+  onPostUpdate: () => void;
+}) {
   const hasPhoto   = !!(venue.coverImage || (venue.galleryImages && venue.galleryImages.length > 0));
   const hasContact = !!(venue.phoneNumber || venue.whatsappNumber);
   const hasHours   = !!(venue.openHours || venue.ownerHours);
   const hasDesc    = !!(venue.description && venue.description.trim().length > 20);
+  const hasAddress = !!(venue.address && venue.address.trim());
 
-  let step: NudgeStep | null = null;
+  const fields = [true, true, hasAddress, hasContact, hasDesc, hasHours, hasPhoto, hasUpdates];
+  const filled  = fields.filter(Boolean).length;
+  const pct     = Math.round((filled / fields.length) * 100);
 
-  if (!hasPhoto) step = {
-    emoji: '📸',
-    heading: 'Add a photo',
-    body: 'Places with a photo get 3× more taps from neighbours.',
-    cta: 'Add photo',
-    path: '/venue/photos',
-  };
-  else if (!hasContact) step = {
-    emoji: '💬',
-    heading: 'Add your WhatsApp number',
-    body: 'Let customers message you directly. Most people prefer WhatsApp.',
-    cta: 'Add WhatsApp',
-    path: '/venue/edit',
-  };
-  else if (!hasHours) step = {
-    emoji: '🕐',
-    heading: 'Add your opening hours',
-    body: 'People need to know when you are open before they head out.',
-    cta: 'Set hours',
-    path: '/venue/hours',
-  };
-  else if (!hasDesc) step = {
-    emoji: '✏️',
-    heading: 'Write one line about your place',
-    body: 'A short description helps people know what to expect.',
-    cta: 'Add description',
-    path: '/venue/edit',
-  };
+  type NextStep = { icon: string; label: string; path: string; isModal?: boolean };
+  const allSteps: NextStep[] = [];
+  if (!hasPhoto)   allSteps.push({ icon: '📸', label: 'Add a photo',           path: '/venue/photos' });
+  if (!hasContact) allSteps.push({ icon: '💬', label: 'Add WhatsApp / phone',  path: '/venue/edit' });
+  if (!hasHours)   allSteps.push({ icon: '🕐', label: 'Set opening hours',     path: '/venue/hours' });
+  if (!hasDesc)    allSteps.push({ icon: '✏️', label: 'Add a description',     path: '/venue/edit' });
+  if (!hasAddress) allSteps.push({ icon: '📍', label: 'Add your address',      path: '/venue/edit' });
+  if (!hasUpdates) allSteps.push({ icon: '📢', label: 'Post your first update', path: '', isModal: true });
+  const topSteps = allSteps.slice(0, 2);
 
-  if (!step) return null;
+  const barColor = pct >= 80 ? '#39D98A' : pct >= 50 ? '#FBBF24' : '#F87171';
 
   return (
     <div style={{
-      marginBottom: '16px',
       background: 'rgba(57,217,138,0.04)',
-      border: '1px solid rgba(57,217,138,0.18)',
+      border: '1px solid rgba(57,217,138,0.2)',
       borderRadius: '14px',
       padding: '14px 16px',
-      display: 'flex', alignItems: 'center', gap: '14px',
+      marginBottom: '10px',
     }}>
-      <span style={{ fontSize: '28px', flexShrink: 0 }}>{step.emoji}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 3px' }}>
-          {step.heading}
-        </p>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 10px', lineHeight: 1.5 }}>
-          {step.body}
-        </p>
-        <a
-          href={step.path}
-          onClick={e => { e.preventDefault(); window.location.href = step!.path; }}
-          style={{
-            display: 'inline-block',
-            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
-            color: '#39D98A', textDecoration: 'none',
-            background: 'rgba(57,217,138,0.1)',
-            border: '1px solid rgba(57,217,138,0.25)',
-            borderRadius: '20px', padding: '5px 14px',
-          }}
-        >
-          {step.cta} →
-        </a>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <span style={{ fontSize: '16px', flexShrink: 0 }}>🏪</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A', margin: 0, lineHeight: 1.2 }}>
+            You manage this business
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', margin: '2px 0 0' }}>
+            {followerCount > 0 ? `${followerCount} follower${followerCount !== 1 ? 's' : ''}` : 'No followers yet'}
+            {' · '}{pct}% page complete
+          </p>
+        </div>
+      </div>
+
+      {/* Completeness bar + recommended steps */}
+      {pct < 100 && (
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden', marginBottom: topSteps.length > 0 ? '10px' : 0 }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: '2px', transition: 'width 0.3s' }} />
+          </div>
+          {topSteps.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {topSteps.map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', flexShrink: 0 }}>{s.icon}</span>
+                  {s.isModal ? (
+                    <button
+                      onClick={onPostUpdate}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)', padding: 0, textAlign: 'left', flex: 1 }}
+                    >
+                      {s.label}
+                    </button>
+                  ) : (
+                    <a
+                      href={s.path}
+                      onClick={e => { e.preventDefault(); window.location.href = s.path; }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none', flex: 1 }}
+                    >
+                      {s.label}
+                    </a>
+                  )}
+                  <span style={{ fontSize: '11px', color: '#39D98A', flexShrink: 0 }}>→</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {([
+          { label: '✏️ Edit',    fn: () => { window.location.href = '/venue/edit'; } },
+          { label: '📣 Update',  fn: onPostUpdate },
+          { label: '📸 Photos',  fn: () => { window.location.href = '/venue/photos'; } },
+        ] as { label: string; fn: () => void }[]).map(a => (
+          <button
+            key={a.label}
+            onClick={a.fn}
+            style={{
+              flex: 1, padding: '8px 4px', borderRadius: '10px',
+              background: 'rgba(57,217,138,0.1)',
+              border: '1px solid rgba(57,217,138,0.2)',
+              fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px',
+              color: '#39D98A', cursor: 'pointer', whiteSpace: 'nowrap',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+          >
+            {a.label}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -2879,39 +2939,14 @@ export default function VenuePage() {
           )}
         </button>
 
-        {/* ── A3: Owner channel banner ──────────────────────────────────────── */}
+        {/* ── A3: Owner panel (rich, owner-only) ───────────────────────────── */}
         {!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId) && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'rgba(57,217,138,0.06)',
-            border: '1px solid rgba(57,217,138,0.2)',
-            borderRadius: '12px', padding: '10px 14px',
-            marginBottom: '8px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '14px' }}>🏪</span>
-              <div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#39D98A', margin: 0, lineHeight: 1.2 }}>
-                  You manage this business
-                </p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
-                  {followerCount > 0 ? `${followerCount} follower${followerCount !== 1 ? 's' : ''}` : 'No followers yet'}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowPostUpdateModal(true)}
-              style={{
-                background: '#39D98A', border: 'none', borderRadius: '8px',
-                padding: '7px 13px', cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
-                color: '#0D1117', flexShrink: 0,
-                WebkitTapHighlightColor: 'transparent',
-              } as React.CSSProperties}
-            >
-              📢 Post update
-            </button>
-          </div>
+          <OwnerPanel
+            venue={venue}
+            followerCount={followerCount}
+            hasUpdates={ownerUpdates.length > 0}
+            onPostUpdate={() => setShowPostUpdateModal(true)}
+          />
         )}
 
         {/* ── A4: Neighbourhood favourite signal ────────────────────────────── */}
@@ -2955,11 +2990,8 @@ export default function VenuePage() {
         {/* ── D: Opening hours (only when set) ─────────────────────────────── */}
         <OpeningHoursSection venue={venue} />
 
-        {/* ── E: Description (only when set, no chips/tags clutter) ────────── */}
-        <PlaceStoryPanel venue={venue} />
-
-        {/* ── F: Owner next step — one action at a time, owner only ─────────── */}
-        <OwnerNextStepNudge
+        {/* ── E: Description / story — owner sees inline prompt when empty ─── */}
+        <PlaceStoryPanel
           venue={venue}
           isOwner={!!(user?.id && venue.ownerUserId && user.id === venue.ownerUserId)}
         />
