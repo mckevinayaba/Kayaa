@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation as useRouterLocation, useNavigate } from '
 import { MapPin, Search, Home, Compass, LayoutGrid, Plus, Bell } from 'lucide-react';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import AreaSelector from '../components/AreaSelector';
+import CreateSheet from '../components/CreateSheet';
 import { useAuth } from '../contexts/AuthContext';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -31,7 +32,6 @@ const navItems = [
   { to: '/feed',          Icon: Home,       label: 'Home'    },
   { to: '/neighbourhood', Icon: Compass,    label: 'Discover'},
   { to: '/board',         Icon: LayoutGrid, label: 'Board'   },
-  { to: '/create',        Icon: Plus,       label: ''        },
   { to: '/alerts',        Icon: Bell,       label: 'Alerts'  },
 ];
 
@@ -46,8 +46,9 @@ export default function AppLayout() {
     isDetecting, detectionError,
     manualOverride, setManualOverride,
   } = useNeighbourhood();
-  const [areaOpen,    setAreaOpen]    = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [areaOpen,       setAreaOpen]       = useState(false);
+  const [profileOpen,    setProfileOpen]    = useState(false);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   const isVenuePage = routerLocation.pathname.startsWith('/venue');
 
@@ -83,6 +84,14 @@ export default function AppLayout() {
 
       {/* Skip link */}
       <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      {/* Create sheet */}
+      {createSheetOpen && (
+        <CreateSheet
+          suburb={displaySuburb || undefined}
+          onClose={() => setCreateSheetOpen(false)}
+        />
+      )}
 
       {/* AreaSelector — shown when GPS denied (forced) or when user taps the chip */}
       {(needsArea || areaOpen) && (
@@ -299,76 +308,97 @@ export default function AppLayout() {
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: '4px', paddingRight: '4px',
       }}>
-        {navItems.map(({ to, Icon, label }) => {
-          const isCreate = to === '/create';
-          return (
-            <NavLink
-              key={to}
-              to={to}
-              style={{ flex: 1, textDecoration: 'none' }}
-            >
-              {({ isActive }) => (
+        {/* First two nav items */}
+        {navItems.slice(0, 2).map(({ to, Icon, label }) => (
+          <NavLink key={to} to={to} style={{ flex: 1, textDecoration: 'none' }}>
+            {({ isActive }) => (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', padding: '6px 4px', position: 'relative',
+              }}>
+                {isActive && (
+                  <div style={{
+                    position: 'absolute', top: '4px',
+                    width: '44px', height: '30px', borderRadius: '100px',
+                    background: 'rgba(57,217,138,0.12)',
+                    border: '1px solid rgba(57,217,138,0.18)',
+                    animation: 'kFadeUp 0.2s ease both',
+                  }} />
+                )}
                 <div style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  gap: '3px', padding: '6px 4px',
-                  position: 'relative',
+                  position: 'relative', zIndex: 1,
+                  transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
                 }}>
-                  {/* Active pill background */}
-                  {isActive && !isCreate && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '4px',
-                      width: '44px', height: '30px',
-                      borderRadius: '100px',
-                      background: 'rgba(57,217,138,0.12)',
-                      border: '1px solid rgba(57,217,138,0.18)',
-                      animation: 'kFadeUp 0.2s ease both',
-                    }} />
-                  )}
-
-                  {/* Create tab: green circle */}
-                  {isCreate ? (
-                    <div style={{
-                      width: '40px', height: '40px', borderRadius: '50%',
-                      background: '#39D98A',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative', zIndex: 1,
-                      boxShadow: '0 2px 12px rgba(57,217,138,0.4)',
-                    }}>
-                      <Icon size={20} color="#0D1117" strokeWidth={2.5} />
-                    </div>
-                  ) : (
-                    <div style={{
-                      position: 'relative', zIndex: 1,
-                      transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-                      transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                    }}>
-                      <Icon
-                        size={22}
-                        color={isActive ? '#39D98A' : '#444444'}
-                        strokeWidth={isActive ? 2 : 1.5}
-                      />
-                    </div>
-                  )}
-
-                  {/* Label — hidden for Create tab */}
-                  {!isCreate && (
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: isActive ? 700 : 400,
-                      fontFamily: 'Inter, sans-serif',
-                      letterSpacing: '0.01em',
-                      color: isActive ? '#39D98A' : '#444444',
-                      transition: 'color 0.15s',
-                    }}>
-                      {label}
-                    </span>
-                  )}
+                  <Icon size={22} color={isActive ? '#39D98A' : '#444444'} strokeWidth={isActive ? 2 : 1.5} />
                 </div>
-              )}
-            </NavLink>
-          );
-        })}
+                <span style={{
+                  fontSize: '10px', fontWeight: isActive ? 700 : 400,
+                  fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em',
+                  color: isActive ? '#39D98A' : '#444444', transition: 'color 0.15s',
+                }}>
+                  {label}
+                </span>
+              </div>
+            )}
+          </NavLink>
+        ))}
+
+        {/* Centre: Create button (opens sheet, not a route) */}
+        <button
+          onClick={() => setCreateSheetOpen(true)}
+          style={{
+            flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '6px 4px',
+          }}
+          aria-label="Create"
+        >
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%',
+            background: '#39D98A',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 12px rgba(57,217,138,0.4)',
+          }}>
+            <Plus size={20} color="#0D1117" strokeWidth={2.5} />
+          </div>
+        </button>
+
+        {/* Last two nav items */}
+        {navItems.slice(2).map(({ to, Icon, label }) => (
+          <NavLink key={to} to={to} style={{ flex: 1, textDecoration: 'none' }}>
+            {({ isActive }) => (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', padding: '6px 4px', position: 'relative',
+              }}>
+                {isActive && (
+                  <div style={{
+                    position: 'absolute', top: '4px',
+                    width: '44px', height: '30px', borderRadius: '100px',
+                    background: 'rgba(57,217,138,0.12)',
+                    border: '1px solid rgba(57,217,138,0.18)',
+                    animation: 'kFadeUp 0.2s ease both',
+                  }} />
+                )}
+                <div style={{
+                  position: 'relative', zIndex: 1,
+                  transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                }}>
+                  <Icon size={22} color={isActive ? '#39D98A' : '#444444'} strokeWidth={isActive ? 2 : 1.5} />
+                </div>
+                <span style={{
+                  fontSize: '10px', fontWeight: isActive ? 700 : 400,
+                  fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em',
+                  color: isActive ? '#39D98A' : '#444444', transition: 'color 0.15s',
+                }}>
+                  {label}
+                </span>
+              </div>
+            )}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );

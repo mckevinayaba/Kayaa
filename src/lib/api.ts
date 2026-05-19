@@ -3163,3 +3163,65 @@ export async function createUtilityReport(
     return { error: String(e) };
   }
 }
+
+// ─── Business Follows ─────────────────────────────────────────────────────────
+
+/** Returns true if the current signed-in user follows this venue. */
+export async function checkFollowsBusiness(venueId: string): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data } = await supabase
+      .from('business_follows')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('venue_id', venueId)
+      .maybeSingle();
+    return !!data;
+  } catch {
+    return false;
+  }
+}
+
+/** Returns the total follower count for a venue. */
+export async function getBusinessFollowerCount(venueId: string): Promise<number> {
+  try {
+    const { count } = await supabase
+      .from('business_follows')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Follow a venue. Returns error string or null on success. */
+export async function followBusiness(venueId: string): Promise<string | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 'Not signed in';
+    const { error } = await supabase
+      .from('business_follows')
+      .insert({ user_id: user.id, venue_id: venueId });
+    return error?.message ?? null;
+  } catch (e) {
+    return String(e);
+  }
+}
+
+/** Unfollow a venue. Returns error string or null on success. */
+export async function unfollowBusiness(venueId: string): Promise<string | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 'Not signed in';
+    const { error } = await supabase
+      .from('business_follows')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('venue_id', venueId);
+    return error?.message ?? null;
+  } catch (e) {
+    return String(e);
+  }
+}

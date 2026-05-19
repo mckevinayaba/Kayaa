@@ -25,6 +25,7 @@ import {
   getVenueRecentCheckIns, recordVenueView, getVenueOwnerUpdates,
   getVenueRecommendations, getMyVenueRecommendation,
   upsertVenueRecommendation, removeVenueRecommendation,
+  checkFollowsBusiness, getBusinessFollowerCount, followBusiness, unfollowBusiness,
   type VenueRecommendation,
 } from '../lib/api';
 import type { VenueRecentStats, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
@@ -748,7 +749,7 @@ const VIBE_WINNER_LABEL: Record<VibeType, string> = {
   busy: '🔥 Busy right now', chilled: '😌 Chilled right now', happening: '🎉 Happening right now',
 };
 
-function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentStats: VenueRecentStats; distance: number | null }) {
+function QuickStatsRow({ venue, recentStats, distance, followerCount }: { venue: Venue; recentStats: VenueRecentStats; distance: number | null; followerCount?: number }) {
   const [vibeWinner, setVibeWinner] = useState<VibeType | null>(null);
   const [showRegularsHint, setShowRegularsHint] = useState(false);
 
@@ -758,11 +759,15 @@ function QuickStatsRow({ venue, recentStats, distance }: { venue: Venue; recentS
     }).catch(() => {});
   }, [venue.id]);
 
-  const stats: { label: string; value: string | number; color?: string }[] = [
+  const stats: { label: string; value: string | number; color?: string }[] = [];
+  if ((followerCount ?? 0) > 0) {
+    stats.push({ label: 'followers', value: (followerCount ?? 0).toLocaleString() });
+  }
+  stats.push(
     { label: 'regulars', value: venue.regularsCount.toLocaleString() },
     { label: 'today', value: venue.checkinsToday },
     { label: 'this week', value: recentStats.weeklyCheckins },
-  ];
+  );
   if (distance !== null) {
     stats.push({ label: 'away', value: distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km` });
   }
@@ -2345,6 +2350,9 @@ export default function VenuePage() {
   const [shareOpen,         setShareOpen]         = useState(false);
   const [showCheckInModal,  setShowCheckInModal]  = useState(false);
   const [showReportModal,   setShowReportModal]   = useState(false);
+  const [isFollowing,       setIsFollowing]       = useState(false);
+  const [followerCount,     setFollowerCount]     = useState(0);
+  const [followLoading,     setFollowLoading]     = useState(false);
 
   const [ownerUpdates, setOwnerUpdates] = useState<VenueOwnerUpdate[]>([]);
 
@@ -2372,6 +2380,8 @@ export default function VenuePage() {
       getVenueRecentStats(v.id).then(setRecentStats);
       getActiveVenueStory(v.id).then(setActiveStory);
       getVenueOwnerUpdates(v.id).then(setOwnerUpdates);
+      getBusinessFollowerCount(v.id).then(setFollowerCount);
+      checkFollowsBusiness(v.id).then(setIsFollowing);
 
       // GPS distance calculation
       if (v.latitude != null && v.longitude != null && navigator.geolocation) {
@@ -2393,6 +2403,24 @@ export default function VenuePage() {
     if (liked.has(venue.id)) { liked.delete(venue.id); setIsLiked(false); }
     else { liked.add(venue.id); setIsLiked(true); }
     setLikedVenues(liked);
+  }
+
+  async function handleFollow() {
+    if (!venue) return;
+    if (!user) { navigate('/welcome'); return; }
+    if (followLoading) return;
+    setFollowLoading(true);
+    // Optimistic update
+    if (isFollowing) {
+      setIsFollowing(false);
+      setFollowerCount(c => Math.max(0, c - 1));
+      await unfollowBusiness(venue.id);
+    } else {
+      setIsFollowing(true);
+      setFollowerCount(c => c + 1);
+      await followBusiness(venue.id);
+    }
+    setFollowLoading(false);
   }
 
   if (loading) return <VenueSkeleton />;
@@ -2466,8 +2494,43 @@ export default function VenuePage() {
         {/* ── A: Main actions — WhatsApp / Call / Check In / Directions ────── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
 
+        {/* ── A2: Follow button ─────────────────────────────────────────────── */}
+        <button
+          onClick={handleFollow}
+          disabled={followLoading}
+          style={{
+            width: '100%', marginBottom: '4px',
+            padding: '12px 16px',
+            background: isFollowing ? 'rgba(57,217,138,0.1)' : 'transparent',
+            border: `1.5px solid ${isFollowing ? '#39D98A' : 'rgba(255,255,255,0.15)'}`,
+            borderRadius: '12px', cursor: followLoading ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            transition: 'background 0.15s, border-color 0.15s',
+            opacity: followLoading ? 0.7 : 1,
+          }}
+        >
+          <Users
+            size={16}
+            color={isFollowing ? '#39D98A' : 'rgba(255,255,255,0.5)'}
+          />
+          <span style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
+            color: isFollowing ? '#39D98A' : 'rgba(255,255,255,0.7)',
+          }}>
+            {isFollowing ? 'Following' : 'Follow'}
+          </span>
+          {followerCount > 0 && (
+            <span style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '12px',
+              color: 'rgba(255,255,255,0.35)', marginLeft: '2px',
+            }}>
+              · {followerCount.toLocaleString()} {followerCount === 1 ? 'follower' : 'followers'}
+            </span>
+          )}
+        </button>
+
         {/* ── B: Quick stats — regulars, today, week, distance ─────────────── */}
-        <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} />
+        <QuickStatsRow venue={venue} recentStats={recentStats} distance={distance} followerCount={followerCount} />
 
         {/* ── C: Personal visit badge (only when user has visited) ──────────── */}
         <UserVisitBadge venueId={venue.id} />
