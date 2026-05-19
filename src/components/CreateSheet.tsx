@@ -7,10 +7,10 @@ interface CreateSheetProps {
 }
 
 const GRID_ACTIONS = [
-  { emoji: '📝', label: 'Post to Board',  to: '/board/new'           },
-  { emoji: '💼', label: 'Post a Job',     to: '/board/new?type=job'  },
-  { emoji: '🚨', label: 'Report Safety',  to: '/report/safety'       },
-  { emoji: '🎉', label: 'Share a Moment', to: '/moments/new'         },
+  { emoji: '📣', label: 'Share with Neighbours', to: '/board/new?cat=announcements' },
+  { emoji: '💼', label: 'Post a Job/Skill',       to: '/board/new?cat=jobs'          },
+  { emoji: '🚨', label: 'Report Safety',          to: '/report/safety'               },
+  { emoji: '🎉', label: 'Share a Moment',         to: '/moments/new'                 },
 ];
 
 export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
@@ -122,7 +122,7 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
 
           {/* 2. SECONDARY STRONG — Claim your business */}
           <button
-            onClick={() => go('/onboarding?mode=claim')}
+            onClick={() => go('/claim-business')}
             style={{
               width: '100%', padding: '14px 20px',
               background: 'rgba(255,255,255,0.04)',
