@@ -147,13 +147,25 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box', minHeight: '52px',
 };
 
+// Larger, higher-contrast labels — easier to read on mobile
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '13px', fontWeight: 600,
-  color: 'var(--color-muted)', marginBottom: '8px',
+  display: 'block', fontSize: '15px', fontWeight: 700,
+  color: 'rgba(255,255,255,0.88)', marginBottom: '8px',
+};
+
+// Helper text below a label
+const hintStyle: React.CSSProperties = {
+  fontSize: '13px', color: 'var(--color-muted)',
+  marginBottom: '10px', marginTop: '-4px', lineHeight: 1.55,
 };
 
 function errorStyle(show: boolean): React.CSSProperties {
-  return { fontSize: '12px', color: '#F87171', marginTop: '5px', minHeight: '16px', visibility: show ? 'visible' : 'hidden' };
+  return {
+    fontSize: '13px', color: '#F87171',
+    marginTop: '7px', minHeight: '18px',
+    visibility: show ? 'visible' : 'hidden',
+    fontFamily: 'Inter, sans-serif',
+  };
 }
 
 // ─── Cover Photo Upload ───────────────────────────────────────────────────────
@@ -660,22 +672,35 @@ export default function OnboardingPage() {
   // ── Step 1 → 2 ────────────────────────────────────────────────────────────
   const goStep2 = useCallback(() => {
     const errs: typeof errors = {};
-    if (!form.venueName.trim())                   errs.venueName = 'Give your place a name';
-    else if (form.venueName.trim().length < 3)    errs.venueName = 'Name must be at least 3 characters';
-    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName = 'Name cannot be numbers only';
-    if (!primaryCat)                               errs.venueType = 'Pick a category for your place';
+    if (!form.venueName.trim())                   errs.venueName  = 'Please add your business name';
+    else if (form.venueName.trim().length < 3)    errs.venueName  = 'Name must be at least 3 characters';
+    else if (/^\d+$/.test(form.venueName.trim())) errs.venueName  = 'Name cannot be numbers only';
+    if (!primaryCat)                               errs.venueType  = 'Please tell us what type of business you run';
     else if (!form.venueType) {
       const cat = PRIMARY_CATEGORIES.find(c => c.key === primaryCat);
-      if (cat && cat.subtypes.length > 0)        errs.venueType = 'Pick a specific type';
-      else                                        errs.venueType = 'Pick a type for your place';
+      if (cat && cat.subtypes.length > 0)          errs.venueType  = 'Please pick the specific type';
+      else                                          errs.venueType  = 'Please pick your business type';
     }
-    if (!form.suburb.trim())                      errs.suburb    = 'Add the suburb your place is in';
-    else if (form.suburb.trim().length < 3)       errs.suburb    = 'Enter a specific suburb, not just a city';
-    if (!form.city.trim())                        errs.city      = 'Add the city';
-    // description and cover photo are optional — owners can add them later from the dashboard
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (!form.ownerPhone.trim())                   errs.ownerPhone = 'Please add your phone number';
+    else if (form.ownerPhone.trim().replace(/\D/g, '').length < 9)
+                                                   errs.ownerPhone = 'Please enter a valid phone number';
+    if (!form.suburb.trim())                       errs.suburb     = 'Please add your neighbourhood or area';
+    else if (form.suburb.trim().length < 3)        errs.suburb     = 'Please enter a specific neighbourhood, not just a city';
+    if (!form.city.trim())                         errs.city       = 'Please add your city';
+    // description, address, cover photo are optional
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      // Scroll to the first field with an error
+      const fieldOrder: (keyof typeof errs)[] = ['venueName', 'venueType', 'ownerPhone', 'suburb', 'city'];
+      const firstKey = fieldOrder.find(k => errs[k]);
+      if (firstKey) {
+        const el = document.querySelector(`[data-field="${firstKey}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     setStep(2); window.scrollTo(0, 0);
-  }, [form]);
+  }, [form, primaryCat]);
 
   // ── Step 2 → 3 ────────────────────────────────────────────────────────────
   function goStep3() { setStep(3); window.scrollTo(0, 0); }
@@ -683,8 +708,8 @@ export default function OnboardingPage() {
   // ── Step 3 → 4 (create venue + owner) ────────────────────────────────────
   async function goStep4() {
     const errs: typeof errors = {};
-    if (!form.ownerName.trim())  errs.ownerName  = 'We need your name';
-    if (!form.ownerPhone.trim()) errs.ownerPhone = 'We need your WhatsApp so people can reach your business. Add it here 👆';
+    if (!form.ownerName.trim())  errs.ownerName  = 'Please add your name';
+    // ownerPhone is validated in Step 1 — always present by the time we reach Step 3
     if (!form.privacyAgreed)     errs.privacy    = 'Please agree to continue';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
@@ -715,6 +740,9 @@ export default function OnboardingPage() {
       cover_image: form.coverImageUrl || undefined,
       gallery_images: allGallery.length > 0 ? allGallery : undefined,
       intro_video: form.introVideoUrl || undefined,
+      // Phone captured in Step 1 — written to venues table so the page shows call/WhatsApp buttons
+      phone_number:    form.ownerPhone.trim() || undefined,
+      whatsapp_number: form.ownerPhone.trim() || undefined,
       country_code: selectedCountry.code,
       owner_user_id: user?.id || undefined,
       is_active: true,
@@ -983,88 +1011,219 @@ export default function OnboardingPage() {
   // ─── Step 3: About you ─────────────────────────────────────────────────────
   if (step === 3) {
     return (
-      <div style={{ padding: '16px 16px 100px' }}>
+      <div style={{ padding: '20px 16px 100px' }}>
         <style>{`@keyframes obSpin { to { transform: rotate(360deg); } }`}</style>
         <StepIndicator current={3} />
-        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Last step</h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
-          Who runs{' '}
-          <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{form.venueName}</span>?
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
+          Last step
+        </h1>
+        <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
+          Who runs <span style={{ color: 'var(--color-text)', fontWeight: 700 }}>{form.venueName}</span>?
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '28px' }}>
+
+          {/* Owner name */}
           <div>
             <label style={labelStyle}>Your name</label>
-            <input type="text" value={form.ownerName} onChange={set('ownerName')} placeholder="What do people call you?" autoComplete="given-name"
-              style={{ ...inputStyle, border: `1px solid ${errors.ownerName ? '#F87171' : 'var(--color-border)'}` }} />
+            <p style={hintStyle}>The name people know you by.</p>
+            <input
+              type="text" value={form.ownerName}
+              onChange={set('ownerName')}
+              placeholder="e.g. Sipho, Mama Thembi"
+              autoComplete="given-name"
+              style={{ ...inputStyle, border: `1px solid ${errors.ownerName ? '#F87171' : 'var(--color-border)'}` }}
+            />
             <p style={errorStyle(!!errors.ownerName)}>{errors.ownerName}</p>
           </div>
-          <div>
-            <label style={labelStyle}>💬 Your WhatsApp number <span style={{ color: '#F87171' }}>*</span></label>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>So we can reach you about your business on Kayaa. We will never share your number.</p>
-            <input type="tel" value={form.ownerPhone} onChange={set('ownerPhone')} placeholder="e.g. 082 123 4567" autoComplete="tel"
-              style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }} />
-            <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
-          </div>
-          <div>
-            <label style={labelStyle}>Email address (optional)</label>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Optional — for account recovery and updates from Kayaa.</p>
-            <input type="email" value={form.ownerEmail} onChange={set('ownerEmail')} placeholder="you@example.com" autoComplete="email"
-              style={{ ...inputStyle, border: `1px solid ${errors.ownerEmail ? '#F87171' : 'var(--color-border)'}` }} />
-            <p style={errorStyle(!!errors.ownerEmail)}>{errors.ownerEmail}</p>
+
+          {/* Phone — read-only display of what was entered in Step 1 */}
+          <div style={{
+            background: 'rgba(57,217,138,0.06)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            borderRadius: '14px', padding: '14px 16px',
+          }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#39D98A', marginBottom: '3px' }}>
+              ✓ Phone number saved
+            </div>
+            <div style={{ fontSize: '15px', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
+              {form.ownerPhone}
+            </div>
+            <button
+              onClick={() => { setStep(1); window.scrollTo(0, 0); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--color-muted)', padding: '4px 0 0', fontFamily: 'Inter, sans-serif' }}
+            >
+              Change phone number
+            </button>
           </div>
 
-          <div style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '14px', padding: '14px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          {/* Email */}
+          <div>
+            <label style={labelStyle}>
+              Email address{' '}
+              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+            </label>
+            <p style={hintStyle}>For account recovery and updates. We won't spam you.</p>
+            <input
+              type="email" value={form.ownerEmail}
+              onChange={set('ownerEmail')}
+              placeholder="you@example.com"
+              autoComplete="email"
+              style={{ ...inputStyle, border: '1px solid var(--color-border)' }}
+            />
+          </div>
+
+          {/* POPIA notice */}
+          <div style={{
+            background: 'rgba(57,217,138,0.05)',
+            border: '1px solid rgba(57,217,138,0.2)',
+            borderRadius: '14px', padding: '14px 16px',
+            display: 'flex', gap: '10px', alignItems: 'flex-start',
+          }}>
             <Shield size={16} color="var(--color-accent)" style={{ marginTop: '1px', flexShrink: 0 }} />
             <p style={{ fontSize: '13px', color: 'var(--color-muted)', lineHeight: 1.55, margin: 0 }}>
-              Your information is protected under <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>POPIA</span>{' '}and never shared without your consent.
+              Your information is protected under{' '}
+              <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>POPIA</span>{' '}
+              and never shared without your consent.
             </p>
           </div>
 
-          <div style={{ background: 'var(--color-surface)', border: `1px solid ${errors.privacy ? '#F87171' : 'var(--color-border)'}`, borderRadius: '14px', padding: '14px 16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Agree toggle */}
+          <div style={{
+            background: 'var(--color-surface)',
+            border: `1px solid ${errors.privacy ? '#F87171' : 'var(--color-border)'}`,
+            borderRadius: '14px', padding: '16px',
+            display: 'flex', gap: '12px', alignItems: 'center',
+          }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '2px' }}>I agree to the Kayaa terms</p>
-              <p style={{ fontSize: '12px', color: 'var(--color-muted)' }}>You're in control of your place data, always.</p>
+              <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 3px' }}>
+                I agree to the Kayaa terms
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
+                You're in control of your place data, always.
+              </p>
             </div>
-            <ToggleSwitch checked={form.privacyAgreed} onChange={v => { setForm(f => ({ ...f, privacyAgreed: v })); setErrors(er => ({ ...er, privacy: undefined })); }} />
+            <ToggleSwitch
+              checked={form.privacyAgreed}
+              onChange={v => { setForm(f => ({ ...f, privacyAgreed: v })); setErrors(er => ({ ...er, privacy: undefined })); }}
+            />
           </div>
-          {errors.privacy && <p style={{ fontSize: '12px', color: '#F87171', marginTop: '-10px' }}>{errors.privacy}</p>}
+          {errors.privacy && (
+            <p style={{ fontSize: '13px', color: '#F87171', marginTop: '-16px' }}>{errors.privacy}</p>
+          )}
         </div>
 
-        {errors.submit && <p style={{ fontSize: '13px', color: '#F87171', marginBottom: '12px', textAlign: 'center' }}>{errors.submit}</p>}
+        {errors.submit && (
+          <p style={{ fontSize: '13px', color: '#F87171', marginBottom: '16px', textAlign: 'center', lineHeight: 1.5 }}>
+            {errors.submit}
+          </p>
+        )}
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => { setStep(2); window.scrollTo(0, 0); }} disabled={submitting} style={{ width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: submitting ? 'default' : 'pointer' }}>
+          <button
+            onClick={() => { setStep(2); window.scrollTo(0, 0); }}
+            disabled={submitting}
+            style={{
+              width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: submitting ? 'default' : 'pointer',
+            }}
+          >
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
-          <button onClick={goStep4} disabled={submitting} style={{ flex: 1, minHeight: '52px', background: submitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: submitting ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <button
+            onClick={goStep4}
+            disabled={submitting}
+            style={{
+              flex: 1, minHeight: '56px',
+              background: submitting ? 'rgba(57,217,138,0.6)' : 'var(--color-accent)',
+              color: '#000', border: 'none', borderRadius: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px',
+              cursor: submitting ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            }}
+          >
             {submitting ? (
-              <><span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', display: 'inline-block', animation: 'obSpin 0.7s linear infinite' }} />Creating…</>
-            ) : 'Create my Kayaa →'}
+              <>
+                <span style={{
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000',
+                  display: 'inline-block', animation: 'obSpin 0.7s linear infinite',
+                }} />
+                Creating your page…
+              </>
+            ) : (
+              'Add my business →'
+            )}
           </button>
         </div>
       </div>
     );
   }
 
-  // ─── Step 2: Show your place (media) ──────────────────────────────────────
+  // ─── Step 2: Show your place (media + description) ────────────────────────
   if (step === 2) {
     return (
-      <div style={{ padding: '16px 16px 100px' }}>
+      <div style={{ padding: '20px 16px 100px' }}>
         <StepIndicator current={2} />
-        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>Show your place</h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '28px' }}>
-          More photos and a short video help people feel your vibe before they visit.
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
+          Show your place
+        </h1>
+        <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
+          All of this is optional. Add what you have — you can update everything later.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '28px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '28px' }}>
+
+          {/* Description — moved from Step 1 */}
+          <div>
+            <label style={labelStyle}>
+              Describe your business{' '}
+              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+            </label>
+            <p style={hintStyle}>
+              What makes your place special? Keep it short and honest.
+            </p>
+            <textarea
+              value={form.description}
+              onChange={set('description')}
+              placeholder="e.g. Best fades in Soweto. Open 7 days. Quick cuts, no appointment needed."
+              maxLength={200}
+              style={{ ...inputStyle, minHeight: '90px', resize: 'vertical', lineHeight: 1.55 }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{form.description.length}/200</span>
+            </div>
+          </div>
+
+          {/* Street address — moved from Step 1 */}
+          <div>
+            <label style={labelStyle}>
+              Exact address or location{' '}
+              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+            </label>
+            <p style={hintStyle}>
+              Street name, landmark, or just describe where to find you.
+            </p>
+            <input
+              type="text"
+              value={form.streetAddress}
+              onChange={set('streetAddress')}
+              placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily"
+              autoComplete="street-address"
+              style={{ ...inputStyle, border: '1px solid var(--color-border)' }}
+            />
+          </div>
+
           {/* Gallery */}
           <div>
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Gallery photos</span>
-            </div>
-            <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
-              Add up to 8 photos — the inside, the chairs, the energy. Optional, but it makes a big difference.
+            <label style={labelStyle}>
+              More photos{' '}
+              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+            </label>
+            <p style={hintStyle}>
+              The inside, the chairs, the energy. More photos help people feel your place.
             </p>
             <GalleryUpload
               sessionId={sessionId.current}
@@ -1076,11 +1235,11 @@ export default function OnboardingPage() {
 
           {/* Video */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>Add a short video</span>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: '20px' }}>Optional</span>
-            </div>
-            <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+            <label style={labelStyle}>
+              Short video{' '}
+              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+            </label>
+            <p style={hintStyle}>
               15–60 seconds. Show the chairs. Play the music. Let people feel the energy.
             </p>
             <VideoUpload
@@ -1092,10 +1251,26 @@ export default function OnboardingPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => { setStep(1); window.scrollTo(0, 0); }} style={{ width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button
+            onClick={() => { setStep(1); window.scrollTo(0, 0); }}
+            style={{
+              width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            }}
+          >
             <ArrowLeft size={18} color="var(--color-text)" />
           </button>
-          <button onClick={goStep3} style={{ flex: 1, minHeight: '52px', background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}>
+          <button
+            onClick={goStep3}
+            style={{
+              flex: 1, minHeight: '56px',
+              background: 'var(--color-accent)', color: '#000',
+              border: 'none', borderRadius: '14px',
+              fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px',
+              cursor: 'pointer',
+            }}
+          >
             Continue →
           </button>
         </div>
@@ -1105,54 +1280,29 @@ export default function OnboardingPage() {
 
   // ─── Step 1: Your venue ─────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '16px 16px 100px' }}>
+    <div style={{ padding: '20px 16px 100px' }}>
       <StepIndicator current={1} />
 
-      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', marginBottom: '6px' }}>
-        Tell us about your business
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
+        Add your business
       </h1>
-      <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-        Every business deserves to be found.
+      <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
+        Free. Takes 2 minutes.
       </p>
-
-      {/* Owner hook card */}
-      <div style={{
-        background: 'rgba(57,217,138,0.05)',
-        border: '1px solid rgba(57,217,138,0.18)',
-        borderLeft: '3px solid rgba(57,217,138,0.55)',
-        borderRadius: '0 14px 14px 0',
-        padding: '16px 18px',
-        marginBottom: hasDraft ? '16px' : '28px',
-      }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', margin: '0 0 10px' }}>
-          You run a place people already return to.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-          {[
-            '📍 Get found by people in your neighbourhood',
-            '🤝 Turn walk-ins into known regulars',
-            "📊 See who keeps coming back — and who's drifted",
-          ].map(item => (
-            <p key={item} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(240,246,252,0.65)', margin: 0, lineHeight: 1.5 }}>
-              {item}
-            </p>
-          ))}
-        </div>
-      </div>
 
       {/* Draft resume banner */}
       {hasDraft && (
         <div style={{
           background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.25)',
-          borderRadius: '12px', padding: '12px 14px', marginBottom: '20px',
+          borderRadius: '12px', padding: '14px 16px', marginBottom: '24px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
         }}>
           <div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
-              You have an unsaved draft
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-accent)' }}>
+              You have a saved draft
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-              Continue adding your place?
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)', marginTop: '2px' }}>
+              Continue where you left off?
             </div>
           </div>
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
@@ -1163,7 +1313,6 @@ export default function OnboardingPage() {
                   if (raw) {
                     const parsed = JSON.parse(raw) as FormData;
                     setForm(parsed);
-                    // Restore primary category from saved venueType
                     if (parsed.venueType) {
                       const pk = getPrimaryCategory(parsed.venueType) as PrimaryKey;
                       setPrimaryCat(pk);
@@ -1172,13 +1321,21 @@ export default function OnboardingPage() {
                 } catch { /* ignore */ }
                 setHasDraft(false);
               }}
-              style={{ background: 'var(--color-accent)', color: '#000', border: 'none', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+              style={{
+                background: 'var(--color-accent)', color: '#000',
+                border: 'none', borderRadius: '8px', padding: '8px 14px',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+              }}
             >
               Resume
             </button>
             <button
               onClick={() => { try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ } setHasDraft(false); }}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 10px', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', cursor: 'pointer' }}
+              style={{
+                background: 'none', border: '1px solid var(--color-border)',
+                borderRadius: '8px', padding: '8px 12px',
+                fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer',
+              }}
             >
               Discard
             </button>
@@ -1186,29 +1343,30 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
-        {/* Venue name */}
-        <div>
-          <label style={labelStyle}>What is your business called?</label>
-          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Use the name people know you by.</p>
-          <input type="text" value={form.venueName} onChange={set('venueName')} placeholder="e.g. Sipho's Cuts, Mama Thembi's Kitchen, Corner Spaza" autoComplete="organization"
-            style={{ ...inputStyle, border: `1px solid ${errors.venueName ? '#F87171' : 'var(--color-border)'}` }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '32px' }}>
+
+        {/* 1. Business name */}
+        <div data-field="venueName">
+          <label style={labelStyle}>Business name</label>
+          <p style={hintStyle}>The name people know you by.</p>
+          <input
+            type="text" value={form.venueName} onChange={set('venueName')}
+            placeholder="e.g. Sipho's Cuts, Mama Thembi's Kitchen, Corner Spaza"
+            autoComplete="organization"
+            style={{ ...inputStyle, border: `1px solid ${errors.venueName ? '#F87171' : 'var(--color-border)'}` }}
+          />
           <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
         </div>
 
-        {/* Two-step category picker */}
-        <div>
-          <label style={labelStyle}>What kind of business is this?</label>
-          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '10px', marginTop: '-4px' }}>
-            Pick the closest category, then the specific type if needed.
-          </p>
+        {/* 2. What do you do? */}
+        <div data-field="venueType">
+          <label style={labelStyle}>What do you do?</label>
+          <p style={hintStyle}>Pick the closest type for your business.</p>
 
-          {/* Step A — primary category */}
           <PrimaryCategoryGrid
             selected={primaryCat}
             onSelect={key => {
               setPrimaryCat(key);
-              // Auto-set venueType to primary label if no subtypes; clear otherwise
               const cat = PRIMARY_CATEGORIES.find(c => c.key === key)!;
               if (cat.subtypes.length === 0 && key !== 'other') {
                 setForm(f => ({ ...f, venueType: cat.label }));
@@ -1219,14 +1377,14 @@ export default function OnboardingPage() {
             }}
           />
 
-          {/* Step B — subtype chips (only when primary has subtypes) */}
+          {/* Subtype chips */}
           {primaryCat && primaryCat !== 'other' && (() => {
             const cat = PRIMARY_CATEGORIES.find(c => c.key === primaryCat)!;
             if (cat.subtypes.length === 0) return null;
             return (
               <div style={{ marginTop: '4px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '8px 0 0' }}>
-                  Which type best describes it?
+                <p style={{ fontSize: '13px', color: 'var(--color-muted)', margin: '10px 0 0' }}>
+                  Which type fits best?
                 </p>
                 <SubtypeChips
                   subtypes={cat.subtypes}
@@ -1240,7 +1398,7 @@ export default function OnboardingPage() {
             );
           })()}
 
-          {/* Step B — free text for "Other" */}
+          {/* Free text for "Other" */}
           {primaryCat === 'other' && (
             <div style={{ marginTop: '12px' }}>
               <input
@@ -1256,19 +1414,42 @@ export default function OnboardingPage() {
           <p style={errorStyle(!!errors.venueType)}>{errors.venueType}</p>
         </div>
 
-        {/* Suburb + City */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Where is your business or place? *</label>
-            <input type="text" value={form.suburb} onChange={set('suburb')} placeholder="e.g. Berea, Orlando West, Alex"
-              style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }} />
+        {/* 3. Phone number — moved to Step 1 so it lands in venues.phone_number */}
+        <div data-field="ownerPhone">
+          <label style={labelStyle}>Your phone number</label>
+          <p style={hintStyle}>
+            So customers can call or WhatsApp you directly. We'll show it on your business page.
+          </p>
+          <input
+            type="tel" value={form.ownerPhone} onChange={set('ownerPhone')}
+            placeholder="e.g. 082 123 4567"
+            autoComplete="tel"
+            style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }}
+          />
+          <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
+        </div>
+
+        {/* 4. Where are you based? — stacked (not side by side) for readability */}
+        <div>
+          <label style={labelStyle}>Where are you based?</label>
+          <p style={hintStyle}>Your neighbourhood, then your city.</p>
+
+          <div data-field="suburb" style={{ marginBottom: '10px' }}>
+            <input
+              type="text" value={form.suburb} onChange={set('suburb')}
+              placeholder="Neighbourhood — e.g. Berea, Orlando West, Alex"
+              style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }}
+            />
             <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>City *</label>
-            <input type="text" value={form.city} onChange={set('city')} placeholder="e.g. Johannesburg"
+
+          <div data-field="city">
+            <input
+              type="text" value={form.city} onChange={set('city')}
+              placeholder="City — e.g. Johannesburg"
               list="city-options"
-              style={{ ...inputStyle, border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}` }} />
+              style={{ ...inputStyle, border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}` }}
+            />
             <datalist id="city-options">
               {selectedCountry.launch_cities.map(c => <option key={c} value={c} />)}
             </datalist>
@@ -1276,33 +1457,14 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Street address */}
+        {/* 5. Photo — clearly optional, non-blocking */}
         <div>
-          <label style={labelStyle}>Describe where it is <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
-          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '8px', marginTop: '-4px' }}>Street address, or just describe it. Any description works.</p>
-          <input type="text" value={form.streetAddress} onChange={set('streetAddress')} placeholder="e.g. Next to the taxi rank, Corner of Claim and Lily, Behind the Shell garage" autoComplete="street-address"
-            style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label style={labelStyle}>Describe your business or place <span style={{ fontWeight: 400 }}>(optional)</span></label>
-          <textarea value={form.description} onChange={set('description')} placeholder="e.g. Best fades in Soweto, open 7 days a week" maxLength={200}
-            style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', lineHeight: 1.5, border: `1px solid ${errors.description ? '#F87171' : 'var(--color-border)'}` }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '4px' }}>
-            <p style={{ fontSize: '12px', color: '#F87171', margin: 0, visibility: errors.description ? 'visible' : 'hidden' }}>{errors.description ?? ' '}</p>
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)', flexShrink: 0, marginLeft: '8px' }}>{form.description.length}/200</span>
-          </div>
-        </div>
-
-        {/* Cover photo */}
-        <div>
-          <label style={{ ...labelStyle, color: 'var(--color-text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
-            📸 Show us your business{' '}
-            <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+          <label style={labelStyle}>
+            Add a photo{' '}
+            <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
           </label>
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
-            A photo helps people recognise your place. Any photo works — we will sort out the size for you.
+          <p style={hintStyle}>
+            Any photo works — we'll make it smaller for faster loading. You can add more photos later.
           </p>
           <CoverPhotoUpload
             sessionId={sessionId.current}
@@ -1312,8 +1474,11 @@ export default function OnboardingPage() {
               setErrors(er => ({ ...er, cover: undefined }));
             }}
           />
-          {errors.cover && (
-            <p style={{ fontSize: '12px', color: '#F87171', marginTop: '8px' }}>{errors.cover}</p>
+          {/* No-photo fallback hint */}
+          {!form.coverImageUrl && (
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.28)', marginTop: '8px', lineHeight: 1.5 }}>
+              No photo yet? No problem — your page will still look good.
+            </p>
           )}
         </div>
       </div>
@@ -1325,17 +1490,34 @@ export default function OnboardingPage() {
           width: '100%', minHeight: '56px',
           background: 'var(--color-accent)', color: '#000',
           border: 'none', borderRadius: '14px',
-          fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px',
+          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '17px',
           cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          transition: 'opacity 0.2s',
         }}
       >
-        Add my business to Kayaa
+        Continue
         {draftSaved && (
           <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(0,0,0,0.55)' }}>Draft saved ✓</span>
         )}
       </button>
+
+      {/* Quiet help fallback */}
+      <p style={{
+        fontFamily: 'Inter, sans-serif', fontSize: '12px',
+        color: 'rgba(255,255,255,0.25)', textAlign: 'center',
+        marginTop: '16px', lineHeight: 1.5,
+      }}>
+        Need help? WhatsApp us at{' '}
+        <a
+          href="https://wa.me/27000000000?text=Hi%2C+I+need+help+adding+my+business+to+Kayaa"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'underline' }}
+        >
+          send us a message
+        </a>
+        .
+      </p>
     </div>
   );
 }
