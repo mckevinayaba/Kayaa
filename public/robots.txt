@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Public pages
+Allow: /about
+Allow: /explore
+Allow: /jobs
+Allow: /housing
+Allow: /checkin
+Allow: /neighbourhood
+Allow: /help
+Allow: /venue/
+Allow: /board/
+
+# Keep private app screens out of search results
+Disallow: /feed
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /profile
+Disallow: /settings
+Disallow: /owner
+Disallow: /welcome
+Disallow: /create
+Disallow: /moments
+Disallow: /report
+Disallow: /alerts
+
+Sitemap: https://kayaa.africa/sitemap.xml

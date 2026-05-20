@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Landing / About -->
+  <url>
+    <loc>https://kayaa.africa/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Explore — browse places -->
+  <url>
+    <loc>https://kayaa.africa/explore</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Check-in browse -->
+  <url>
+    <loc>https://kayaa.africa/checkin</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Community board -->
+  <url>
+    <loc>https://kayaa.africa/board</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Jobs -->
+  <url>
+    <loc>https://kayaa.africa/jobs</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Housing -->
+  <url>
+    <loc>https://kayaa.africa/housing</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Neighbourhood -->
+  <url>
+    <loc>https://kayaa.africa/neighbourhood</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Help -->
+  <url>
+    <loc>https://kayaa.africa/help</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+</urlset>
