@@ -240,17 +240,19 @@ export default function NominatePage() {
           {/* Phone */}
           <div>
             <label style={labelStyle}>
-              Your WhatsApp number{' '}
+              A WhatsApp number{' '}
               <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.35)' }}>(optional)</span>
             </label>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.38)', marginBottom: '8px', marginTop: '-4px', lineHeight: 1.5 }}>
-              So we can let you know when the place goes live — and credit you for the tip.
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.38)', marginBottom: '8px', marginTop: '-4px', lineHeight: 1.6 }}>
+              Add <strong style={{ color: 'rgba(255,255,255,0.55)' }}>your number</strong> so we can thank you when it goes live —
+              or add the <strong style={{ color: 'rgba(255,255,255,0.55)' }}>owner's number</strong> if you know it,
+              so we can reach out and let them know their place is now on Kayaa.
             </p>
             <input
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              placeholder="e.g. 082 123 4567"
+              placeholder="e.g. 082 123 4567 — yours or the owner's"
               style={inputStyle}
             />
           </div>
