@@ -54,6 +54,7 @@ const MomentCreatePage     = lazy(() => import('./pages/MomentCreatePage'));
 const UtilityReportPage    = lazy(() => import('./pages/UtilityReportPage'));
 const ClaimBusinessPage    = lazy(() => import('./pages/ClaimBusinessPage'));
 const NominatePage         = lazy(() => import('./pages/NominatePage'));
+const AuthCallback         = lazy(() => import('./pages/AuthCallback'));
 
 // ── Page loader — shown while a lazy chunk is fetching ───────────────────────
 function PageLoader() {
@@ -112,8 +113,9 @@ export default function App() {
             <Route path="/" element={<RootRoute />} />
 
             {/* ── Public standalone — own layout, no AppLayout chrome ── */}
-            <Route path="/about"    element={<LandingPage />} />
-            <Route path="/waitlist" element={<Navigate to="/welcome" replace />} />
+            <Route path="/about"         element={<LandingPage />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/waitlist"      element={<Navigate to="/welcome" replace />} />
 
             {/* ── Auth screens — bare AuthLayout ── */}
             <Route element={<AuthLayout />}>

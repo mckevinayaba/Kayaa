@@ -17,9 +17,10 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      // Same reason — land directly on /feed so the PKCE ?code= param
-      // survives long enough for Supabase's detectSessionInUrl to exchange it.
-      redirectTo: `${window.location.origin}/feed`,
+      // After Google approves, Supabase sends the user to /auth/callback
+      // where AuthCallback.tsx exchanges the PKCE code for a session
+      // and then navigates to /feed.
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 }
