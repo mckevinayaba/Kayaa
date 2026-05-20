@@ -85,7 +85,7 @@ export default function VenueQRCode() {
           <p class="sub">${venue.neighborhood}, ${venue.city}</p>
           ${dataUrl ? `<img src="${dataUrl}" alt="QR Code" />` : ''}
           <p class="sub">Scan with your phone camera to check in and earn your regular badge on Kayaa</p>
-          <div class="url">kayaa.co.za/checkin/${venue.id.slice(0, 8)}…</div>
+          <div class="url">kayaa.africa/checkin/${venue.id.slice(0, 8)}…</div>
         </div>
         <script>window.onload = () => window.print();<\/script>
       </body></html>
@@ -179,7 +179,7 @@ export default function VenueQRCode() {
           >
             <QRCodeCanvas value={qrValue} size={220} level="M" marginSize={0} />
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#555', textAlign: 'center', maxWidth: '220px', lineHeight: 1.4 }}>
-              Scan to check in · kayaa.co.za
+              Scan to check in · kayaa.africa
             </div>
           </div>
         </div>

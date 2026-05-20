@@ -17,7 +17,7 @@ interface PlaceShareModalProps {
 export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `https://kayaa.co.za/venue/${place.slug}`;
+  const shareUrl = `https://kayaa.africa/venue/${place.slug}`;
 
   // Build WhatsApp message: community-useful, not marketing.
   // SA-native — reads like something a local would actually send.

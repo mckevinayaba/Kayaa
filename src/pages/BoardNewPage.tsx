@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Camera, X, AlertTriangle, Play } from 'lucide-react';
 import {
@@ -1589,7 +1589,7 @@ export default function BoardNewPage() {
   if (successPost) {
     const successCat  = BOARD_CATEGORIES.find(c => c.key === successPost.category);
     const emoji       = successCat?.emoji ?? '📌';
-    const boardUrl    = `https://kayaa.co.za/board`;
+    const boardUrl    = `https://kayaa.africa/board`;
 
     // WhatsApp message tailored by category
     let waText = '';

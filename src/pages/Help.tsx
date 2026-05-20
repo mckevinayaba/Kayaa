@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: 'How do I report inappropriate content?',
-    a: 'Email us at hello@kayaa.co.za with the details. Our team reviews all reports within 24 hours.',
+    a: 'Email us at hello@kayaa.africa with the details. Our team reviews all reports within 24 hours.',
   },
   {
     q: 'Is Kayaa free to use?',
@@ -145,7 +145,7 @@ export default function Help() {
           </a>
 
           <a
-            href="mailto:hello@kayaa.co.za"
+            href="mailto:hello@kayaa.africa"
             style={{
               display: 'flex', alignItems: 'center', gap: '14px',
               padding: '14px 16px', borderRadius: '14px',
@@ -158,7 +158,7 @@ export default function Help() {
             </div>
             <div>
               <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>Email Support</div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>hello@kayaa.co.za</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>hello@kayaa.africa</div>
             </div>
           </a>
         </div>

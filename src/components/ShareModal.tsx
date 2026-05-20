@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { X } from 'lucide-react';
 import ShareCard from './ShareCard';
@@ -9,14 +9,14 @@ import type { ShareCardData, ShareCardType } from './ShareCard';
 function buildCaption(card: ShareCardData): { text: string; url: string } {
   switch (card.type) {
     case 'place': {
-      const placeUrl = `https://kayaa.co.za/venue/${card.data.slug}`;
+      const placeUrl = `https://kayaa.africa/venue/${card.data.slug}`;
       return {
         text: `📍 ${card.data.name} is a local spot worth knowing about. Check it out on Kayaa 👉 ${placeUrl}`,
         url: placeUrl,
       };
     }
     case 'event': {
-      const eventUrl = `https://kayaa.co.za/venue/${card.data.venueSlug}`;
+      const eventUrl = `https://kayaa.africa/venue/${card.data.venueSlug}`;
       const dateStr  = new Date(card.data.startsAt).toLocaleDateString('en-ZA', {
         weekday: 'short', day: 'numeric', month: 'short',
       });
@@ -27,16 +27,16 @@ function buildCaption(card: ShareCardData): { text: string; url: string } {
     }
     case 'job':
       return {
-        text: `💼 There's a job going in ${card.data.neighborhood} — ${card.data.title}. Pass it on if you know someone 👉 https://kayaa.co.za/jobs`,
-        url: 'https://kayaa.co.za/jobs',
+        text: `💼 There's a job going in ${card.data.neighborhood} — ${card.data.title}. Pass it on if you know someone 👉 https://kayaa.africa/jobs`,
+        url: 'https://kayaa.africa/jobs',
       };
     case 'skill':
       return {
-        text: `🛠️ Need ${card.data.skillName} in ${card.data.neighborhood}? ${card.data.personName} is available. Find them on Kayaa 👉 https://kayaa.co.za/jobs`,
-        url: 'https://kayaa.co.za/jobs',
+        text: `🛠️ Need ${card.data.skillName} in ${card.data.neighborhood}? ${card.data.personName} is available. Find them on Kayaa 👉 https://kayaa.africa/jobs`,
+        url: 'https://kayaa.africa/jobs',
       };
     case 'milestone': {
-      const milestoneUrl = `https://kayaa.co.za/venue/${card.data.placeSlug}`;
+      const milestoneUrl = `https://kayaa.africa/venue/${card.data.placeSlug}`;
       return {
         text: `🌟 Visit ${card.data.visitNumber} at ${card.data.placeName} — this place has my loyalty! Kayaa tracks your neighbourhood regulars 👉 ${milestoneUrl}`,
         url: milestoneUrl,
@@ -44,8 +44,8 @@ function buildCaption(card: ShareCardData): { text: string; url: string } {
     }
     case 'regular_card':
       return {
-        text: `This is my neighbourhood regulars card on Kayaa — every place I keep coming back to. Discover your own 👉 https://kayaa.co.za`,
-        url: 'https://kayaa.co.za',
+        text: `This is my neighbourhood regulars card on Kayaa — every place I keep coming back to. Discover your own 👉 https://kayaa.africa`,
+        url: 'https://kayaa.africa',
       };
   }
 }

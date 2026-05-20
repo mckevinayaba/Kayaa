@@ -1,11 +1,11 @@
-// notify-checkin — fired by DB webhook on check_ins INSERT
+﻿// notify-checkin — fired by DB webhook on check_ins INSERT
 // Sends owner email on every check-in, plus a milestone email at 10 check-ins this week.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY')!;
-const FROM_EMAIL       = Deno.env.get('KAYAA_FROM_EMAIL') ?? 'hello@kayaa.co.za';
-const BASE_URL         = Deno.env.get('KAYAA_BASE_URL')   ?? 'https://kayaa.co.za';
+const FROM_EMAIL       = Deno.env.get('KAYAA_FROM_EMAIL') ?? 'hello@kayaa.africa';
+const BASE_URL         = Deno.env.get('KAYAA_BASE_URL')   ?? 'https://kayaa.africa';
 const WEBHOOK_SECRET   = Deno.env.get('WEBHOOK_SECRET')   ?? '';
 
 const supabase = createClient(

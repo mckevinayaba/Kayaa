@@ -1,4 +1,4 @@
--- ─────────────────────────────────────────────────────────────────────────────
+﻿-- ─────────────────────────────────────────────────────────────────────────────
 -- notifications — schema additions for Kayaa zero-cost notification stack
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -78,8 +78,8 @@ ALTER TABLE notification_log ENABLE ROW LEVEL SECURITY;
 --
 -- Required Supabase secrets (Dashboard → Settings → Edge Functions → Secrets):
 --   RESEND_API_KEY      — from resend.com
---   KAYAA_FROM_EMAIL    — e.g. hello@kayaa.co.za (must be verified in Resend)
---   KAYAA_BASE_URL      — e.g. https://kayaa.co.za
+--   KAYAA_FROM_EMAIL    — e.g. hello@kayaa.africa (must be verified in Resend)
+--   KAYAA_BASE_URL      — e.g. https://kayaa.africa
 --   KAYAA_WA_NUMBER     — e.g. 27831234567 (digits only, no +)
 --   WEBHOOK_SECRET      — random string, add as header in dashboard webhook config
 -- ─────────────────────────────────────────────────────────────────────────────

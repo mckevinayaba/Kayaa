@@ -1,11 +1,11 @@
-// notify-safety-alert — fired by DB webhook on user_posts INSERT
+﻿// notify-safety-alert — fired by DB webhook on user_posts INSERT
 // Emails opted-in users in the same suburb when a safety-tagged post appears.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
-const FROM_EMAIL     = Deno.env.get('KAYAA_FROM_EMAIL') ?? 'hello@kayaa.co.za';
-const BASE_URL       = Deno.env.get('KAYAA_BASE_URL')   ?? 'https://kayaa.co.za';
+const FROM_EMAIL     = Deno.env.get('KAYAA_FROM_EMAIL') ?? 'hello@kayaa.africa';
+const BASE_URL       = Deno.env.get('KAYAA_BASE_URL')   ?? 'https://kayaa.africa';
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')   ?? '';
 
 const supabase = createClient(

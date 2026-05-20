@@ -1,4 +1,4 @@
-// ─── CelebrationScreen ────────────────────────────────────────────────────────
+﻿// ─── CelebrationScreen ────────────────────────────────────────────────────────
 //
 // The check-in success moment. The most emotionally precise screen in Kayaa.
 //
@@ -44,7 +44,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: false,
     confettiScale: 0,
     showWhatsApp: false,
-    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.co.za`,
+    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.africa`,
   };
 
   if (visitCount <= 4) return {
@@ -55,7 +55,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: false,
     confettiScale: 0,
     showWhatsApp: false,
-    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.co.za`,
+    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.africa`,
   };
 
   if (visitCount === 5) return {
@@ -66,7 +66,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: true,
     confettiScale: 1,
     showWhatsApp: true,
-    waText:       (v) => `I'm now a regular at ${v} on Kayaa. https://kayaa.co.za`,
+    waText:       (v) => `I'm now a regular at ${v} on Kayaa. https://kayaa.africa`,
   };
 
   if (visitCount === 10) return {
@@ -77,7 +77,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: true,
     confettiScale: 2,
     showWhatsApp: true,
-    waText:       (v) => `Ten visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.co.za`,
+    waText:       (v) => `Ten visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.africa`,
   };
 
   if (visitCount === 25) return {
@@ -88,7 +88,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: true,
     confettiScale: 2,
     showWhatsApp: true,
-    waText:       (v) => `25 visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.co.za`,
+    waText:       (v) => `25 visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.africa`,
   };
 
   if (visitCount === 50) return {
@@ -99,7 +99,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: true,
     confettiScale: 3,
     showWhatsApp: true,
-    waText:       (v) => `50 visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.co.za`,
+    waText:       (v) => `50 visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.africa`,
   };
 
   // Visits > 50 — occasional milestone echoes at round numbers
@@ -111,7 +111,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: true,
     confettiScale: 2,
     showWhatsApp: true,
-    waText:       (v) => `${visitCount} visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.co.za`,
+    waText:       (v) => `${visitCount} visits at ${v}. One of the places that makes this neighbourhood feel like itself. https://kayaa.africa`,
   };
 
   // All other visits (2–4 already handled, remaining 6–9, 11–24, 26–49, 51+)
@@ -123,7 +123,7 @@ function getMilestone(visitCount: number): MilestoneConfig {
     showConfetti: false,
     confettiScale: 0,
     showWhatsApp: false,
-    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.co.za`,
+    waText:       (v) => `I just checked in at ${v} on Kayaa. https://kayaa.africa`,
   };
 }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+﻿import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { MapPin, ExternalLink, Search, Plus, Download, Share2, Printer, Camera, Video, X as XIcon } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -912,7 +912,7 @@ function EventsTab({ events, venueId, onEventAdded }: {
 
 function SetupTab({ venue }: { venue: Venue }) {
   const qrRef = useRef<HTMLDivElement>(null);
-  const qrUrl = `https://kayaa.co.za/checkin/${venue.id}`;
+  const qrUrl = `https://kayaa.africa/checkin/${venue.id}`;
 
   function downloadQR() {
     const sourceCanvas = qrRef.current?.querySelector('canvas') as HTMLCanvasElement | null;
@@ -959,7 +959,7 @@ function SetupTab({ venue }: { venue: Venue }) {
           <p>${venue.neighborhood}, ${venue.city}</p>
           ${dataUrl ? `<img src="${dataUrl}" alt="QR Code" />` : ''}
           <p>Scan to check in and earn your regular badge on Kayaa</p>
-          <div class="url">kayaa.co.za/checkin/${venue.id.slice(0, 8)}…</div>
+          <div class="url">kayaa.africa/checkin/${venue.id.slice(0, 8)}…</div>
         </div>
         <script>window.onload = () => window.print();<\/script>
       </body>
@@ -981,7 +981,7 @@ function SetupTab({ venue }: { venue: Venue }) {
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--color-text)', marginBottom: '4px' }}>{venue.name}</div>
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.co.za/checkin/{venue.id.slice(0, 8)}…</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>kayaa.africa/checkin/{venue.id.slice(0, 8)}…</div>
         </div>
       </div>
 

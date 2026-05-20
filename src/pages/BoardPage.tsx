@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BoardPage — /board
  *
  * The neighbourhood opportunity board.
@@ -284,7 +284,7 @@ function PostActionBar({ post, onToggleReplies }: { post: BoardPost; onToggleRep
   }
 
   async function handleShare() {
-    const url  = `https://kayaa.co.za/board/${post.id}`;
+    const url  = `https://kayaa.africa/board/${post.id}`;
     const data = { title: post.title, text: `${post.title} — ${post.neighbourhood}`, url };
     if (typeof navigator !== 'undefined' && navigator.share) {
       setSharing(true);
@@ -296,7 +296,7 @@ function PostActionBar({ post, onToggleReplies }: { post: BoardPost; onToggleRep
   }
 
   async function handleCopyLink() {
-    const url = `https://kayaa.co.za/board/${post.id}`;
+    const url = `https://kayaa.africa/board/${post.id}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopyDone(true);
@@ -306,7 +306,7 @@ function PostActionBar({ post, onToggleReplies }: { post: BoardPost; onToggleRep
 
   // Share fallback: if post has a contact number, open direct chat; otherwise use share sheet
   const directNum  = post.contactWhatsapp ? formatWaNumber(post.contactWhatsapp) : null;
-  const shareText  = `${post.title} — ${post.neighbourhood}\nhttps://kayaa.co.za/board/${post.id}`;
+  const shareText  = `${post.title} — ${post.neighbourhood}\nhttps://kayaa.africa/board/${post.id}`;
   const waUrl = directNum
     ? `https://wa.me/${directNum}?text=${encodeURIComponent(`Hi, I saw your post "${post.title}" on the Kayaa board`)}`
     : `https://wa.me/?text=${encodeURIComponent(shareText)}`;

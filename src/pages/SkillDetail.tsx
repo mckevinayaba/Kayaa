@@ -163,7 +163,7 @@ export default function SkillDetail() {
             <Share2 size={16} color="#fff" />
           </button>
           <a
-            href={`mailto:hello@kayaa.co.za?subject=Report listing: ${encodeURIComponent(post.title)}`}
+            href={`mailto:hello@kayaa.africa?subject=Report listing: ${encodeURIComponent(post.title)}`}
             style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }}
           >
             <Flag size={16} color="rgba(255,255,255,0.5)" />
@@ -364,7 +364,7 @@ export default function SkillDetail() {
 
         {/* ── Report ─────────────────────────────────────────────────────────── */}
         <a
-          href={`mailto:hello@kayaa.co.za?subject=Report listing: ${encodeURIComponent(post.title)}&body=Post ID: ${post.id}%0APlease describe the issue:`}
+          href={`mailto:hello@kayaa.africa?subject=Report listing: ${encodeURIComponent(post.title)}&body=Post ID: ${post.id}%0APlease describe the issue:`}
           style={{
             display: 'block', textAlign: 'center',
             fontFamily: 'Inter, sans-serif', fontSize: '12px',

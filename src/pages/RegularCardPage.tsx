@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { getVisitorCheckIns, type VisitorVenueCheckin } from '../lib/api';
@@ -54,8 +54,8 @@ export default function RegularCardPage() {
   const otherCount = checkins.length - 1;
 
   const shareText = topPlace
-    ? `I'm a regular at ${topPlace.venueName}${otherCount > 0 ? ` and ${otherCount} other neighbourhood place${otherCount > 1 ? 's' : ''}` : ''} on Kayaa. Find places near you — https://kayaa.co.za`
-    : `I'm building my neighbourhood card on Kayaa. Find places near you — https://kayaa.co.za`;
+    ? `I'm a regular at ${topPlace.venueName}${otherCount > 0 ? ` and ${otherCount} other neighbourhood place${otherCount > 1 ? 's' : ''}` : ''} on Kayaa. Find places near you — https://kayaa.africa`
+    : `I'm building my neighbourhood card on Kayaa. Find places near you — https://kayaa.africa`;
 
   const shareHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 

@@ -1,4 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
+﻿// ─────────────────────────────────────────────────────────────────────────────
 // trigger-safety-push — called by the Kayaa client immediately after a safety
 // board post is created.
 //
@@ -16,7 +16,7 @@
 //       (prevents completely unauthenticated calls; no extra secret needed)
 //
 // Required Supabase secrets (shared with send-push):
-//   VAPID_SUBJECT          e.g. mailto:hello@kayaa.co.za
+//   VAPID_SUBJECT          e.g. mailto:hello@kayaa.africa
 //   VAPID_PUBLIC_KEY       base64url VAPID public key
 //   VAPID_PRIVATE_KEY      base64url VAPID private key
 // ─────────────────────────────────────────────────────────────────────────────

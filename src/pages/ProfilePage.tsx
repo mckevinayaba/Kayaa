@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+﻿import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Settings, MapPin, Heart, MessageSquare, Briefcase,
@@ -34,11 +34,11 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 // ── Share Kayaa helper ────────────────────────────────────────────────────────
 
 function shareKayaa() {
-  const text = 'Discover the places in your neighbourhood on Kayaa — https://kayaa.co.za';
+  const text = 'Discover the places in your neighbourhood on Kayaa — https://kayaa.africa';
   if (navigator.share) {
     navigator.share({ title: 'Kayaa', text }).catch(() => {});
   } else {
-    navigator.clipboard?.writeText('https://kayaa.co.za').catch(() => {});
+    navigator.clipboard?.writeText('https://kayaa.africa').catch(() => {});
   }
 }
 
@@ -337,7 +337,7 @@ export default function ProfilePage() {
           <SettingsRow
             label="Report an issue"
             onClick={() => {
-              window.location.href = 'mailto:hello@kayaa.co.za?subject=Issue%20Report';
+              window.location.href = 'mailto:hello@kayaa.africa?subject=Issue%20Report';
             }}
           />
 

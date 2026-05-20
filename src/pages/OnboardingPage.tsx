@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Shield, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -394,7 +394,7 @@ export default function OnboardingPage() {
   }, [user]);
 
   const displaySlug = toDisplaySlug(form.venueName);
-  const qrUrl = `https://kayaa.co.za/checkin/${finalSlug || displaySlug}`;
+  const qrUrl = `https://kayaa.africa/checkin/${finalSlug || displaySlug}`;
 
   function set(key: keyof FormData) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -523,7 +523,7 @@ export default function OnboardingPage() {
   // ─── Step 4: Live! ────────────────────────────────────────────────────────
   if (step === 4) {
     const waShareText = encodeURIComponent(
-      `${form.venueName} is now on Kayaa. Find us here → https://kayaa.co.za/venue/${finalSlug}`
+      `${form.venueName} is now on Kayaa. Find us here → https://kayaa.africa/venue/${finalSlug}`
     );
     return (
       <>

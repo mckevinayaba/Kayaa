@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MessageCircle, AlertTriangle, Trash2, CheckCircle,
@@ -405,7 +405,7 @@ export default function BoardPostPage() {
 
           {/* Report */}
           <a
-            href={`mailto:hello@kayaa.co.za?subject=Report board post&body=Post ID: ${post.id}%0ATitle: ${encodeURIComponent(post.title)}%0A%0APlease describe the issue:`}
+            href={`mailto:hello@kayaa.africa?subject=Report board post&body=Post ID: ${post.id}%0ATitle: ${encodeURIComponent(post.title)}%0A%0APlease describe the issue:`}
             style={{
               display: 'flex', alignItems: 'center',
               marginLeft: 'auto',

@@ -1,4 +1,4 @@
-const NAV_LINKS: { label: string; href: string }[] = [
+﻿const NAV_LINKS: { label: string; href: string }[] = [
   { label: "About",         href: "/about" },
   { label: "For Places",    href: "/about#for-places" },
   { label: "How it works",  href: "/about#how-it-works" },
@@ -122,7 +122,7 @@ export function Footer() {
             >
               Facebook
             </a>
-            <a href="mailto:hello@kayaa.co.za">Email</a>
+            <a href="mailto:hello@kayaa.africa">Email</a>
           </div>
           <div
             style={{

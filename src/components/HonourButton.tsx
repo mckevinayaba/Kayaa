@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HonourButton — "Honour this place ✨"
  *
  * Honour expresses that a place holds memory, trust, routine, and local meaning —
@@ -40,7 +40,7 @@ export default function HonourButton({ venueId, venueName, venueSlug }: Props) {
     const text =
       `🌟 I just honoured ${venueName} on Kayaa — ` +
       `one of those local spots that deserves to be known. ` +
-      `Have a look 👉 https://kayaa.co.za/venue/${venueSlug}`;
+      `Have a look 👉 https://kayaa.africa/venue/${venueSlug}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   }
 

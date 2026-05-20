@@ -1,9 +1,9 @@
-// ─── QRCheckInPage ────────────────────────────────────────────────────────────
+﻿// ─── QRCheckInPage ────────────────────────────────────────────────────────────
 //
 // Route: /checkin/:venueId
 //
 // This is the landing page that QR codes point to.
-// Encodes: kayaa.co.za/checkin/[venue_id]
+// Encodes: kayaa.africa/checkin/[venue_id]
 //
 // Users land here directly after scanning a QR code.
 // Tapping the single CTA checks them in with method = 'qr_link'.

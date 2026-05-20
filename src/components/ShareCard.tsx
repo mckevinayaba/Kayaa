@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+﻿import { forwardRef } from 'react';
 
 // ─── Data types per card ──────────────────────────────────────────────────────
 
@@ -170,7 +170,7 @@ function PlaceCard({ data }: { data: PlaceCardData }) {
       {/* Description */}
       <p style={{ ...MUTED, fontSize: '13px', lineHeight: 1.5, marginBottom: 0, flex: 1 }}>{desc}</p>
 
-      <span style={CORNER_URL}>kayaa.co.za/venue/{data.slug}</span>
+      <span style={CORNER_URL}>kayaa.africa/venue/{data.slug}</span>
     </div>
   );
 }
@@ -207,7 +207,7 @@ function EventCard({ data }: { data: EventCardData }) {
         )}
       </div>
 
-      <span style={CORNER_URL}>kayaa.co.za/venue/{data.venueSlug}</span>
+      <span style={CORNER_URL}>kayaa.africa/venue/{data.venueSlug}</span>
     </div>
   );
 }
@@ -244,7 +244,7 @@ function JobCard({ data }: { data: JobCardData }) {
       <p style={{ ...MUTED, marginBottom: '6px' }}>📍 {data.neighborhood}</p>
       <p style={{ ...MUTED }}>👤 Posted by {data.postedBy}</p>
 
-      <span style={CORNER_URL}>kayaa.co.za/jobs</span>
+      <span style={CORNER_URL}>kayaa.africa/jobs</span>
     </div>
   );
 }
@@ -276,7 +276,7 @@ function SkillCard({ data }: { data: SkillCardData }) {
       )}
       <p style={{ ...MUTED, marginTop: '8px' }}>Contact via kayaa</p>
 
-      <span style={CORNER_URL}>kayaa.co.za/jobs</span>
+      <span style={CORNER_URL}>kayaa.africa/jobs</span>
     </div>
   );
 }
@@ -311,7 +311,7 @@ function MilestoneCard({ data }: { data: MilestoneCardData }) {
 
       <p style={{ ...MUTED, fontSize: '14px', lineHeight: 1.5 }}>{data.message}</p>
 
-      <span style={CORNER_URL}>kayaa.co.za/venue/{data.placeSlug}</span>
+      <span style={CORNER_URL}>kayaa.africa/venue/{data.placeSlug}</span>
     </div>
   );
 }
@@ -361,7 +361,7 @@ function RegularCardCard({ data }: { data: RegularCardData }) {
         {data.totalVisits} check-ins total
       </p>
 
-      <span style={CORNER_URL}>kayaa.co.za</span>
+      <span style={CORNER_URL}>kayaa.africa</span>
     </div>
   );
 }
