@@ -24,6 +24,25 @@ export async function signInWithGoogle() {
   });
 }
 
+// ── Phone OTP ─────────────────────────────────────────────────────────────────
+// Requires phone provider enabled in Supabase dashboard (Twilio / Vonage).
+// Works automatically once the provider is configured — no other code changes needed.
+
+export async function signInWithPhone(phone: string) {
+  return supabase.auth.signInWithOtp({
+    phone,
+    options: { shouldCreateUser: true },
+  });
+}
+
+export async function verifyPhoneOTP(phone: string, token: string) {
+  return supabase.auth.verifyOtp({
+    phone,
+    token,
+    type: 'sms',
+  });
+}
+
 export async function signOut() {
   return supabase.auth.signOut();
 }

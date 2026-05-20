@@ -2,7 +2,13 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { signInWithEmail, signInWithGoogle as authSignInWithGoogle, signOut as authSignOut } from '../lib/auth';
+import {
+  signInWithEmail,
+  signInWithGoogle as authSignInWithGoogle,
+  signInWithPhone as authSignInWithPhone,
+  verifyPhoneOTP as authVerifyPhoneOTP,
+  signOut as authSignOut,
+} from '../lib/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +16,8 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
+  verifyOTP: (phone: string, token: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -70,12 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   }
 
+  async function signInWithPhone(phone: string) {
+    const { error } = await authSignInWithPhone(phone);
+    return { error: error as Error | null };
+  }
+
+  async function verifyOTP(phone: string, token: string) {
+    const { error } = await authVerifyPhoneOTP(phone, token);
+    return { error: error as Error | null };
+  }
+
   async function signOut() {
     await authSignOut();
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{
+      user, session, loading,
+      signIn, signInWithGoogle, signInWithPhone, verifyOTP, signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );
