@@ -127,7 +127,7 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
               width: '100%', padding: '14px 20px',
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '14px', cursor: 'pointer', marginBottom: '12px',
+              borderRadius: '14px', cursor: 'pointer', marginBottom: '8px',
               display: 'flex', alignItems: 'center', gap: '14px',
               textAlign: 'left',
             }}
@@ -149,7 +149,36 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
             </div>
           </button>
 
-          {/* 3. GRID — smaller actions */}
+          {/* 3. NOMINATE — put a place on the map */}
+          <button
+            onClick={() => go('/nominate')}
+            style={{
+              width: '100%', padding: '14px 20px',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '14px', cursor: 'pointer', marginBottom: '12px',
+              display: 'flex', alignItems: 'center', gap: '14px',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>📍</span>
+            <div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px',
+                color: 'rgba(255,255,255,0.85)', lineHeight: 1.2,
+              }}>
+                Put a place on the map
+              </div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', fontSize: '12px',
+                color: 'rgba(255,255,255,0.38)', marginTop: '3px',
+              }}>
+                Know a spot that should be here? Tell us — takes 30 seconds.
+              </div>
+            </div>
+          </button>
+
+          {/* 4. GRID — smaller actions */}
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr',
             gap: '8px', marginBottom: '18px',

@@ -53,6 +53,7 @@ const SafetyReportPage     = lazy(() => import('./pages/SafetyReportPage'));
 const MomentCreatePage     = lazy(() => import('./pages/MomentCreatePage'));
 const UtilityReportPage    = lazy(() => import('./pages/UtilityReportPage'));
 const ClaimBusinessPage    = lazy(() => import('./pages/ClaimBusinessPage'));
+const NominatePage         = lazy(() => import('./pages/NominatePage'));
 
 // ── Page loader — shown while a lazy chunk is fetching ───────────────────────
 function PageLoader() {
@@ -183,6 +184,7 @@ export default function App() {
               <Route path="/report/utility/:type" element={<Auth><UtilityReportPage /></Auth>} />
               <Route path="/create"              element={<Auth><CreatePage /></Auth>} />
               <Route path="/claim-business"      element={<Auth><ClaimBusinessPage /></Auth>} />
+              <Route path="/nominate"            element={<Auth><NominatePage /></Auth>} />
               <Route path="/search" element={<Navigate to="/checkin" replace />} />
             </Route>
 
