@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, MapPin } from 'lucide-react'; // MapPin used in header + cluster list view
+import { ArrowLeft, Plus, MapPin, ChevronDown, X } from 'lucide-react'; // MapPin used in header + cluster list view
 import { getAllVenues } from '../lib/api';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
@@ -270,6 +270,8 @@ export default function NeighbourhoodPage() {
   const [venues,        setVenues]        = useState<Venue[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [activeCluster, setActiveCluster] = useState<string | null>(null);
+  const [showAreaSearch, setShowAreaSearch] = useState(false);
+  const [areaInput,      setAreaInput]      = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -478,21 +480,87 @@ export default function NeighbourhoodPage() {
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '22px' }}>
-        <h1 style={{
-          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
-          color: '#F0F6FC', margin: '0 0 2px', lineHeight: 1.2,
-        }}>
-          Discover
-        </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
-          <MapPin size={11} color="rgba(255,255,255,0.3)" />
-          <span style={{
-            fontFamily: 'Inter, sans-serif', fontSize: '12px',
-            color: 'rgba(255,255,255,0.35)',
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <h1 style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '22px',
+            color: '#F0F6FC', margin: 0, lineHeight: 1.2,
           }}>
+            Discover
+          </h1>
+          {/* Neighbourhood switcher pill */}
+          <button
+            onClick={() => { setShowAreaSearch(s => !s); setAreaInput(''); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              borderRadius: '20px', padding: '6px 11px',
+              cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+              color: 'var(--color-muted)',
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+            aria-label="Change neighbourhood"
+          >
+            <MapPin size={11} color="rgba(255,255,255,0.4)" />
             {areaLabel}
-          </span>
+            <ChevronDown size={11} />
+          </button>
         </div>
+
+        {/* Inline area search */}
+        {showAreaSearch && (
+          <div style={{ display: 'flex', gap: '8px', margin: '10px 0' }}>
+            <input
+              autoFocus
+              value={areaInput}
+              onChange={e => setAreaInput(e.target.value)}
+              placeholder="e.g. Berea, Soweto, Sandton…"
+              style={{
+                flex: 1, padding: '9px 13px', borderRadius: '10px',
+                background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.3)',
+                color: 'var(--color-text)', fontFamily: 'Inter, sans-serif', fontSize: '14px',
+                outline: 'none',
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && areaInput.trim()) {
+                  setManualOverride(areaInput.trim());
+                  setShowAreaSearch(false);
+                  setActiveCluster(null);
+                }
+                if (e.key === 'Escape') setShowAreaSearch(false);
+              }}
+            />
+            <button
+              onClick={() => {
+                if (areaInput.trim()) {
+                  setManualOverride(areaInput.trim());
+                  setShowAreaSearch(false);
+                  setActiveCluster(null);
+                }
+              }}
+              style={{
+                padding: '9px 14px', borderRadius: '10px', border: 'none',
+                background: '#39D98A', color: '#0D1117',
+                fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
+                cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              Go
+            </button>
+            <button
+              onClick={() => setShowAreaSearch(false)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '40px', borderRadius: '10px', border: '1px solid var(--color-border)',
+                background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', flexShrink: 0,
+              }}
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: 0 }}>
           {totalPlaces === 0
             ? 'No places listed yet — be the first to add one'

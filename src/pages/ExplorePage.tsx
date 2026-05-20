@@ -108,6 +108,17 @@ function VenueRow({ venue, userLat, userLon }: { venue: Venue; userLat?: number;
             </>
           )}
         </div>
+        {/* Street address — first segment before the comma, shown when set */}
+        {venue.address?.trim() && (
+          <div style={{
+            fontFamily: 'Inter, sans-serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.28)',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            marginTop: '2px',
+          }}>
+            {venue.address.split(',')[0].trim()}
+          </div>
+        )}
       </div>
       <button
         onClick={e => { e.stopPropagation(); navigate(`/venue/${venue.slug}/checkin`); }}

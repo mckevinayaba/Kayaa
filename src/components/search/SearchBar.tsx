@@ -16,6 +16,7 @@ interface SearchResult {
   icon: string;
   badges: string[];
   distanceKm?: number;
+  locality?: string; // shown when search scope is wider than My Area
   status: 'open' | 'busy' | 'quiet' | 'closed';
   score: number;
 }
@@ -84,9 +85,9 @@ export default function SearchBar({
 }: SearchBarProps) {
   const navigate = useNavigate();
 
-  // Scope: 'neighbourhood' = restrict to current suburb, 'all' = search everything
-  const [searchScope, setSearchScope] = useState<'neighbourhood' | 'all'>(
-    neighbourhood ? 'neighbourhood' : 'all',
+  // Scope: my_area → current suburb only · nearby → ≤30 km GPS radius · everywhere → all
+  const [searchScope, setSearchScope] = useState<'my_area' | 'nearby' | 'everywhere'>(
+    neighbourhood ? 'my_area' : 'everywhere',
   );
 
   // Reset scope when neighbourhood prop changes
@@ -94,14 +95,16 @@ export default function SearchBar({
   useEffect(() => {
     if (prevNeighbourhoodRef.current !== neighbourhood) {
       prevNeighbourhoodRef.current = neighbourhood;
-      setSearchScope(neighbourhood ? 'neighbourhood' : 'all');
+      setSearchScope(neighbourhood ? 'my_area' : 'everywhere');
     }
   }, [neighbourhood]);
 
   const resolvedPlaceholder = placeholder ??
-    (neighbourhood && searchScope === 'neighbourhood'
+    (neighbourhood && searchScope === 'my_area'
       ? `Search in ${neighbourhood}…`
-      : 'Search places, areas, categories…');
+      : searchScope === 'nearby'
+        ? 'Search nearby places…'
+        : 'Search places, areas, categories…');
 
   const [query,    setQuery]    = useState('');
   const [isOpen,   setIsOpen]   = useState(false);
@@ -142,13 +145,27 @@ export default function SearchBar({
   useEffect(() => {
     if (!debouncedQ.trim() || debouncedQ.length < 2) { setResults([]); return; }
 
-    // When scoped to neighbourhood, restrict to venues in that suburb
-    const pool = (searchScope === 'neighbourhood' && neighbourhood)
-      ? venues.filter(v =>
-          v.neighborhood?.toLowerCase().includes(neighbourhood.toLowerCase()) ||
-          v.city?.toLowerCase().includes(neighbourhood.toLowerCase())
-        )
-      : venues;
+    // Build pool based on scope
+    let pool: Venue[];
+    if (searchScope === 'my_area' && neighbourhood) {
+      pool = venues.filter(v =>
+        v.neighborhood?.toLowerCase().includes(neighbourhood.toLowerCase()) ||
+        v.city?.toLowerCase().includes(neighbourhood.toLowerCase())
+      );
+    } else if (searchScope === 'nearby' && userLat != null && userLon != null) {
+      pool = venues.filter(v =>
+        v.latitude != null && v.longitude != null &&
+        haversineKm(userLat!, userLon!, v.latitude, v.longitude) <= 30
+      );
+    } else if (searchScope === 'nearby' && neighbourhood) {
+      // No GPS — fall back to same general area
+      pool = venues.filter(v =>
+        v.neighborhood?.toLowerCase().includes(neighbourhood.toLowerCase()) ||
+        v.city?.toLowerCase().includes(neighbourhood.toLowerCase())
+      );
+    } else {
+      pool = venues;
+    }
 
     const scored: SearchResult[] = [];
     for (const v of pool) {
@@ -161,12 +178,26 @@ export default function SearchBar({
       const badges: string[] = [];
       if (v.isVerified) badges.push('✓ Verified');
       if ((v.checkinsToday ?? 0) > 5) badges.push(`${v.checkinsToday} today`);
+      // Short address — first segment before the first comma
+      const shortAddr = v.address?.trim() ? v.address.split(',')[0].trim() : null;
+      // Subtitle: category · neighbourhood (city) [· street address when scope is wider]
+      const areaPart = v.neighborhood ? `${v.neighborhood}${v.city ? `, ${v.city}` : ''}` : (v.city ?? '');
+      const subtitle = [v.category, areaPart, searchScope !== 'my_area' ? shortAddr : null]
+        .filter(Boolean)
+        .join(' · ');
+      // Locality label shown on result chip when scope is wider than My Area
+      const locality =
+        searchScope === 'my_area'
+          ? undefined
+          : searchScope === 'nearby'
+            ? (v.neighborhood ? `Nearby · ${v.neighborhood}` : 'Nearby')
+            : (v.neighborhood ? `In ${v.neighborhood}` : (v.city ? `In ${v.city}` : undefined));
       scored.push({
         id: v.id, slug: v.slug, type: 'place',
         title: v.name,
-        subtitle: `${v.category} · ${v.neighborhood}${v.city ? `, ${v.city}` : ''}`,
+        subtitle,
         icon: CAT_EMOJI[v.category] ?? '📍',
-        badges, distanceKm: dist,
+        badges, distanceKm: dist, locality,
         status: (v.venueStatus ?? (v.isOpen ? 'open' : 'closed')) as SearchResult['status'],
         score,
       });
@@ -326,30 +357,33 @@ export default function SearchBar({
           }}
         >
 
-          {/* Scope toggle — shown when a neighbourhood is known */}
-          {neighbourhood && (
-            <div style={{ padding: '8px 14px 6px', borderBottom: '1px solid var(--color-border)', display: 'flex', gap: '6px' }}>
-              {(['neighbourhood', 'all'] as const).map(s => {
-                const active = searchScope === s;
-                const label  = s === 'neighbourhood' ? `In ${neighbourhood}` : 'All areas';
-                return (
-                  <button
-                    key={s}
-                    onClick={() => setSearchScope(s)}
-                    style={{
-                      padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer',
-                      background: active ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.06)',
-                      color: active ? '#39D98A' : 'rgba(255,255,255,0.45)',
-                      fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Scope toggle — always visible so users can widen/narrow search intentionally */}
+          <div style={{ padding: '8px 14px 6px', borderBottom: '1px solid var(--color-border)', display: 'flex', gap: '6px' }}>
+            {([
+              { key: 'my_area'    as const, label: neighbourhood ? `In ${neighbourhood}` : 'My Area', disabled: !neighbourhood },
+              { key: 'nearby'     as const, label: 'Nearby',     disabled: false },
+              { key: 'everywhere' as const, label: 'Everywhere', disabled: false },
+            ]).map(({ key, label, disabled }) => {
+              const active = searchScope === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => { if (!disabled) setSearchScope(key); }}
+                  style={{
+                    padding: '4px 10px', borderRadius: '20px', border: 'none',
+                    cursor: disabled ? 'default' : 'pointer',
+                    background: active ? 'rgba(57,217,138,0.15)' : 'rgba(255,255,255,0.06)',
+                    color: active ? '#39D98A' : disabled ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.45)',
+                    fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700,
+                    transition: 'all 0.15s',
+                    opacity: disabled ? 0.45 : 1,
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Recent searches */}
           {query.length === 0 && recents.length > 0 && (
@@ -422,6 +456,17 @@ export default function SearchBar({
                     </div>
                   </div>
 
+                  {/* Locality label (Nearby · Berea / In Yeoville) — shown for wider scopes */}
+                  {r.locality && !r.distanceKm && (
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: 600,
+                      color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.06)',
+                      borderRadius: '10px', padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
+                    }}>
+                      {r.locality}
+                    </span>
+                  )}
+
                   {/* Distance */}
                   {r.distanceKm != null && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
@@ -436,31 +481,47 @@ export default function SearchBar({
             </div>
           )}
 
-          {/* No results */}
+          {/* No results — escalating scope CTAs */}
           {debouncedQ.length >= 2 && results.length === 0 && (
             <div style={{ padding: '20px 16px', textAlign: 'center' }}>
               <div style={{ fontSize: '24px', marginBottom: '6px' }}>🔍</div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 4px' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', margin: '0 0 10px' }}>
                 No results for <strong style={{ color: 'var(--color-text)' }}>"{debouncedQ}"</strong>
-                {searchScope === 'neighbourhood' && neighbourhood ? ` in ${neighbourhood}` : ''}
+                {searchScope === 'my_area' && neighbourhood ? ` in ${neighbourhood}` : searchScope === 'nearby' ? ' nearby' : ''}
               </p>
-              {searchScope === 'neighbourhood' && neighbourhood ? (
-                <button
-                  onClick={() => setSearchScope('all')}
-                  style={{
-                    marginTop: '8px', padding: '6px 14px', borderRadius: '20px', border: 'none',
-                    background: 'rgba(57,217,138,0.12)', color: '#39D98A',
-                    fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Search all areas
-                </button>
-              ) : (
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
-                  Try a different name, area, or category
-                </p>
-              )}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {searchScope === 'my_area' && (
+                  <button
+                    onClick={() => setSearchScope('nearby')}
+                    style={{
+                      padding: '6px 14px', borderRadius: '20px', border: 'none',
+                      background: 'rgba(57,217,138,0.12)', color: '#39D98A',
+                      fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Try Nearby
+                  </button>
+                )}
+                {(searchScope === 'my_area' || searchScope === 'nearby') && (
+                  <button
+                    onClick={() => setSearchScope('everywhere')}
+                    style={{
+                      padding: '6px 14px', borderRadius: '20px', border: 'none',
+                      background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)',
+                      fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Search Everywhere
+                  </button>
+                )}
+                {searchScope === 'everywhere' && (
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+                    Try a different name, area, or category
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
