@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { MapPin, Share2, CheckCircle2, Store } from 'lucide-react';
 import type { Venue } from '../types';
 import type { VibeType } from '../lib/api';
+import { followBusiness, unfollowBusiness } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 import ShareModal from './ShareModal';
 import { VerificationBadge } from './common/VerificationBadge';
 import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
@@ -61,6 +63,8 @@ interface VenueCardProps {
   recommendationReason?: string;
   recCount?: number;  // neighbour recommendation count
   distance?: number | null;  // km from user — shown when available
+  isFollowed?: boolean;      // controlled follow state (from parent)
+  onFollowToggle?: (venueId: string) => void; // parent-managed toggle
 }
 
 /**
@@ -89,13 +93,34 @@ function getPopularitySignal(v: Venue): { label: string; color: string } | null 
   return null;
 }
 
-export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0, distance = null }: VenueCardProps) {
+export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActiveStory, onStoryTap, recommendationReason, recCount = 0, distance = null, isFollowed: isFollowedProp, onFollowToggle }: VenueCardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const emoji  = getCategoryEmoji(venue.category);
   const color  = categoryColor[venue.category] ?? '#39D98A';
   const hasRecentCheckin = !!(venue.lastCheckinAt && Date.now() - new Date(venue.lastCheckinAt).getTime() < 2 * 60 * 60 * 1000);
   const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Self-contained follow state — used when parent doesn't provide controlled state
+  const [localFollowed, setLocalFollowed] = useState(false);
+  const followed = isFollowedProp !== undefined ? isFollowedProp : localFollowed;
+
+  async function handleFollow(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!user) { navigate('/welcome'); return; }
+    if (onFollowToggle) {
+      onFollowToggle(venue.id);
+    } else {
+      // Self-contained: optimistic update + API call
+      setLocalFollowed(f => !f);
+      if (localFollowed) {
+        await unfollowBusiness(venue.id);
+      } else {
+        await followBusiness(venue.id);
+      }
+    }
+  }
   const todayCount = venue.checkinsToday ?? 0;
   const popularitySignal = getPopularitySignal(venue);
   const activeSignal     = getActiveSignal(venue);
@@ -474,6 +499,21 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
 
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Follow */}
+              <button
+                onClick={handleFollow}
+                style={{
+                  padding: '7px 13px', borderRadius: '20px', cursor: 'pointer', flexShrink: 0,
+                  border: `1px solid ${followed ? 'rgba(57,217,138,0.4)' : 'var(--color-border-warm)'}`,
+                  background: followed ? 'rgba(57,217,138,0.1)' : 'rgba(255,255,255,0.04)',
+                  color: followed ? '#39D98A' : 'var(--color-muted)',
+                  fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {followed ? '✓ Following' : '+ Follow'}
+              </button>
+              {/* Share */}
               <button
                 onClick={e => { e.stopPropagation(); setShareOpen(true); }}
                 style={{
@@ -487,6 +527,7 @@ export default function VenueCard({ venue, headingCount = 0, vibeWinner, hasActi
               >
                 <Share2 size={14} color="var(--color-muted)" />
               </button>
+              {/* Check in */}
               <Link
                 to={`/venue/${venue.slug}/checkin`}
                 onClick={e => e.stopPropagation()}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { PenSquare, ChevronDown } from 'lucide-react';
+import { PenSquare, ChevronDown, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { haversineKm } from '../lib/geocode';
@@ -14,8 +14,11 @@ import {
   getFollowedVenueIds,
   getFollowingFeedItems,
   getLocalVenueUpdates,
+  followBusiness,
+  unfollowBusiness,
 } from '../lib/api';
 import type { BoardPost, LocalJob, UtilityReport, FollowingFeedItem } from '../lib/api';
+import { PlaceShareModal } from '../components/place/ShareModal';
 import type { Venue } from '../types';
 import PostBar from '../components/feed/PostBar';
 import QuickAddPlace from '../components/QuickAddPlace';
@@ -265,6 +268,9 @@ function FollowingFeedContent({
   items,
   loading,
   loaded,
+  followedIds,
+  onFollowToggle,
+  onShare,
   onBrowse,
 }: {
   isSignedIn: boolean;
@@ -272,6 +278,9 @@ function FollowingFeedContent({
   items: FollowingFeedItem[];
   loading: boolean;
   loaded: boolean;
+  followedIds: string[];
+  onFollowToggle: (venueId: string) => void;
+  onShare: (item: FollowingFeedItem) => void;
   onBrowse: () => void;
 }) {
   const navigate = useNavigate();
@@ -363,6 +372,7 @@ function FollowingFeedContent({
         {items.map(item => {
           const cfg = FOLLOWING_UPDATE_CFG[item.updateType] ?? FOLLOWING_UPDATE_CFG.general;
           const catEmoji = getCategoryEmoji(item.venueCategory);
+          const isFollowed = followedIds.includes(item.venueId);
           return (
             <div
               key={item.id}
@@ -410,9 +420,51 @@ function FollowingFeedContent({
                   {item.updateContent}
                 </p>
               )}
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>
-                {timeAgo(item.createdAt)} · tap to visit →
-              </span>
+              {/* Action row */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                paddingTop: '10px', marginTop: '4px',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <button
+                  onClick={e => { e.stopPropagation(); onFollowToggle(item.venueId); }}
+                  style={{
+                    flex: 1, padding: '7px 10px', borderRadius: '20px', cursor: 'pointer',
+                    border: `1px solid ${isFollowed ? 'rgba(57,217,138,0.4)' : 'rgba(255,255,255,0.15)'}`,
+                    background: isFollowed ? 'rgba(57,217,138,0.1)' : 'transparent',
+                    color: isFollowed ? '#39D98A' : 'rgba(255,255,255,0.55)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {isFollowed ? '✓ Following' : '+ Follow'}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onShare(item); }}
+                  style={{
+                    padding: '7px 12px', borderRadius: '20px', cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.45)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}
+                >
+                  <Share2 size={11} color="rgba(255,255,255,0.45)" /> Share
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(`/venue/${item.venueSlug}`); }}
+                  style={{
+                    padding: '7px 12px', borderRadius: '20px', cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.45)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
+                  }}
+                >
+                  Open →
+                </button>
+              </div>
             </div>
           );
         })}
@@ -428,9 +480,15 @@ function FollowingFeedContent({
 function BusinessUpdatesStrip({
   items,
   suburb,
+  followedIds,
+  onFollowToggle,
+  onShare,
 }: {
   items: FollowingFeedItem[];
   suburb: string;
+  followedIds: string[];
+  onFollowToggle: (venueId: string) => void;
+  onShare: (item: FollowingFeedItem) => void;
 }) {
   const navigate = useNavigate();
   if (items.length === 0) return null;
@@ -446,6 +504,7 @@ function BusinessUpdatesStrip({
         {items.map(item => {
           const cfg = FOLLOWING_UPDATE_CFG[item.updateType] ?? FOLLOWING_UPDATE_CFG.general;
           const catEmoji = getCategoryEmoji(item.venueCategory);
+          const isFollowed = followedIds.includes(item.venueId);
           return (
             <div
               key={item.id}
@@ -499,15 +558,57 @@ function BusinessUpdatesStrip({
               {item.updateContent && (
                 <p style={{
                   fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)',
-                  margin: '0 0 5px', lineHeight: 1.5,
+                  margin: '0 0 8px', lineHeight: 1.5,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 } as React.CSSProperties}>
                   {item.updateContent}
                 </p>
               )}
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
-                {timeAgo(item.createdAt)} · tap to view →
-              </span>
+              {/* Action row */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                paddingTop: '10px', marginTop: item.updateContent ? '0' : '8px',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <button
+                  onClick={e => { e.stopPropagation(); onFollowToggle(item.venueId); }}
+                  style={{
+                    flex: 1, padding: '7px 10px', borderRadius: '20px', cursor: 'pointer',
+                    border: `1px solid ${isFollowed ? 'rgba(57,217,138,0.4)' : 'rgba(255,255,255,0.15)'}`,
+                    background: isFollowed ? 'rgba(57,217,138,0.1)' : 'transparent',
+                    color: isFollowed ? '#39D98A' : 'rgba(255,255,255,0.55)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {isFollowed ? '✓ Following' : '+ Follow'}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onShare(item); }}
+                  style={{
+                    padding: '7px 12px', borderRadius: '20px', cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.45)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}
+                >
+                  <Share2 size={11} color="rgba(255,255,255,0.45)" /> Share
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(`/venue/${item.venueSlug}`); }}
+                  style={{
+                    padding: '7px 12px', borderRadius: '20px', cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.45)',
+                    fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '12px',
+                  }}
+                >
+                  Open →
+                </button>
+              </div>
             </div>
           );
         })}
@@ -636,8 +737,31 @@ export default function FeedPage() {
   const [followingLoading, setFollowingLoading] = useState(false);
   const [followingLoaded,  setFollowingLoaded]  = useState(false);
 
+  // Share sheet state — one item at a time across all feed sections
+  const [shareItem, setShareItem] = useState<FollowingFeedItem | null>(null);
+
   // ─── Local business updates (home feed strip) ─────────────────────────────
   const [localBusinessUpdates, setLocalBusinessUpdates] = useState<FollowingFeedItem[]>([]);
+
+  // Load followed IDs once for any signed-in user (powers Follow buttons across all scopes)
+  useEffect(() => {
+    if (!user) return;
+    getFollowedVenueIds().then(ids => setFollowedVenueIds(ids)).catch(() => {});
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Optimistically toggle follow state; calls API in background */
+  async function handleFollowToggle(venueId: string) {
+    if (!user) { navigate('/welcome'); return; }
+    const isNowFollowed = followedVenueIds.includes(venueId);
+    setFollowedVenueIds(prev =>
+      isNowFollowed ? prev.filter(id => id !== venueId) : [...prev, venueId]
+    );
+    if (isNowFollowed) {
+      await unfollowBusiness(venueId);
+    } else {
+      await followBusiness(venueId);
+    }
+  }
 
   // ─── Home scope: My Area / Nearby / Everywhere ────────────────────────────
   const [scope, setScope] = useState<HomeScope>(
@@ -927,6 +1051,9 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
           items={followingItems}
           loading={followingLoading}
           loaded={followingLoaded}
+          followedIds={followedVenueIds}
+          onFollowToggle={handleFollowToggle}
+          onShare={setShareItem}
           onBrowse={() => navigate('/neighbourhood')}
         />
       ) : (
@@ -1193,7 +1320,13 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
       ) : null}
 
       {/* ── FEED 4: Business updates strip ──────────────────────────────────── */}
-      <BusinessUpdatesStrip items={displayBusinessUpdates} suburb={suburb} />
+      <BusinessUpdatesStrip
+        items={displayBusinessUpdates}
+        suburb={suburb}
+        followedIds={followedVenueIds}
+        onFollowToggle={handleFollowToggle}
+        onShare={setShareItem}
+      />
 
       {/* ── FEED 5: Places discovery strip (module, not hero) ────────────────── */}
       <PlacesDiscoveryStrip
@@ -1317,6 +1450,21 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
       {/* Post composer */}
       {showComposer && (
         <PostComposer neighbourhood={suburb || areaLabel} onClose={() => setShowComposer(false)} onPosted={_post => setRefreshKey(k => k + 1)} />
+      )}
+
+      {/* Share sheet — triggered by any feed card's Share button */}
+      {shareItem && (
+        <PlaceShareModal
+          place={{
+            id: shareItem.venueId,
+            name: shareItem.venueName,
+            slug: shareItem.venueSlug,
+            emoji: getCategoryEmoji(shareItem.venueCategory),
+            category: shareItem.venueCategory,
+            neighbourhood: shareItem.venueNeighborhood,
+          }}
+          onClose={() => setShareItem(null)}
+        />
       )}
     </div>
   );
