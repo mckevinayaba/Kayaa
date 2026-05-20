@@ -2848,9 +2848,9 @@ export default function VenuePage() {
             id: venue.id,
             name: venue.name,
             slug: venue.slug,
-            tagline: venue.description?.slice(0, 80),
             emoji,
             category: venue.category,
+            address: venue.address,
             neighbourhood: venue.neighborhood,
           }}
           onClose={() => setShareOpen(false)}

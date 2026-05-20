@@ -10,8 +10,13 @@ function buildCaption(card: ShareCardData): { text: string; url: string } {
   switch (card.type) {
     case 'place': {
       const placeUrl = `https://kayaa.africa/venue/${card.data.slug}`;
+      const location = card.data.neighborhood || card.data.city || '';
       return {
-        text: `📍 ${card.data.name} is a local spot worth knowing about. Check it out on Kayaa 👉 ${placeUrl}`,
+        text:
+          `${card.data.name}\n` +
+          (location ? `${location}\n` : '') +
+          `Now on Kayaa — your neighbourhood's businesses, places, and updates in one place.\n` +
+          `View on Kayaa: ${placeUrl}`,
         url: placeUrl,
       };
     }

@@ -10,6 +10,7 @@ interface PlaceShareModalProps {
     emoji: string;
     category: string;
     neighbourhood?: string;
+    address?: string;
   };
   onClose: () => void;
 }
@@ -19,15 +20,13 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
 
   const shareUrl = `https://kayaa.africa/venue/${place.slug}`;
 
-  // Build WhatsApp message: community-useful, not marketing.
-  // SA-native — reads like something a local would actually send.
-  const locationHint = place.neighbourhood ? ` in ${place.neighbourhood}` : '';
-  const hook = place.tagline
-    ? `"${place.tagline}"`
-    : `a ${place.category.toLowerCase()} worth knowing about${locationHint}`;
+  // Universal built-in share message — fixed format, not editable by users.
+  const location = place.address || place.neighbourhood || '';
   const shareText =
-    `${place.emoji} ${place.name}${locationHint} — ${hook}.\n\n` +
-    `Find it on Kayaa 👉 `;
+    `${place.name}\n` +
+    (location ? `${location}\n` : '') +
+    `Now on Kayaa — your neighbourhood's businesses, places, and updates in one place.\n` +
+    `View on Kayaa: ${shareUrl}`;
 
   const methods: {
     key: string;
@@ -45,7 +44,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
       emoji: '💬',
       bg: '#25D366',
       fg: '#fff',
-      action: () => window.open(`https://wa.me/?text=${encodeURIComponent(shareText + shareUrl)}`, '_blank'),
+      action: () => window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank'),
     },
     {
       key: 'copy',
@@ -79,7 +78,7 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
       emoji: '📱',
       bg: 'var(--color-surface)',
       fg: 'var(--color-text)',
-      action: () => { window.location.href = `sms:?body=${encodeURIComponent(shareText + shareUrl)}`; },
+      action: () => { window.location.href = `sms:?body=${encodeURIComponent(shareText)}`; },
     },
   ];
 
@@ -89,14 +88,14 @@ export function PlaceShareModal({ place, onClose }: PlaceShareModalProps) {
       label: 'Email',
       emoji: '📧',
       action: () => {
-        window.location.href = `mailto:?subject=${encodeURIComponent(`${place.emoji} ${place.name} — a spot worth knowing`)}&body=${encodeURIComponent(shareText + shareUrl)}`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(`${place.name} — on Kayaa`)}&body=${encodeURIComponent(shareText)}`;
       },
     },
     {
       key: 'twitter',
       label: 'X / Twitter',
       emoji: '𝕏',
-      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + shareUrl)}`, '_blank'),
+      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, '_blank'),
     },
     {
       key: 'facebook',
