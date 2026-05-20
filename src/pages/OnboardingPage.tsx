@@ -1185,27 +1185,6 @@ export default function OnboardingPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '28px' }}>
 
-          {/* Description — moved from Step 1 */}
-          <div>
-            <label style={labelStyle}>
-              Describe your business{' '}
-              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
-            </label>
-            <p style={hintStyle}>
-              What makes your place special? Keep it short and honest.
-            </p>
-            <textarea
-              value={form.description}
-              onChange={set('description')}
-              placeholder="e.g. Best fades in Soweto. Open 7 days. Quick cuts, no appointment needed."
-              maxLength={200}
-              style={{ ...inputStyle, minHeight: '90px', resize: 'vertical', lineHeight: 1.55 }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>{form.description.length}/200</span>
-            </div>
-          </div>
-
           {/* Street address — required for publish */}
           <div data-field="streetAddress">
             <label style={labelStyle}>Business address</label>
@@ -1363,6 +1342,39 @@ export default function OnboardingPage() {
             style={{ ...inputStyle, border: `1px solid ${errors.venueName ? '#F87171' : 'var(--color-border)'}` }}
           />
           <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
+        </div>
+
+        {/* 1b. Description — optional but recommended */}
+        <div>
+          <label style={labelStyle}>
+            Describe your business{' '}
+            <span style={{
+              fontSize: '12px', fontWeight: 500,
+              color: '#39D98A',
+              background: 'rgba(57,217,138,0.1)',
+              border: '1px solid rgba(57,217,138,0.2)',
+              borderRadius: '20px', padding: '1px 8px',
+              verticalAlign: 'middle',
+            }}>
+              Recommended
+            </span>
+          </label>
+          <p style={hintStyle}>
+            What makes your place special? A sentence or two helps customers choose you.
+          </p>
+          <textarea
+            value={form.description}
+            onChange={set('description')}
+            placeholder="e.g. Best fades in Soweto. Open 7 days. Quick cuts, no appointment needed."
+            maxLength={200}
+            rows={3}
+            style={{ ...inputStyle, minHeight: '80px', resize: 'none', lineHeight: 1.55 }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+            <span style={{ fontSize: '11px', color: form.description.length > 160 ? '#FBBF24' : 'var(--color-muted)' }}>
+              {form.description.length}/200
+            </span>
+          </div>
         </div>
 
         {/* 2. What do you do? */}
