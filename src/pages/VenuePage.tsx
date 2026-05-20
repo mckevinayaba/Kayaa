@@ -480,11 +480,11 @@ function PhotoGalleryHero({
         </div>
       )}
 
-      {/* Gradient overlay */}
+      {/* Gradient overlay — strong dark base for text readability */}
       <div style={{
         position: 'absolute', inset: 0,
         background: hasCover
-          ? 'linear-gradient(to bottom, rgba(13,17,23,0.55) 0%, transparent 35%, rgba(13,17,23,0.92) 100%)'
+          ? 'linear-gradient(to bottom, rgba(13,17,23,0.28) 0%, transparent 28%, rgba(13,17,23,0.72) 55%, rgba(13,17,23,0.97) 100%)'
           : 'none',
         pointerEvents: 'none',
       }} />
@@ -537,7 +537,7 @@ function PhotoGalleryHero({
       )}
 
       {/* Bottom info overlay */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', zIndex: 3 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px 16px', zIndex: 3 }}>
         {/* Badges row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
           <span style={{
@@ -617,43 +617,46 @@ function PhotoGalleryHero({
           )}
         </div>
 
-        {/* Venue name */}
+        {/* Venue name — size scales with name length to avoid crowding */}
         <h1 style={{
-          fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '26px',
-          color: '#fff', lineHeight: 1.15, margin: '0 0 5px',
-          textShadow: '0 2px 12px rgba(0,0,0,0.8)',
+          fontFamily: 'Syne, sans-serif',
+          fontWeight: 700,
+          fontSize: venue.name.length > 38 ? '19px' : venue.name.length > 26 ? '22px' : '25px',
+          color: '#fff',
+          lineHeight: 1.08,
+          margin: '0 0 5px',
+          letterSpacing: '-0.01em',
+          textShadow: '0 1px 10px rgba(0,0,0,0.95)',
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical' as const,
         }}>
           {venue.name}
         </h1>
 
-        {/* Address + distance */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
-            <MapPin size={13} color="rgba(255,255,255,0.7)" style={{ flexShrink: 0, marginTop: '2px' } as React.CSSProperties} />
-            <div>
-              {venue.address ? (
-                <span style={{
-                  fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: 600,
-                  lineHeight: 1.35, display: 'block',
-                  textShadow: '0 1px 8px rgba(0,0,0,0.7)',
-                }}>
-                  {venue.address}
-                </span>
-              ) : null}
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', display: 'block', marginTop: venue.address ? '1px' : 0 }}>
-                {venue.neighborhood}, {venue.city}
-              </span>
-            </div>
-          </div>
+        {/* Location — compact single line: neighbourhood · distance */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'nowrap', overflow: 'hidden' }}>
+          <MapPin size={11} color="rgba(255,255,255,0.42)" style={{ flexShrink: 0 } as React.CSSProperties} />
+          <span style={{
+            fontSize: '12px', color: 'rgba(255,255,255,0.52)',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {venue.neighborhood}{venue.city ? `, ${venue.city}` : ''}
+          </span>
           {distance !== null && (
-            <span style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              fontSize: '12px', fontWeight: 700, color: '#39D98A',
-              marginLeft: '18px',
-            }}>
-              <Navigation size={11} />
-              {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)} km`} away
-            </span>
+            <>
+              <span style={{ color: 'rgba(255,255,255,0.22)', fontSize: '10px', flexShrink: 0 }}>·</span>
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: '2px',
+                fontSize: '12px', fontWeight: 600, color: '#39D98A',
+                fontFamily: 'DM Sans, sans-serif', flexShrink: 0,
+              }}>
+                <Navigation size={10} />
+                {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+              </span>
+            </>
           )}
         </div>
 
