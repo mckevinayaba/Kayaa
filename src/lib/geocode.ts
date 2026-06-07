@@ -294,7 +294,11 @@ async function queryBigDataCloud(lat: number, lon: number): Promise<{ suburb: st
     const suburb = extractSuburbFromBDC(d);
 
     if (!suburb && !city) return null;
-    return { suburb: suburb || city, city: city || suburb };
+    // NOTE: We no longer use `suburb || city` as fallback.
+    // A city-only result returns { suburb: '', city } — the caller must treat
+    // an empty suburb as "city-only resolution" and must NOT overwrite a
+    // better confirmed suburb with the city name.
+    return { suburb, city };
   } catch {
     return null;
   }
@@ -320,6 +324,16 @@ export interface ReverseGeocodeResult {
    *   low    = cell tower / IP-based (> 1 km) — suburb name unreliable
    */
   confidence: 'high' | 'medium' | 'low';
+  /**
+   * resolution reflects suburb precision — independent of GPS accuracy:
+   *   bounds  = matched a known bounding-box entry (most trustworthy — geometry beats accuracy)
+   *   suburb  = BigDataCloud returned a genuine suburb/locality name
+   *   city    = only city-level data available; suburb could not be resolved
+   *
+   * CRITICAL: when resolution = 'city', suburb is '' (empty string).
+   * A city-only result must never overwrite a confirmed suburb-level result.
+   */
+  resolution: 'bounds' | 'suburb' | 'city';
   raw: Record<string, string>;
 }
 
@@ -333,6 +347,7 @@ export type DetectedArea = {
   /** Pre-formatted label: "Hillbrow, Johannesburg" or "Soweto" */
   display:    string;
   confidence: 'high' | 'medium' | 'low';
+  resolution: 'bounds' | 'suburb' | 'city';
   source:     'gps' | 'override' | 'fallback';
 };
 
@@ -361,22 +376,31 @@ export async function reverseGeocodeCoords(
   // ── Layer 1: bounding box (instant, no API call) ───────────────────────────
   const box = detectSuburbFromBounds(lat, lon);
   if (box) {
-    // Bounding box gives us the suburb name with high accuracy.
-    // Still call BigDataCloud for the city in case our hardcoded city is wrong
-    // for an edge case — but trust our suburb name completely.
+    // Bounding box gives us the suburb name with high precision regardless
+    // of GPS accuracy (the geometry is reliable). Still call BigDataCloud
+    // to get the city in case our hardcoded city is wrong for an edge case.
     try {
       const bdc = await queryBigDataCloud(lat, lon);
       const city = bdc?.city || box.city;
-      return { suburb: box.name, city, lat, lon, confidence, raw: {} };
+      return { suburb: box.name, city, lat, lon, confidence, resolution: 'bounds', raw: {} };
     } catch {
-      return { suburb: box.name, city: box.city, lat, lon, confidence, raw: {} };
+      return { suburb: box.name, city: box.city, lat, lon, confidence, resolution: 'bounds', raw: {} };
     }
   }
 
   // ── Layer 2: BigDataCloud reverse geocode ──────────────────────────────────
   const bdc = await queryBigDataCloud(lat, lon);
-  if (bdc?.suburb) {
-    return { suburb: bdc.suburb, city: bdc.city, lat, lon, confidence, raw: {} };
+  if (bdc) {
+    if (bdc.suburb) {
+      // Real suburb resolved — trust it at whatever confidence GPS gave us
+      return { suburb: bdc.suburb, city: bdc.city, lat, lon, confidence, resolution: 'suburb', raw: {} };
+    } else if (bdc.city) {
+      // City-only — BDC could not resolve a suburb for this coordinate.
+      // Force confidence to 'low' regardless of GPS accuracy: from a neighbourhood
+      // perspective, knowing only the city is always low-quality information.
+      // suburb is intentionally '' — callers MUST NOT use city name as suburb.
+      return { suburb: '', city: bdc.city, lat, lon, confidence: 'low', resolution: 'city', raw: {} };
+    }
   }
 
   return null;
@@ -408,6 +432,7 @@ export async function detectNeighbourhood(
     city,
     display,
     confidence: result.confidence,
+    resolution: result.resolution,
     source: 'gps',
   };
 }

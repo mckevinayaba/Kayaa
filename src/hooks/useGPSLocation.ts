@@ -96,6 +96,15 @@ export function useGPSLocation(): GPSLocationResult {
           return;
         }
 
+        // Even with good GPS accuracy (< 5 km), the reverse geocoder may only
+        // resolve a city-level result — this is common on desktop where the
+        // coords are less precise than mobile hardware GPS.
+        // In that case, treat it as 'inaccurate' and ask the user to search.
+        if (result.resolution === 'city' || !result.suburb) {
+          setState('inaccurate');
+          return;
+        }
+
         setSuburb(result.suburb);
         setCity(result.city);
         setLat(result.lat);

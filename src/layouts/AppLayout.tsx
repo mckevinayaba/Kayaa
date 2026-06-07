@@ -42,9 +42,10 @@ export default function AppLayout() {
   const navigate        = useNavigate();
   const { user, signOut } = useAuth();
   const {
-    displaySuburb,
+    displaySuburb, displayCity,
     isDetecting, detectionError,
     manualOverride, setManualOverride,
+    isWeakLocation,
   } = useNeighbourhood();
   const [areaOpen,       setAreaOpen]       = useState(false);
   const [profileOpen,    setProfileOpen]    = useState(false);
@@ -55,16 +56,26 @@ export default function AppLayout() {
   // Location chip label — neighbourhood-first, never city-first:
   //   - Venue pages: "Place" (irrelevant to current location)
   //   - Detecting: "Locating…"
-  //   - No suburb resolved yet: "Set your neighbourhood" (prompts action)
-  //   - Otherwise: the suburb name — the city is never shown here
-  //
-  // Deliberately omits displayCity: showing a city when the suburb is unknown
-  // implies false precision and violates Kayaa's neighbourhood-first identity.
+  //   - Suburb resolved: suburb name
+  //   - City-only result, no suburb (desktop fallback): "{city} · Set suburb"
+  //     This tells the user we know the city but need suburb precision.
+  //   - Nothing resolved: "Set your neighbourhood"
   const locationLabel = isVenuePage
     ? 'Place'
     : isDetecting
       ? 'Locating…'
-      : displaySuburb || 'Set your neighbourhood';
+      : displaySuburb
+        ? displaySuburb
+        : (isWeakLocation && displayCity)
+          ? `${displayCity} · Set suburb`
+          : 'Set your neighbourhood';
+
+  // Chip colour: green when suburb known, amber when city-only (weak), muted when nothing
+  const locationChipColor = displaySuburb
+    ? '#39D98A'
+    : (isWeakLocation && displayCity)
+      ? '#F59E0B'
+      : 'rgba(255,255,255,0.4)';
 
   // Show AreaSelector automatically only if GPS was denied (user must type manually)
   const needsArea = detectionError === 'denied' && !manualOverride;
@@ -211,13 +222,13 @@ export default function AppLayout() {
               animation: 'navLocPulse 1.2s ease-in-out infinite',
             }} />
           ) : (
-            <MapPin size={12} color={displaySuburb ? '#39D98A' : 'rgba(255,255,255,0.4)'} />
+            <MapPin size={12} color={locationChipColor} />
           )}
           <span style={{
             fontSize: '13px', fontWeight: 700,
-            color: displaySuburb ? 'var(--color-text)' : 'var(--color-muted)',
+            color: displaySuburb ? 'var(--color-text)' : (isWeakLocation && displayCity) ? '#F59E0B' : 'var(--color-muted)',
             fontFamily: 'Inter, sans-serif',
-            maxWidth: '120px',
+            maxWidth: '140px',
             overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
           }}>
             {locationLabel}
