@@ -263,9 +263,9 @@ function StepBar({ current, total }: { current: number; total: number }) {
   );
 }
 
-// ─── Business Type Selector (Step 2) ─────────────────────────────────────────
+// ─── Business Type Selector (accordion picker — kept as exportable utility) ───
 
-function BusinessTypeSelector({
+export function BusinessTypeSelector({
   selectedGroup,
   selectedType,
   customTypeOther,
@@ -396,6 +396,122 @@ function BusinessTypeSelector({
             style={inputStyle}
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Business Type Combo (Step 1 — replaces strict picker) ──────────────────
+// Combo = type-ahead suggestions + free-text fallback.
+// Selecting from the list sets group + type; typing a custom value is equally valid.
+
+function BusinessTypeCombo({
+  value,
+  selectedGroup,
+  onSelect,
+  onChange,
+}: {
+  value: string;
+  selectedGroup: string;
+  onSelect: (group: string, type: string) => void;
+  onChange:  (val: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const suggestions = useMemo(() => {
+    const q = value.toLowerCase().trim();
+    if (!q) return [];
+    const results: { group: typeof BUSINESS_TYPE_GROUPS[number]; type: string }[] = [];
+    for (const group of BUSINESS_TYPE_GROUPS) {
+      if (group.key === 'other') continue;
+      for (const type of group.types) {
+        if (type.toLowerCase().includes(q) || group.label.toLowerCase().includes(q)) {
+          results.push({ group, type });
+        }
+      }
+    }
+    return results.slice(0, 7);
+  }, [value]);
+
+  const isListMatch = !!selectedGroup && !!value;
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        type="text"
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => { if (value) setOpen(true); }}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        placeholder="e.g. Barbershop, Lodge, Restaurant, Spaza…"
+        autoComplete="off"
+        style={{
+          ...inputStyle,
+          paddingRight: isListMatch ? '40px' : '16px',
+        }}
+      />
+
+      {/* Green tick when a list item was selected */}
+      {isListMatch && (
+        <span style={{
+          position: 'absolute', right: '14px', top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#39D98A', fontSize: '15px', pointerEvents: 'none',
+        }}>✓</span>
+      )}
+
+      {/* Dropdown suggestions */}
+      {open && suggestions.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
+          background: '#161B22',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '14px', overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+        }}>
+          {suggestions.map(({ group, type }, i) => (
+            <button
+              key={`${group.key}-${type}`}
+              onMouseDown={e => {
+                e.preventDefault();
+                onSelect(group.key, type);
+                setOpen(false);
+              }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '11px 14px',
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                textAlign: 'left',
+                borderBottom: i < suggestions.length - 1
+                  ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                WebkitTapHighlightColor: 'transparent',
+              } as React.CSSProperties}
+            >
+              <span style={{ fontSize: '16px', flexShrink: 0, lineHeight: 1 }}>{group.emoji}</span>
+              <span style={{
+                fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#F0F6FC',
+              }}>
+                {type}
+              </span>
+              <span style={{
+                fontFamily: 'Inter, sans-serif', fontSize: '11px',
+                color: 'rgba(255,255,255,0.3)', marginLeft: 'auto', flexShrink: 0,
+              }}>
+                {group.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Free-text confirmation — visible when typed but no list item selected */}
+      {value.trim() && !selectedGroup && (
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontSize: '12px',
+          color: 'rgba(255,255,255,0.35)', margin: '6px 0 0', lineHeight: 1.5,
+        }}>
+          ✓ Custom type — you can continue with "{value.trim()}"
+        </p>
       )}
     </div>
   );
@@ -650,14 +766,13 @@ export default function OnboardingPage() {
 
   // ── Step validation ────────────────────────────────────────────────────────
 
-  // Step 1: name + type
+  // Step 1: name + type (type accepts either a list selection OR free text)
   function validateStep1(): boolean {
     const errs: typeof errors = {};
     if (!form.venueName.trim())                    errs.venueName = 'Please add your business name';
     else if (form.venueName.trim().length < 3)     errs.venueName = 'Name must be at least 3 characters';
     else if (/^\d+$/.test(form.venueName.trim()))  errs.venueName = 'Name cannot be numbers only';
-    const type = form.categoryGroup === 'other' ? (form.customTypeOther.trim() || 'Other') : form.venueType;
-    if (!form.categoryGroup || !type)              errs.type = 'Please pick your business type';
+    if (!form.venueType.trim())                    errs.type = 'Please enter your business type';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -689,9 +804,8 @@ export default function OnboardingPage() {
     if (!validateStep3()) return;
     setSubmitting(true); setErrors({});
 
-    const effectiveType = form.categoryGroup === 'other'
-      ? (form.customTypeOther.trim() || 'Other')
-      : form.venueType;
+    // venueType holds either the list-selected value or the user's free-text entry
+    const effectiveType = form.venueType.trim() || 'Other';
 
     const suburb     = form.suburb.trim();
     const city       = form.city.trim();
@@ -935,16 +1049,18 @@ export default function OnboardingPage() {
             {/* Business type */}
             <div>
               <label style={labelStyle}>What type of business?</label>
-              <p style={hintStyle}>Choose the type that best describes what you do.</p>
-              <BusinessTypeSelector
+              <p style={hintStyle}>Choose a type or type your own.</p>
+              <BusinessTypeCombo
+                value={form.venueType}
                 selectedGroup={form.categoryGroup}
-                selectedType={form.venueType}
-                customTypeOther={form.customTypeOther}
                 onSelect={(group, type) => {
                   setForm(f => ({ ...f, categoryGroup: group, venueType: type, selectedTemplate: '' }));
                   setErrors(er => ({ ...er, type: undefined }));
                 }}
-                onCustomChange={val => setForm(f => ({ ...f, customTypeOther: val }))}
+                onChange={val => {
+                  setForm(f => ({ ...f, categoryGroup: '', venueType: val, selectedTemplate: '' }));
+                  setErrors(er => ({ ...er, type: undefined }));
+                }}
               />
               {errors.type && (
                 <p style={{ fontSize: '13px', color: '#F87171', marginTop: '8px' }}>{errors.type}</p>
