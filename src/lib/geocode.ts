@@ -27,9 +27,9 @@ const SUBURB_BOUNDS: SuburbBounds[] = [
   // Maboneng first so it wins over the broader Berea box
   { name: 'Maboneng',        city: 'Johannesburg', minLat: -26.2060, maxLat: -26.1980, minLon: 28.0530, maxLon: 28.0650 },
   // Hillbrow must be listed BEFORE Braamfontein and Berea (more specific)
-  { name: 'Hillbrow',        city: 'Johannesburg', minLat: -26.2020, maxLat: -26.1880, minLon: 28.0400, maxLon: 28.0560 },
+  { name: 'Hillbrow',        city: 'Johannesburg', minLat: -26.2030, maxLat: -26.1870, minLon: 28.0390, maxLon: 28.0575 },
   { name: 'Braamfontein',    city: 'Johannesburg', minLat: -26.1940, maxLat: -26.1840, minLon: 28.0310, maxLon: 28.0460 },
-  { name: 'Berea',           city: 'Johannesburg', minLat: -26.2130, maxLat: -26.1880, minLon: 28.0480, maxLon: 28.0780 },
+  { name: 'Berea',           city: 'Johannesburg', minLat: -26.2160, maxLat: -26.1840, minLon: 28.0460, maxLon: 28.0820 },
   { name: 'Yeoville',        city: 'Johannesburg', minLat: -26.1970, maxLat: -26.1820, minLon: 28.0680, maxLon: 28.0900 },
   { name: 'Bellevue',        city: 'Johannesburg', minLat: -26.1920, maxLat: -26.1800, minLon: 28.0780, maxLon: 28.0940 },
   { name: 'Troyeville',      city: 'Johannesburg', minLat: -26.2050, maxLat: -26.1940, minLon: 28.0680, maxLon: 28.0850 },
@@ -93,6 +93,69 @@ function safeStr(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+/**
+ * Extract suburb from BigDataCloud response.
+ *
+ * CRITICAL: For South Africa, `d.locality` often returns the city ("Johannesburg")
+ * not the suburb ("Berea"). The actual suburb lives in d.localityInfo.administrative
+ * at higher `order` values (adminLevel 8-10 = suburb level).
+ *
+ * Strategy: sort administrative entries by `order` descending (most precise first),
+ * skip country / province / metro-city names, return the first meaningful suburb name.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractSuburbFromBDC(d: any): string {
+  const countryName  = safeStr(d.countryName);
+  const province     = safeStr(d.principalSubdivision);
+  const cityName     = safeStr(d.city);
+  // Some SA metros return very long official names (e.g. "City of Johannesburg Metropolitan Municipality")
+  // Normalise to plain city for comparison
+  const cityNorm     = cityName.toLowerCase().replace(/\s+(metropolitan\s+municipality|municipality|metro|city of)\s*/gi, '').trim();
+
+  // 1. Try localityInfo.administrative — most reliable for SA suburbs
+  if (Array.isArray(d.localityInfo?.administrative)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const levels = (d.localityInfo.administrative as any[])
+      .slice()
+      .sort((a, b) => (b.order ?? 0) - (a.order ?? 0));   // most precise first
+
+    for (const level of levels) {
+      const name = safeStr(level.name);
+      if (!name) continue;
+      if (/^\d+$/.test(name)) continue;                    // skip postcodes / wards that are numbers only
+      const nameLower = name.toLowerCase();
+      if (nameLower === countryName.toLowerCase()) continue;
+      if (nameLower === province.toLowerCase()) continue;
+      if (nameLower === cityName.toLowerCase()) continue;
+      if (nameLower === cityNorm) continue;
+      // Skip generic ward / region labels ("Region F", "Region E", "Ward 123")
+      if (/^(region|ward)\s+\w+$/i.test(name)) continue;
+      return name;
+    }
+  }
+
+  // 2. Try localityInfo.informative for explicit suburb/neighbourhood entries
+  if (Array.isArray(d.localityInfo?.informative)) {
+    const SUBURB_DESCS = new Set(['suburb', 'neighbourhood', 'neighborhood', 'precinct', 'quarter']);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entry = (d.localityInfo.informative as any[]).find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (i: any) =>
+        typeof i.description === 'string' &&
+        SUBURB_DESCS.has(i.description.toLowerCase()),
+    );
+    if (entry) return safeStr(entry.name);
+  }
+
+  // 3. Use locality ONLY if it differs meaningfully from city (avoid "Johannesburg" → "Johannesburg")
+  const locality = safeStr(d.locality);
+  if (locality && locality.toLowerCase() !== cityName.toLowerCase() && locality.toLowerCase() !== cityNorm) {
+    return locality;
+  }
+
+  return '';   // caller will use city as suburb fallback
+}
+
 /** Defensive BigDataCloud reverse geocode — returns null on any failure */
 async function queryBigDataCloud(lat: number, lon: number): Promise<{ suburb: string; city: string } | null> {
   try {
@@ -103,37 +166,20 @@ async function queryBigDataCloud(lat: number, lon: number): Promise<{ suburb: st
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const d: any = await res.json();
 
-    // Primary: top-level `locality` (BigDataCloud's most specific field for SA)
-    let suburb = safeStr(d.locality);
-
-    // Secondary: search localityInfo.informative for suburb/neighbourhood entries
-    if (!suburb && Array.isArray(d.localityInfo?.informative)) {
-      const SUBURB_DESCS = new Set([
-        'suburb', 'neighbourhood', 'neighborhood',
-        'precinct', 'locality', 'quarter',
-      ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entry = (d.localityInfo.informative as any[]).find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (i: any) =>
-          typeof i.description === 'string' &&
-          SUBURB_DESCS.has(i.description.toLowerCase()),
-      );
-      if (entry) suburb = safeStr(entry.name);
-    }
-
-    // City: top-level `city` field
+    // City: prefer top-level `city`; fall back to `locality`; fall back to adminLevel 6
     let city = safeStr(d.city);
-
-    // Fallback city: adminLevel 6 from localityInfo.administrative (SA metro level)
+    if (!city) city = safeStr(d.locality);
     if (!city && Array.isArray(d.localityInfo?.administrative)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cityEntry = (d.localityInfo.administrative as any[]).find(
+      const metroEntry = (d.localityInfo.administrative as any[]).find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (a: any) => a.adminLevel === 6,
       );
-      if (cityEntry) city = safeStr(cityEntry.name);
+      if (metroEntry) city = safeStr(metroEntry.name);
     }
+
+    // Suburb: extracted from administrative levels (NOT d.locality for SA)
+    const suburb = extractSuburbFromBDC(d);
 
     if (!suburb && !city) return null;
     return { suburb: suburb || city, city: city || suburb };
