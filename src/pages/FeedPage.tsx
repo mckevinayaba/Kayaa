@@ -26,7 +26,7 @@ import QuickAddPlace from '../components/QuickAddPlace';
 import PushBanner from '../components/PushBanner';
 import { useCountry } from '../contexts/CountryContext';
 import { useAuth } from '../contexts/AuthContext';
-import { getCategoryEmoji } from '../lib/venueUtils';
+import { getCategoryEmoji, getVenueOpenStatus } from '../lib/venueUtils';
 
 // ─── Scope models ─────────────────────────────────────────────────────────────
 type FeedScope = 'this_neighbourhood' | 'nearby' | 'city_wide' | 'explore_all';
@@ -492,7 +492,38 @@ function BusinessUpdatesStrip({
   onShare: (item: FollowingFeedItem) => void;
 }) {
   const navigate = useNavigate();
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!suburb) return null;
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <SectionHeader
+          label={`Business updates · ${suburb}`}
+          linkLabel="Browse businesses"
+          onLink={() => navigate('/neighbourhood')}
+        />
+        <div
+          onClick={() => navigate('/neighbourhood')}
+          style={{
+            border: '1.5px dashed rgba(57,217,138,0.15)',
+            borderRadius: '12px', padding: '16px 14px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}
+        >
+          <span style={{ fontSize: '20px', flexShrink: 0 }}>📬</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: '0 0 2px' }}>
+              No recent updates from places nearby
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              Follow local spots and you'll see their news here first.
+            </p>
+          </div>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#39D98A', fontWeight: 700, flexShrink: 0 }}>Browse →</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginBottom: '20px' }}>
@@ -621,7 +652,7 @@ function BusinessUpdatesStrip({
 // ─── Places discovery strip (compact horizontal scroll — module, not hero) ───
 
 function PlacesDiscoveryStrip({
-  venues, loading, scope, suburb, areaLabel, onBrowse, onAddPlace,
+  venues, loading, scope, areaLabel, onBrowse, onAddPlace,
 }: {
   venues: Venue[];
   loading: boolean;
@@ -633,7 +664,7 @@ function PlacesDiscoveryStrip({
 }) {
   const navigate = useNavigate();
   const label = scope === 'my_area'
-    ? `Places in ${suburb || 'your area'}`
+    ? `Places in ${areaLabel}`
     : scope === 'nearby' ? 'Places nearby' : 'Places everywhere';
 
   return (
@@ -649,6 +680,10 @@ function PlacesDiscoveryStrip({
         <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none', marginLeft: '-16px', paddingLeft: '16px', marginRight: '-16px', paddingRight: '16px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {venues.map(v => {
             const emoji = getCategoryEmoji(v.category);
+            const openStatus = getVenueOpenStatus(v, false);
+            const isOpenNow = openStatus.state === 'open' || openStatus.state === 'open_active';
+            const isClosingSoon = openStatus.state === 'closing_soon';
+            const dotColor = isOpenNow ? '#39D98A' : '#F59E0B';
             return (
               <div
                 key={v.id}
@@ -658,6 +693,12 @@ function PlacesDiscoveryStrip({
                 <div style={{ fontSize: '22px', marginBottom: '7px', lineHeight: 1 }}>{emoji}</div>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#F0F6FC', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</p>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.neighborhood || v.category}</p>
+                {(isOpenNow || isClosingSoon) && (
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '9px', color: dotColor, margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: dotColor, display: 'inline-block', flexShrink: 0, ...(isOpenNow ? { boxShadow: `0 0 4px ${dotColor}` } : {}) }} />
+                    {isOpenNow ? 'Open now' : 'Closing soon'}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -673,10 +714,10 @@ function PlacesDiscoveryStrip({
         <div style={{ border: '1.5px dashed rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
           <div style={{ fontSize: '26px', marginBottom: '8px' }}>🗺️</div>
           <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--color-text)', margin: '0 0 4px' }}>
-            {scope === 'everywhere' ? 'No places on Kayaa yet' : `${suburb || areaLabel} is unmapped`}
+            {scope === 'everywhere' ? 'No places on Kayaa yet' : `No businesses in ${areaLabel} yet`}
           </p>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--color-muted)', margin: '0 0 14px' }}>
-            Be the first to add a business.
+            Add the first place your neighbourhood keeps coming back to.
           </p>
           <button
             onClick={onAddPlace}

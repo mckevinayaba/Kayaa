@@ -824,9 +824,9 @@ export default function AlertsPage() {
       }
       return suburb ? (
         <NudgeCard
-          emoji="✓"
-          title={`All quiet in ${suburb}.`}
-          body={`No safety alerts right now. That's a good thing. ✓`}
+          emoji="🛡"
+          title={`No safety reports in ${suburb} right now`}
+          body="Incidents shared here come from community members. See something? Report it so your neighbours can stay informed."
           ctaLabel="Report an incident"
           onCta={() => navigate('/report/safety')}
           accent="#39D98A"
@@ -877,7 +877,7 @@ export default function AlertsPage() {
           <NudgeCard
             emoji="✍️"
             title={`Nothing shared in ${suburb} this week`}
-            body="Be the first to post — news, events, spotted, lost & found."
+            body="Post a notice, event, lost item, or local news — anything your neighbours should know. You start it."
             ctaLabel="Post to Board"
             onCta={() => navigate('/board/new')}
             accent="#60A5FA"
@@ -919,7 +919,7 @@ export default function AlertsPage() {
       const starters = makeStarterAlerts(suburb);
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* Green "all clear" status */}
+          {/* Green "no reports" status — measured language */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             background: 'rgba(57,217,138,0.07)',
@@ -929,10 +929,10 @@ export default function AlertsPage() {
             <span style={{ fontSize: '16px' }}>🟢</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 700, color: '#39D98A' }}>
-                All clear in {suburb}
+                No reports in {suburb} right now
               </div>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
-                No active safety or service alerts right now
+                No safety or utility reports in the last 24 hours
               </div>
             </div>
           </div>

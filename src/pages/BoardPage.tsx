@@ -1606,8 +1606,8 @@ export default function BoardPage() {
             {activeTab === 'all' && !secondaryFilter ? (
               <NudgeCard
                 emoji="💬"
-                title={`Nothing posted in ${geoScope === 'my_area' ? (display || 'your area') : geoScope === 'nearby' ? 'your area or nearby' : 'any area'} yet.`}
-                body="The conversation starts with you."
+                title={`Nothing posted in ${geoScope === 'my_area' ? (display || 'your area') : geoScope === 'nearby' ? 'your area or nearby' : 'any area'} yet`}
+                body={`Jobs, housing, services, lost items, or just something your neighbours should know — ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} needs a first post.`}
                 ctaLabel="Start the first post"
                 onCta={() => navigate('/board/new')}
                 accent="#39D98A"
@@ -1615,9 +1615,9 @@ export default function BoardPage() {
             ) : activeTab === 'jobs' ? (
               <NudgeCard
                 emoji="💼"
-                title="No jobs posted yet"
-                body={`No job listings in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet. Know of a position? Post it and help your neighbours find work.`}
-                ctaLabel="Post a job"
+                title={`No jobs in ${geoScope === 'my_area' ? (display || 'your area') : 'this area'} yet`}
+                body="Hiring someone? Offering a skill? A neighbour is looking. Post it in 30 seconds."
+                ctaLabel="Post a job or skill"
                 onCta={() => navigate('/board/new?cat=jobs')}
                 accent="#A78BFA"
               />
