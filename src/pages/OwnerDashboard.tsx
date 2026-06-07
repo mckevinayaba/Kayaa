@@ -14,6 +14,9 @@ import {
 } from '../lib/api';
 import type { DashboardCheckIn, StudioStats } from '../lib/api';
 import type { Venue } from '../types';
+import {
+  BUSINESS_TEMPLATES, getTemplate, templateStorageKey,
+} from '../lib/businessTemplates';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1078,6 +1081,114 @@ function ActivityTab({ venueId, stats, weekViews }: {
 // TAB 5 — SETTINGS
 // ══════════════════════════════════════════════════════════════════════════════
 
+function TemplatePickerInline({ venueSlug }: { venueSlug: string }) {
+  const storageKey = templateStorageKey(venueSlug);
+  const [currentId, setCurrentId] = useState<string>(() => {
+    try { return localStorage.getItem(storageKey) ?? ''; } catch { return ''; }
+  });
+  const [open, setOpen] = useState(false);
+
+  const current = currentId ? getTemplate(currentId as Parameters<typeof getTemplate>[0]) : null;
+
+  function select(id: string) {
+    try { localStorage.setItem(storageKey, id); } catch { /* ignore */ }
+    setCurrentId(id);
+    setOpen(false);
+  }
+
+  return (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: current ? '12px' : '0' }}>
+        <div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '2px' }}>
+            Page template
+          </div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.38)' }}>
+            {current ? `Currently: ${current.name}` : 'No template selected'}
+          </div>
+        </div>
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{
+            padding: '8px 14px', borderRadius: '20px', border: '1px solid rgba(57,217,138,0.3)',
+            background: open ? 'rgba(57,217,138,0.12)' : 'none', cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: '#39D98A',
+          }}
+        >
+          {open ? 'Close' : current ? 'Switch' : 'Choose'}
+        </button>
+      </div>
+
+      {current && !open && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '10px 12px', borderRadius: '10px',
+          background: `${current.accentColor}12`,
+          border: `1px solid ${current.accentColor}30`,
+        }}>
+          <span style={{ fontSize: '22px', flexShrink: 0 }}>{current.emoji}</span>
+          <div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC' }}>
+              {current.name}
+            </div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: current.accentColor, fontStyle: 'italic' }}>
+              "{current.starterCopy}"
+            </div>
+          </div>
+        </div>
+      )}
+
+      {open && (
+        <div style={{ marginTop: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+            {BUSINESS_TEMPLATES.map(tmpl => {
+              const isSelected = currentId === tmpl.id;
+              return (
+                <button
+                  key={tmpl.id}
+                  onClick={() => select(tmpl.id)}
+                  style={{
+                    padding: '10px 10px',
+                    background: isSelected ? `${tmpl.accentColor}14` : 'rgba(255,255,255,0.03)',
+                    border: `1.5px solid ${isSelected ? tmpl.accentColor : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>{tmpl.emoji}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '11px', color: isSelected ? tmpl.accentColor : '#F0F6FC', lineHeight: 1.2 }}>
+                    {tmpl.name}
+                  </div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.35)', marginTop: '2px', lineHeight: 1.3 }}>
+                    {tmpl.tagline}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => select('start-fresh')}
+            style={{
+              width: '100%', padding: '10px',
+              background: currentId === 'start-fresh' ? 'rgba(255,255,255,0.06)' : 'none',
+              border: `1px solid ${currentId === 'start-fresh' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: '10px', cursor: 'pointer',
+              fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
+              color: 'rgba(255,255,255,0.45)', transition: 'all 0.15s',
+            }}
+          >
+            {currentId === 'start-fresh' ? '✓ ' : ''}Start fresh — no template
+          </button>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '8px', lineHeight: 1.5, textAlign: 'center' }}>
+            Switching templates keeps all your business data intact.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsTab({ venue, venueId, onVenueUpdate }: {
   venue: Venue;
   venueId: string;
@@ -1163,6 +1274,37 @@ function SettingsTab({ venue, venueId, onVenueUpdate }: {
             Claim this place →
           </Link>
         )}
+      </div>
+
+      {/* ── Template picker ──────────────────────────────────────────── */}
+      <TemplatePickerInline venueSlug={venue.slug} />
+
+      {/* ── Quick page actions ────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+        <a
+          href={`/venue/${venue.slug}`}
+          style={{
+            flex: 1, padding: '12px', borderRadius: '12px', textDecoration: 'none',
+            background: 'rgba(57,217,138,0.08)', border: '1px solid rgba(57,217,138,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#39D98A',
+          }}
+        >
+          <Eye size={14} />
+          Preview page
+        </a>
+        <a
+          href="/venue/edit"
+          style={{
+            flex: 1, padding: '12px', borderRadius: '12px', textDecoration: 'none',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: 'rgba(255,255,255,0.6)',
+          }}
+        >
+          <Settings size={14} />
+          Quick edit
+        </a>
       </div>
 
       {/* ── Tool links ───────────────────────────────────────────────── */}

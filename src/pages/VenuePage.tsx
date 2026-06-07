@@ -29,6 +29,7 @@ import {
   createOwnerUpdate,
   type VenueRecommendation,
 } from '../lib/api';
+import { deriveTemplateFromType, templateStorageKey } from '../lib/businessTemplates';
 import type { VenueRecentStats, VenueStory24, VibeType, RecentCheckin, VenueOwnerUpdate } from '../lib/api';
 import type { Venue, Event, Post } from '../types';
 import { haversineKm } from '../lib/geocode';
@@ -432,6 +433,14 @@ function PhotoGalleryHero({
   const openStatus = getVenueOpenStatus(venue, hasRecentCheckin);
   const hasCover = allPhotos.length > 0;
   const todayCount = venue.checkinsToday ?? 0;
+  // Template-aware placeholder gradient (used when no cover photo)
+  const tmplForHero = (() => {
+    try {
+      const stored = localStorage.getItem(templateStorageKey(venue.slug));
+      if (stored) return deriveTemplateFromType(stored.replace('kayaa_template_', ''));
+    } catch { /* ignore */ }
+    return deriveTemplateFromType(venue.category);
+  })();
 
   function handleTouchEnd(clientX: number) {
     if (touchStartX.current === null) return;
@@ -472,7 +481,7 @@ function PhotoGalleryHero({
       ) : (
         <div style={{
           width: '100%', height: '100%',
-          background: `linear-gradient(160deg, ${color}1A 0%, #0D1117 100%)`,
+          background: tmplForHero.heroBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '80px',
         }}>
@@ -1037,40 +1046,56 @@ function QuickStatsRow({ venue, recentStats, distance, followerCount }: { venue:
     }).catch(() => {});
   }, [venue.id]);
 
-  const stats: { label: string; value: string | number; color?: string }[] = [];
+  // Get template accent for stat highlights
+  const tmpl = deriveTemplateFromType(venue.category);
+
+  type StatItem = { key: string; label: string; value: string | number; highlight?: boolean };
+  const stats: StatItem[] = [];
   if ((followerCount ?? 0) > 0) {
-    stats.push({ label: 'followers', value: (followerCount ?? 0).toLocaleString() });
+    stats.push({ key: 'followers', label: 'followers', value: (followerCount ?? 0).toLocaleString(), highlight: true });
   }
   stats.push(
-    { label: 'regulars', value: venue.regularsCount.toLocaleString() },
-    { label: 'today', value: venue.checkinsToday },
-    { label: 'this week', value: recentStats.weeklyCheckins },
+    { key: 'regulars', label: 'regulars', value: venue.regularsCount.toLocaleString() },
+    { key: 'today', label: 'today', value: venue.checkinsToday },
+    { key: 'week', label: 'this week', value: recentStats.weeklyCheckins },
   );
   if (distance !== null) {
-    stats.push({ label: 'away', value: distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km` });
+    stats.push({ key: 'distance', label: 'away', value: distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km` });
   }
 
   return (
-    <div style={{ paddingTop: '14px', paddingBottom: '14px', borderBottom: '1px solid var(--color-border)', marginBottom: '14px' }}>
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: vibeWinner ? '8px' : '0' }}>
-        {stats.map(s => (
-          <div key={s.label} style={{ position: 'relative' }}>
-            <span style={{ fontSize: '17px', color: 'var(--color-text)', fontWeight: 700 }}>{s.value}</span>
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}> {s.label}</span>
-            {s.label === 'regulars' && (
-              <button
-                onClick={() => setShowRegularsHint(v => !v)}
-                style={{
-                  background: 'none', border: 'none', padding: '0 0 0 4px',
-                  fontSize: '11px', color: 'rgba(255,255,255,0.3)',
-                  cursor: 'pointer', verticalAlign: 'middle', lineHeight: 1,
-                }}
-                aria-label="What are regulars?"
-              >
-                ⓘ
-              </button>
-            )}
-            {s.label === 'regulars' && showRegularsHint && (
+    <div style={{
+      marginBottom: '16px',
+      background: 'var(--color-surface)',
+      border: '1px solid var(--color-border)',
+      borderRadius: '14px',
+      padding: '14px 16px',
+    }}>
+      <div style={{ display: 'flex', gap: '0', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', marginBottom: vibeWinner ? '10px' : '0' } as React.CSSProperties}>
+        {stats.map((s, i) => (
+          <div key={s.key} style={{
+            flexShrink: 0,
+            paddingRight: i < stats.length - 1 ? '20px' : '0',
+            borderRight: i < stats.length - 1 ? '1px solid var(--color-border)' : 'none',
+            marginRight: i < stats.length - 1 ? '20px' : '0',
+            position: 'relative',
+          }}>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: s.highlight ? tmpl.accentColor : 'var(--color-text)', lineHeight: 1.1, fontFamily: 'Inter, sans-serif' }}>
+              {s.value}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px', fontFamily: 'Inter, sans-serif', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              {s.label}
+              {s.key === 'regulars' && (
+                <button
+                  onClick={() => setShowRegularsHint(v => !v)}
+                  style={{ background: 'none', border: 'none', padding: '0 0 0 4px', fontSize: '11px', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', verticalAlign: 'middle', lineHeight: 1 }}
+                  aria-label="What are regulars?"
+                >
+                  ⓘ
+                </button>
+              )}
+            </div>
+            {s.key === 'regulars' && showRegularsHint && (
               <div style={{
                 position: 'absolute', top: '100%', left: 0, zIndex: 20,
                 marginTop: '6px', width: '220px',
@@ -1093,7 +1118,7 @@ function QuickStatsRow({ venue, recentStats, distance, followerCount }: { venue:
         ))}
       </div>
       {vibeWinner && (
-        <div style={{ fontSize: '12px', fontWeight: 700, color: '#F97316' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#F97316', marginTop: '2px' }}>
           {VIBE_WINNER_LABEL[vibeWinner]}
         </div>
       )}
@@ -2907,37 +2932,40 @@ export default function VenuePage() {
         {/* ── A: Main actions — WhatsApp / Call / Check In / Directions ────── */}
         <ActionGrid venue={venue} onShare={() => setShareOpen(true)} onCheckIn={() => setShowCheckInModal(true)} />
 
-        {/* ── A2: Follow button ─────────────────────────────────────────────── */}
+        {/* ── A2: Follow button — prominent CTA ────────────────────────────── */}
         <button
           onClick={handleFollow}
           disabled={followLoading}
           style={{
-            width: '100%', marginBottom: '4px',
-            padding: '12px 16px',
-            background: isFollowing ? 'rgba(57,217,138,0.1)' : 'transparent',
-            border: `1.5px solid ${isFollowing ? '#39D98A' : 'rgba(255,255,255,0.15)'}`,
-            borderRadius: '12px', cursor: followLoading ? 'default' : 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            width: '100%', marginBottom: '8px',
+            padding: '15px 20px', minHeight: '54px',
+            background: isFollowing
+              ? 'rgba(57,217,138,0.12)'
+              : 'rgba(57,217,138,0.18)',
+            border: `2px solid ${isFollowing ? '#39D98A' : 'rgba(57,217,138,0.55)'}`,
+            borderRadius: '14px', cursor: followLoading ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
             transition: 'background 0.15s, border-color 0.15s',
             opacity: followLoading ? 0.7 : 1,
+            boxShadow: isFollowing ? 'none' : '0 0 0 1px rgba(57,217,138,0.12)',
           }}
         >
           <Users
-            size={16}
-            color={isFollowing ? '#39D98A' : 'rgba(255,255,255,0.5)'}
+            size={18}
+            color={isFollowing ? '#39D98A' : '#39D98A'}
           />
           <span style={{
-            fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px',
-            color: isFollowing ? '#39D98A' : 'rgba(255,255,255,0.7)',
+            fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '15px',
+            color: '#39D98A',
           }}>
-            {isFollowing ? 'Following' : 'Follow'}
+            {isFollowing ? 'Following ✓' : 'Follow this place'}
           </span>
           {followerCount > 0 && (
             <span style={{
               fontFamily: 'Inter, sans-serif', fontSize: '12px',
-              color: 'rgba(255,255,255,0.35)', marginLeft: '2px',
+              color: 'rgba(57,217,138,0.6)', marginLeft: '2px',
             }}>
-              · {followerCount.toLocaleString()} {followerCount === 1 ? 'follower' : 'followers'}
+              · {followerCount.toLocaleString()}
             </span>
           )}
         </button>
