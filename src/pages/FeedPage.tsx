@@ -1004,11 +1004,11 @@ export default function FeedPage() {
     [rawVenues],
   );
 
-  // Context label used in section headers e.g. "Berea" / "near Berea" / "everywhere"
+  // Context label used in section headers e.g. "Berea, Johannesburg" / "near Berea" / "everywhere"
   const scopeContext = scope === 'my_area'
-    ? (suburb || 'your area')
+    ? (displayLabel || suburb || 'your area')
     : scope === 'nearby'
-      ? `near ${suburb || 'you'}`
+      ? `near ${displayLabel || suburb || 'you'}`
       : 'everywhere';
 
 const [welcomeDismissed, setWelcomeDismissed] = useState(
@@ -1183,7 +1183,7 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
             )}
             {rawVenues.length > 0 && activeNow === 0 && boardPosts.length === 0 && (
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-                {rawVenues.length} place{rawVenues.length !== 1 ? 's' : ''} in your area
+                {rawVenues.length} place{rawVenues.length !== 1 ? 's' : ''} in {displayLabel || suburb || 'your area'}
               </span>
             )}
             {!suburb && rawVenues.length === 0 && (
@@ -1360,7 +1360,7 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
           <span style={{ fontSize: '20px', flexShrink: 0 }}>❓</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#A78BFA', margin: '0 0 2px' }}>
-              Ask {suburb || 'the neighbourhood'}
+              Ask {displayLabel || suburb || 'the neighbourhood'}
             </p>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Good mechanic near here? Best shisanyama? Your neighbours know.
@@ -1398,10 +1398,10 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
         <div style={{ marginBottom: '20px', border: '1.5px dashed rgba(57,217,138,0.16)', borderRadius: '16px', padding: '24px 18px', textAlign: 'center' }}>
           <div style={{ fontSize: '28px', marginBottom: '10px' }}>🌱</div>
           <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#F0F6FC', margin: '0 0 6px' }}>
-            Be the first to post in {suburb}
+            Nothing here yet in {displayLabel || suburb}
           </p>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.45)', margin: '0 0 16px', lineHeight: 1.6 }}>
-            Share what's happening — a tip, an event, a job, or just say hello to your neighbours.
+            Add the first local update — a job, a notice, a tip, or just what's happening today.
           </p>
           <button
             onClick={() => setShowComposer(true)}
@@ -1417,9 +1417,9 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(57,217,138,0.06)', border: '1px solid rgba(57,217,138,0.15)', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px' }}>
           <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.3 }}>👋</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {suburb || 'your neighbourhood'}</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F6FC', margin: '0 0 3px' }}>Welcome to {displayLabel || suburb || 'your neighbourhood'}</p>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.55 }}>
-              Explore nearby places, check in where you go, and stay on top of what's happening.
+              Find places, see what's happening, and stay connected to your area.
             </p>
           </div>
           <button

@@ -7,10 +7,10 @@ interface CreateSheetProps {
 }
 
 const GRID_ACTIONS = [
-  { emoji: '📣', label: 'Share with Neighbours', to: '/board/new?cat=announcements' },
-  { emoji: '💼', label: 'Post a Job/Skill',       to: '/board/new?cat=jobs'          },
-  { emoji: '🚨', label: 'Report Safety',          to: '/report/safety'               },
-  { emoji: '🎉', label: 'Share a Moment',         to: '/moments/new'                 },
+  { emoji: '📌', label: 'Post a local notice', to: '/board/new?cat=announcements' },
+  { emoji: '💼', label: 'Post a job or skill',  to: '/board/new?cat=jobs'          },
+  { emoji: '🚨', label: 'Report a safety risk', to: '/report/safety'               },
+  { emoji: '🏠', label: 'List a room/rental',   to: '/board/new?cat=accommodation' },
 ];
 
 export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
@@ -69,7 +69,7 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
               fontFamily: 'Inter, sans-serif', fontSize: '14px',
               color: 'rgba(255,255,255,0.45)', lineHeight: 1.55,
             }}>
-              Add your business or share something useful nearby.
+              Add your business, post a notice, or share something that helps your neighbours.
             </div>
           </div>
         </div>
@@ -207,13 +207,13 @@ export default function CreateSheet({ suburb, onClose }: CreateSheetProps) {
             ))}
           </div>
 
-          {/* 4. FOOTER — neighbourhood context */}
+          {/* 5. FOOTER — neighbourhood context */}
           <div style={{
             textAlign: 'center',
             fontFamily: 'Inter, sans-serif', fontSize: '12px',
             color: 'rgba(255,255,255,0.28)',
           }}>
-            {suburb ? `You are in ${suburb}` : 'Set your neighbourhood to post locally'}
+            {suburb ? `Posting in ${suburb}` : 'Set your neighbourhood to post locally'}
           </div>
         </div>
       </div>

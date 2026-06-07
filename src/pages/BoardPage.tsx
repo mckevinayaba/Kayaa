@@ -1414,14 +1414,14 @@ export default function BoardPage() {
               textTransform: 'uppercase', letterSpacing: '0.1em',
               color: 'rgba(255,255,255,0.35)', margin: '0 0 4px',
             }}>
-              Community board
+              {headerSuburb ? `${headerSuburb} · Notice board` : 'Local notice board'}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <h1 style={{
                 fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '26px',
                 color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em',
               }}>
-                {headerSuburb ? `${headerSuburb} Board` : 'Community Board'}
+                Board
               </h1>
               <button
                 onClick={() => navigate('/')}
@@ -1457,7 +1457,7 @@ export default function BoardPage() {
       {!boardHintDismissed && !loading && (
         <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.55, flex: 1 }}>
-            This is the {display || 'community'} board. Post anything useful — safety alerts, announcements, lost items, or events.
+            Jobs, housing, services, lost &amp; found, and local notices for {display || 'your area'} — all in one place.
           </p>
           <button
             onClick={() => { try { localStorage.setItem('kayaa_board_hint_seen', 'true'); } catch { /* ignore */ } setBoardHintDismissed(true); }}

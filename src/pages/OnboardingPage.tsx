@@ -67,9 +67,9 @@ async function compressImage(file: File, maxPx = 1280, quality = 0.8): Promise<F
   });
 }
 
-// ─── Simple Photo Manager ─────────────────────────────────────────────────────
+// ─── Simple Photo Manager (available for dashboard improvement flow) ──────────
 
-function SimplePhotoManager({ sessionId, photos, onUpdate }: {
+export function SimplePhotoManager({ sessionId, photos, onUpdate }: {
   sessionId: string;
   photos: string[];
   onUpdate: (photos: string[]) => void;
@@ -242,7 +242,9 @@ const empty: FormData = {
 };
 
 // Step total (excludes success screen)
-const TOTAL_STEPS = 6;
+// Step 1: Name + type  | Step 2: Location + phone  | Step 3: Owner name + publish
+// Template auto-assigned from type. Photos, description, email deferred to dashboard.
+const TOTAL_STEPS = 3;
 
 // ─── Step progress bar ────────────────────────────────────────────────────────
 
@@ -399,9 +401,9 @@ function BusinessTypeSelector({
   );
 }
 
-// ─── Template Selector (Step 3) ───────────────────────────────────────────────
+// ─── Template Selector (available for dashboard improvement flow) ────────────
 
-function TemplateSelector({
+export function TemplateSelector({
   businessType,
   selected,
   onSelect,
@@ -584,7 +586,7 @@ export default function OnboardingPage() {
   const { selectedCountry } = useCountry();
   const { user } = useAuth();
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 7>(1);
   const [form, setForm] = useState<FormData>(empty);
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'privacy' | 'submit' | 'type', string>>>({});
@@ -593,7 +595,6 @@ export default function OnboardingPage() {
   const [finalSlug, setFinalSlug] = useState('');
   const [showQr, setShowQr] = useState(false);
   const qrWrapRef = useRef<HTMLDivElement>(null);
-  const sessionId = useRef(`s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`);
 
   const displaySlug = toDisplaySlug(form.venueName);
   const qrUrl = `https://kayaa.africa/checkin/${finalSlug || displaySlug}`;
@@ -634,7 +635,11 @@ export default function OnboardingPage() {
   }
 
   function goBack() {
-    setStep(s => Math.max(1, s - 1) as typeof s);
+    setStep(s => {
+      if (s === 2) return 1;
+      if (s === 3) return 2;
+      return 1;
+    });
     window.scrollTo(0, 0);
   }
 
@@ -645,46 +650,32 @@ export default function OnboardingPage() {
 
   // ── Step validation ────────────────────────────────────────────────────────
 
+  // Step 1: name + type
   function validateStep1(): boolean {
     const errs: typeof errors = {};
     if (!form.venueName.trim())                    errs.venueName = 'Please add your business name';
     else if (form.venueName.trim().length < 3)     errs.venueName = 'Name must be at least 3 characters';
     else if (/^\d+$/.test(form.venueName.trim()))  errs.venueName = 'Name cannot be numbers only';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  }
-
-  function validateStep2(): boolean {
     const type = form.categoryGroup === 'other' ? (form.customTypeOther.trim() || 'Other') : form.venueType;
-    if (!form.categoryGroup || !type) {
-      setErrors({ type: 'Please pick your business type' });
-      return false;
-    }
-    setErrors({});
-    return true;
-  }
-
-  function validateStep3(): boolean {
-    if (!form.selectedTemplate) {
-      setErrors({ selectedTemplate: 'Please choose a template or select "Start fresh"' });
-      return false;
-    }
-    setErrors({});
-    return true;
-  }
-
-  function validateStep4(): boolean {
-    const errs: typeof errors = {};
-    if (!form.ownerPhone.trim())                   errs.ownerPhone = 'Please add your phone number';
-    else if (form.ownerPhone.trim().replace(/\D/g, '').length < 9) errs.ownerPhone = 'Please enter a valid phone number';
-    if (!form.suburb.trim())                       errs.suburb     = 'Please add your neighbourhood or area';
-    else if (form.suburb.trim().length < 3)        errs.suburb     = 'Please enter a specific neighbourhood, not just a city';
-    if (!form.city.trim())                         errs.city       = 'Please add your city';
+    if (!form.categoryGroup || !type)              errs.type = 'Please pick your business type';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  function validateStep6(): boolean {
+  // Step 2: suburb + city (phone optional but validated if present)
+  function validateStep2(): boolean {
+    const errs: typeof errors = {};
+    if (!form.suburb.trim())                       errs.suburb = 'Please add your neighbourhood or area';
+    else if (form.suburb.trim().length < 3)        errs.suburb = 'Please enter a specific neighbourhood, not just a city';
+    if (!form.city.trim())                         errs.city   = 'Please add your city';
+    if (form.ownerPhone.trim() && form.ownerPhone.trim().replace(/\D/g, '').length < 9)
+                                                   errs.ownerPhone = 'Please enter a valid phone number';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  }
+
+  // Step 3: owner name + privacy
+  function validateStep3(): boolean {
     const errs: typeof errors = {};
     if (!form.ownerName.trim())  errs.ownerName = 'Please add your name';
     if (!form.privacyAgreed)     errs.privacy   = 'Please agree to continue';
@@ -695,7 +686,7 @@ export default function OnboardingPage() {
   // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!validateStep6()) return;
+    if (!validateStep3()) return;
     setSubmitting(true); setErrors({});
 
     const effectiveType = form.categoryGroup === 'other'
@@ -707,6 +698,12 @@ export default function OnboardingPage() {
     const fullAddress = [form.streetAddress.trim(), suburb, city, form.province].filter(Boolean).join(', ');
     const slug = toSlug(form.venueName);
     setFinalSlug(slug);
+
+    // Auto-assign template from type if user didn't pick one manually
+    const autoTemplate = form.selectedTemplate || (() => {
+      const recs = getRecommendedTemplates(effectiveType);
+      return recs[0] || 'minimal';
+    })();
 
     const venuePayload = {
       name:            form.venueName.trim(),
@@ -758,9 +755,9 @@ export default function OnboardingPage() {
     });
     if (ownerErr) console.warn('Owner record creation failed:', ownerErr.message);
 
-    // Persist template choice in localStorage
-    if (form.selectedTemplate && form.selectedTemplate !== 'start-fresh') {
-      try { localStorage.setItem(templateStorageKey(slug), form.selectedTemplate); } catch { /* ignore */ }
+    // Persist template choice in localStorage (auto-assigned if not manually chosen)
+    if (autoTemplate && autoTemplate !== 'start-fresh') {
+      try { localStorage.setItem(templateStorageKey(slug), autoTemplate); } catch { /* ignore */ }
     }
     localStorage.setItem('kayaa_venue_id', venueId);
     localStorage.setItem('kayaa_pending_email', form.ownerEmail.trim());
@@ -911,14 +908,14 @@ export default function OnboardingPage() {
 
       <StepBar current={step} total={TOTAL_STEPS} />
 
-      {/* ─── Step 1: Business Basics ─────────────────────────────────────── */}
+      {/* ─── Step 1: Name + Type ─────────────────────────────────────────── */}
       {step === 1 && (
         <div>
           <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
             Add your business
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
-            Free. Fill in what you have — you can always update later.
+            Free. Get listed in 2 minutes — perfect the page later.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -935,28 +932,23 @@ export default function OnboardingPage() {
               <p style={errorStyle(!!errors.venueName)}>{errors.venueName}</p>
             </div>
 
-            {/* Description */}
+            {/* Business type */}
             <div>
-              <label style={labelStyle}>
-                Describe your business{' '}
-                <span style={{ fontSize: '12px', fontWeight: 500, color: '#39D98A', background: 'rgba(57,217,138,0.1)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '20px', padding: '1px 8px', verticalAlign: 'middle' }}>
-                  Recommended
-                </span>
-              </label>
-              <p style={hintStyle}>What makes your place special? One or two sentences helps customers choose you.</p>
-              <textarea
-                value={form.description}
-                onChange={set('description')}
-                placeholder="e.g. Best fades in Soweto. Open 7 days. Quick cuts, no appointment needed."
-                maxLength={200}
-                rows={3}
-                style={{ ...inputStyle, minHeight: '80px', resize: 'none', lineHeight: 1.55 }}
+              <label style={labelStyle}>What type of business?</label>
+              <p style={hintStyle}>Choose the type that best describes what you do.</p>
+              <BusinessTypeSelector
+                selectedGroup={form.categoryGroup}
+                selectedType={form.venueType}
+                customTypeOther={form.customTypeOther}
+                onSelect={(group, type) => {
+                  setForm(f => ({ ...f, categoryGroup: group, venueType: type, selectedTemplate: '' }));
+                  setErrors(er => ({ ...er, type: undefined }));
+                }}
+                onCustomChange={val => setForm(f => ({ ...f, customTypeOther: val }))}
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                <span style={{ fontSize: '11px', color: form.description.length > 160 ? '#FBBF24' : 'var(--color-muted)' }}>
-                  {form.description.length}/200
-                </span>
-              </div>
+              {errors.type && (
+                <p style={{ fontSize: '13px', color: '#F87171', marginTop: '8px' }}>{errors.type}</p>
+              )}
             </div>
           </div>
 
@@ -967,48 +959,59 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      {/* ─── Step 2: Business Type ────────────────────────────────────────── */}
+      {/* ─── Step 2: Location ─────────────────────────────────────────────── */}
       {step === 2 && (
         <div>
           <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
-            What type of business?
+            Where are you based?
           </h1>
-          <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
-            Choose the type that best describes what you do.
+          <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
+            Your suburb and city so customers can find you.
           </p>
 
-          <BusinessTypeSelector
-            selectedGroup={form.categoryGroup}
-            selectedType={form.venueType}
-            customTypeOther={form.customTypeOther}
-            onSelect={(group, type) => {
-              setForm(f => ({ ...f, categoryGroup: group, venueType: type, selectedTemplate: '' }));
-              setErrors(er => ({ ...er, type: undefined }));
-            }}
-            onCustomChange={val => setForm(f => ({ ...f, customTypeOther: val }))}
-          />
-
-          {errors.type && (
-            <p style={{ fontSize: '13px', color: '#F87171', marginTop: '12px' }}>{errors.type}</p>
-          )}
-
-          {/* Optional secondary type */}
-          {form.venueType && form.categoryGroup !== 'other' && (
-            <div style={{ marginTop: '20px' }}>
-              <label style={{ ...labelStyle, fontSize: '13px' }}>
-                Secondary type{' '}
-                <span style={{ fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
-              </label>
-              <p style={hintStyle}>Do you do anything else? e.g. Barbershop + Nail Studio</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Suburb */}
+            <div data-field="suburb">
+              <label style={labelStyle}>Neighbourhood / area</label>
               <input
-                type="text"
-                value={form.secondaryType}
-                onChange={set('secondaryType')}
-                placeholder="e.g. Nail studio, Catering, Car wash…"
-                style={inputStyle}
+                type="text" value={form.suburb} onChange={set('suburb')}
+                placeholder="e.g. Berea, Orlando West, Alex, Khayelitsha"
+                style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }}
               />
+              <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
             </div>
-          )}
+
+            {/* City */}
+            <div data-field="city">
+              <label style={labelStyle}>City</label>
+              <input
+                type="text" value={form.city} onChange={set('city')}
+                placeholder="e.g. Johannesburg, Cape Town, Durban"
+                list="city-options"
+                style={{ ...inputStyle, border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}` }}
+              />
+              <datalist id="city-options">
+                {selectedCountry.launch_cities.map(c => <option key={c} value={c} />)}
+              </datalist>
+              <p style={errorStyle(!!errors.city)}>{errors.city}</p>
+            </div>
+
+            {/* Phone — optional here */}
+            <div data-field="ownerPhone">
+              <label style={labelStyle}>
+                Phone number{' '}
+                <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
+              </label>
+              <p style={hintStyle}>Customers will call or WhatsApp you. You can add this later.</p>
+              <input
+                type="tel" value={form.ownerPhone} onChange={set('ownerPhone')}
+                placeholder="e.g. 082 123 4567"
+                autoComplete="tel"
+                style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }}
+              />
+              <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
+            </div>
+          </div>
 
           <NavRow
             onBack={goBack}
@@ -1018,143 +1021,14 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      {/* ─── Step 3: Template ─────────────────────────────────────────────── */}
+      {/* ─── Step 3: Publish ─────────────────────────────────────────────── */}
       {step === 3 && (
-        <div>
-          <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
-            How should your page look?
-          </h1>
-          <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
-            Pick a template — your content goes in, the layout does the rest.
-          </p>
-
-          <TemplateSelector
-            businessType={form.venueType}
-            selected={form.selectedTemplate}
-            onSelect={id => {
-              setForm(f => ({ ...f, selectedTemplate: id }));
-              setErrors(er => ({ ...er, selectedTemplate: undefined }));
-            }}
-          />
-
-          {errors.selectedTemplate && (
-            <p style={{ fontSize: '13px', color: '#F87171', marginTop: '12px' }}>{errors.selectedTemplate}</p>
-          )}
-
-          <NavRow
-            onBack={goBack}
-            onNext={() => { if (validateStep3()) goNext(4); }}
-            nextLabel="Next →"
-          />
-        </div>
-      )}
-
-      {/* ─── Step 4: Location & Contact ───────────────────────────────────── */}
-      {step === 4 && (
-        <div>
-          <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
-            Where are you & how to reach you?
-          </h1>
-          <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
-            Customers need to find you and contact you.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Phone */}
-            <div data-field="ownerPhone">
-              <label style={labelStyle}>Your phone number</label>
-              <p style={hintStyle}>Customers will call or WhatsApp you directly. Shown on your page.</p>
-              <input
-                type="tel" value={form.ownerPhone} onChange={set('ownerPhone')}
-                placeholder="e.g. 082 123 4567"
-                autoComplete="tel"
-                style={{ ...inputStyle, border: `1px solid ${errors.ownerPhone ? '#F87171' : 'var(--color-border)'}` }}
-              />
-              <p style={errorStyle(!!errors.ownerPhone)}>{errors.ownerPhone}</p>
-            </div>
-
-            {/* Location */}
-            <div>
-              <label style={labelStyle}>Where are you based?</label>
-              <p style={hintStyle}>Your neighbourhood, then your city.</p>
-              <div data-field="suburb" style={{ marginBottom: '10px' }}>
-                <input
-                  type="text" value={form.suburb} onChange={set('suburb')}
-                  placeholder="Neighbourhood — e.g. Berea, Orlando West, Alex"
-                  style={{ ...inputStyle, border: `1px solid ${errors.suburb ? '#F87171' : 'var(--color-border)'}` }}
-                />
-                <p style={errorStyle(!!errors.suburb)}>{errors.suburb}</p>
-              </div>
-              <div data-field="city">
-                <input
-                  type="text" value={form.city} onChange={set('city')}
-                  placeholder="City — e.g. Johannesburg"
-                  list="city-options"
-                  style={{ ...inputStyle, border: `1px solid ${errors.city ? '#F87171' : 'var(--color-border)'}` }}
-                />
-                <datalist id="city-options">
-                  {selectedCountry.launch_cities.map(c => <option key={c} value={c} />)}
-                </datalist>
-                <p style={errorStyle(!!errors.city)}>{errors.city}</p>
-              </div>
-            </div>
-
-            {/* Street address */}
-            <div>
-              <label style={labelStyle}>
-                Street address{' '}
-                <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
-              </label>
-              <p style={hintStyle}>Helps customers find you. Street name or nearby landmark.</p>
-              <input
-                type="text" value={form.streetAddress} onChange={set('streetAddress')}
-                placeholder="e.g. 12 Main Street  ·  Next to the taxi rank"
-                autoComplete="street-address"
-                style={inputStyle}
-              />
-            </div>
-          </div>
-
-          <NavRow
-            onBack={goBack}
-            onNext={() => { if (validateStep4()) goNext(5); }}
-            nextLabel="Next →"
-          />
-        </div>
-      )}
-
-      {/* ─── Step 5: Photos ───────────────────────────────────────────────── */}
-      {step === 5 && (
-        <div>
-          <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
-            Add a photo
-          </h1>
-          <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
-            A photo makes your page 3× more likely to be visited. Any photo works — you can add more later.
-          </p>
-
-          <SimplePhotoManager
-            sessionId={sessionId.current}
-            photos={photos}
-            onUpdate={setPhotos}
-          />
-
-          <NavRow
-            onBack={goBack}
-            onNext={() => goNext(6)}
-            nextLabel={photos.length > 0 ? 'Next →' : 'Skip for now →'}
-          />
-        </div>
-      )}
-
-      {/* ─── Step 6: About you + Publish ─────────────────────────────────── */}
-      {step === 6 && (
         <div>
           <h1 style={{ fontFamily: 'Syne, Inter, sans-serif', fontWeight: 800, fontSize: '26px', marginBottom: '6px', color: 'var(--color-text)' }}>
             Almost done
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--color-muted)', marginBottom: '28px', lineHeight: 1.5 }}>
-            Just tell us who runs this business — then we'll publish your page.
+            Your name, agree to terms, then go live.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1171,33 +1045,16 @@ export default function OnboardingPage() {
               <p style={errorStyle(!!errors.ownerName)}>{errors.ownerName}</p>
             </div>
 
-            {/* Email */}
-            <div>
-              <label style={labelStyle}>
-                Email address{' '}
-                <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--color-muted)' }}>(optional)</span>
-              </label>
-              <p style={hintStyle}>For account recovery. We won't spam you.</p>
-              <input
-                type="email" value={form.ownerEmail} onChange={set('ownerEmail')}
-                placeholder="you@example.com"
-                autoComplete="email"
-                style={inputStyle}
-              />
-            </div>
-
             {/* Summary card */}
             <div style={{ background: 'rgba(57,217,138,0.05)', border: '1px solid rgba(57,217,138,0.18)', borderRadius: '14px', padding: '16px' }}>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 700, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
-                Your page summary
+                Your page
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {[
                   { label: 'Business', value: form.venueName },
-                  { label: 'Type', value: form.categoryGroup === 'other' ? (form.customTypeOther || 'Other') : form.venueType },
-                  { label: 'Template', value: form.selectedTemplate === 'start-fresh' ? 'Start fresh' : (BUSINESS_TEMPLATES.find(t => t.id === form.selectedTemplate)?.name ?? '—') },
-                  { label: 'Area', value: [form.suburb, form.city].filter(Boolean).join(', ') || '—' },
-                  { label: 'Photos', value: photos.length > 0 ? `${photos.length} photo${photos.length > 1 ? 's' : ''}` : 'None yet' },
+                  { label: 'Type',     value: form.categoryGroup === 'other' ? (form.customTypeOther || 'Other') : form.venueType },
+                  { label: 'Area',     value: [form.suburb, form.city].filter(Boolean).join(', ') || '—' },
                 ].map(row => (
                   <div key={row.label} style={{ display: 'flex', gap: '8px' }}>
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-muted)', width: '70px', flexShrink: 0 }}>{row.label}</span>
@@ -1205,6 +1062,9 @@ export default function OnboardingPage() {
                   </div>
                 ))}
               </div>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.3)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                Add photos, description, and more from your dashboard after publishing.
+              </p>
             </div>
 
             {/* POPIA + privacy toggle */}
@@ -1245,7 +1105,7 @@ export default function OnboardingPage() {
           <NavRow
             onBack={goBack}
             onNext={handleSubmit}
-            nextLabel="Publish my page →"
+            nextLabel="Go live →"
             submitting={submitting}
           />
 
