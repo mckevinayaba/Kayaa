@@ -22,7 +22,7 @@ import {
   createContext, useContext, useState, useEffect,
   useCallback, type ReactNode,
 } from 'react';
-import { reverseGeocodeCoords } from '../lib/geocode';
+import { reverseGeocodeCoords, clearBadLocationCache } from '../lib/geocode';
 
 // ─── LocalStorage helpers ─────────────────────────────────────────────────────
 
@@ -106,6 +106,11 @@ const NeighbourhoodCtx = createContext<NeighbourhoodContextValue | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
+  // Clear any stale municipality names from cache before reading stored values.
+  // This runs once per provider mount (i.e. once per app open) and is a no-op
+  // when the cache is already clean.
+  clearBadLocationCache();
+
   // GPS-detected values — in-memory, refreshed every session
   const [currentSuburb, setCurrentSuburb] = useState('');
   const [currentCity,   setCurrentCity]   = useState('');

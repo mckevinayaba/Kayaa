@@ -94,6 +94,109 @@ function safeStr(v: unknown): string {
 }
 
 /**
+ * Returns true when the name is a metro/municipality administrative label —
+ * NOT a human suburb or city name. Used to filter these out of display strings.
+ *
+ * Examples that match:
+ *   "City of Johannesburg Metropolitan Municipality"
+ *   "City of Cape Town"
+ *   "eThekwini Metropolitan Municipality"
+ *   "Tshwane Metropolitan Municipality"
+ *   "Buffalo City Metropolitan Municipality"
+ *   "West Rand District Municipality"
+ */
+export function isMunicipalityName(name: string): boolean {
+  if (!name) return false;
+  const lower = name.toLowerCase();
+  return (
+    lower.includes('metropolitan') ||
+    lower.includes('municipality') ||
+    lower.includes('district') ||
+    lower.includes('local municipality') ||
+    lower.startsWith('city of ')
+  );
+}
+
+/**
+ * Maps well-known SA municipality/metro names to plain human city names.
+ * Keys are lower-cased for case-insensitive lookup.
+ */
+const MUNICIPALITY_TO_CITY: Record<string, string> = {
+  'johannesburg':                  'Johannesburg',
+  'city of johannesburg':          'Johannesburg',
+  'ethekwini':                     'Durban',
+  'ekurhuleni':                    'Ekurhuleni',
+  'tshwane':                       'Pretoria',
+  'city of tshwane':               'Pretoria',
+  'cape town':                     'Cape Town',
+  'city of cape town':             'Cape Town',
+  'mangaung':                      'Bloemfontein',
+  'buffalo city':                  'East London',
+  'nelson mandela bay':            'Port Elizabeth',
+  'george':                        'George',
+  'msunduzi':                      'Pietermaritzburg',
+};
+
+/**
+ * Convert a municipality/metro name to the human city name people actually use.
+ * Strips common suffixes then checks the mapping table.
+ * Returns null when the input is not a known municipality name.
+ */
+function municipalityToCity(raw: string): string | null {
+  if (!raw) return null;
+  // Strip common SA administrative suffixes to get the core name
+  const stripped = raw
+    .replace(/\s+(metropolitan\s+municipality|local\s+municipality|district\s+municipality|municipality|metropolitan|metro)\s*$/gi, '')
+    .replace(/^city\s+of\s+/i, '')
+    .trim()
+    .toLowerCase();
+
+  // Direct lookup on normalised key
+  for (const [key, value] of Object.entries(MUNICIPALITY_TO_CITY)) {
+    if (stripped === key || raw.toLowerCase() === key) return value;
+  }
+
+  // If the stripped name is different from the raw but still looks OK, use title case
+  if (stripped && !isMunicipalityName(stripped)) {
+    return stripped.replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  return null;
+}
+
+/**
+ * Clear any cached location values that contain municipality/metro labels.
+ * Call once at app startup — prevents stale bad values from a previous session
+ * from showing to the user even after the geocoding logic is fixed.
+ */
+export function clearBadLocationCache(): void {
+  // NeighbourhoodContext keys (store JSON { suburb, city })
+  const JSON_KEYS = ['kayaa_area_override', 'kayaa_last_confirmed'];
+  // Legacy plain-string keys kept by older builds
+  const STRING_KEYS = ['kayaa_detected_suburb', 'kayaa_detected_city', 'kayaa_display_name', 'kayaa_neighbourhood', 'kayaa_location'];
+
+  for (const key of JSON_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as { suburb?: string; city?: string };
+      const suburbBad = parsed.suburb ? isMunicipalityName(parsed.suburb) : false;
+      const cityBad   = parsed.city   ? isMunicipalityName(parsed.city)   : false;
+      if (suburbBad || cityBad) {
+        localStorage.removeItem(key);
+      }
+    } catch { /* non-fatal */ }
+  }
+
+  for (const key of STRING_KEYS) {
+    try {
+      const val = localStorage.getItem(key);
+      if (val && isMunicipalityName(val)) localStorage.removeItem(key);
+    } catch { /* non-fatal */ }
+  }
+}
+
+/**
  * Extract suburb from BigDataCloud response.
  *
  * CRITICAL: For South Africa, `d.locality` often returns the city ("Johannesburg")
@@ -128,6 +231,9 @@ function extractSuburbFromBDC(d: any): string {
       if (nameLower === province.toLowerCase()) continue;
       if (nameLower === cityName.toLowerCase()) continue;
       if (nameLower === cityNorm) continue;
+      // Skip metro/municipality labels — these are NOT suburb names
+      // e.g. "City of Johannesburg Metropolitan Municipality" must never surface as a suburb
+      if (isMunicipalityName(name)) continue;
       // Skip generic ward / region labels ("Region F", "Region E", "Ward 123")
       if (/^(region|ward)\s+\w+$/i.test(name)) continue;
       return name;
@@ -167,6 +273,8 @@ async function queryBigDataCloud(lat: number, lon: number): Promise<{ suburb: st
     const d: any = await res.json();
 
     // City: prefer top-level `city`; fall back to `locality`; fall back to adminLevel 6
+    // Then normalise: if BDC returns a municipality name ("City of Johannesburg
+    // Metropolitan Municipality") resolve it to the plain city name ("Johannesburg").
     let city = safeStr(d.city);
     if (!city) city = safeStr(d.locality);
     if (!city && Array.isArray(d.localityInfo?.administrative)) {
@@ -176,6 +284,10 @@ async function queryBigDataCloud(lat: number, lon: number): Promise<{ suburb: st
         (a: any) => a.adminLevel === 6,
       );
       if (metroEntry) city = safeStr(metroEntry.name);
+    }
+    // Resolve municipality/metro names → plain human city names
+    if (city && isMunicipalityName(city)) {
+      city = municipalityToCity(city) ?? city;
     }
 
     // Suburb: extracted from administrative levels (NOT d.locality for SA)
