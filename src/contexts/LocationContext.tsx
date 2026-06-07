@@ -13,7 +13,7 @@
 import {
   createContext, useContext, useCallback, type ReactNode,
 } from 'react';
-import { useNeighbourhood } from './NeighbourhoodContext';
+import { useNeighbourhood, buildAreaLabel } from './NeighbourhoodContext';
 
 // ─── Types (kept for backward compat) ────────────────────────────────────────
 
@@ -31,6 +31,8 @@ export interface LocationContextValue {
   /** Active neighbourhood — GPS-detected or manually overridden. */
   active:      NeighbourhoodInfo;
   activeLabel: string;
+  /** Pre-formatted "Suburb, City" label (use this for display) */
+  displayLabel: string;
 
   /** true when the user is manually browsing a different area than GPS. */
   isBrowsing: boolean;
@@ -99,8 +101,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const lat    = displayLat ?? undefined;
   const lon    = displayLon ?? undefined;
 
-  const activeLabel = suburb || city || '';
-  const isBrowsing  = !!(manualOverride && manualOverride !== currentSuburb);
+  const activeLabel  = suburb || city || '';
+  const displayLabel = buildAreaLabel(suburb, city);
+  const isBrowsing   = !!(manualOverride && manualOverride !== currentSuburb);
 
   // GPS done + no suburb found → user needs to pick manually
   const needsConfirmation = !isDetecting && !displaySuburb && !manualOverride;
@@ -128,6 +131,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const value: LocationContextValue = {
     active,
     activeLabel,
+    displayLabel,
     isBrowsing,
 
     current,

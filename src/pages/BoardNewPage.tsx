@@ -59,9 +59,9 @@ async function checkLocalVerification(neighbourhood: string): Promise<boolean> {
     const pos = await new Promise<GeolocationPosition>((res, rej) =>
       navigator.geolocation.getCurrentPosition(res, rej, { timeout: 4000, maximumAge: 120000 }),
     );
-    const gpsSuburb = detectSuburbFromBounds(pos.coords.latitude, pos.coords.longitude);
-    if (!gpsSuburb) return false;
-    const gps  = gpsSuburb.toLowerCase().trim();
+    const gpsBox = detectSuburbFromBounds(pos.coords.latitude, pos.coords.longitude);
+    if (!gpsBox) return false;
+    const gps  = gpsBox.name.toLowerCase().trim();
     const post = neighbourhood.toLowerCase().trim();
     return gps === post || gps.includes(post) || post.includes(gps);
   } catch {

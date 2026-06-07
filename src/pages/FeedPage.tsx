@@ -5,6 +5,7 @@ import { useNeighbourhood } from '../contexts/NeighbourhoodContext';
 import { haversineKm } from '../lib/geocode';
 import { getAreaTier } from '../lib/areaGroups';
 import NeighbourhoodGate from '../components/NeighbourhoodGate';
+import AreaSelector from '../components/AreaSelector';
 import PostComposer from '../components/PostComposer';
 import {
   getAllVenues,
@@ -696,6 +697,7 @@ export default function FeedPage() {
   const {
     displaySuburb: suburb, displayCity: city,
     displayLat: _lat, displayLon: _lon,
+    displayLabel,
     isDetecting, manualOverride,
     setManualOverride, clearManualOverride,
   } = useNeighbourhood();
@@ -778,12 +780,12 @@ export default function FeedPage() {
     else setShowAreaGate(false);
   }, [isDetecting, suburb, manualOverride]);
 
-  const areaLabel = suburb || 'Your area';
+  // displayLabel = "Suburb, City" from context; fallback to "Your area"
+  const areaLabel = displayLabel || suburb || 'Your area';
 
   const [gpsConfirmDismissed, setGpsConfirmDismissed] = useState(false);
   const [showGpsConfirm,      setShowGpsConfirm]      = useState(false);
-  const [showAreaSearch,      setShowAreaSearch]       = useState(false);
-  const [areaSearchQuery,     setAreaSearchQuery]      = useState('');
+  const [showAreaSelector,    setShowAreaSelector]    = useState(false);
 
   useEffect(() => {
     if (!isDetecting && suburb && !manualOverride && !gpsConfirmDismissed) {
@@ -794,7 +796,12 @@ export default function FeedPage() {
   }, [isDetecting, suburb]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleConfirmGpsSuburb() { setShowGpsConfirm(false); setGpsConfirmDismissed(true); }
-  function handleChangeArea()       { setShowGpsConfirm(false); setGpsConfirmDismissed(true); setShowAreaSearch(true); setAreaSearchQuery(''); }
+  function handleChangeArea()       { setShowGpsConfirm(false); setGpsConfirmDismissed(true); setShowAreaSelector(true); }
+  function handleAreaSelect(s: string, c: string) {
+    setManualOverride(s, c);
+    setShowAreaSelector(false);
+    setRefreshKey(k => k + 1);
+  }
 
   // Online / offline
   useEffect(() => {
@@ -1074,41 +1081,15 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
         </div>
       )}
 
-      {/* GPS confirmation */}
+      {/* GPS confirmation — gentle nudge when we auto-detected a suburb */}
       {showGpsConfirm && !manualOverride && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(57,217,138,0.07)', border: '1px solid rgba(57,217,138,0.2)', borderRadius: '12px', padding: '10px 14px', marginBottom: '12px' }}>
           <span style={{ fontSize: '15px', flexShrink: 0 }}>📍</span>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.7)', flex: 1, lineHeight: 1.4 }}>
-            Showing <strong style={{ color: '#F0F6FC' }}>{suburb}</strong> — not right?
+            Showing <strong style={{ color: '#F0F6FC' }}>{displayLabel || suburb}</strong> — not right?
           </span>
           <button onClick={handleChangeArea} style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', flexShrink: 0 }}>Change</button>
           <button onClick={handleConfirmGpsSuburb} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', fontSize: '16px', padding: '0 2px', flexShrink: 0 }} aria-label="Dismiss">×</button>
-        </div>
-      )}
-
-      {/* Area search */}
-      {showAreaSearch && (
-        <div style={{ background: 'var(--color-surface)', border: '1px solid rgba(57,217,138,0.25)', borderRadius: '14px', padding: '14px 16px', marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#F0F6FC', marginBottom: '10px' }}>Which suburb are you in?</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              autoFocus value={areaSearchQuery}
-              onChange={e => setAreaSearchQuery(e.target.value)}
-              placeholder="e.g. Rosebank, Soweto…"
-              style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#F0F6FC', fontFamily: 'Inter, sans-serif', fontSize: '14px', outline: 'none' }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && areaSearchQuery.trim()) { setManualOverride(areaSearchQuery.trim(), city); setShowAreaSearch(false); setRefreshKey(k => k + 1); }
-                if (e.key === 'Escape') setShowAreaSearch(false);
-              }}
-            />
-            <button
-              onClick={() => { if (areaSearchQuery.trim()) { setManualOverride(areaSearchQuery.trim(), city); setShowAreaSearch(false); setRefreshKey(k => k + 1); } }}
-              style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: '#39D98A', color: '#0D1117', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '13px' }}
-            >Set</button>
-          </div>
-          <button onClick={() => setShowAreaSearch(false)} style={{ marginTop: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', padding: 0 }}>
-            Cancel — use my GPS location
-          </button>
         </div>
       )}
 
@@ -1125,8 +1106,13 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
       {manualOverride && suburb && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '10px', padding: '8px 12px', marginBottom: '12px' }}>
           <span style={{ fontSize: '13px' }}>🔍</span>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>Browsing <strong>{manualOverride}</strong></span>
-          <button onClick={() => { clearManualOverride(); setRefreshKey(k => k + 1); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}>Use GPS</button>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#93C5FD', flex: 1 }}>
+            Browsing <strong>{displayLabel || manualOverride}</strong>
+          </span>
+          <button
+            onClick={() => { clearManualOverride(); setRefreshKey(k => k + 1); }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#60A5FA', padding: '0', flexShrink: 0 }}
+          >Use GPS</button>
         </div>
       )}
 
@@ -1138,17 +1124,33 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
           {getGreeting()}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '28px', color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0 }}>
-            {areaLabel}
-          </h1>
+          {/* Tappable area label — opens AreaSelector bottom sheet */}
           <button
-            onClick={() => { setShowAreaSearch(true); setAreaSearchQuery(''); }}
+            onClick={() => setShowAreaSelector(true)}
+            style={{
+              background: 'none', border: 'none', padding: 0, margin: 0,
+              cursor: 'pointer', textAlign: 'left', flex: 1, minWidth: 0,
+              WebkitTapHighlightColor: 'transparent',
+            } as React.CSSProperties}
+            aria-label="Change your area"
+          >
+            <h1 style={{
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
+              fontSize: areaLabel.length > 24 ? '22px' : '28px',
+              color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.05, margin: 0,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {areaLabel}
+            </h1>
+          </button>
+          <button
+            onClick={() => setShowAreaSelector(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               background: 'rgba(255,255,255,0.06)',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: '20px', padding: '6px 12px',
-              cursor: 'pointer', flexShrink: 0,
+              cursor: 'pointer', flexShrink: 0, marginLeft: '10px',
               fontFamily: 'Inter, sans-serif', fontSize: '12px', fontWeight: 600,
               color: 'rgba(255,255,255,0.6)',
               WebkitTapHighlightColor: 'transparent',
@@ -1464,6 +1466,17 @@ const [welcomeDismissed, setWelcomeDismissed] = useState(
             neighbourhood: shareItem.venueNeighborhood,
           }}
           onClose={() => setShareItem(null)}
+        />
+      )}
+
+      {/* Area selector — full bottom sheet with GPS + community search */}
+      {showAreaSelector && (
+        <AreaSelector
+          currentSuburb={suburb}
+          suggestedSuburb={suburb}
+          suggestedCity={city}
+          onSelect={handleAreaSelect}
+          onClose={() => setShowAreaSelector(false)}
         />
       )}
     </div>

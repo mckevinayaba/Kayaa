@@ -1,22 +1,21 @@
 /**
  * NeighbourhoodContext — GPS-first neighbourhood detection for Kayaa.
  *
- * RULES (non-negotiable):
- *  - ALWAYS fires GPS on every app open (maximumAge: 0 = never use cached GPS)
- *  - NEVER reads from localStorage to seed the displayed suburb
- *  - NEVER writes detected suburb to localStorage
- *  - manualOverride wins over GPS (user explicitly typed a suburb)
- *  - No city fallback: when suburb is unknown, '' is the honest value
+ * PRIORITY ORDER for displaySuburb / displayLabel:
+ *   1. manualOverride       — user explicitly chose an area (persisted to localStorage)
+ *   2. currentSuburb        — GPS-detected this session (any confidence)
+ *   3. lastConfirmedSuburb  — last high/medium-confidence GPS result (localStorage cache)
+ *   4. ''                   — while detecting or all sources empty
  *
- * Priority order for displaySuburb:
- *   1. manualOverride        — user typed it explicitly
- *   2. GPS-detected suburb   — fresh, from this session
- *   3. ''                    — while detecting or on GPS failure
+ * PERSISTENCE:
+ *   - Manual override is saved to localStorage (kayaa_area_override) so it
+ *     survives page reloads. Cleared when user taps "Use GPS".
+ *   - Last confirmed (high/medium GPS) saved to kayaa_last_confirmed for fallback.
+ *   - Raw GPS coordinates are NEVER written to localStorage — always fresh.
  *
- * Priority order for displayCity:
- *   1. manualCity (from manual override)
- *   2. GPS-detected city
- *   3. ''                    — never assume a city; the UI handles the empty case
+ * DISPLAY FORMAT:
+ *   displayLabel = "Suburb, City" when suburb ≠ city, else "Suburb"
+ *   Example: "Hillbrow, Johannesburg" / "Soweto" / "Khayelitsha, Cape Town"
  */
 
 import {
@@ -25,14 +24,46 @@ import {
 } from 'react';
 import { reverseGeocodeCoords } from '../lib/geocode';
 
+// ─── LocalStorage helpers ─────────────────────────────────────────────────────
+
+const LS_OVERRIDE      = 'kayaa_area_override';     // { suburb, city }
+const LS_LAST_CONFIRMED = 'kayaa_last_confirmed';    // { suburb, city }
+
+function readLS<T>(key: string): T | null {
+  try { return JSON.parse(localStorage.getItem(key) ?? 'null') as T; }
+  catch { return null; }
+}
+function writeLS(key: string, value: unknown): void {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch { /* storage full — non-fatal */ }
+}
+function clearLS(key: string): void {
+  try { localStorage.removeItem(key); }
+  catch { /* non-fatal */ }
+}
+
+// ─── Label builder ────────────────────────────────────────────────────────────
+
+/**
+ * Build the human-readable area label.
+ * "Hillbrow, Johannesburg" | "Soweto" | "Khayelitsha, Cape Town"
+ * Returns '' when no area is known.
+ */
+export function buildAreaLabel(suburb: string, city: string): string {
+  if (!suburb && !city) return '';
+  if (!suburb) return city;
+  if (!city || city.toLowerCase() === suburb.toLowerCase()) return suburb;
+  return `${suburb}, ${city}`;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type DetectionError =
   | 'denied'           // user blocked GPS permission
   | 'timeout'          // GPS took too long
   | 'unavailable'      // device has no GPS
-  | 'geocoding-failed' // GPS succeeded but Nominatim failed
-  | 'suburb-not-found' // GPS + Nominatim succeeded but no suburb resolved
+  | 'geocoding-failed' // GPS succeeded but reverse geocode failed
+  | 'suburb-not-found' // GPS + geocode succeeded but no suburb resolved
   | null;
 
 export interface NeighbourhoodContextValue {
@@ -47,19 +78,25 @@ export interface NeighbourhoodContextValue {
   detectionError: DetectionError;
 
   // ── Manual override ───────────────────────────────────────────────────────
-  manualOverride: string | null;   // suburb the user typed
+  manualOverride: string | null;
   manualCity:     string | null;
-  setManualOverride:  (suburb: string, city?: string) => void;
+  setManualOverride:   (suburb: string, city?: string) => void;
   clearManualOverride: () => void;
 
+  // ── Last confirmed (fallback when GPS this session produced nothing) ──────
+  lastConfirmedSuburb: string;
+  lastConfirmedCity:   string;
+
   // ── Derived display values (what to actually show in UI) ──────────────────
-  displaySuburb: string;           // manualOverride || currentSuburb || ''
-  displayCity:   string;           // fallback chain ending in 'Johannesburg'
-  displayLat:    number | null;    // always from GPS (not from manual)
+  displaySuburb: string;
+  displayCity:   string;
+  displayLat:    number | null;
   displayLon:    number | null;
+  /** Pre-formatted "Suburb, City" label (or just "Suburb" / "City" when identical) */
+  displayLabel:  string;
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  refetchLocation: () => void;     // re-fire GPS (e.g. on sign-in)
+  refetchLocation: () => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -69,19 +106,32 @@ const NeighbourhoodCtx = createContext<NeighbourhoodContextValue | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
-  // GPS-detected values — in-memory only, never from localStorage
+  // GPS-detected values — in-memory, refreshed every session
   const [currentSuburb, setCurrentSuburb] = useState('');
   const [currentCity,   setCurrentCity]   = useState('');
   const [currentLat,    setCurrentLat]    = useState<number | null>(null);
   const [currentLon,    setCurrentLon]    = useState<number | null>(null);
 
-  // Detection state — starts detecting immediately on mount
+  // Detection state
   const [isDetecting,    setIsDetecting]    = useState(true);
   const [detectionError, setDetectionError] = useState<DetectionError>(null);
 
-  // Manual override — user typed a suburb explicitly
-  const [manualOverride, setManualOverrideState] = useState<string | null>(null);
-  const [manualCity,     setManualCityState]     = useState<string | null>(null);
+  // Manual override — seeded from localStorage on mount
+  const [manualOverride, setManualOverrideState] = useState<string | null>(() => {
+    return readLS<{ suburb: string; city: string }>(LS_OVERRIDE)?.suburb ?? null;
+  });
+  const [manualCity, setManualCityState] = useState<string | null>(() => {
+    const saved = readLS<{ suburb: string; city: string }>(LS_OVERRIDE);
+    return saved?.city ?? null;
+  });
+
+  // Last confirmed — seeded from localStorage for fallback
+  const [lastConfirmedSuburb, setLastConfirmedSuburb] = useState<string>(() => {
+    return readLS<{ suburb: string; city: string }>(LS_LAST_CONFIRMED)?.suburb ?? '';
+  });
+  const [lastConfirmedCity, setLastConfirmedCity] = useState<string>(() => {
+    return readLS<{ suburb: string; city: string }>(LS_LAST_CONFIRMED)?.city ?? '';
+  });
 
   // ── GPS detection ─────────────────────────────────────────────────────────
 
@@ -104,7 +154,7 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
             coords.accuracy,
           );
 
-          // Always save the raw lat/lon regardless of suburb resolution
+          // Always save the raw lat/lon
           setCurrentLat(coords.latitude);
           setCurrentLon(coords.longitude);
 
@@ -112,8 +162,16 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
             setCurrentSuburb(result.suburb);
             setCurrentCity(result.city || result.suburb);
             setDetectionError(null);
+
+            // Persist high/medium confidence results as the new last-confirmed
+            if (result.confidence !== 'low') {
+              const confirmed = { suburb: result.suburb, city: result.city };
+              setLastConfirmedSuburb(result.suburb);
+              setLastConfirmedCity(result.city);
+              writeLS(LS_LAST_CONFIRMED, confirmed);
+            }
           } else {
-            // GPS succeeded but Nominatim couldn't resolve a specific suburb
+            // GPS succeeded but geocoder could not resolve a suburb
             setCurrentSuburb('');
             setCurrentCity(result?.city || '');
             setDetectionError('suburb-not-found');
@@ -135,39 +193,59 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
         }
       },
       {
-        maximumAge: 0,           // NEVER use a cached GPS position — always fresh
-        timeout: 12000,
-        enableHighAccuracy: true,
+        maximumAge:          0,       // always fresh GPS — never cached coords
+        timeout:             12_000,
+        enableHighAccuracy:  true,
       },
     );
   }, []);
 
-  // Fire GPS on every app open — the one rule that must never change
-  useEffect(() => {
-    detect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Fire GPS on every app open
+  useEffect(() => { detect(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Manual override actions ───────────────────────────────────────────────
 
   const setManualOverride = useCallback((suburb: string, city?: string) => {
+    const resolvedCity = city || suburb || '';
     setManualOverrideState(suburb || null);
-    setManualCityState(city || suburb || null);
+    setManualCityState(resolvedCity || null);
+    if (suburb) {
+      writeLS(LS_OVERRIDE, { suburb, city: resolvedCity });
+    } else {
+      clearLS(LS_OVERRIDE);
+    }
   }, []);
 
   const clearManualOverride = useCallback(() => {
     setManualOverrideState(null);
     setManualCityState(null);
+    clearLS(LS_OVERRIDE);
   }, []);
 
-  // ── Derived values ────────────────────────────────────────────────────────
+  // ── Derived display values ────────────────────────────────────────────────
+  //
+  // Priority:
+  //   1. Manual override   (user explicit, persisted)
+  //   2. GPS this session  (currentSuburb from reverseGeocode)
+  //   3. Last confirmed    (stored from a previous reliable GPS read)
+  //   4. ''               (show "Set your area" in UI)
 
-  // What to show in the UI — manual wins over GPS, GPS wins over empty.
-  // displayCity deliberately has NO city fallback — we never assume a city.
-  // When empty, the UI shows "Set your neighbourhood", not a wrong city name.
-  const displaySuburb = manualOverride ?? currentSuburb;
-  const displayCity   = manualCity ?? currentCity ?? '';
-  const displayLat    = currentLat;   // always from GPS
-  const displayLon    = currentLon;
+  const displaySuburb =
+    manualOverride    ??
+    (currentSuburb || null) ??
+    lastConfirmedSuburb     ??
+    '';
+
+  const displayCity =
+    manualCity      ??
+    (currentCity || null)   ??
+    lastConfirmedCity       ??
+    '';
+
+  const displayLat = currentLat;
+  const displayLon = currentLon;
+
+  const displayLabel = buildAreaLabel(displaySuburb, displayCity);
 
   // ── Context value ─────────────────────────────────────────────────────────
 
@@ -176,7 +254,8 @@ export function NeighbourhoodProvider({ children }: { children: ReactNode }) {
     isDetecting, detectionError,
     manualOverride, manualCity,
     setManualOverride, clearManualOverride,
-    displaySuburb, displayCity, displayLat, displayLon,
+    lastConfirmedSuburb, lastConfirmedCity,
+    displaySuburb, displayCity, displayLat, displayLon, displayLabel,
     refetchLocation: detect,
   };
 
